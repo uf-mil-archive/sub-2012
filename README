@@ -1,1 +1,1 @@
-This is the base working directory folder for the SubjuGator project. It doesn't make sense to store code in a year marked file, considering we're trying to write software that doesn't expire every July.
+This is the base working directory folder for the SubjuGator project. It doesn't make sense to store code in a year marked file, considering we're trying to write software that doesn't expire every July. SubMain is where the library should go ( I think, I figure we  gotta start somewhere). I figure maybe we put the bulk of the library code in this one.
