@@ -1,0 +1,3 @@
+sub_executable(DDSSubscriber)
+sub_reference_executable(DDSSubscriber DDSPublisher)
+
