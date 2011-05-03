@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(Subjugator)
+
+#ensure CMake will find our custom modules in the cmake directory
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(Templates)
@@ -10,6 +12,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(NDDS REQUIRED)
 include_directories(${NDDS_INCLUDE_DIRS})
 
-add_subdirectory(DDSPublisher)
-add_subdirectory(DDSSubscriber)
+add_subdirectory(ExampleProjects/DDSPublisher)
+add_subdirectory(ExampleProjects/DDSSubscriber)
 
