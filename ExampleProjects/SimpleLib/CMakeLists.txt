@@ -1,0 +1,2 @@
+sub_library(SimpleLib)
+

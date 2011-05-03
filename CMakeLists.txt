@@ -12,6 +12,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(NDDS REQUIRED)
 include_directories(${NDDS_INCLUDE_DIRS})
 
+# TODO: Add a configuration option to disable building of example projects
 add_subdirectory(ExampleProjects/DDSPublisher)
 add_subdirectory(ExampleProjects/DDSSubscriber)
+add_subdirectory(ExampleProjects/SimpleLib)
+add_subdirectory(ExampleProjects/SimpleLibUser)
 
