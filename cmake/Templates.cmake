@@ -43,7 +43,7 @@ function(sub_executable projectname)
 
 	# includes
 	include_directories(include)
-	ndds_include_rtiddsgen_directories(idl)
+	#ndds_include_rtiddsgen_directories(idl)
 
 	# Sources
 	file(GLOB_RECURSE interfaces "idl/*.idl")
@@ -57,7 +57,7 @@ function(sub_executable projectname)
 	# DDS Library (optional)
 	if (interfaces)
 		set(ddslibname ${exename}_ddslib)
-		ndds_run_rtiddsgen(interfaces_sources ${interfaces})
+		#ndds_run_rtiddsgen(interfaces_sources ${interfaces})
 		add_library(${ddslibname} ${interfaces_sources})
 
 		target_link_libraries(${exename} ${ddslibname})
@@ -109,7 +109,7 @@ function(sub_reference_executable projectname)
 		string(TOLOWER ${refprojectname} refexename)
 		set(refddslibname ${refexename}_ddslib)
 
-		ndds_include_project_rtiddsgen_directories(${refprojectname} idl)
+	#	ndds_include_project_rtiddsgen_directories(${refprojectname} idl)
 		target_link_libraries(${exename} ${refddslibname})
 	endforeach()
 endfunction()
