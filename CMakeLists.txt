@@ -17,4 +17,5 @@ include_directories(${Boost_INCLUDE_DIRS})
 #add_subdirectory(ExampleProjects/DDSSubscriber)
 add_subdirectory(ExampleProjects/SimpleLib)
 add_subdirectory(ExampleProjects/SimpleLibUser)
+add_subdirectory(SubMain)
 
