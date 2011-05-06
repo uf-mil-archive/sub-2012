@@ -6,9 +6,10 @@
 # is a simple definition of the desired project layout.
 
 #############################################
-# sub_executable(ProjectName)
+# sub_executable(ProjectName [DDS])
 # Configures this project to build and install an executable, which is always
-# the name of the project in lowercase. All DDS generated code is placed in a
+# the name of the project in lowercase. If the project depends on DDS,
+# the DDS flag must be placed after the project name. All DDS generated code is placed in a
 # static library, which can be linked to other executables that need to communicate
 # using datatypes defined in this project. See sub_reference_executable.
 #
@@ -39,28 +40,40 @@
 #############################################
 
 function(sub_executable projectname)
+	list(FIND ARGN DDS dds_pos) #determine if the DDS flag was given
+	if (dds_pos EQUAL -1)
+		set(dds FALSE)
+	else()
+		set(dds TRUE)
+	endif()
+
+	if (dds AND NOT NDDS_FOUND)
+		message(ERROR "sub_executable called with dds enabled, but DDS was not found")
+		return()
+	endif()
+
 	project(${projectname})
 
-	# includes
+	# Define executable
 	include_directories(include)
-	#ndds_include_rtiddsgen_directories(idl)
-
-	# Sources
-	file(GLOB_RECURSE interfaces "idl/*.idl")
 	file(GLOB_RECURSE sources "source/*.cpp")
-
-	# Executable
 	string(TOLOWER ${projectname} exename)
 	add_executable(${exename} ${sources})
-	target_link_libraries(${exename} ${Boost_LIBRARIES} ${NDDS_LIBRARIES})
+	target_link_libraries(${exename} ${Boost_LIBRARIES})
 
-	# DDS Library (optional)
-	if (interfaces)
-		set(ddslibname ${exename}_ddslib)
-		#ndds_run_rtiddsgen(interfaces_sources ${interfaces})
-		add_library(${ddslibname} ${interfaces_sources})
+	# Optionally set up dds functionality as well
+	if(dds)
+		include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
+		ndds_include_rtiddsgen_directories(idl) # put the directory containing headers generated with rtiddsgen on the include path
+		target_link_libraries(${exename} ${NDDS_LIBRARIES}) # link to DDS
 
-		target_link_libraries(${exename} ${ddslibname})
+		file(GLOB_RECURSE interfaces "idl/*.idl") # build a shared lib to hold DDS generated code if we have any idl files
+		if (interfaces)
+			set(ddslibname ${exename}_ddslib)
+			ndds_run_rtiddsgen(interfaces_sources ${interfaces})
+			add_library(${ddslibname} ${interfaces_sources})
+			target_link_libraries(${exename} ${ddslibname}) # link the library to our binary
+		endif()
 	endif()
 
 	# install
@@ -91,31 +104,35 @@ function(sub_library projectname)
 endfunction()
 
 #############################################
-# sub_reference_executable(ProjectName, ReferencedProject1, ReferencedProject2, ...)
+# sub_reference_executable(ProjectName ReferencedProject1 ReferencedProject2 ...)
 #
 # This allows an executable project to access DDS generated datatype code from other executable projects.
 # It does so by placing the generated header files of each ReferencedProject in the include path of ProjectName,
 # as well as linking the binary from ProjectName with each of the DDS generated shared libraries of the
 # referenced projects.
 #
-# When possible, an executable which publishes a datatype should contain its IDL, and any executable
-# which subscribes to it should reference it.
+# When possible, an executable which publishes a datatype should contain any associated IDL, and any executable
+# which subscribes to topics using that datatype should reference it.
 #############################################
 
 function(sub_reference_executable projectname)
+	if(NOT DDS_FOUND)
+		message(ERROR "sub_reference_executable called, but DDS not found")
+	endif()
+
 	string(TOLOWER ${projectname} exename)
 
 	foreach(refprojectname ${ARGN})
 		string(TOLOWER ${refprojectname} refexename)
 		set(refddslibname ${refexename}_ddslib)
 
-	#	ndds_include_project_rtiddsgen_directories(${refprojectname} idl)
+		ndds_include_project_rtiddsgen_directories(${refprojectname} idl)
 		target_link_libraries(${exename} ${refddslibname})
 	endforeach()
 endfunction()
 
 #############################################
-# sub_reference_library(ProjectName, ReferencedLibraryProject1, ReferencedLibraryProject2, ...)
+# sub_reference_library(ProjectName ReferencedLibraryProject1 ReferencedLibraryProject2 ...)
 #
 # This allows an executable project to use libraries created in library projects.
 # It does so by placing the libraries' include directories in the include path for ProjectName,

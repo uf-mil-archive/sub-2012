@@ -1,2 +1,2 @@
-sub_executable(DDSPublisher)
+sub_executable(DDSPublisher DDS)
 

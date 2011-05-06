@@ -1,3 +1,3 @@
-sub_executable(DDSSubscriber)
+sub_executable(DDSSubscriber DDS)
 sub_reference_executable(DDSSubscriber DDSPublisher)
 
