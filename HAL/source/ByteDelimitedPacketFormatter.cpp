@@ -29,11 +29,14 @@ vector<Packet> ByteDelimitedPacketFormatter::parsePackets(const ByteVec &newdata
 		if (packetend == buf.end()) // didn't find one?
 			break; // no more packets in the buffer
 
-		curpos = packetend+1; // now we've found a complete packet, so consume all the bytes that comprise it, and the ending seperate byte
-		if (!checksumval(packetbegin, packetend)) // and verify its got a good checksum
-			continue; // checksum bad? skip the packet, but keep looking because a good packet could follow it
+		ChecksumValidationResults results = checksumval(packetbegin, packetend); // verify its got a good checksum
+		if (!results) { // bad checksum?
+			curpos = packetend; // consume all the contents of the packet, but resume looking at the ending byte in case its actually the starting byte for the next packet
+			continue;
+		}
 
-		packets.push_back(Packet(packetbegin, packetend)); // save the good packet
+		curpos = packetend+1; // now we've found a complete packet, so consume all the bytes that comprise it, and the ending seperate byte
+		packets.push_back(Packet(results->first, results->second)); // save the data of the packet (ChecksumValidator determines where the data is)
 	}
 
 	buf.erase(buf.begin(), curpos); // erase all the bytes that were consumed

@@ -3,11 +3,16 @@
 
 #include "HAL/shared.h"
 #include <boost/function.hpp>
+#include <boost/optional.hpp>
+#include <utility>
 
 namespace subjugator {
-	typedef boost::function<bool (ByteVec::const_iterator begin, ByteVec::const_iterator end)> ChecksumValidator;
+	typedef boost::optional<std::pair<ByteVec::const_iterator, ByteVec::const_iterator> > ChecksumValidationResults;
+	typedef boost::function<ChecksumValidationResults (ByteVec::const_iterator begin, ByteVec::const_iterator end)> ChecksumValidator;
 
-	inline bool noChecksum(ByteVec::const_iterator begin, ByteVec::const_iterator end) { return true; }
+	inline ChecksumValidationResults noChecksum(ByteVec::const_iterator &begin, ByteVec::const_iterator &end) {
+		return make_pair(begin, end);
+	}
 }
 
 #endif
