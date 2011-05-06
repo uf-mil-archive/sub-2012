@@ -23,27 +23,21 @@ TCPTransport::TCPTransport(const vector<EndpointConfig> &endpointconfigs)
 		edata.socket.async_connect(endpoint, bind(&TCPTransport::asioConnectCallback, this, endnum, _1)); // start an async connect
 	}
 
-	iothread = thread(bind(&io_service::run, &ioservice)); // and start the io_service in its own thread
+	startIOThread();
 }
 
 TCPTransport::~TCPTransport() {
-	ioservice.stop(); // tell the ioservice to stop its event loop
-	iothread.join(); // wait for the iothread to terminate, so that we can safely destroy the objects that it uses
+	stopIOThread();
 }
 
 int TCPTransport::getEndpointCount() const {
 	return endpointdatavec.size();
 }
 
-void TCPTransport::configureCallbacks(ReadCallback readcallback, ErrorCallback errorcallback) {
-	this->readcallback = readcallback;
-	this->errorcallback = errorcallback;
-}
-
 void TCPTransport::write(int endnum, const ByteVec &bytes) {
 	// io thread owns all of the endpointdatavec, we can't touch it here
 	// so we run a callback in the io thread to do our work
-	ioservice.dispatch(bind(&TCPTransport::asioAppendSendBufCallback, this, endnum, bytes));
+	runCallbackOnIOThread(bind(&TCPTransport::asioAppendSendBufCallback, this, endnum, bytes));
 }
 
 void TCPTransport::asioAppendSendBufCallback(int endnum, const ByteVec &bytes) {

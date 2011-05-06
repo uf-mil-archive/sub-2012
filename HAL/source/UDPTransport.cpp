@@ -32,11 +32,6 @@ int UDPTransport::getEndpointCount() const {
 	return endpoints.size();
 }
 
-void UDPTransport::configureCallbacks(ReadCallback readcallback, ErrorCallback errorcallback) {
-	this->readcallback = readcallback;
-	this->errorcallback = errorcallback;
-}
-
 void UDPTransport::write(int endnum, const ByteVec &bytes) {
 	// we can't touch the send queue, io thread has exclusive use of it
 	// so, we run a callback on the io thread which will do the work for us

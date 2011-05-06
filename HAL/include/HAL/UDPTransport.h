@@ -3,6 +3,7 @@
 
 #include "HAL/shared.h"
 #include "HAL/Transport.h"
+#include "HAL/TransportBase.h"
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/cstdint.hpp>
@@ -11,14 +12,13 @@
 #include <queue>
 
 namespace subjugator {
-	class UDPTransport : public Transport {
+	class UDPTransport : public ASIOTransportBase {
 		public:
 			typedef std::pair<std::string, int> EndpointConfig;
 			UDPTransport(const std::vector<EndpointConfig> &endpointconfigs);
 			~UDPTransport();
 
 			virtual int getEndpointCount() const;
-			virtual void configureCallbacks(ReadCallback readcallback, ErrorCallback errorcallback);
 			virtual void write(int endnum, const ByteVec &bytes);
 
 		private:
@@ -27,9 +27,6 @@ namespace subjugator {
 
 			boost::asio::ip::udp::socket socket;
 			std::vector<boost::asio::ip::udp::endpoint> endpoints;
-
-			ReadCallback readcallback;
-			ErrorCallback errorcallback;
 
 			ByteVec recvbuffer;
 			boost::asio::ip::udp::endpoint recvendpoint;

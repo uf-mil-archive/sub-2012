@@ -21,21 +21,15 @@ SerialTransport::SerialTransport(const vector<string> &devicenames)
 		startAsyncReceive(endnum);
 	}
 
-	iothread = thread(bind(&io_service::run, &ioservice)); // and start the io_service in its own thread
+	startIOThread();
 }
 
 SerialTransport::~SerialTransport() {
-	ioservice.stop(); // tell the ioservice to stop its event loop
-	iothread.join(); // wait for the iothread to terminate, so that we can safely destroy the objects that it uses
+	stopIOThread();
 }
 
 int SerialTransport::getEndpointCount() const {
 	return endpointdatavec.size();
-}
-
-void SerialTransport::configureCallbacks(ReadCallback readcallback, ErrorCallback errorcallback) {
-	this->readcallback = readcallback;
-	this->errorcallback = errorcallback;
 }
 
 void SerialTransport::write(int endnum, const ByteVec &bytes) {
