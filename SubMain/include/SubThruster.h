@@ -2,7 +2,7 @@ namespace SubjuGator
 {
 	class Thruster
 	{
-	public:			
+	public:
 		enum ThrusterID
 		{
 			FStrafe = 0,
@@ -37,6 +37,6 @@ namespace SubjuGator
 	{
 	public:
 		ThrusterData(Thruster::ThrusterID id);
-		
-	}
+
+	};
 }
