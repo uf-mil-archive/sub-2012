@@ -1,0 +1,52 @@
+#include "HAL/ByteDelimitedPacketFormatter.h"
+#include <algorithm>
+
+using namespace subjugator;
+using namespace boost;
+using namespace std;
+
+ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(uint8_t sepbyte, ChecksumValidator checksumval)
+: sepbyte(sepbyte), checksumval(checksumval) {
+	buf.reserve(4096);
+}
+
+vector<Packet> ByteDelimitedPacketFormatter::parsePackets(const ByteVec &newdata) {
+	buf.insert(buf.end(), newdata.begin(), newdata.end()); // put the new data into the buffer
+
+	ByteVec::iterator curpos = buf.begin(); // start at the beginning of the buffer
+	vector<Packet> packets;
+
+	while (true) {
+		ByteVec::iterator packetbegin = find(curpos, buf.end(), sepbyte); // find the beginning seperator byte
+		curpos = packetbegin; // consume all bytes up to the beginning of the packet
+
+		if (packetbegin == buf.end()) // didn't find a seperator byte
+			break; // no more packets in the buffer
+
+		packetbegin++; // go past the seperator byte, it isn't actually part of the packet
+
+		ByteVec::iterator packetend = find(packetbegin, buf.end(), sepbyte); // find the ending seperator byte
+		if (packetend == buf.end()) // didn't find one?
+			break; // no more packets in the buffer
+
+		curpos = packetend+1; // now we've found a complete packet, so consume all the bytes that comprise it, and the ending seperate byte
+		if (!checksumval(packetbegin, packetend)) // and verify its got a good checksum
+			continue; // checksum bad? skip the packet, but keep looking because a good packet could follow it
+
+		packets.push_back(Packet(packetbegin, packetend)); // save the good packet
+	}
+
+	buf.erase(buf.begin(), curpos); // erase all the bytes that were consumed
+
+	return packets;
+}
+
+ByteVec ByteDelimitedPacketFormatter::formatPacket(const Packet &packet) const {
+	ByteVec bytes(packet.size()+2); // allocate the bytevec
+
+	bytes[0] = bytes[bytes.size()-1] = sepbyte; // put the seperater byte at the beginning and end
+	copy(packet.begin(), packet.end(), bytes.begin()+1); // copy the data in
+
+	return bytes;
+}
+
