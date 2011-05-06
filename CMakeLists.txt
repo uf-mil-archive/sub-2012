@@ -21,6 +21,7 @@ endif()
 # (maybe possible to find projects automatically?)
 
 add_subdirectory(SubMain)
+add_subdirectory(HAL)
 
 # Handle the example projects
 
