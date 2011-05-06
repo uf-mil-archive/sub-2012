@@ -22,6 +22,7 @@ endif()
 
 add_subdirectory(SubMain)
 add_subdirectory(HAL)
+add_subdirectory(HALTest)
 
 # Handle the example projects
 
