@@ -55,7 +55,9 @@ function(sub_executable projectname)
 	project(${projectname})
 
 	# Define executable
-	include_directories(include)
+	if(EXISTS include)
+		include_directories(include)
+	endif()
 	file(GLOB_RECURSE sources "source/*.cpp")
 	string(TOLOWER ${projectname} exename)
 	add_executable(${exename} ${sources})
@@ -64,7 +66,6 @@ function(sub_executable projectname)
 	# Optionally set up dds functionality as well
 	if(dds)
 		include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
-		ndds_include_rtiddsgen_directories(idl) # put the directory containing headers generated with rtiddsgen on the include path
 		target_link_libraries(${exename} ${NDDS_LIBRARIES}) # link to DDS
 
 		file(GLOB_RECURSE interfaces "idl/*.idl") # build a shared lib to hold DDS generated code if we have any idl files
@@ -73,6 +74,7 @@ function(sub_executable projectname)
 			ndds_run_rtiddsgen(interfaces_sources ${interfaces})
 			add_library(${ddslibname} ${interfaces_sources})
 			target_link_libraries(${exename} ${ddslibname}) # link the library to our binary
+			ndds_include_rtiddsgen_directories(idl) # put the directory containing headers generated with rtiddsgen on the include path
 		endif()
 	endif()
 
@@ -116,7 +118,7 @@ endfunction()
 #############################################
 
 function(sub_reference_executable projectname)
-	if(NOT DDS_FOUND)
+	if(NOT NDDS_FOUND)
 		message(ERROR "sub_reference_executable called, but DDS not found")
 	endif()
 
