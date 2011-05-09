@@ -29,8 +29,10 @@ void SerialTransport::start() {
 		if (!error) {
 			startAsyncReceive(endnum);
 		} else {
-			if (errorcallback)
-				errorcallback(endnum, "SerialTransport failed to open serial device " + devicenames[endnum] + ": " + lexical_cast<string>(error));
+			if (errorcallback) {
+				string msg = "SerialTransport failed to open serial device " + devicenames[endnum] + ": " + lexical_cast<string>(error);
+				runCallbackOnIOThread(bind(errorcallback, endnum, msg));
+			}
 		}
 	}
 

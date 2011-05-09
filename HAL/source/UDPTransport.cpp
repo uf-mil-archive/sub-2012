@@ -32,8 +32,10 @@ void UDPTransport::start() {
 	if (!error) {
 		startAsyncReceive();
 	} else {
-		if (errorcallback)
-			errorcallback(-1, "UDPTransport failed to open UDP socket: " + lexical_cast<string>(error)); // call the error callback
+		if (errorcallback) {
+			string errormsg = "UDPTransport failed to open UDP socket: " + lexical_cast<string>(error);
+			runCallbackOnIOThread(bind(errorcallback, -1, errormsg)); // call the error callback on the IO thread
+		}
 	}
 
 	startIOThread();
