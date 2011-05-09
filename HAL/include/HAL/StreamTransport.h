@@ -11,7 +11,10 @@ namespace subjugator {
 	template <class StreamType> // designed to be either a tcp::socket or a serial_port
 	class StreamTransport : public ASIOTransportBase {
 		protected:
-			StreamTransport(int size) : streamdatavec(size) { }
+			StreamTransport(int size) : streamdatavec(size) {
+				for (int endnum=0; endnum<size; endnum++) // for each endpoint
+					streamdatavec.push_back(new StreamData(ioservice)); // allocate stream data
+			}
 
 			struct StreamData {
 				StreamData(boost::asio::io_service &ioservice) : stream(ioservice), recvbuf(4096) {
@@ -52,8 +55,7 @@ namespace subjugator {
 				if (error) {
 					if (errorcallback)
 						errorcallback(endnum, "SerialTransport received error while sending: " + boost::lexical_cast<std::string>(error)); // call the error callback
-					// TODO close socket?
-					return;
+					sdata.stream.close();
 				}
 
 				sdata.sendbuf.erase(sdata.sendbuf.begin(), sdata.sendbuf.begin() + bytes); // erase the bytes from the send buffer
@@ -67,8 +69,7 @@ namespace subjugator {
 				if (error) {
 					if (errorcallback)
 						errorcallback(endnum, "TCPTransport received error while receiving: " + boost::lexical_cast<std::string>(error)); // call the error callback
-					// TODO close socket?
-					return;
+					sdata.stream.close();
 				}
 
 				sdata.recvbuf.resize(bytes); // resize the buffer to the number of bytes asio put in there (asio never resizes vectors)

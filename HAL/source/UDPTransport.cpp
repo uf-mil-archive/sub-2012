@@ -8,22 +8,40 @@ using namespace subjugator;
 using namespace boost;
 using namespace boost::asio;
 using namespace boost::asio::ip;
+using namespace boost::system;
 using namespace std;
 
 UDPTransport::UDPTransport(const vector<EndpointConfig> &endpointconfigs)
-: socket(ioservice, udp::v4()),
+: socket(ioservice),
   endpoints(endpointconfigs.size()),
   recvbuffer(4096) {
 	for (int i=0; i < endpointconfigs.size(); i++) {
 		const EndpointConfig &config = endpointconfigs[i];
 		endpoints[i] = udp::endpoint(address::from_string(config.first), config.second); // create asio endpoint objects for each end point config
 	}
-
-	startAsyncReceive(); // start the first async receive
 }
 
 UDPTransport::~UDPTransport() {
+	stop();
+}
+
+void UDPTransport::start() {
+	error_code error;
+	socket.open(udp::v4(), error);
+
+	if (!error) {
+		startAsyncReceive();
+	} else {
+		if (errorcallback)
+			errorcallback(-1, "UDPTransport failed to open UDP socket: " + lexical_cast<string>(error)); // call the error callback
+	}
+
+	startIOThread();
+}
+
+void UDPTransport::stop() {
 	stopIOThread();
+	socket.close();
 }
 
 int UDPTransport::getEndpointCount() const {

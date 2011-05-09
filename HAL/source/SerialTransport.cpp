@@ -9,20 +9,40 @@ using namespace subjugator;
 using namespace boost;
 using namespace boost::asio;
 using namespace boost::asio::ip;
+using namespace boost::system;
 using namespace std;
 
 SerialTransport::SerialTransport(const vector<string> &devicenames)
-: StreamTransport<boost::asio::serial_port>(devicenames.size()) {
-	for (int endnum=0; endnum<devicenames.size(); endnum++) {
-		streamdatavec.push_back(new StreamData(ioservice));
-		StreamData &sdata = streamdatavec.back();
-
-		sdata.stream.open(devicenames[endnum]);
-		startAsyncReceive(endnum);
-	}
-}
+: StreamTransport<boost::asio::serial_port>(devicenames.size()), devicenames(devicenames) { }
 
 SerialTransport::~SerialTransport() {
+	stop();
+}
+
+void SerialTransport::start() {
+	error_code error;
+
+	for (int endnum=0; endnum<streamdatavec.size(); endnum++) {
+		StreamData &sdata = streamdatavec[endnum];
+		sdata.stream.open(devicenames[endnum], error);
+
+		if (!error) {
+			startAsyncReceive(endnum);
+		} else {
+			if (errorcallback)
+				errorcallback(endnum, "SerialTransport failed to open serial device " + devicenames[endnum] + ": " + lexical_cast<string>(error));
+		}
+	}
+
+	startIOThread();
+}
+
+void SerialTransport::stop() {
 	stopIOThread();
+
+	for (int endnum=0; endnum<streamdatavec.size(); endnum++) {
+		StreamData &sdata = streamdatavec[endnum];
+		sdata.stream.close();
+	}
 }
 

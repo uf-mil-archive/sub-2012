@@ -18,6 +18,9 @@ namespace subjugator {
 			UDPTransport(const std::vector<EndpointConfig> &endpointconfigs);
 			~UDPTransport();
 
+			virtual void start();
+			virtual void stop();
+
 			virtual int getEndpointCount() const;
 			virtual void write(int endnum, const ByteVec &bytes);
 

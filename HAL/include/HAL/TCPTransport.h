@@ -13,8 +13,13 @@ namespace subjugator {
 			TCPTransport(const std::vector<EndpointConfig> &endpointconfigs);
 			~TCPTransport();
 
+			virtual void start();
+			virtual void stop();
+
 		private:
 			void asioConnectCallback(int endnum, const boost::system::error_code& error);
+
+			std::vector<EndpointConfig> endpointconfigs;
 	};
 }
 

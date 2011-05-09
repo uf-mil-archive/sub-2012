@@ -10,6 +10,12 @@ namespace subjugator {
 		public:
 			SerialTransport(const std::vector<std::string> &devicenames);
 			~SerialTransport();
+
+			virtual void start();
+			virtual void stop();
+
+		private:
+			std::vector<std::string> devicenames;
 	};
 }
 

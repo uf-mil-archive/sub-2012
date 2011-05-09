@@ -16,10 +16,6 @@ namespace subjugator {
 	};
 
 	class ASIOTransportBase : public TransportBase {
-		public:
-			virtual void start();
-			virtual void stop();
-
 		protected:
 			void startIOThread();
 			void stopIOThread();

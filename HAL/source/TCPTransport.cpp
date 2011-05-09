@@ -12,20 +12,32 @@ using namespace boost::asio::ip;
 using namespace std;
 
 TCPTransport::TCPTransport(const vector<EndpointConfig> &endpointconfigs)
-: StreamTransport<boost::asio::ip::tcp::socket>(endpointconfigs.size()) {
-	for (int endnum=0; endnum<endpointconfigs.size(); endnum++) { // for every end point config
-		streamdatavec.push_back(new StreamData(ioservice)); // allocate stream data
-		StreamData &sdata = streamdatavec.back();
+: StreamTransport<tcp::socket>(endpointconfigs.size()), endpointconfigs(endpointconfigs) { }
 
+TCPTransport::~TCPTransport() {
+	stop();
+}
+
+void TCPTransport::start() {
+	for (int endnum=0; endnum<streamdatavec.size(); endnum++) {
+		StreamData &sdata = streamdatavec[endnum];
 		const EndpointConfig &econfig = endpointconfigs[endnum]; // create asio endpoint objects for each end point config
 		tcp::endpoint endpoint(address::from_string(econfig.first), econfig.second);
 
 		sdata.stream.async_connect(endpoint, bind(&TCPTransport::asioConnectCallback, this, endnum, _1)); // start an async connect
 	}
+
+	startIOThread();
 }
 
-TCPTransport::~TCPTransport() {
+void TCPTransport::stop() {
 	stopIOThread();
+
+	for (int endnum=0; endnum<streamdatavec.size(); endnum++) {
+		StreamData &sdata = streamdatavec[endnum];
+		sdata.stream.shutdown(tcp::socket::shutdown_both);
+		sdata.stream.close();
+	}
 }
 
 void TCPTransport::asioConnectCallback(int endnum, const boost::system::error_code& error) {
@@ -34,8 +46,6 @@ void TCPTransport::asioConnectCallback(int endnum, const boost::system::error_co
 	} else {
 		if (errorcallback)
 			errorcallback(endnum, "TCPTransport received error while connecting: " + lexical_cast<string>(error)); // call the error callback
-		// TODO close socket?
-		return;
 	}
 }
 

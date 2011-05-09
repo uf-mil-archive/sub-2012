@@ -10,14 +10,6 @@ void TransportBase::configureCallbacks(ReadCallback readcallback, ErrorCallback 
 	this->errorcallback = errorcallback;
 }
 
-void ASIOTransportBase::start() {
-	startIOThread();
-}
-
-void ASIOTransportBase::stop() {
-	stopIOThread();
-}
-
 void ASIOTransportBase::startIOThread() {
 	if (iothread_running)
 		return;
