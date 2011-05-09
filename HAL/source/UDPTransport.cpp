@@ -27,11 +27,11 @@ UDPTransport::~UDPTransport() {
 
 void UDPTransport::start() {
 	error_code error;
-	socket.open(udp::v4(), error);
+	socket.open(udp::v4(), error); // open the UDP socket
 
 	if (!error) {
-		startAsyncReceive();
-	} else {
+		startAsyncReceive(); // start an asynchronous receive
+	} else { // if it fails
 		if (errorcallback) {
 			string errormsg = "UDPTransport failed to open UDP socket: " + lexical_cast<string>(error);
 			runCallbackOnIOThread(bind(errorcallback, -1, errormsg)); // call the error callback on the IO thread

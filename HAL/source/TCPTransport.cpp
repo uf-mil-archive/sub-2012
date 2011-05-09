@@ -33,7 +33,7 @@ void TCPTransport::start() {
 void TCPTransport::stop() {
 	stopIOThread();
 
-	for (int endnum=0; endnum<streamdatavec.size(); endnum++) {
+	for (int endnum=0; endnum<streamdatavec.size(); endnum++) { // close each socket
 		StreamData &sdata = streamdatavec[endnum];
 		sdata.stream.shutdown(tcp::socket::shutdown_both);
 		sdata.stream.close();

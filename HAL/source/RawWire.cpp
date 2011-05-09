@@ -11,7 +11,7 @@ RawWire::RawWire(Transport *transport, PacketFormatterFactory packetformatterfac
 	transport->configureCallbacks(bind(&RawWire::transportReadCallback, this, _1, _2), bind(&RawWire::transportErrorCallback, this, _1, _2));
 
 	for (int i=0; i<transport->getEndpointCount(); i++) {
-		formatters.push_back(packetformatterfactory());
+		formatters.push_back(packetformatterfactory()); // use the packet formatter factory to create formatters for each endpoint
 	}
 }
 
@@ -31,16 +31,16 @@ void RawWire::stop() {
 void RawWire::transportReadCallback(int endnum, const ByteVec &bytes) {
 	assert(endnum < formatters.size());
 
-	vector<Packet> newpackets = formatters[endnum].parsePackets(bytes);
+	vector<Packet> newpackets = formatters[endnum].parsePackets(bytes); // use the formatter to parse packets
 
 	if (readcallback) {
 		for (vector<Packet>::iterator i = newpackets.begin(); i != newpackets.end(); ++i)
-			readcallback(endnum, *i);
+			readcallback(endnum, *i); // call the read callback on each packet
 	}
 }
 
 void RawWire::transportErrorCallback(int endnum, const string &msg) {
 	if (errorcallback)
-		errorcallback(endnum, msg);
+		errorcallback(endnum, msg); // pass the error callback up
 }
 
