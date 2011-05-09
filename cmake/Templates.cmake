@@ -151,3 +151,12 @@ function(sub_reference_library projectname)
 	endforeach()
 endfunction()
 
+# Apparently -fPIC is recommended for any build on 64 bit linux.
+if (NOT CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+	if (CMAKE_COMPILER_IS_GNUCXX)
+		add_definitions(-fPIC)
+	else()
+		message(WARNING "Don't know how to force -fPIC on x64 with this compiler") # don't feed -fPIC to somebody other than GCC, it'll probably cause errors
+	endif()
+endif()
+
