@@ -6,6 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Load our template functions
 include(Templates)
+include(UseDoxygen)
 
 # find boost
 find_package(Boost REQUIRED COMPONENTS system thread date_time)
