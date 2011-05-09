@@ -20,12 +20,10 @@ UDPTransport::UDPTransport(const vector<EndpointConfig> &endpointconfigs)
 	}
 
 	startAsyncReceive(); // start the first async receive
-	iothread = thread(bind(&io_service::run, &ioservice)); // and start the io_service in its own thread
 }
 
 UDPTransport::~UDPTransport() {
-	ioservice.stop(); // tell the ioservice to stop its event loop
-	iothread.join(); // wait for the iothread to terminate, so that we can safely destroy the objects that it uses
+	stopIOThread();
 }
 
 int UDPTransport::getEndpointCount() const {

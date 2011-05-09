@@ -16,6 +16,10 @@ namespace subjugator {
 	};
 
 	class ASIOTransportBase : public TransportBase {
+		public:
+			virtual void start();
+			virtual void stop();
+
 		protected:
 			void startIOThread();
 			void stopIOThread();
@@ -23,6 +27,9 @@ namespace subjugator {
 
 			boost::asio::io_service ioservice;
 			boost::thread iothread;
+
+		private:
+			bool iothread_running;
 	};
 }
 

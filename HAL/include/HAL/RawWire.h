@@ -21,6 +21,9 @@ namespace subjugator {
 			typedef Transport::ErrorCallback ErrorCallback;
 			void configureCallbacks(ReadCallback readcallback, ErrorCallback errorcallback);
 
+			void start();
+			void stop();
+
 			void writePacket(int endnum, const Packet &packet);
 
 		private:

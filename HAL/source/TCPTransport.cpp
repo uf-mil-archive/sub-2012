@@ -22,8 +22,6 @@ TCPTransport::TCPTransport(const vector<EndpointConfig> &endpointconfigs)
 
 		sdata.stream.async_connect(endpoint, bind(&TCPTransport::asioConnectCallback, this, endnum, _1)); // start an async connect
 	}
-
-	startIOThread();
 }
 
 TCPTransport::~TCPTransport() {

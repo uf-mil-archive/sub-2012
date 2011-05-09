@@ -20,8 +20,6 @@ SerialTransport::SerialTransport(const vector<string> &devicenames)
 		sdata.stream.open(devicenames[endnum]);
 		startAsyncReceive(endnum);
 	}
-
-	startIOThread();
 }
 
 SerialTransport::~SerialTransport() {

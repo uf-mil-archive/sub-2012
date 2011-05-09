@@ -20,6 +20,14 @@ void RawWire::configureCallbacks(ReadCallback readcallback, ErrorCallback errorc
 	this->errorcallback = errorcallback;
 }
 
+void RawWire::start() {
+	transport->start();
+}
+
+void RawWire::stop() {
+	transport->stop();
+}
+
 void RawWire::transportReadCallback(int endnum, const ByteVec &bytes) {
 	assert(endnum < formatters.size());
 
