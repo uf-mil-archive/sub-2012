@@ -1,9 +1,14 @@
-namespace SubjuGator
+#ifndef _SubThruster_H__
+#define _SubThruster_H__
+
+#include "SubMain/SubPrerequisites.h"
+
+namespace subjugator
 {
 	class Thruster
 	{
-	public:
-		enum ThrusterID
+	public:			
+		enum ThrusterId
 		{
 			FStrafe = 0,
 			FRVertical = 1,
@@ -15,7 +20,7 @@ namespace SubjuGator
 			LForward = 7
 		};
 
-		ThrusterID GetId() const { return mId; }
+		ThrusterId GetId() const { return mId; }
 
 		double GetCurrent() const { return mCurrent; }
 		double GetMaxCurrent() const { return mMaxCurrent; }
@@ -25,7 +30,7 @@ namespace SubjuGator
 		bool Compare(Thruster i, Thruster j) const { return (i.GetId() < j.GetId()); }
 
 	private:
-		ThrusterID mId;
+		ThrusterId mId;
 		bool mEnabled;
 		double mCurrent;
 		double mMaxCurrent;
@@ -35,8 +40,14 @@ namespace SubjuGator
 
 	class ThrusterData
 	{
+		friend std::ostream &operator<<(std::ostream &out, const ThrusterData &data); 
 	public:
-		ThrusterData(Thruster::ThrusterID id);
-
+		ThrusterData(Thruster::ThrusterId id);
+		ThrusterData(std::vector<uint8_t> const &dataVector);
+	private:
+		Thruster::ThrusterId mId;
 	};
 }
+
+#endif // _SubThruster_H__
+
