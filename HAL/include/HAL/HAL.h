@@ -28,8 +28,8 @@ namespace subjugator {
 			ReadCallback readcallback;
 			ErrorCallback errorcallback;
 
-			void transportReadCallback(int endnum, const ByteVec &bytes);
-			void transportErrorCallback(int endnum, const std::string &mgs);
+			void rawwireReadCallback(int endnum, const Packet &bytes);
+			void rawwireErrorCallback(int endnum, const std::string &mgs);
 	};
 }
 
