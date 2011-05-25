@@ -1,7 +1,7 @@
 /**
 \class subjugator::PacketFormatter
-\brief HAL class for formatting packets to be transmitted on a Transport
 \headerfile HAL/RawWire.h
+\brief HAL class for formatting packets to be transmitted on a Transport
 
 The PacketFormatter interface converts between Packets and ByteVecs according to
 a specific packet format, usually adding some kind of header or footer

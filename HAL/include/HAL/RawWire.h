@@ -1,7 +1,7 @@
 /**
 \class subjugator::RawWire
-\brief HAL class providing packet level communication
 \headerfile HAL/RawWire.h
+\brief HAL class providing packet level communication
 
 RawWire enables the HAL to exchange packets with the hardware, using
 a PacketFormatter to add and remove headers, footers, and checksums to
@@ -31,6 +31,7 @@ namespace subjugator {
 			typedef boost::function<PacketFormatter *()> PacketFormatterFactory;
 
 			/** \brief Initializes a RawWire
+
 			Constructs a RawWire, using a heap-allocated Transport, and a PacketFormatterFactory.
 			RawWire takes ownership of the Transport, and will free it when RawWire is destructed.
 			The constructor requires a PacketFormatterFactory, because it needs to create a packet formatter
