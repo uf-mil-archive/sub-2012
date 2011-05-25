@@ -5,8 +5,8 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(uint8_t sepbyte, ChecksumValidator checksumval)
-: sepbyte(sepbyte), checksumval(checksumval) {
+ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(uint8_t sepbyte, Checksum *checksum)
+: sepbyte(sepbyte), checksum(checksum) {
 	buf.reserve(4096);
 }
 
@@ -29,7 +29,7 @@ vector<Packet> ByteDelimitedPacketFormatter::parsePackets(const ByteVec &newdata
 		if (packetend == buf.end()) // didn't find one?
 			break; // no more packets in the buffer
 
-		ChecksumValidationResults results = checksumval(packetbegin, packetend); // verify its got a good checksum
+		Checksum::ValidationResults results = checksum->validate(packetbegin, packetend); // verify its got a good checksum
 		if (!results) { // bad checksum?
 			curpos = packetend; // consume all the contents of the packet, but resume looking at the ending byte in case its actually the starting byte for the next packet
 			continue;
@@ -45,10 +45,11 @@ vector<Packet> ByteDelimitedPacketFormatter::parsePackets(const ByteVec &newdata
 }
 
 ByteVec ByteDelimitedPacketFormatter::formatPacket(const Packet &packet) const {
-	ByteVec bytes(packet.size()+2); // allocate the bytevec
+	ByteVec bytes = packet; // allocate a copy of the data
+	checksum->add(bytes); // add the checksum
 
-	bytes[0] = bytes[bytes.size()-1] = sepbyte; // put the seperater byte at the beginning and end
-	copy(packet.begin(), packet.end(), bytes.begin()+1); // copy the data in
+	bytes.insert(bytes.begin(), sepbyte); // add the seperater byte at the beginning and end
+	bytes.insert(bytes.end(), sepbyte);
 
 	return bytes;
 }

@@ -9,16 +9,22 @@ using namespace boost;
 using namespace std;
 
 // just for ease of testing
-ChecksumValidationResults endsInQChecksum(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
-	if (begin == end) // fail if packet has 0 length
-		return none;
-	if (end[-1] != 'Q') // fail if packet doesn't end in Q
-		return none;
-	return make_pair(begin, end-1); // otherwise, the data is the beginning of the packet to 1 before the end (the Q)
-}
+class QChecksum : public Checksum {
+	ValidationResults validate(ByteVec::const_iterator begin, ByteVec::const_iterator end) const {
+		if (begin == end) // fail if packet has 0 length
+			return none;
+		if (end[-1] != 'Q') // fail if packet doesn't end in Q
+			return none;
+		return make_pair(begin, end-1); // otherwise, the data is the beginning of the packet to 1 before the end (the Q)
+	}
+
+	void add(ByteVec &data) const {
+		data.push_back('Q');
+	}
+};
 
 int main(int argc, char **argv) {
-	ByteDelimitedPacketFormatter packetformatter('!', endsInQChecksum); // valid packets are delimited with an ! and end in Q
+	ByteDelimitedPacketFormatter packetformatter('!', new QChecksum()); // valid packets are delimited with an ! and end in Q
 	string data = "!BAD!!BAD!!BAD!HelloQ!!WorldQ!Not a packetQ!BAD!!Split up"; // including half a packet at the end
 	ByteVec bytes(data.begin(), data.end());
 
