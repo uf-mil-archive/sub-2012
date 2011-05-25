@@ -23,7 +23,8 @@ void ASIOTransportBase::stopIOThread() {
 		return;
 
 	ioservice.stop(); // tell the ioservice to stop its event loop
-	iothread.join(); // wait for the iothread to terminate, so that we can safely destroy the objects that it uses
+	iothread.join(); // wait for the iothread to terminate
+	ioservice.reset(); // reset the io_service so it could be used again (somebody could call startIOThread a second time)
 	iothread_running = false;
 }
 
