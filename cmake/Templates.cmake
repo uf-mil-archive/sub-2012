@@ -61,7 +61,7 @@ function(sub_executable projectname)
 	file(GLOB_RECURSE sources "source/*.cpp")
 	string(TOLOWER ${projectname} exename)
 	add_executable(${exename} ${sources})
-	target_link_libraries(${exename} ${Boost_LIBRARIES})
+	target_link_libraries(${exename} ${Boost_LIBRARIES} ${FFTW_LIBRARIES})
 
 	# Optionally set up dds functionality as well
 	if(dds)

@@ -12,6 +12,12 @@ include(UseDoxygen)
 find_package(Boost REQUIRED COMPONENTS system thread date_time)
 include_directories(${Boost_INCLUDE_DIRS})
 
+# find Eigen and FFTW
+find_package(Eigen3 REQUIRED)
+find_package(FFTW REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR} ${FFTW_INCLUDES})
+add_definitions(-DEIGEN_FFTW_DEFAULT)
+
 # find DDS, but not REQUIRED
 find_package(NDDS QUIET)
 if(NOT NDDS_FOUND)
@@ -22,6 +28,7 @@ endif()
 # (maybe possible to find projects automatically?)
 
 add_subdirectory(SubMain)
+add_subdirectory(Hydrophone)
 add_subdirectory(HAL)
 add_subdirectory(HALTest)
 
