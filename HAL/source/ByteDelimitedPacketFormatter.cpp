@@ -1,56 +1,82 @@
 #include "HAL/ByteDelimitedPacketFormatter.h"
 #include <algorithm>
+#include <cassert>
 
 using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(uint8_t sepbyte, Checksum *checksum)
-: sepbyte(sepbyte), checksum(checksum) {
+ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(boost::uint8_t flagbyte, boost::uint8_t escapebyte, boost::uint8_t maskbyte, Checksum *checksum)
+: flagbyte(flagbyte), escapebyte(escapebyte), maskbyte(maskbyte), checksum(checksum), state(STATE_NOPACKET) {
 	buf.reserve(4096);
 }
 
 vector<Packet> ByteDelimitedPacketFormatter::parsePackets(const ByteVec &newdata) {
-	buf.insert(buf.end(), newdata.begin(), newdata.end()); // put the new data into the buffer
-
-	ByteVec::iterator curpos = buf.begin(); // start at the beginning of the buffer
 	vector<Packet> packets;
 
-	while (true) {
-		ByteVec::iterator packetbegin = find(curpos, buf.end(), sepbyte); // find the beginning seperator byte
-		curpos = packetbegin; // consume all bytes up to the beginning of the packet
+	for (ByteVec::const_iterator i = newdata.begin(); i != newdata.end(); ++i) { // go through each byte
+		switch (state) {
+			case STATE_NOPACKET:
+				if (*i == flagbyte)
+					state = STATE_INPACKET;
+				break;
 
-		if (packetbegin == buf.end()) // didn't find a seperator byte
-			break; // no more packets in the buffer
+			case STATE_INPACKET:
+				if (*i == flagbyte) {
+					if (buf.size() == 0) // zero length packets indicate a mis-alignment, ignore them
+						continue;
 
-		packetbegin++; // go past the seperator byte, it isn't actually part of the packet
+					if (validateChecksum())
+						packets.push_back(Packet(buf.begin(), buf.end() - checksum->getSize()));
 
-		ByteVec::iterator packetend = find(packetbegin, buf.end(), sepbyte); // find the ending seperator byte
-		if (packetend == buf.end()) // didn't find one?
-			break; // no more packets in the buffer
+					buf.clear();
+					state = STATE_NOPACKET;
+				} else if (*i == escapebyte) {
+					state = STATE_INESCAPE;
+				} else {
+					buf.push_back(*i);
+				}
+				break;
 
-		Checksum::ValidationResults results = checksum->validate(packetbegin, packetend); // verify its got a good checksum
-		if (!results) { // bad checksum?
-			curpos = packetend; // consume all the contents of the packet, but resume looking at the ending byte in case its actually the starting byte for the next packet
-			continue;
+			case STATE_INESCAPE:
+				buf.push_back(*i ^ maskbyte);
+				state = STATE_INPACKET;
+				break;
 		}
-
-		curpos = packetend+1; // now we've found a complete packet, so consume all the bytes that comprise it, and the ending seperate byte
-		packets.push_back(Packet(results->first, results->second)); // save the data of the packet (ChecksumValidator determines where the data is)
 	}
-
-	buf.erase(buf.begin(), curpos); // erase all the bytes that were consumed
 
 	return packets;
 }
 
+bool ByteDelimitedPacketFormatter::validateChecksum() {
+	ByteVec::iterator bufchecksumbegin = buf.end() - checksum->getSize();
+	ByteVec checksumbytes = checksum->compute(buf.begin(), bufchecksumbegin);
+
+	assert(checksumbytes.size() == checksum->getSize());
+
+	return equal(checksumbytes.begin(), checksumbytes.end(), bufchecksumbegin);
+}
+
 ByteVec ByteDelimitedPacketFormatter::formatPacket(const Packet &packet) const {
-	ByteVec bytes = packet; // allocate a copy of the data
-	checksum->add(bytes); // add the checksum
+	ByteVec out;
+	out.reserve(packet.size() + 10); // checksum + escapes will create a few extra bytes
 
-	bytes.insert(bytes.begin(), sepbyte); // add the seperater byte at the beginning and end
-	bytes.insert(bytes.end(), sepbyte);
+	out.push_back(flagbyte);
 
-	return bytes;
+	for (Packet::const_iterator i = packet.begin(); i != packet.end(); ++i) { // add escapes
+		if (*i == flagbyte || *i == escapebyte) {
+			out.push_back(escapebyte);
+			out.push_back(*i ^ maskbyte);
+		} else {
+			out.push_back(*i);
+		}
+	}
+
+	ByteVec checksumbytes = checksum->compute(packet.begin(), packet.end()); // add checksum
+	out.insert(out.end(), checksumbytes.begin(), checksumbytes.end());
+
+	out.push_back(flagbyte);
+
+	return out;
 }
 

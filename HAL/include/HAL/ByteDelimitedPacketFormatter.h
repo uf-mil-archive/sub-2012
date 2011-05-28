@@ -10,16 +10,26 @@
 namespace subjugator {
 	class ByteDelimitedPacketFormatter : public PacketFormatter {
 		public:
-			ByteDelimitedPacketFormatter(boost::uint8_t sepbyte, Checksum *checksum);
+			ByteDelimitedPacketFormatter(boost::uint8_t flagbyte, boost::uint8_t escapebyte, boost::uint8_t maskbyte, Checksum *checksum);
 
 			virtual std::vector<Packet> parsePackets(const ByteVec &newdata);
 			virtual ByteVec formatPacket(const Packet &packet) const;
 
 		private:
-			boost::uint8_t sepbyte;
+			bool validateChecksum();
+
+			boost::uint8_t flagbyte;
+			boost::uint8_t escapebyte;
+			boost::uint8_t maskbyte;
 			boost::scoped_ptr<Checksum> checksum;
 
 			ByteVec buf;
+			enum ParseState {
+				STATE_NOPACKET,
+				STATE_INPACKET,
+				STATE_INESCAPE
+			};
+			ParseState state;
 	};
 }
 
