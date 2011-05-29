@@ -55,7 +55,7 @@ function(sub_executable projectname)
 	project(${projectname})
 
 	# Define executable
-	if(EXISTS include)
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 		include_directories(include)
 	endif()
 	file(GLOB_RECURSE sources "source/*.cpp")
