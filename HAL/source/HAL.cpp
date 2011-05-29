@@ -23,7 +23,7 @@ void HAL::stop() {
 }
 
 void HAL::write(int endnum, const DataObject &dobj) {
-	rawwire.writePacket(endnum, dobj.toPacket());
+	rawwire.writePacket(endnum, dataobjectformat->toPacket(dobj));
 }
 
 void HAL::rawwireReadCallback(int endnum, const Packet &packet) {

@@ -24,6 +24,8 @@ namespace subjugator {
 			toDataObject instantiates the correct DataObject on the heap from the contents of the Packet, and returns it.
 			*/
 			virtual DataObject *toDataObject(const Packet &packet) =0;
+
+			virtual Packet toPacket(const DataObject &dobj) =0;
 	};
 }
 

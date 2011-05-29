@@ -14,13 +14,6 @@ namespace subjugator {
 	class DataObject {
 		public:
 			virtual ~DataObject() { }
-
-			/** \brief Serializes a DataObject
-
-			Converts a DataObject to a Packet (or ByteVec), for transmission
-			using the HAL.
-			*/
-			virtual Packet toPacket() const =0;
 	};
 }
 
