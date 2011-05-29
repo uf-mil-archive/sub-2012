@@ -28,6 +28,11 @@ void RawWire::stop() {
 	transport->stop();
 }
 
+void RawWire::writePacket(int endnum, const Packet &packet) {
+	ByteVec bytes = formatters[endnum].formatPacket(packet);
+	transport->write(endnum, bytes);
+}
+
 void RawWire::transportReadCallback(int endnum, const ByteVec &bytes) {
 	assert(endnum < formatters.size());
 

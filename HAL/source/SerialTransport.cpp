@@ -25,6 +25,8 @@ void SerialTransport::start() {
 	for (int endnum=0; endnum<streamdatavec.size(); endnum++) { // for each endpoint
 		StreamData &sdata = streamdatavec[endnum];
 		sdata.stream.open(devicenames[endnum], error); // open a serial port
+		sdata.stream.set_option(serial_port::baud_rate(115200));
+		sdata.stream.set_option(serial_port::flow_control());
 
 		if (!error) {
 			startAsyncReceive(endnum); // and start an async receive

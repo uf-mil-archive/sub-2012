@@ -14,8 +14,16 @@ void HAL::configureCallbacks(ReadCallback readcallback, ErrorCallback errorcallb
 	this->errorcallback = errorcallback;
 }
 
-void HAL::write(int endnum, const DataObject &dataobject) {
-	rawwire.writePacket(endnum, dataobject.toPacket());
+void HAL::start() {
+	rawwire.start();
+}
+
+void HAL::stop() {
+	rawwire.stop();
+}
+
+void HAL::write(int endnum, const DataObject &dobj) {
+	rawwire.writePacket(endnum, dobj.toPacket());
 }
 
 void HAL::rawwireReadCallback(int endnum, const Packet &packet) {
