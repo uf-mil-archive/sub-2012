@@ -1,5 +1,10 @@
-#include "HAL/ByteDelimitedPacketFormatter.h"
+#include "HAL/HAL.h"
+#include "HAL/Sub7EPacketFormatter.h"
+#include "HAL/SerialTransport.h"
+#include "MotorDriverDataObjectFormatter.h"
+#include "HeartBeat.h"
 #include <boost/assign.hpp>
+#include <boost/thread.hpp>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -8,35 +13,28 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-// just for ease of testing
-class QChecksum : public Checksum {
-	ByteVec compute(ByteVec::const_iterator begin, ByteVec::const_iterator end) const {
-		ByteVec out;
-		out.push_back('Q');
-		return out;
-	}
+static void receiveCallback(int endnum, std::auto_ptr<DataObject> &dobj) {
+	cout << "Received a data object on endpoint " << endnum << endl;
+}
 
-	int getSize() const { return 1; }
-};
+static void errorCallback(int endnum, const std::string &msg) {
+	cout << "Got an error on endpoint " << endnum << ": " << msg << endl;
+}
 
 int main(int argc, char **argv) {
-	ByteDelimitedPacketFormatter packetformatter('!', '?', 1, new QChecksum()); // valid packets are delimited with an ! and end in Q
-	string data = "!BAD!BAD!!BAD!!HelloQ!!WorldQ!Not a packetQ!BAD!!Split up"; // including half a packet at the end
-	ByteVec bytes(data.begin(), data.end());
+	vector<string> ports;
+	ports.push_back("/dev/ttyUSB0");
 
-	vector<Packet> packets = packetformatter.parsePackets(bytes);
+	HAL hal(new MotorDriverDataObjectFormatter(), new SerialTransport(ports), Sub7EPacketFormatter::factory);
+	hal.configureCallbacks(receiveCallback, errorCallback);
+	hal.start();
 
-	for (vector<Packet>::iterator i = packets.begin(); i != packets.end(); ++i) {
-		cout << string(i->begin(), i->end()) << endl;
-	}
+	while (true) {
+		this_thread::sleep(posix_time::seconds(1));
 
-	data = " packetQ!!!"; // finish the split up packet, to verify that the packet formatter kept the previous half internally
-	bytes.assign(data.begin(), data.end());
-
-	packets = packetformatter.parsePackets(bytes);
-
-	for (vector<Packet>::iterator i = packets.begin(); i != packets.end(); ++i) {
-		cout << string(i->begin(), i->end()) << endl;
+		HeartBeat hb(1);
+		hal.write(0, hb);
+		cout << "Sent heartbeat" << endl;
 	}
 }
 
