@@ -8,8 +8,10 @@
 #include <unsupported/Eigen/FFT>
 #include <iomanip>
 #include "Hydrophone/HydrophoneDataProcessor.h"
+#include "config.h"
 
 using namespace std;
+using namespace subjugator;
 using namespace boost;
 using namespace Eigen;
 
@@ -17,7 +19,7 @@ static Eigen::Matrix<double, Eigen::Dynamic, 5> parseCSV(const string &filename)
 
 int main(int argc, char **argv) {
 	HydrophoneDataProcessor::Config config;
-	config.load("hydrophone.config");
+	config.load(configPath + string("/hydrophone.config"));
 
 	Eigen::Matrix<double, Eigen::Dynamic, 5> data = parseCSV("Temp.csv");
 
