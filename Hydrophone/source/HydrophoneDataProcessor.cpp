@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <sstream>
 
+using namespace subjugator;
 using namespace Eigen;
 using namespace boost::property_tree;
 using namespace boost::property_tree::xml_parser;
@@ -13,9 +14,6 @@ HydrophoneDataProcessor::HydrophoneDataProcessor(const Data &rawdata, const Conf
 : data(rawdata), valid(false), template_pos(0) {
 	processRawData(config);
 	checkData(config);
-
-	//if (!valid)
-	//	return;
 
 	makeTemplate(config);
 	computeDeltas(config);
@@ -48,46 +46,49 @@ void HydrophoneDataProcessor::processRawData(const Config &config) {
 void HydrophoneDataProcessor::checkData(const Config &config) {
 	Data data_pad = Data::Zero(2048, 4);
 
+	// multiply through by a hamming window
 	for (int i=0; i<4; i++) {
 		VectorXd temp = data.col(i).cwiseProduct(config.hamming_fircoefs);
 		data_pad.block(0, i, temp.rows(), 1) = temp;
 	}
 
+	// take the FFT of the first column
 	VectorXd datacol = data_pad.col(0);
 	VectorXcd a;
 	fft.fwd(a, datacol);
 
+	// find the maximum location
 	int max_loc;
-	VectorXd(a.cwiseAbs()).head(datacol.rows()/2).maxCoeff(&max_loc);
+	a.head(datacol.rows()/2).cwiseAbs().maxCoeff(&max_loc);
 
+	// compute the frequency
 	double max_freq = (config.samplingrate/2)/(datacol.rows()/2) * (max_loc+1);
-	if (abs(max_freq - config.pingfreq) < config.freqthresh)
-		valid = true;
+	if (abs(max_freq - config.pingfreq) < config.freqthresh) // if its within the threshold
+		valid = true; // data is valid
 }
 
 void HydrophoneDataProcessor::makeTemplate(const Config &config) {
-	// determine the center of the template
+	// determine the center of the template, which is the first non-zero sample
 	template_pos=0;
 	while (template_pos < data_upsamp.rows() && abs(data_upsamp(template_pos, 0)) < .1)
 		template_pos++;
 
-	// determine its start and end points
+	// determine if the template goes past the beginning or the end of the data
 	int period = (int)round(config.samplingrate * config.scalefact / config.pingfreq);
-
 	if (template_pos - 3*period < 0 || template_pos+3*period >= data_upsamp.rows())
 		throw Error("Template positioned such that start or endpoints lie outside the data");
 }
 
 void HydrophoneDataProcessor::computeDeltas(const Config &config) {
-	double dist_h = .9*2.54/100;
-	int period = (int)round((config.samplingrate * config.scalefact) / config.pingfreq);
-	int arr_dist = (int)floor((dist_h/config.soundvelocity)*config.samplingrate*config.scalefact*.95);
-	int matchstart = template_pos + 3*period - arr_dist;
-	int matchstop = template_pos + 3*period + arr_dist;
+	double dist_h = .9*2.54/100; // distance between hydrophones
+	int period = (int)round((config.samplingrate * config.scalefact) / config.pingfreq); // period of signal in samples
+	int arr_dist = (int)floor((dist_h/config.soundvelocity)*config.samplingrate*config.scalefact*.95); // range to look for a match
+	int matchstart = template_pos + 3*period - arr_dist; // start position for match searching
+	int matchstop = template_pos + 3*period + arr_dist; // stop position for match searching
 
-	for (int i=0; i<3; i++) {
-		double matchpos = matchTemplate(i+1, matchstart, matchstop, config);
-		deltas[i] = (matchpos - template_pos)/(config.samplingrate*config.scalefact)*config.soundvelocity;
+	for (int i=0; i<3; i++) { // for the three other signals
+		double matchpos = matchTemplate(i+1, matchstart, matchstop, config); // find a match
+		deltas[i] = (matchpos - template_pos)/(config.samplingrate*config.scalefact)*config.soundvelocity; // compute the delta
 	}
 }
 
@@ -96,25 +97,27 @@ double HydrophoneDataProcessor::matchTemplate(int channel, int start, int stop, 
 	int tlen = period*6+1;
 	int template_start = template_pos - 3*period;
 
+	// vector holding the mean absolute difference between the template and the target signal, with the template offset at each position
 	VectorXd mad = VectorXd::Zero(data_upsamp.rows());
 
-	bool first=false;
+	// compute each element of mad, within the start and stop range
 	for (int i=start; i<=stop; i++) {
 		mad(i) = (data_upsamp.col(channel).segment(i - tlen + 1, tlen) - data_upsamp.col(0).segment(template_start, tlen)).array().abs().mean();
 	}
 
+	// compute the maximum value of mad
 	double mad_max = mad.maxCoeff();
-	mad.head(start).fill(mad_max);
+	mad.head(start).fill(mad_max); // fill areas of mad outside start and stop range with the maximum value
 	mad.tail((mad.rows() - stop)).fill(mad_max);
 
 	int aprox_min_pt;
-	mad.minCoeff(&aprox_min_pt);
+	mad.minCoeff(&aprox_min_pt); // find the approximate minimum position
 
-	VectorXd d_mad = filter(Vector3d(.5, 0, -.5), mad);
-	double min_pt = findZeros(d_mad, aprox_min_pt - 2);
+	VectorXd d_mad = filter(Vector3d(.5, 0, -.5), mad); // then take the derivative of mad
+	double min_pt = findZeros(d_mad, aprox_min_pt - 2); // and use it to find an interpolated minimum position
 
-	min_pt = min_pt-1-(tlen-1)/2.0;
-	return min_pt;
+	double delta = min_pt-1-(tlen-1)/2.0; // compute the delta
+	return delta;
 }
 
 void HydrophoneDataProcessor::computeAngles(const Config &config) {
@@ -187,18 +190,19 @@ VectorXd HydrophoneDataProcessor::filter(const VectorXd &coefs, const VectorXd &
 VectorXd HydrophoneDataProcessor::upsample(const VectorXd &in, int p, const VectorXd &filter_coefs) {
 	VectorXd inzeroed((in.rows()-1)*p + filter_coefs.size());
 
+	// insert zeros inbetween the data
 	for (int i=0; i<in.rows()*p; i++) {
 		if (i % p == 0)
 			inzeroed[i] = in[i/p];
 		else
 			inzeroed[i] = 0;
 	}
-	inzeroed.tail(inzeroed.size() - in.rows()*p).fill(0);
+	inzeroed.tail(inzeroed.size() - in.rows()*p).fill(0); // fill the left-over spaces with zeros
 
-	VectorXd out = filter(filter_coefs, inzeroed);
+	VectorXd out = filter(filter_coefs, inzeroed); // run the lowpass filter
 
-	int delay = (int)ceil((filter_coefs.rows()-1)/2);
-	return out.segment(delay, in.rows()*p);
+	int delay = (int)ceil((filter_coefs.rows()-1)/2); // compute the delay of the filter
+	return out.segment(delay, in.rows()*p); // and return the correct amount of data taking the delay into account
 }
 
 void HydrophoneDataProcessor::Config::load(const string &filename) {
