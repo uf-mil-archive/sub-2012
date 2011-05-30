@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 		int stop = start;
 		while (stop < data.rows() && (int)data(start, 0) == (int)data(stop, 0)) { stop++; }
 
-		HydrophoneDataProcessor proc(data.block(start, 1, stop-start, 4), config);
+		HydrophoneDataProcessor proc(data.block(start, 1, stop-start, 4), 27E3, config);
 		cout << scientific << setprecision(16);
 		cout << proc.getDist() << ", " << proc.getAngle1()/M_PI*180 << ", " << proc.getAngle2()/M_PI*180 << endl;
 

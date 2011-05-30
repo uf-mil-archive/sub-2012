@@ -2,7 +2,6 @@
 
 scalefact = 30;
 samplingrate = 240382;
-pingfreq = 27E3;
 freqthresh = 1000;
 soundvelocity = 1500;
 datasize = 256;
@@ -17,7 +16,6 @@ hamming_coefs = hamming(datasize);
 fd = fopen('hydrophone.config', 'w');
 fprintf(fd, '<scalefact>%d</scalefact>\n', scalefact);
 fprintf(fd, '<samplingrate>%d</samplingrate>\n', samplingrate);
-fprintf(fd, '<pingfreq>%d</pingfreq>\n', pingfreq);
 fprintf(fd, '<freqthresh>%d</freqthresh>\n', freqthresh);
 fprintf(fd, '<soundvelocity>%d</soundvelocity>\n', soundvelocity);
 

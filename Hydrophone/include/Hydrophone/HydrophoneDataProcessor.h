@@ -14,7 +14,6 @@ namespace subjugator {
 			struct Config {
 				int scalefact; // the factor by which the raw data is scaled up for processing
 				int samplingrate; // the rate at which the raw data was collected
-				double pingfreq;
 				double soundvelocity;
 				double freqthresh;
 
@@ -28,7 +27,7 @@ namespace subjugator {
 					static Eigen::VectorXd strToVec(const std::string &str);
 			};
 
-			HydrophoneDataProcessor(const Data &rawdata, const Config &config);
+			HydrophoneDataProcessor(const Data &rawdata, double pingfreq, const Config &config);
 
 			struct Error : public std::runtime_error {
 				inline Error(const std::string &what) : runtime_error(what) { }
@@ -48,6 +47,9 @@ namespace subjugator {
 
 			double matchTemplate(int channel, int start, int stop, const Config &config);
 			double findZeros(const Eigen::VectorXd &data, int start);
+
+			double pingfreq;
+			int period;
 
 			Data data;
 			Data data_upsamp;

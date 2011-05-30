@@ -10,8 +10,10 @@ using namespace boost::property_tree;
 using namespace boost::property_tree::xml_parser;
 using namespace std;
 
-HydrophoneDataProcessor::HydrophoneDataProcessor(const Data &rawdata, const Config &config)
-: data(rawdata), valid(false), template_pos(0) {
+HydrophoneDataProcessor::HydrophoneDataProcessor(const Data &rawdata, double pingfreq, const Config &config)
+: data(rawdata), pingfreq(pingfreq), valid(false), template_pos(0) {
+	period = (int)round((config.samplingrate * config.scalefact) / pingfreq); // compute period from ping freq
+
 	processRawData(config);
 	checkData(config);
 
@@ -63,7 +65,7 @@ void HydrophoneDataProcessor::checkData(const Config &config) {
 
 	// compute the frequency
 	double max_freq = (config.samplingrate/2)/(datacol.rows()/2) * (max_loc+1);
-	if (abs(max_freq - config.pingfreq) < config.freqthresh) // if its within the threshold
+	if (abs(max_freq - pingfreq) < config.freqthresh) // if its within the threshold
 		valid = true; // data is valid
 }
 
@@ -74,14 +76,12 @@ void HydrophoneDataProcessor::makeTemplate(const Config &config) {
 		template_pos++;
 
 	// determine if the template goes past the beginning or the end of the data
-	int period = (int)round(config.samplingrate * config.scalefact / config.pingfreq);
 	if (template_pos - 3*period < 0 || template_pos+3*period >= data_upsamp.rows())
 		throw Error("Template positioned such that start or endpoints lie outside the data");
 }
 
 void HydrophoneDataProcessor::computeDeltas(const Config &config) {
 	double dist_h = .9*2.54/100; // distance between hydrophones
-	int period = (int)round((config.samplingrate * config.scalefact) / config.pingfreq); // period of signal in samples
 	int arr_dist = (int)floor((dist_h/config.soundvelocity)*config.samplingrate*config.scalefact*.95); // range to look for a match
 	int matchstart = template_pos + 3*period - arr_dist; // start position for match searching
 	int matchstop = template_pos + 3*period + arr_dist; // stop position for match searching
@@ -93,7 +93,6 @@ void HydrophoneDataProcessor::computeDeltas(const Config &config) {
 }
 
 double HydrophoneDataProcessor::matchTemplate(int channel, int start, int stop, const Config &config) {
-	int period = (int)round((config.samplingrate * config.scalefact) / config.pingfreq);
 	int tlen = period*6+1;
 	int template_start = template_pos - 3*period;
 
@@ -211,7 +210,6 @@ void HydrophoneDataProcessor::Config::load(const string &filename) {
 
 	scalefact = pt.get<int>("scalefact");
 	samplingrate = pt.get<int>("samplingrate");
-	pingfreq = pt.get<double>("pingfreq");
 	soundvelocity = pt.get<double>("soundvelocity");
 	freqthresh = pt.get<double>("freqthresh");
 	bandpass_fircoefs = strToVec(pt.get<string>("bandpass"));
