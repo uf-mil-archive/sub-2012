@@ -16,6 +16,8 @@ namespace subjugator {
 				int samplingrate; // the rate at which the raw data was collected
 				double soundvelocity;
 				double freqthresh;
+				double disth;
+				double disth4;
 
 				Eigen::VectorXd bandpass_fircoefs;
 				Eigen::VectorXd upsample_fircoefs;

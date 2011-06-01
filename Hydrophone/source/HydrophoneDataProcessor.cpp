@@ -124,8 +124,8 @@ void HydrophoneDataProcessor::computeAngles(const Config &config) {
 	double y2 = deltas[1];
 	double y3 = deltas[2];
 
-	double dist_h = (0.9*2.54)/100;
-	double dist_h4 = (0.9*2.54)/100;
+	double dist_h = config.disth;
+	double dist_h4 = config.disth4;
 
 	double dist = abs((y1*y1 + y2*y2 - 2*dist_h*dist_h)/(2*y1 + 2*y2));
 
@@ -212,6 +212,8 @@ void HydrophoneDataProcessor::Config::load(const string &filename) {
 	samplingrate = pt.get<int>("samplingrate");
 	soundvelocity = pt.get<double>("soundvelocity");
 	freqthresh = pt.get<double>("freqthresh");
+	disth = pt.get<double>("disth");
+	disth4 = pt.get<double>("disth4");
 	bandpass_fircoefs = strToVec(pt.get<string>("bandpass"));
 	upsample_fircoefs = strToVec(pt.get<string>("upsample"));
 	hamming_fircoefs = strToVec(pt.get<string>("hamming"));

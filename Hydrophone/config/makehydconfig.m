@@ -5,6 +5,8 @@ samplingrate = 240382;
 freqthresh = 1000;
 soundvelocity = 1500;
 datasize = 256;
+disth = (0.9*2.54)/100;
+disth4 = disth;
 
 bandpass_coefs = fir1(31,[((20e3)/(samplingrate/2)) ((30e3)/(samplingrate/2))], 'bandpass');
 
@@ -18,6 +20,8 @@ fprintf(fd, '<scalefact>%d</scalefact>\n', scalefact);
 fprintf(fd, '<samplingrate>%d</samplingrate>\n', samplingrate);
 fprintf(fd, '<freqthresh>%d</freqthresh>\n', freqthresh);
 fprintf(fd, '<soundvelocity>%d</soundvelocity>\n', soundvelocity);
+fprintf(fd, '<disth>%e</disth>\n', disth);
+fprintf(fd, '<disth4>%e</disth>\n', disth4);
 
 fprintf(fd, '<bandpass>\n');
 for i=1:length(bandpass_coefs)
