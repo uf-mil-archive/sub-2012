@@ -9,7 +9,7 @@ include(Templates)
 include(UseDoxygen)
 
 # find boost
-find_package(Boost REQUIRED COMPONENTS system thread date_time)
+find_package(Boost REQUIRED COMPONENTS system thread date_time regex)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # find DDS, but not REQUIRED
