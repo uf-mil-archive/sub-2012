@@ -17,6 +17,14 @@ namespace subjugator {
 
 			void configureCallbacks(const ReadCallback &readcallback, const StateChangeCallback &statechangecallback);
 
+			void open() { endpoint->open(); }
+			void close() { endpoint->close(); }
+
+			typedef Endpoint::State State;
+
+			State getState() const { return endpoint->getState(); }
+			const std::string &getErrorMessage() const { return endpoint->getErrorMessage(); }
+
 			void write(const DataObject &dobj);
 
 		private:

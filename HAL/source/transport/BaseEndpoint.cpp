@@ -5,7 +5,7 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-BaseEndpoint::BaseEndpoint(IOThread &iothread) : iothread(iothread) { }
+BaseEndpoint::BaseEndpoint(IOThread &iothread) : iothread(iothread), state(CLOSED) { }
 
 void BaseEndpoint::configureCallbacks(const ReadCallback &readcallback, const StateChangeCallback &statechangecallback) {
 	this->readcallback = readcallback;

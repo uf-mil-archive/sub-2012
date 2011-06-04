@@ -9,7 +9,9 @@ SubHAL::SubHAL() {
 	addTransport(new TCPTransport(iothread));
 	addTransport(new UDPTransport(iothread));
 	addTransport(new SerialTransport(iothread));
+}
 
+void SubHAL::startIOThread() {
 	iothread.start();
 }
 

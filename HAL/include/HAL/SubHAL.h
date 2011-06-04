@@ -9,6 +9,8 @@ namespace subjugator {
 		public:
 			SubHAL();
 
+			void startIOThread();
+
 		private:
 			IOThread iothread;
 	};
