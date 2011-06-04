@@ -1,8 +1,8 @@
 #ifndef HAL_BYTEDELIMITEDPACKETFORMATTER_H
 #define HAL_BYTEDELIMITEDPACKETFORMATTER_H
 
-#include "HAL/PacketFormatter.h"
-#include "HAL/Checksum.h"
+#include "HAL/format/PacketFormatter.h"
+#include "HAL/format/Checksum.h"
 #include "HAL/shared.h"
 #include <boost/cstdint.hpp>
 #include <vector>

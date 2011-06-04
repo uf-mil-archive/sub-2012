@@ -1,7 +1,7 @@
 #ifndef HAL_STREAMTRANSPORT_H
 #define HAL_STREAMTRANSPORT_H
 
-#include "HAL/BaseEndpoint.h"
+#include "HAL/transport/BaseEndpoint.h"
 #include "HAL/IOThread.h"
 #include <boost/function.hpp>
 #include <boost/cstdint.hpp>

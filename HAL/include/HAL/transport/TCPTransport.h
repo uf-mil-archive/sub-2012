@@ -1,7 +1,7 @@
 #ifndef HAL_TCPTRANSPORT_H
 #define HAL_TCPTRANSPORT_H
 
-#include "HAL/Transport.h"
+#include "HAL/transport/Transport.h"
 #include "HAL/IOThread.h"
 #include <utility>
 #include <vector>

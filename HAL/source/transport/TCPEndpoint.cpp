@@ -1,4 +1,4 @@
-#include "HAL/TCPEndpoint.h"
+#include "HAL/transport/TCPEndpoint.h"
 #include <cassert>
 
 using namespace subjugator;

@@ -1,4 +1,4 @@
-#include "HAL/SerialEndpoint.h"
+#include "HAL/transport/SerialEndpoint.h"
 #include <cassert>
 
 using namespace subjugator;

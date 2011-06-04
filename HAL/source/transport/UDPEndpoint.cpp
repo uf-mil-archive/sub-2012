@@ -1,4 +1,4 @@
-#include "HAL/UDPEndpoint.h"
+#include "HAL/transport/UDPEndpoint.h"
 
 using namespace subjugator;
 using namespace boost;

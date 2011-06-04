@@ -1,7 +1,7 @@
 #ifndef HAL_CRCCHECKSUM_H
 #define HAL_CRCCHECKSUM_H
 
-#include "HAL/Checksum.h"
+#include "HAL/format/Checksum.h"
 
 namespace subjugator {
 	class CRCChecksum : public Checksum {

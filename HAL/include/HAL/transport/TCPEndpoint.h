@@ -1,7 +1,7 @@
 #ifndef HAL_TCPENDPOINT_H
 #define HAL_TCPENDPOINT_H
 
-#include "HAL/BaseStreamEndpoint.h"
+#include "HAL/transport/BaseStreamEndpoint.h"
 
 namespace subjugator {
 	class TCPEndpoint : public BaseStreamEndpoint<boost::asio::ip::tcp::socket> {

@@ -1,5 +1,5 @@
-#include "HAL/TCPTransport.h"
-#include "HAL/TCPEndpoint.h"
+#include "HAL/transport/TCPTransport.h"
+#include "HAL/transport/TCPEndpoint.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/asio.hpp>
 #include <boost/regex.hpp>

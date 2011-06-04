@@ -1,9 +1,9 @@
 #ifndef HAL_DATAOBJECTENDPOINT_H
 #define HAL_DATAOBJECTENDPOINT_H
 
-#include "HAL/Endpoint.h"
-#include "HAL/DataObjectFormatter.h"
-#include "HAL/PacketFormatter.h"
+#include "HAL/transport/Endpoint.h"
+#include "HAL/format/DataObjectFormatter.h"
+#include "HAL/format/PacketFormatter.h"
 #include <boost/scoped_ptr.hpp>
 #include <memory>
 

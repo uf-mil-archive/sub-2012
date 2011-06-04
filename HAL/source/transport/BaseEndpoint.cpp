@@ -1,4 +1,4 @@
-#include "HAL/BaseEndpoint.h"
+#include "HAL/transport/BaseEndpoint.h"
 #include <boost/bind.hpp>
 
 using namespace subjugator;

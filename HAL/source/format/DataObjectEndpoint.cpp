@@ -1,4 +1,4 @@
-#include "HAL/DataObjectEndpoint.h"
+#include "HAL/format/DataObjectEndpoint.h"
 #include <boost/bind.hpp>
 
 using namespace subjugator;

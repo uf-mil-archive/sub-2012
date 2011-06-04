@@ -10,7 +10,7 @@ by a PacketFormatter, and creating an appropriate DataObject from its contents.
 #ifndef HAL_DATAOBJECTFORMATTER_H
 #define HAL_DATAOBJECTFORMATTER_H
 
-#include "HAL/DataObject.h"
+#include "HAL/format/DataObject.h"
 #include "HAL/shared.h"
 
 namespace subjugator {

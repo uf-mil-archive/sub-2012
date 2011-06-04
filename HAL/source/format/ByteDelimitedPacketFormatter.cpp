@@ -1,4 +1,4 @@
-#include "HAL/ByteDelimitedPacketFormatter.h"
+#include "HAL/format/ByteDelimitedPacketFormatter.h"
 #include <algorithm>
 #include <cassert>
 

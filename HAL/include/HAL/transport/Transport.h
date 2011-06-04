@@ -8,7 +8,7 @@
 #define HAL_TRANSPORT_H
 
 #include "HAL/shared.h"
-#include "HAL/Endpoint.h"
+#include "HAL/transport/Endpoint.h"
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>

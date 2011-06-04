@@ -1,5 +1,5 @@
-#include "HAL/SerialTransport.h"
-#include "HAL/SerialEndpoint.h"
+#include "HAL/transport/SerialTransport.h"
+#include "HAL/transport/SerialEndpoint.h"
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/scoped_ptr.hpp>

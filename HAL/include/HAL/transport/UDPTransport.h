@@ -2,8 +2,8 @@
 #define HAL_UDPTRANSPORT_H
 
 #include "HAL/shared.h"
-#include "HAL/Transport.h"
-#include "HAL/UDPEndpoint.h"
+#include "HAL/transport/Transport.h"
+#include "HAL/transport/UDPEndpoint.h"
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/cstdint.hpp>

@@ -1,7 +1,7 @@
 #ifndef HAL_BASEENDPOINT_H
 #define HAL_BASEENDPOINT_H
 
-#include "HAL/Endpoint.h"
+#include "HAL/transport/Endpoint.h"
 #include "HAL/IOThread.h"
 #include <string>
 

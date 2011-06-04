@@ -1,7 +1,7 @@
 #ifndef HAL_UDPENDPOINT_H
 #define HAL_UDPENDPOINT_H
 
-#include "HAL/BaseEndpoint.h"
+#include "HAL/transport/BaseEndpoint.h"
 #include "HAL/shared.h"
 #include <boost/asio.hpp>
 

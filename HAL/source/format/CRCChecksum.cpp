@@ -1,4 +1,4 @@
-#include "HAL/CRCChecksum.h"
+#include "HAL/format/CRCChecksum.h"
 #include <boost/crc.hpp>
 #include <boost/cstdint.hpp>
 #include <algorithm>

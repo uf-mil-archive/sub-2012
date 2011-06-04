@@ -1,7 +1,7 @@
 #ifndef HAL_SERIALENDPOINT_H
 #define HAL_SERIALENDPOINT_H
 
-#include "HAL/BaseStreamEndpoint.h"
+#include "HAL/transport/BaseStreamEndpoint.h"
 
 namespace subjugator {
 	class SerialEndpoint : public BaseStreamEndpoint<boost::asio::serial_port> {

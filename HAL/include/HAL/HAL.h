@@ -2,9 +2,9 @@
 #define HAL_HAL_H
 
 #include "HAL/AddressTable.h"
-#include "HAL/Transport.h"
-#include "HAL/Endpoint.h"
-#include "HAL/DataObjectEndpoint.h"
+#include "HAL/transport/Transport.h"
+#include "HAL/transport/Endpoint.h"
+#include "HAL/format/DataObjectEndpoint.h"
 #include <boost/ptr_container/ptr_vector.hpp>
 
 namespace subjugator {

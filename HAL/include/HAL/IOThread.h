@@ -1,7 +1,6 @@
 #ifndef HAL_TRANSPORTBASE_H
 #define HAL_TRANSPORTBASE_H
 
-#include "HAL/Transport.h"
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
