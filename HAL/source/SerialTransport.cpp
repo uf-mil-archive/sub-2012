@@ -11,7 +11,7 @@ using namespace boost;
 using namespace boost::asio;
 using namespace std;
 
-SerialTransport::SerialTransport() { }
+SerialTransport::SerialTransport(IOThread &iothread) : iothread(iothread) { }
 
 const string &SerialTransport::getName() const {
 	static const string name = "serial";

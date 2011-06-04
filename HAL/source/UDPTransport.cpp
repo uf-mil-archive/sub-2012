@@ -11,7 +11,7 @@ using namespace boost::asio;
 using namespace boost::system;
 using namespace std;
 
-UDPTransport::UDPTransport() : socket(iothread.getIOService()) { }
+UDPTransport::UDPTransport(IOThread &iothread) : iothread(iothread), socket(iothread.getIOService()) { }
 
 const string &UDPTransport::getName() const {
 	static const string name = "udp";

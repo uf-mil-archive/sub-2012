@@ -14,8 +14,6 @@ namespace subjugator {
 			};
 
 			Sub7EPacketFormatter() : ByteDelimitedPacketFormatter(FlagByte, EscapeByte, EscapeMask, new CRCChecksum()) { }
-
-			static PacketFormatter *factory() { return new Sub7EPacketFormatter(); }
 	};
 }
 

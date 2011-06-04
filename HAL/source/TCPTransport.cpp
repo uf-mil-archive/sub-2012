@@ -11,7 +11,7 @@ using namespace boost;
 using namespace boost::asio;
 using namespace std;
 
-TCPTransport::TCPTransport() { }
+TCPTransport::TCPTransport(IOThread &iothread) : iothread(iothread) { }
 
 const string &TCPTransport::getName() const {
 	static const string name = "tcp";

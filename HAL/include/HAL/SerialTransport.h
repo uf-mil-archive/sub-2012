@@ -10,13 +10,13 @@
 namespace subjugator {
 	class SerialTransport : public Transport {
 		public:
-			SerialTransport();
+			SerialTransport(IOThread &iothread);
 
 			virtual const std::string &getName() const;
 			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);
 
 		private:
-			IOThread iothread;
+			IOThread &iothread;
 	};
 }
 
