@@ -3,7 +3,7 @@
 
 #include "HAL/shared.h"
 #include "HAL/Transport.h"
-#include "HAL/TransportBase.h"
+#include "HAL/UDPEndpoint.h"
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/cstdint.hpp>
@@ -12,36 +12,36 @@
 #include <queue>
 
 namespace subjugator {
-	class UDPTransport : public ASIOTransportBase {
+	class UDPTransport : public Transport, UDPEndpoint::TransportCallbacks {
 		public:
-			typedef std::pair<std::string, int> EndpointConfig;
-			UDPTransport(const std::vector<EndpointConfig> &endpointconfigs);
-			~UDPTransport();
+			UDPTransport();
 
-			virtual void start();
-			virtual void stop();
-
-			virtual int getEndpointCount() const;
-			virtual void write(int endnum, const ByteVec &bytes);
+			virtual const std::string &getName() const;
+			virtual Endpoint *makeEndpoint(const std::string &address, std::map<std::string, std::string> params);
 
 		private:
-			boost::asio::io_service ioservice;
-			boost::thread iothread;
+			IOThread iothread;
 
+			typedef std::vector<UDPEndpoint *> EndpointPtrVec;
+			EndpointPtrVec endpoints;
 			boost::asio::ip::udp::socket socket;
-			std::vector<boost::asio::ip::udp::endpoint> endpoints;
 
 			ByteVec recvbuffer;
 			boost::asio::ip::udp::endpoint recvendpoint;
 
-			std::queue<std::pair<int, ByteVec> > sendqueue;
+			std::queue<std::pair<boost::asio::ip::udp::endpoint, ByteVec> > sendqueue;
 
-			void asioPushSendQueueCallback(int endnum, const ByteVec &bytes);
-			void asioReceiveCallback(const boost::system::error_code& error, std::size_t bytes);
-			void asioSendCallback(const boost::system::error_code& error, std::size_t bytes);
+			virtual void endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator begin, ByteVec::const_iterator end);
+			virtual void endpointDeleted(UDPEndpoint *endpoint);
+
+			void pushSendQueueCallback(const boost::asio::ip::udp::endpoint &endpoint, const ByteVec &bytes);
+			void receiveCallback(const boost::system::error_code& error, std::size_t bytes);
+			void sendCallback(const boost::system::error_code& error, std::size_t bytes);
 
 			void startAsyncReceive();
 			void startAsyncSend();
+
+			void openSocket();
 	};
 }
 

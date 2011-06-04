@@ -1,25 +1,22 @@
 #ifndef HAL_TCPTRANSPORT_H
 #define HAL_TCPTRANSPORT_H
 
-#include "HAL/StreamTransport.h"
+#include "HAL/Transport.h"
+#include "HAL/IOThread.h"
 #include <utility>
 #include <vector>
 #include <string>
 
 namespace subjugator {
-	class TCPTransport : public StreamTransport<boost::asio::ip::tcp::socket> {
+	class TCPTransport : public Transport {
 		public:
-			typedef std::pair<std::string, int> EndpointConfig;
-			TCPTransport(const std::vector<EndpointConfig> &endpointconfigs);
-			~TCPTransport();
+			TCPTransport();
 
-			virtual void start();
-			virtual void stop();
+			virtual const std::string &getName() const;
+			virtual Endpoint *makeEndpoint(const std::string &address, std::map<std::string, std::string> params);
 
 		private:
-			void asioConnectCallback(int endnum, const boost::system::error_code& error);
-
-			std::vector<EndpointConfig> endpointconfigs;
+			IOThread iothread;
 	};
 }
 

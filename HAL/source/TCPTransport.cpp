@@ -1,51 +1,32 @@
 #include "HAL/TCPTransport.h"
-#include <boost/bind.hpp>
+#include "HAL/TCPEndpoint.h"
 #include <boost/lexical_cast.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <algorithm>
+#include <boost/asio.hpp>
+#include <boost/regex.hpp>
 #include <cassert>
+#include <stdexcept>
 
 using namespace subjugator;
 using namespace boost;
 using namespace boost::asio;
-using namespace boost::asio::ip;
 using namespace std;
 
-TCPTransport::TCPTransport(const vector<EndpointConfig> &endpointconfigs)
-: StreamTransport<tcp::socket>(endpointconfigs.size()), endpointconfigs(endpointconfigs) { }
+TCPTransport::TCPTransport() { }
 
-TCPTransport::~TCPTransport() {
-	stop();
+const string &TCPTransport::getName() const {
+	static const string name = "tcp";
+	return name;
 }
 
-void TCPTransport::start() {
-	for (int endnum=0; endnum<streamdatavec.size(); endnum++) {
-		StreamData &sdata = streamdatavec[endnum];
-		const EndpointConfig &econfig = endpointconfigs[endnum]; // create asio endpoint objects for each end point config
-		tcp::endpoint endpoint(address::from_string(econfig.first), econfig.second);
+Endpoint *TCPTransport::makeEndpoint(const std::string &address, std::map<std::string, std::string> params) {
+	static const regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
+	smatch match;
+	if (!regex_match(address, match, ipreg))
+		throw runtime_error("TCPTransport::makeEndpoint called with invalid address " + address);
 
-		sdata.stream.async_connect(endpoint, bind(&TCPTransport::asioConnectCallback, this, endnum, _1)); // start an async connect
-	}
+	ip::address ipaddr = ip::address::from_string(match[1]);
+	unsigned short port = boost::lexical_cast<unsigned short>(match[2]);
 
-	startIOThread();
-}
-
-void TCPTransport::stop() {
-	stopIOThread();
-
-	for (int endnum=0; endnum<streamdatavec.size(); endnum++) { // close each socket
-		StreamData &sdata = streamdatavec[endnum];
-		sdata.stream.shutdown(tcp::socket::shutdown_both);
-		sdata.stream.close();
-	}
-}
-
-void TCPTransport::asioConnectCallback(int endnum, const boost::system::error_code& error) {
-	if (!error) { // if no error occured
-		startAsyncReceive(endnum); // begin the first asynchronous receive
-	} else {
-		if (errorcallback)
-			errorcallback(endnum, "TCPTransport received error while connecting: " + lexical_cast<string>(error)); // call the error callback
-	}
+	return new TCPEndpoint(ip::tcp::endpoint(ipaddr, port), iothread);
 }
 

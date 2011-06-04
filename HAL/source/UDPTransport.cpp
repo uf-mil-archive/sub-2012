@@ -2,113 +2,97 @@
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
+#include <memory>
 #include <cassert>
 
 using namespace subjugator;
 using namespace boost;
 using namespace boost::asio;
-using namespace boost::asio::ip;
 using namespace boost::system;
 using namespace std;
 
-UDPTransport::UDPTransport(const vector<EndpointConfig> &endpointconfigs)
-: socket(ioservice),
-  endpoints(endpointconfigs.size()),
-  recvbuffer(4096) {
-	for (int i=0; i < endpointconfigs.size(); i++) {
-		const EndpointConfig &config = endpointconfigs[i];
-		endpoints[i] = udp::endpoint(address::from_string(config.first), config.second); // create asio endpoint objects for each end point config
-	}
+UDPTransport::UDPTransport() : socket(iothread.getIOService()) { }
+
+const string &UDPTransport::getName() const {
+	static const string name = "udp";
+	return name;
 }
 
-UDPTransport::~UDPTransport() {
-	stop();
+Endpoint *UDPTransport::makeEndpoint(const std::string &address, std::map<std::string, std::string> params) {
+	static const regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
+	smatch match;
+	if (!regex_match(address, match, ipreg))
+		throw runtime_error("UDPTransport::makeEndpoint called with invalid address " + address);
+
+	string ipaddr = match[1];
+	unsigned short port = boost::lexical_cast<unsigned short>(match[2]);
+
+	auto_ptr<UDPEndpoint> udpendpoint(new UDPEndpoint(ip::udp::endpoint(ip::address::from_string(ipaddr), port), iothread, *this));
+	endpoints.push_back(udpendpoint.get());
+	return udpendpoint.release();
 }
 
-void UDPTransport::start() {
+void UDPTransport::openSocket() {
+	if (socket.is_open())
+		return;
+
 	error_code error;
-	socket.open(udp::v4(), error); // open the UDP socket
+	socket.open(ip::udp::v4(), error); // open the UDP socket
 
-	if (!error) {
-		startAsyncReceive(); // start an asynchronous receive
-	} else { // if it fails
-		if (errorcallback) {
-			string errormsg = "UDPTransport failed to open UDP socket: " + lexical_cast<string>(error);
-			runCallbackOnIOThread(bind(errorcallback, -1, errormsg)); // call the error callback on the IO thread
-		}
-	}
+	if (error)
+		throw runtime_error("UDPTransport failed to open socket: " + error.message()); // TODO make errors appear on endpoints
 
-	startIOThread();
+	startAsyncReceive();
 }
 
-void UDPTransport::stop() {
-	stopIOThread();
-	socket.close();
-}
-
-int UDPTransport::getEndpointCount() const {
-	return endpoints.size();
-}
-
-void UDPTransport::write(int endnum, const ByteVec &bytes) {
+void UDPTransport::endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator begin, ByteVec::const_iterator end) {
 	// we can't touch the send queue, io thread has exclusive use of it
 	// so, we run a callback on the io thread which will do the work for us
-	ioservice.dispatch(bind(&UDPTransport::asioPushSendQueueCallback, this, endnum, bytes));
+	iothread.run(bind(&UDPTransport::pushSendQueueCallback, this, endpoint->getEndpoint(), ByteVec(begin, end)));
 }
 
-void UDPTransport::asioPushSendQueueCallback(int endnum, const ByteVec &bytes) {
+void UDPTransport::pushSendQueueCallback(const ip::udp::endpoint &endpoint, const ByteVec &bytes) {
     // we're in the io thread now, so we can manipulate the send queue
 	bool sendpending = !sendqueue.empty(); // if the queue isn't empty, a send must be pending for the one on top
-	sendqueue.push(make_pair(endnum, bytes)); // put our new packet at the end
+	sendqueue.push(make_pair(endpoint, bytes)); // put our new packet at the end
 
 	if (!sendpending) // if there was no send pending previously
 		startAsyncSend(); // start one now
 }
 
-void UDPTransport::asioSendCallback(const boost::system::error_code& error, std::size_t bytes) {
-	if (error) {
-		if (errorcallback)
-			errorcallback(sendqueue.front().first, "UDPTransport received error while sending: " + lexical_cast<string>(error)); // call the error callback
-	}
+void UDPTransport::sendCallback(const system::error_code& error, std::size_t bytes) {
+	if (error)
+		throw runtime_error("UDPTransport received error while sending: " + error.message());
 
 	sendqueue.pop(); // pop the now sent packet off the queue
 	if (!sendqueue.empty()) // if there is another packet waiting
 		startAsyncSend(); // start another send
 }
 
-void UDPTransport::asioReceiveCallback(const boost::system::error_code& error, std::size_t bytes) {
-	int endnum; // first, determine the endpoint number we received from
-	for (endnum=0; endnum<endpoints.size(); endnum++) { // loop through all endpoints
-		if (recvendpoint == endpoints[endnum]) // if we get a match, stop
+void UDPTransport::receiveCallback(const system::error_code& error, std::size_t bytes) {
+	UDPEndpoint *endpoint = NULL; // first, determine the endpoint we received from
+	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end(); ++i) { // loop through all UDPEndpoint instances
+		if ((*i)->getEndpoint() == recvendpoint) { // if we find one with an endpoint matching the one we just got on a packet
+			if ((*i)->getState() == UDPEndpoint::OPEN) // check if the UDPEndpoint is open
+				endpoint = *i; // if it is, we've got a match
 			break;
+		}
 	}
 
-	if (endnum == endpoints.size()) // no match?
-		return; // drop the packet
-
-	if (!error) { // successful read
-		recvbuffer.resize(bytes); // resize the buffer to the number of bytes asio put in there (asio never resizes vectors)
-		if (readcallback)
-			readcallback(endnum, recvbuffer); // call the read callback
-		recvbuffer.resize(recvbuffer.capacity()); // resize the buffer back to its maximum capacity
-	} else { // error did occur
-		if (errorcallback)
-			errorcallback(endnum, "UDPTransport received error while receiving: " + lexical_cast<string>(error)); // call the error callback
-	}
-
-	// finally, initiate another asynchronous receive
-	startAsyncReceive();
+	if (endpoint) // if we got a match
+		endpoint->packetReceived(recvbuffer.begin(), recvbuffer.begin() + bytes);	// inform the UDPEndpoint it just received a packet
+	startAsyncReceive(); // start another async receive
 }
 
 void UDPTransport::startAsyncSend() {
 	assert(!sendqueue.empty());
 
-	int endnum = sendqueue.front().first;
+	const ip::udp::endpoint &endpoint = sendqueue.front().first;
 	const ByteVec &data = sendqueue.front().second;
-	socket.async_send_to(buffer(data), endpoints[endnum], bind(&UDPTransport::asioSendCallback, this, _1, _2));
+	socket.async_send_to(buffer(data), endpoint, bind(&UDPTransport::sendCallback, this, _1, _2));
 }
 
 void UDPTransport::startAsyncReceive() {
-	socket.async_receive_from(buffer(recvbuffer), recvendpoint, bind(&UDPTransport::asioReceiveCallback, this, _1, _2));
+	socket.async_receive_from(buffer(recvbuffer), recvendpoint, bind(&UDPTransport::receiveCallback, this, _1, _2));
 }
 

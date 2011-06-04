@@ -1,21 +1,22 @@
 #ifndef HAL_SERIALTRANSPORT_H
 #define HAL_SERIALTRANSPORT_H
 
-#include "HAL/StreamTransport.h"
+#include "HAL/Transport.h"
+#include "HAL/IOThread.h"
+#include <utility>
 #include <vector>
 #include <string>
 
 namespace subjugator {
-	class SerialTransport : public StreamTransport<boost::asio::serial_port> {
+	class SerialTransport : public Transport {
 		public:
-			SerialTransport(const std::vector<std::string> &devicenames);
-			~SerialTransport();
+			SerialTransport();
 
-			virtual void start();
-			virtual void stop();
+			virtual const std::string &getName() const;
+			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);
 
 		private:
-			std::vector<std::string> devicenames;
+			IOThread iothread;
 	};
 }
 

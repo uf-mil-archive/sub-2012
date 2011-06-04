@@ -1,4 +1,5 @@
 #include "HAL/SerialTransport.h"
+#include "HAL/SerialEndpoint.h"
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -8,45 +9,23 @@
 using namespace subjugator;
 using namespace boost;
 using namespace boost::asio;
-using namespace boost::asio::ip;
-using namespace boost::system;
 using namespace std;
 
-SerialTransport::SerialTransport(const vector<string> &devicenames)
-: StreamTransport<boost::asio::serial_port>(devicenames.size()), devicenames(devicenames) { }
+SerialTransport::SerialTransport() { }
 
-SerialTransport::~SerialTransport() {
-	stop();
+const string &SerialTransport::getName() const {
+	static const string name = "serial";
+	return name;
 }
 
-void SerialTransport::start() {
-	error_code error;
+Endpoint *SerialTransport::makeEndpoint(const std::string &address, const ParamMap &parammap) {
+	int baud;
+	ParamMap::const_iterator i = parammap.find("baud");
+	if (i != parammap.end())
+		baud = lexical_cast<int>(i->second);
+	else
+		baud = 115200;
 
-	for (int endnum=0; endnum<streamdatavec.size(); endnum++) { // for each endpoint
-		StreamData &sdata = streamdatavec[endnum];
-		sdata.stream.open(devicenames[endnum], error); // open a serial port
-		sdata.stream.set_option(serial_port::baud_rate(115200));
-		sdata.stream.set_option(serial_port::flow_control());
-
-		if (!error) {
-			startAsyncReceive(endnum); // and start an async receive
-		} else { // if it failed to open
-			if (errorcallback) {
-				string msg = "SerialTransport failed to open serial device " + devicenames[endnum] + ": " + lexical_cast<string>(error);
-				runCallbackOnIOThread(bind(errorcallback, endnum, msg)); // invoke the error callback on the IO thread
-			}
-		}
-	}
-
-	startIOThread();
-}
-
-void SerialTransport::stop() {
-	stopIOThread();
-
-	for (int endnum=0; endnum<streamdatavec.size(); endnum++) {
-		StreamData &sdata = streamdatavec[endnum];
-		sdata.stream.close();
-	}
+	return new SerialEndpoint(address, baud, iothread);
 }
 
