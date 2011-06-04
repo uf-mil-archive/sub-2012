@@ -1,9 +1,8 @@
-#include "HAL/HAL.h"
-#include "HAL/Sub7EPacketFormatter.h"
-#include "HAL/SerialTransport.h"
+#include "HAL/SubHAL.h"
+#include "HAL/format/Sub7EPacketFormatter.h"
 #include "MotorDriverDataObjectFormatter.h"
 #include "HeartBeat.h"
-#include <boost/assign.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
 #include <vector>
 #include <string>
@@ -22,18 +21,14 @@ static void errorCallback(int endnum, const std::string &msg) {
 }
 
 int main(int argc, char **argv) {
-	vector<string> ports;
-	ports.push_back("/dev/ttyUSB0");
-
-	HAL hal(new MotorDriverDataObjectFormatter(), new SerialTransport(ports), Sub7EPacketFormatter::factory);
-	hal.configureCallbacks(receiveCallback, errorCallback);
-	hal.start();
+	SubHAL hal;
+	hal.loadAddressFile("addresses");
+	boost::scoped_ptr<DataObjectEndpoint> endpoint(hal.openDataObjectEndpoint(1, new MotorDriverDataObjectFormatter(1), new Sub7EPacketFormatter()));
 
 	while (true) {
 		this_thread::sleep(posix_time::seconds(1));
 
-		HeartBeat hb(1);
-		hal.write(0, hb);
+		endpoint->write(HeartBeat());
 		cout << "Sent heartbeat" << endl;
 	}
 }

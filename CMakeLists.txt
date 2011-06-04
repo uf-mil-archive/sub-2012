@@ -23,7 +23,7 @@ endif()
 
 add_subdirectory(SubMain)
 add_subdirectory(HAL)
-#add_subdirectory(HALTest) # HAL is currently hacked to pieces, can't build HALTest
+add_subdirectory(HALTest)
 
 # Handle the example projects
 
