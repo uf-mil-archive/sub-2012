@@ -12,7 +12,7 @@ namespace subjugator {
 
 			virtual void configureCallbacks(const ReadCallback &readcallback, const StateChangeCallback &statechangecallback);
 			virtual State getState() const { return state; }
-			virtual const std::string &getErrorMessage() const;
+			virtual const std::string &getErrorMessage() const { return errmsg; }
 
 		protected:
 			void callReadCallback(ByteVec::const_iterator begin, ByteVec::const_iterator end);

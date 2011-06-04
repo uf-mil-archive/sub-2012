@@ -18,7 +18,7 @@ const string &TCPTransport::getName() const {
 	return name;
 }
 
-Endpoint *TCPTransport::makeEndpoint(const std::string &address, std::map<std::string, std::string> params) {
+Endpoint *TCPTransport::makeEndpoint(const std::string &address, const ParamMap &params) {
 	static const regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
 	smatch match;
 	if (!regex_match(address, match, ipreg))

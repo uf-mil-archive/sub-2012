@@ -28,7 +28,7 @@ namespace subjugator {
 			StateChangeCallback statechangecallback;
 
 			void endpointReadCallback(ByteVec::const_iterator begin, ByteVec::const_iterator end);
-			void endpointStateChangedCallback();
+			void endpointStateChangeCallback();
 	};
 }
 

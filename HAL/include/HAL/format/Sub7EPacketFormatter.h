@@ -1,8 +1,8 @@
 #ifndef HAL_SUB7EPACKETFORMATTER_H
 #define HAL_SUB7EPACKETFORMATTER_H
 
-#include "HAL/ByteDelimitedPacketFormatter.h"
-#include "HAL/CRCChecksum.h"
+#include "HAL/format/ByteDelimitedPacketFormatter.h"
+#include "HAL/format/CRCChecksum.h"
 
 namespace subjugator {
 	class Sub7EPacketFormatter : public ByteDelimitedPacketFormatter {

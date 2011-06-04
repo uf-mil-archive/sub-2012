@@ -21,8 +21,8 @@ namespace subjugator {
 
 			virtual ~Transport() { }
 
-			virtual const std::string &getName() const;
-			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);
+			virtual const std::string &getName() const = 0;
+			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params) = 0;
 
 	};
 }

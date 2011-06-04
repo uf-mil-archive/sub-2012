@@ -17,7 +17,7 @@ namespace subjugator {
 			UDPTransport(IOThread &iothread);
 
 			virtual const std::string &getName() const;
-			virtual Endpoint *makeEndpoint(const std::string &address, std::map<std::string, std::string> params);
+			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);
 
 		private:
 			IOThread &iothread;

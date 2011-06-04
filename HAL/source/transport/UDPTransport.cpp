@@ -18,7 +18,7 @@ const string &UDPTransport::getName() const {
 	return name;
 }
 
-Endpoint *UDPTransport::makeEndpoint(const std::string &address, std::map<std::string, std::string> params) {
+Endpoint *UDPTransport::makeEndpoint(const std::string &address, const ParamMap &params) {
 	static const regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
 	smatch match;
 	if (!regex_match(address, match, ipreg))
@@ -49,6 +49,15 @@ void UDPTransport::endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator 
 	// we can't touch the send queue, io thread has exclusive use of it
 	// so, we run a callback on the io thread which will do the work for us
 	iothread.run(bind(&UDPTransport::pushSendQueueCallback, this, endpoint->getEndpoint(), ByteVec(begin, end)));
+}
+
+void UDPTransport::endpointDeleted(UDPEndpoint *endpoint) {
+	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end(); ++i) {
+		if (*i == endpoint) {
+			endpoints.erase(i);
+			return;
+		}
+	}
 }
 
 void UDPTransport::pushSendQueueCallback(const ip::udp::endpoint &endpoint, const ByteVec &bytes) {

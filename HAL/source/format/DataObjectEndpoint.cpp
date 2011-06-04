@@ -7,7 +7,7 @@ using namespace std;
 
 DataObjectEndpoint::DataObjectEndpoint(Endpoint *endpoint, DataObjectFormatter *dobjformat, PacketFormatter *packetformat)
 : endpoint(endpoint), dobjformat(dobjformat), packetformat(packetformat) {
-	endpoint->configureCallbacks(boost::bind(&DataObjectEndpoint::endpointReadCallback, this, _1, _2), boost::bind(&DataObjectEndpoint::endpointStateChangedCallback, this));
+	endpoint->configureCallbacks(boost::bind(&DataObjectEndpoint::endpointReadCallback, this, _1, _2), boost::bind(&DataObjectEndpoint::endpointStateChangeCallback, this));
 }
 
 void DataObjectEndpoint::configureCallbacks(const ReadCallback &readcallback, const StateChangeCallback &statechangecallback) {
@@ -34,4 +34,10 @@ void DataObjectEndpoint::endpointReadCallback(ByteVec::const_iterator begin, Byt
 		}
 	}
 }
+
+void DataObjectEndpoint::endpointStateChangeCallback() {
+	if (statechangecallback)
+		statechangecallback();
+}
+
 
