@@ -1,5 +1,5 @@
-#include "MotorDriverDataObjectFormatter.h"
-#include "HeartBeat.h"
+#include "HALTest/MotorDriverDataObjectFormatter.h"
+#include "HALTest/MotorDriverDataObject.h"
 
 using namespace subjugator;
 using namespace boost;
@@ -12,15 +12,16 @@ DataObject *MotorDriverDataObjectFormatter::toDataObject(const Packet &packet) {
 }
 
 Packet MotorDriverDataObjectFormatter::toPacket(const DataObject &dobj) {
-	Packet packet;
+	const MotorDriverDataObject &motdobj = dynamic_cast<const MotorDriverDataObject &>(dobj);
 
-	if (const HeartBeat *hb = dynamic_cast<const HeartBeat *>(&dobj)) {
-		packet.push_back(address);
-		packet.push_back((uint8_t)(packetcount_out & 0xFF));
-		packet.push_back((uint8_t)(packetcount_out >> 8));
-		packet.push_back(hb->getTypeCode());
-		packetcount_out++;
-		return packet;
-	}
+	Packet packet;
+	packet.push_back(address);
+	packet.push_back((uint8_t)(packetcount_out & 0xFF));
+	packet.push_back((uint8_t)(packetcount_out >> 8));
+	packet.push_back(motdobj.getTypeCode());
+	motdobj.appendData(packet);
+
+	packetcount_out++;
+	return packet;
 }
 

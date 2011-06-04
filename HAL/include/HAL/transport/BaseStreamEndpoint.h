@@ -9,8 +9,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/asio.hpp>
 
-#include <iostream>
-
 namespace subjugator {
 	template <class StreamType> // designed to be either a tcp::socket or a serial_port
 	class BaseStreamEndpoint : public BaseEndpoint {
