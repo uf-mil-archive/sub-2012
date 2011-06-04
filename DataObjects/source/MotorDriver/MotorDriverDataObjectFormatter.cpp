@@ -1,5 +1,5 @@
-#include "HALTest/MotorDriverDataObjectFormatter.h"
-#include "HALTest/MotorDriverDataObject.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObject.h"
 
 using namespace subjugator;
 using namespace boost;

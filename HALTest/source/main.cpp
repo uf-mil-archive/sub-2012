@@ -1,9 +1,9 @@
 #include "HAL/SubHAL.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
-#include "HALTest/MotorDriverDataObjectFormatter.h"
-#include "HALTest/HeartBeat.h"
-#include "HALTest/StartPublishing.h"
-#include "HALTest/SetNewReference.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
+#include "DataObjects/MotorDriver/HeartBeat.h"
+#include "DataObjects/MotorDriver/StartPublishing.h"
+#include "DataObjects/MotorDriver/SetNewReference.h"
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
 #include <vector>
@@ -38,6 +38,7 @@ int main(int argc, char **argv) {
 		cout << "Reference: ";
 		cin >> reference;
 	} while (reference > 1 || reference < -1);
+
 	endpoint->write(HeartBeat());
 	endpoint->write(SetNewReference(reference));
 

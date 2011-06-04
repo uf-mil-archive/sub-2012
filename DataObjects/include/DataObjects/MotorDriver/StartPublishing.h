@@ -1,7 +1,7 @@
-#ifndef STARTPUBLISHING_H
-#define STARTPUBLISHING_H
+#ifndef DATAOBJECTS_MOTORDRIVER_STARTPUBLISHING_H
+#define DATAOBJECTS_MOTORDRIVER_STARTPUBLISHING_H
 
-#include "HALTest/MotorDriverDataObject.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObject.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {

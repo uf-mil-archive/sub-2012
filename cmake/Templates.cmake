@@ -151,6 +151,19 @@ function(sub_reference_library projectname)
 	endforeach()
 endfunction()
 
+#############################################
+# sub_lirbary_reference_library(ProjectName ReferencedLibraryProject1 ReferencedLibraryProject2 ...)
+#
+# This allows a library project to use headers defined in another library project.
+#############################################
+
+function(sub_library_reference_library projectname)
+	foreach(refprojectname ${ARGN})
+		string(TOLOWER ${refprojectname} reflibname)
+		include_directories(${${refprojectname}_SOURCE_DIR}/include)
+	endforeach()
+endfunction()
+
 # Apparently -fPIC is recommended for any build on 64 bit linux.
 if (NOT CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 	if (CMAKE_COMPILER_IS_GNUCXX)

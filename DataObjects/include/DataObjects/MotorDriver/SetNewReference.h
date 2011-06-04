@@ -1,7 +1,7 @@
-#ifndef SETNEWREFERENCE_H
-#define SETNEWREFERENCE_H
+#ifndef DATAOBJECTS_MOTORDRIVER_SETNEWREFERENCE_H
+#define DATAOBJECTS_MOTORDRIVER_SETNEWREFERENCE_H
 
-#include "HALTest/MotorDriverDataObject.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObject.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {

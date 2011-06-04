@@ -24,6 +24,7 @@ endif()
 add_subdirectory(SubMain)
 add_subdirectory(HAL)
 add_subdirectory(HALTest)
+add_subdirectory(DataObjects)
 
 # Handle the example projects
 

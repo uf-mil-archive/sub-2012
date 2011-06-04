@@ -1,4 +1,4 @@
-#include "HALTest/SetNewReference.h"
+#include "DataObjects/MotorDriver/SetNewReference.h"
 #include <cmath>
 
 using namespace subjugator;

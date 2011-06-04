@@ -1,4 +1,4 @@
-#include "HALTest/StartPublishing.h"
+#include "DataObjects/MotorDriver/StartPublishing.h"
 
 using namespace subjugator;
 using namespace boost;
