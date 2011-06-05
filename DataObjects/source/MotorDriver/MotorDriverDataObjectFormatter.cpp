@@ -1,27 +1,47 @@
 #include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
-#include "DataObjects/MotorDriver/MotorDriverDataObject.h"
+#include "DataObjects/MotorDriver/MotorDriverCommand.h"
+#include "DataObjects/MotorDriver/MotorDriverInfo.h"
+#include "DataObjects/HeartBeat.h"
 
 using namespace subjugator;
 using namespace boost;
 
-MotorDriverDataObjectFormatter::MotorDriverDataObjectFormatter(uint8_t address)
-: address(address), packetcount_out(0), packetcount_in(0) { }
+MotorDriverDataObjectFormatter::MotorDriverDataObjectFormatter(boost::uint8_t devaddress, boost::uint8_t pcaddress, EmbeddedTypeCode typecode)
+: devaddress(devaddress), pcaddress(pcaddress), packetcount_out(0), packetcount_in(0), typecode(typecode) { }
 
 DataObject *MotorDriverDataObjectFormatter::toDataObject(const Packet &packet) {
-	return NULL;
+	// motor drivers only send back one kind of packet
+	if (packet.size() != MotorDriverInfo::Length + 5) // 5 header bytes
+		return NULL;
+
+	// verify header stuff
+	if (packet[0] != devaddress || packet[1] != pcaddress || packet[4] != typecode)
+		return NULL;
+
+	// TODO packet number stats
+
+	// create the new packet
+	return new MotorDriverInfo(packet.begin()+5, packet.end());
 }
 
 Packet MotorDriverDataObjectFormatter::toPacket(const DataObject &dobj) {
-	const MotorDriverDataObject &motdobj = dynamic_cast<const MotorDriverDataObject &>(dobj);
-
 	Packet packet;
-	packet.push_back(address);
+	packet.push_back(pcaddress);
+	packet.push_back(devaddress);
 	packet.push_back((uint8_t)(packetcount_out & 0xFF));
 	packet.push_back((uint8_t)(packetcount_out >> 8));
-	packet.push_back(motdobj.getTypeCode());
-	motdobj.appendData(packet);
 
 	packetcount_out++;
+
+	// Leaving this somewhat ugly because I think Heartbeat is going to be completely refactored out of here once multicast gets in place
+	if (const HeartBeat *hb = dynamic_cast<const HeartBeat *>(&dobj)) {
+		packet.push_back(HeartBeat::TypeCode);
+	} else if (const MotorDriverCommand *command = dynamic_cast<const MotorDriverCommand *>(&dobj)) {
+		packet.push_back(typecode);
+		packet.push_back(command->getToken());
+		command->appendDataPacket(packet);
+	}
+
 	return packet;
 }
 

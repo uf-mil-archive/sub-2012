@@ -1,16 +1,16 @@
 #ifndef DATAOBJECTS_MOTORDRIVER_STARTPUBLISHING_H
 #define DATAOBJECTS_MOTORDRIVER_STARTPUBLISHING_H
 
-#include "DataObjects/MotorDriver/MotorDriverDataObject.h"
+#include "DataObjects/MotorDriver/MotorDriverCommand.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {
-	class StartPublishing : public MotorDriverDataObject {
+	class StartPublishing : public MotorDriverCommand {
 		public:
 			StartPublishing(boost::uint8_t rate);
 
-			virtual uint8_t getTypeCode() const { return 1; }
-			virtual void appendData(Packet &packet) const;
+			virtual uint8_t getToken() const { return 1; }
+			virtual void appendDataPacket(Packet &packet) const;
 
 		private:
 			boost::uint8_t rate;

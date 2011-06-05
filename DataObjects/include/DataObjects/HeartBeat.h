@@ -1,15 +1,15 @@
 #ifndef DATAOBJECTS_MOTORDRIVER_HEARTBEAT_H
 #define DATAOBJECTS_MOTORDRIVER_HEARTBEAT_H
 
-#include "DataObjects/MotorDriver/MotorDriverDataObject.h"
+#include "HAL/format/DataObject.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {
-	class HeartBeat : public MotorDriverDataObject {
+	class HeartBeat : public DataObject {
 		public:
 			HeartBeat() { }
 
-			static const int TypeCode = 100;
+			enum { TypeCode = 100 };
 	};
 }
 
