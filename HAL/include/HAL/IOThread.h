@@ -8,6 +8,7 @@ namespace subjugator {
 	class IOThread {
 		public:
 			IOThread();
+			~IOThread();
 
 			void start();
 			void stop();
