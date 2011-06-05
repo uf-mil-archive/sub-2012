@@ -43,9 +43,17 @@ namespace subjugator {
 			double railvoltage;
 			double current;
 
+			// TODO common header somewhere
 			template <int fractional>
 			static double convertFixedPoint(uint16_t val) {
 				return (double)val * std::pow(2, fractional);
+			}
+
+			template <int fractional>
+			static double convertSignedFixedPoint(uint16_t val) {
+				bool negative = val & 0x80 != 0;
+				double d = (double)(val & ~0x80) * std::pow(2, fractional);
+				return negative ? -d : d;
 			}
 	};
 }

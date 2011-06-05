@@ -14,10 +14,10 @@ MotorDriverInfo::MotorDriverInfo(ByteVec::const_iterator i, ByteVec::const_itera
 	flags = i[0] + i[1]<<8;
 	i += 2;
 
-	refinput = convertFixedPoint<8>(i[0] + i[1]<<8);
+	refinput = convertSignedFixedPoint<8>(i[0] + i[1]<<8);
 	i += 2;
 
-	presentoutput = convertFixedPoint<8>(i[0] + i[1]<<8);
+	presentoutput = convertFixedPoint<10>(i[0] + i[1]<<8);
 	i += 2;
 
 	railvoltage = convertFixedPoint<10>(i[0] + i[1]<<8);

@@ -12,7 +12,6 @@ void SetReference::appendDataPacket(Packet &packet) const {
 	if (reference < 0)
 		referencebits |= 0x8000; // set sign bit on negative
 
-	packet.push_back(3); // SETNEWREFERENCE TODO
 	packet.push_back((uint8_t)(referencebits & 0xFF));
 	packet.push_back((uint8_t)(referencebits >> 8));
 }
