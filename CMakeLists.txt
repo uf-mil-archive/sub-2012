@@ -19,9 +19,14 @@ include_directories(${EIGEN3_INCLUDE_DIR} ${FFTW_INCLUDES})
 add_definitions(-DEIGEN_FFTW_DEFAULT)
 
 # find DDS, but not REQUIRED
-find_package(NDDS QUIET)
+find_package(NDDS)
 if(NOT NDDS_FOUND)
 	message("DDS Not found! No projects depending on DDS will be built.")
+endif()
+
+find_package(Qt4)
+if(NOT QT_FOUND)
+	message("QT Not found! No projects depending on QT will be built.")
 endif()
 
 # Add projects subdirectories here

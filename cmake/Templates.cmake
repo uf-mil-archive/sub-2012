@@ -54,37 +54,76 @@ function(sub_executable projectname)
 		return()
 	endif()
 
+	list(FIND ARGN Qt qt_pos)
+	if (qt_pos EQUAL -1)
+		set(qt FALSE)
+	else()
+		set(qt TRUE)
+	endif()
+
+	if (qt AND NOT QT_FOUND)
+		message(ERROR "sub_executable called with qt enabled, but QT was not found")
+		return()
+	endif()
+
 	project(${projectname})
 
-	# Process the config header
-	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
-		configure_file(include/config.h.in config/config.h) # configure it, putting it in the output directory
-		include_directories(${CMAKE_CURRENT_BINARY_DIR}/config) # put the output directory on the include path
-	endif()
-
-	# Define executable
+	# set up some variables and includes
+	file(GLOB_RECURSE sources "source/*.cpp")
+	include_directories(${CMAKE_CURRENT_BINARY_DIR}) # generated headers are tossed in here by qt and others
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 		include_directories(include)
+		file(GLOB_RECURSE headers "include/*.h")
+	else()
+		set(headers "")
 	endif()
-	file(GLOB_RECURSE sources "source/*.cpp")
+	set(libraries ${Boost_LIBRARIES} ${FFTW_LIBRARIES})
 	string(TOLOWER ${projectname} exename)
-	add_executable(${exename} ${sources})
-	target_link_libraries(${exename} ${Boost_LIBRARIES} ${FFTW_LIBRARIES})
 
-	# Optionally set up dds functionality as well
+	# Optionally process the config header
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
+		configure_file(include/config.h.in config.h) # configure it, putting it in the output directory
+	endif()
+
+	# Optionally set up dds functionality
 	if(dds)
 		include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
-		target_link_libraries(${exename} ${NDDS_LIBRARIES}) # link to DDS
+		set(libraries ${libraries} ${NDDS_LIBRARIES}) # link to DDS
 
 		file(GLOB_RECURSE interfaces "idl/*.idl") # build a shared lib to hold DDS generated code if we have any idl files
 		if (interfaces)
 			set(ddslibname ${exename}_ddslib)
 			ndds_run_rtiddsgen(interfaces_sources ${interfaces})
 			add_library(${ddslibname} ${interfaces_sources})
-			target_link_libraries(${exename} ${ddslibname}) # link the library to our binary
+			set(libraries ${libraries} ${ddslibname}) # link the library to our binary
 			ndds_include_rtiddsgen_directories(idl) # put the directory containing headers generated with rtiddsgen on the include path
 		endif()
 	endif()
+
+	#optionally set up qt functionality
+	if(qt)
+		include(${QT_USE_FILE})
+		set(libraries ${libraries} ${QT_LIBRARIES})
+
+		QT4_WRAP_CPP(headers_moc_sources ${headers})
+		set(sources ${sources} ${headers_moc_sources})
+
+		if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
+			file(GLOB_RECURSE forms "forms/*.ui")
+			QT4_WRAP_UI(forms_moc_sources ${forms})
+			set(sources ${sources} ${forms_moc_sources})
+		endif()
+
+		if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/resources)
+			file(GLOB_RECURSE resources "resources/*.qrc")
+			QT4_ADD_RESOURCES(resources_moc_sources ${resources})
+			set(sources ${sources} ${resources_moc_sources})
+		endif()
+	endif()
+
+	# Define executable
+	add_executable(${exename} ${sources})
+	target_link_libraries(${exename} ${libraries})
 
 	# install
 	set_property(TARGET ${exename} PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE) # this causes CMake to keep runtime paths in the binary so dds libs are still found
@@ -110,11 +149,11 @@ function(sub_library projectname)
 	project(${projectname})
 
 	include_directories(include)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 	# Process the config header
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
-		configure_file(include/config.h.in config/config.h) # configure it, putting it in the output directory
-		include_directories(${CMAKE_CURRENT_BINARY_DIR}/config) # put the output directory on the include path
+		configure_file(include/config.h.in config.h) # configure it, putting it in the output directory
 	endif()
 
 	file(GLOB_RECURSE sources "source/*.cpp")
