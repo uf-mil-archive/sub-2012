@@ -1,0 +1,11 @@
+#ifndef HYDROPHONE_CONFIG_H
+#define HYDROPHONE_CONFIG_H
+
+// this should go with SubHAL and other Sub* classes into SubMain at some point
+
+namespace subjugator {
+	static const char embeddedAddressesPath[] = "${CMAKE_INSTALL_PREFIX}/${SUBJUGATOR_CONFIG_DIRECTORY}/embedded_addresses.conf";
+}
+
+#endif
+

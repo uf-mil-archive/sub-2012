@@ -111,10 +111,19 @@ function(sub_library projectname)
 
 	include_directories(include)
 
-	file(GLOB_RECURSE sources "source/*.cpp")
+	# Process the config header
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
+		configure_file(include/config.h.in config/config.h) # configure it, putting it in the output directory
+		include_directories(${CMAKE_CURRENT_BINARY_DIR}/config) # put the output directory on the include path
+	endif()
 
+	file(GLOB_RECURSE sources "source/*.cpp")
 	string(TOLOWER ${projectname} libname)
 	add_library(${libname} ${sources})
+
+	# install configs
+	file(GLOB_RECURSE configs "config/*")
+	install(FILES ${configs} DESTINATION ${SUBJUGATOR_CONFIG_DIRECTORY})
 endfunction()
 
 #############################################

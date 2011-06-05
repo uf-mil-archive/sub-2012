@@ -17,11 +17,14 @@ using namespace std;
 
 int main(int argc, char **argv) {
 	SubHAL hal;
-	hal.loadAddressFile("addresses");
-
 	scoped_ptr<DataObjectEndpoint> endpoint(hal.openDataObjectEndpoint(2, new MotorDriverDataObjectFormatter(2, 1, BRUSHEDOPEN), new Sub7EPacketFormatter()));
 	endpoint->open();
 	hal.startIOThread();
+
+	if (endpoint->getState() == Endpoint::ERROR) {
+		cout << "Endpoint entered error state: " << endpoint->getErrorMessage() << endl;
+		return 1;
+	}
 
 	double reference;
 	do {
