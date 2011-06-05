@@ -5,6 +5,8 @@
 # process can be kept isolated to this one file, while the rest of our cmake code
 # is a simple definition of the desired project layout.
 
+set(SUBJUGATOR_CONFIG_DIRECTORY etc/subjugator CACHE STRING "Where the configuration files for the various subjugator binaries will be placed, relative to the install prefix")
+
 #############################################
 # sub_executable(ProjectName [DDS])
 # Configures this project to build and install an executable, which is always
@@ -54,6 +56,12 @@ function(sub_executable projectname)
 
 	project(${projectname})
 
+	# Process the config header
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
+		configure_file(include/config.h.in config/config.h) # configure it, putting it in the output directory
+		include_directories(${CMAKE_CURRENT_BINARY_DIR}/config) # put the output directory on the include path
+	endif()
+
 	# Define executable
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 		include_directories(include)
@@ -61,7 +69,7 @@ function(sub_executable projectname)
 	file(GLOB_RECURSE sources "source/*.cpp")
 	string(TOLOWER ${projectname} exename)
 	add_executable(${exename} ${sources})
-	target_link_libraries(${exename} ${Boost_LIBRARIES})
+	target_link_libraries(${exename} ${Boost_LIBRARIES} ${FFTW_LIBRARIES})
 
 	# Optionally set up dds functionality as well
 	if(dds)
@@ -81,6 +89,10 @@ function(sub_executable projectname)
 	# install
 	set_property(TARGET ${exename} PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE) # this causes CMake to keep runtime paths in the binary so dds libs are still found
 	install(TARGETS ${exename} DESTINATION bin)
+
+	# install configs
+	file(GLOB_RECURSE configs "config/*")
+	install(FILES ${configs} DESTINATION ${SUBJUGATOR_CONFIG_DIRECTORY})
 endfunction()
 
 #############################################
