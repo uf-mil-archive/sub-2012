@@ -31,17 +31,14 @@ namespace subjugator {
 
 		protected:
 			StreamType stream;
-			ByteVec pendingsendbuf; // data waiting to be sent
-			ByteVec outgoingsendbuf; // data currently being sent asynchronously by asio
-			ByteVec recvbuf;
 
-			void startAsyncSendReceive() {
-				startAsyncReceive();
+			void startAsyncSendReceive() { // called by subclass when stream is ready and when we want to start sending and receiving
+				startAsyncReceive(); // start the first async receive
 
-				if (!pendingsendbuf.empty()) {
-					outgoingsendbuf = pendingsendbuf;
+				if (!pendingsendbuf.empty()) { // if there is stuff in the pending send buf
+					outgoingsendbuf = pendingsendbuf; // copy it to the outgoing send buffer
 					pendingsendbuf.clear();
-					startAsyncSend();
+					startAsyncSend(); // start the first async send as well
 				}
 			}
 
@@ -51,6 +48,10 @@ namespace subjugator {
 			}
 
 		private:
+			ByteVec pendingsendbuf; // data waiting to be sent
+			ByteVec outgoingsendbuf; // data currently being sent asynchronously by asio
+			ByteVec recvbuf;
+
 			void appendSendBufCallback(const ByteVec &bytes) {
     			if (outgoingsendbuf.empty() && getState() == OPEN) { // if there's currently no async send, we need to start one
     				outgoingsendbuf = bytes; // copy the data to the outgoing send buf
@@ -62,7 +63,7 @@ namespace subjugator {
 
 			void sendCallback(const boost::system::error_code& error, std::size_t bytes) { // called when an async send completes
 				if (error) { // if an error occured
-					setState(ERROR, "SerialTransport received error while sending: " + error.message()); // set an error state
+					setState(ERROR, "BaseStreamEndpoint received error while sending: " + error.message()); // set an error state
 					stream.close();
 					return;
 				}
@@ -77,7 +78,7 @@ namespace subjugator {
 
 			void receiveCallback(const boost::system::error_code& error, std::size_t bytes) {
 				if (error) {
-					setState(ERROR, "TCPTransport received error while receiving: " + error.message()); // call the error callback
+					setState(ERROR, "BaseStreamEndpoint received error while receiving: " + error.message()); // call the error callback
 					stream.close();
 					return;
 				}

@@ -6,7 +6,7 @@
 using namespace subjugator;
 using namespace boost;
 
-typedef crc_16_type CRCCalculator;
+typedef crc_optimal<16, 0x1021, 0, 0, false, false> CRCCalculator;
 
 CRCChecksum::CRCChecksum() { }
 
