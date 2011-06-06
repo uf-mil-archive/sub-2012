@@ -14,13 +14,25 @@ using namespace std;
 
 MotorDriverController::MotorDriverController(int motaddr)
 : endpoint(hal.openDataObjectEndpoint(motaddr, new MotorDriverDataObjectFormatter(motaddr, 1, BRUSHEDOPEN), new Sub7EPacketFormatter())),
-  heartbeatsender(hal.getIOService(), *endpoint) {
+  heartbeatsender(hal.getIOService(), *endpoint),
+  motorramper(hal.getIOService(), *endpoint) {
 	endpoint->configureCallbacks(bind(&MotorDriverController::endpointReadCallback, this, _1), bind(&MotorDriverController::endpointStateChangeCallback, this));
+	motorramper.configureCallbacks(bind(&MotorDriverController::rampUpdateCallback, this, _1), bind(&MotorDriverController::rampCompleteCallback, this));
 	hal.startIOThread();
 }
 
 void MotorDriverController::setReference(double reference) {
 	endpoint->write(SetReference(reference));
+}
+
+void MotorDriverController::startRamp(const MotorRamper::Settings &settings) {
+	motorramper.start(settings);
+}
+
+void MotorDriverController::stopRamp() {
+	motorramper.stop();
+	endpoint->write(SetReference(0));
+	emit newRampReference(0);
 }
 
 void MotorDriverController::endpointReadCallback(auto_ptr<DataObject> &dobj) {
@@ -39,4 +51,10 @@ void MotorDriverController::endpointStateChangeCallback() {
 		heartbeatsender.stop();
 	}
 }
+
+void MotorDriverController::rampUpdateCallback(double reference) {
+	emit newRampReference(reference);
+}
+
+void MotorDriverController::rampCompleteCallback() { }
 

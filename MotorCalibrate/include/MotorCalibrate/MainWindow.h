@@ -16,7 +16,10 @@ namespace subjugator {
 		private slots:
 			void onSetReferenceButtonClicked();
 			void onStopReferenceButtonClicked();
+			void onStartRampButtonClicked();
+			void onStopRampButtonClicked();
 			void onNewMotorInfo(const MotorDriverInfo &info);
+			void onNewRampReference(double reference);
 
 		private:
 			MotorDriverController motorcontroller;

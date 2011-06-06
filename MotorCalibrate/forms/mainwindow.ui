@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="rampTab">
        <attribute name="title">
@@ -37,10 +37,10 @@
           <item row="0" column="1">
            <widget class="QDoubleSpinBox" name="holdTimeSpinBox">
             <property name="minimum">
-             <double>2.000000000000000</double>
+             <double>0.500000000000000</double>
             </property>
             <property name="maximum">
-             <double>20.000000000000000</double>
+             <double>60.000000000000000</double>
             </property>
             <property name="singleStep">
              <double>0.500000000000000</double>
@@ -63,7 +63,7 @@
              <double>0.500000000000000</double>
             </property>
             <property name="maximum">
-             <double>20.000000000000000</double>
+             <double>60.000000000000000</double>
             </property>
             <property name="singleStep">
              <double>0.100000000000000</double>
@@ -90,14 +90,17 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Divions</string>
+             <string>Divisions</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSpinBox" name="divionsSpinBox">
+           <widget class="QSpinBox" name="divisionsSpinBox">
             <property name="minimum">
              <number>2</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
             </property>
             <property name="singleStep">
              <number>1</number>
@@ -169,14 +172,14 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QPushButton" name="startButton">
+             <widget class="QPushButton" name="startRampButton">
               <property name="text">
                <string>Start</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="stopButton">
+             <widget class="QPushButton" name="stopRampButton">
               <property name="text">
                <string>Stop</string>
               </property>
