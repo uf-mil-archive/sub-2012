@@ -1,6 +1,10 @@
 #ifndef MOTORCALIBRATE_MAINWINDOW_H
 #define MOTORCALIBRATE_MAINWINDOW_H
 
+#include "HeartBeatSender.h"
+#include "HAL/SubHAL.h"
+#include "HAL/format/DataObjectEndpoint.h"
+#include <boost/scoped_ptr.hpp>
 #include <QMainWindow>
 #include "ui_mainwindow.h"
 
@@ -9,9 +13,14 @@ namespace subjugator {
 		Q_OBJECT
 
 		public:
-			MainWindow(QWidget *parent=NULL);
+			MainWindow(int haladdr=2);
 
 		private:
+			SubHAL hal;
+			boost::scoped_ptr<DataObjectEndpoint> endpoint;
+
+			HeartBeatSender heartbeatsender;
+
 			Ui::MainWindow ui;
 	};
 }

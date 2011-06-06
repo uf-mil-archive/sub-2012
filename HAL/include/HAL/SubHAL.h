@@ -10,6 +10,7 @@ namespace subjugator {
 			SubHAL();
 
 			void startIOThread();
+			inline boost::asio::io_service &getIOService() { return iothread.getIOService(); }
 
 		private:
 			IOThread iothread;
