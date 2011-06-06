@@ -15,6 +15,10 @@ namespace subjugator {
 		public:
 			MainWindow(int haladdr=2);
 
+		private slots:
+			void onSetReferenceButtonClicked();
+			void onStopReferenceButtonClicked();
+
 		private:
 			SubHAL hal;
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;
