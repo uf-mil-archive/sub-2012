@@ -48,6 +48,10 @@ if(BUILD_EXAMPLE_PROJECTS)
 		add_subdirectory(ExampleProjects/DDSSubscriber)
 	endif()
 
+	if(QT_FOUND)
+		add_subdirectory(ExampleProjects/SimpleQt)
+	endif()
+
 	add_subdirectory(ExampleProjects/SimpleLib)
 	add_subdirectory(ExampleProjects/SimpleLibUser)
 endif()
