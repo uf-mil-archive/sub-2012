@@ -8,20 +8,27 @@ using namespace subjugator;
 using namespace std;
 
 MainWindow::MainWindow(int haladdr)
-: endpoint(hal.openDataObjectEndpoint(haladdr, new MotorDriverDataObjectFormatter(haladdr, 1, BRUSHEDOPEN), new Sub7EPacketFormatter())),
-  heartbeatsender(hal.getIOService(), *endpoint) {
+: motorcontroller(haladdr) {
 	ui.setupUi(this);
-	hal.startIOThread();
 
 	connect(ui.setReferenceButton, SIGNAL(clicked()), this, SLOT(onSetReferenceButtonClicked()));
 	connect(ui.stopReferenceButton, SIGNAL(clicked()), this, SLOT(onStopReferenceButtonClicked()));
+	connect(&motorcontroller, SIGNAL(newInfo(const MotorDriverInfo &info)), this, SLOT(onNewMotorInfo(const MotorDriverInfo &info)));
+}
+
+void MainWindow::onNewMotorInfo(const MotorDriverInfo &info) {
+	ui.tickCountLabel->setText(QString::number(info.getTickCount()));
+	ui.refInputLabel->setText(QString::number(info.getReferenceInput()));
+	ui.outputLabel->setText(QString::number(info.getPresentOutput()));
+	ui.railVoltageLabel->setText(QString::number(info.getRailVoltage()));
+	ui.currentLabel->setText(QString::number(info.getCurrent()));
 }
 
 void MainWindow::onSetReferenceButtonClicked() {
-	endpoint->write(SetReference(ui.setReferenceSpinBox->value()));
+	motorcontroller.setReference(ui.setReferenceSpinBox->value());
 }
 
 void MainWindow::onStopReferenceButtonClicked() {
-	endpoint->write(SetReference(0));
+	motorcontroller.setReference(0);
 }
 

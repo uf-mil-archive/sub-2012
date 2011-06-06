@@ -9,6 +9,9 @@ namespace subjugator {
 		public:
 			HeartBeatSender(boost::asio::io_service &io_service, DataObjectEndpoint &endpoint, double hz=1);
 
+			void start();
+			void stop();
+
 		private:
 			boost::asio::deadline_timer timer;
 			DataObjectEndpoint &endpoint;

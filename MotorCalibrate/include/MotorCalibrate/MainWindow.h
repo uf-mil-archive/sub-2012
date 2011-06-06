@@ -1,10 +1,8 @@
 #ifndef MOTORCALIBRATE_MAINWINDOW_H
 #define MOTORCALIBRATE_MAINWINDOW_H
 
-#include "HeartBeatSender.h"
-#include "HAL/SubHAL.h"
-#include "HAL/format/DataObjectEndpoint.h"
-#include <boost/scoped_ptr.hpp>
+#include "MotorCalibrate/MotorDriverController.h"
+#include "DataObjects/MotorDriver/MotorDriverInfo.h"
 #include <QMainWindow>
 #include "ui_mainwindow.h"
 
@@ -18,12 +16,10 @@ namespace subjugator {
 		private slots:
 			void onSetReferenceButtonClicked();
 			void onStopReferenceButtonClicked();
+			void onNewMotorInfo(const MotorDriverInfo &info);
 
 		private:
-			SubHAL hal;
-			boost::scoped_ptr<DataObjectEndpoint> endpoint;
-
-			HeartBeatSender heartbeatsender;
+			MotorDriverController motorcontroller;
 
 			Ui::MainWindow ui;
 	};
