@@ -16,10 +16,12 @@ using namespace std;
 MotorDriverController::MotorDriverController(int motaddr)
 : endpoint(hal.openDataObjectEndpoint(motaddr, new MotorDriverDataObjectFormatter(motaddr, 1, BRUSHEDOPEN), new Sub7EPacketFormatter())),
   heartbeatsender(hal.getIOService(), *endpoint, 2),
-  motorramper(hal.getIOService(), *endpoint) {
+  motorramper(hal.getIOService(), *endpoint),
+  motorbangbang(hal.getIOService(), *endpoint) {
 	endpoint->configureCallbacks(bind(&MotorDriverController::endpointReadCallback, this, _1), bind(&MotorDriverController::endpointStateChangeCallback, this));
 	endpoint->open();
 	motorramper.configureCallbacks(bind(&MotorDriverController::rampUpdateCallback, this, _1), bind(&MotorDriverController::rampCompleteCallback, this));
+	motorbangbang.configureCallbacks(bind(&MotorDriverController::bangUpdateCallback, this, _1));
 	hal.startIOThread();
 }
 
@@ -35,6 +37,16 @@ void MotorDriverController::stopRamp() {
 	motorramper.stop();
 	endpoint->write(SetReference(0));
 	emit newRampReference(0);
+}
+
+void MotorDriverController::startBangBang(const MotorBangBang::Settings &settings) {
+	motorbangbang.start(settings);
+}
+
+void MotorDriverController::stopBangBang() {
+	motorbangbang.stop();
+	endpoint->write(SetReference(0));
+	emit newBangReference(0);
 }
 
 void MotorDriverController::endpointReadCallback(auto_ptr<DataObject> &dobj) {
@@ -61,4 +73,8 @@ void MotorDriverController::rampUpdateCallback(double reference) {
 }
 
 void MotorDriverController::rampCompleteCallback() { }
+
+void MotorDriverController::bangUpdateCallback(double reference) {
+	emit newBangReference(reference);
+}
 

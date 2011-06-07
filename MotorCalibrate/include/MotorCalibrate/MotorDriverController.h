@@ -3,6 +3,7 @@
 
 #include "MotorCalibrate/HeartBeatSender.h"
 #include "MotorCalibrate/MotorRamper.h"
+#include "MotorCalibrate/MotorBangBang.h"
 #include "HAL/SubHAL.h"
 #include "HAL/format/DataObjectEndpoint.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
@@ -23,10 +24,13 @@ namespace subjugator {
 			void setReference(double reference);
 			void startRamp(const MotorRamper::Settings &settings);
 			void stopRamp();
+			void startBangBang(const MotorBangBang::Settings &settings);
+			void stopBangBang();
 
 		signals:
 			void newInfo();
 			void newRampReference(double reference);
+			void newBangReference(double reference);
 
 		private:
 			SubHAL hal;
@@ -35,12 +39,15 @@ namespace subjugator {
 
 			HeartBeatSender heartbeatsender;
 			MotorRamper motorramper;
+			MotorBangBang motorbangbang;
 
 			void endpointReadCallback(std::auto_ptr<DataObject> &object);
 			void endpointStateChangeCallback();
 
 			void rampUpdateCallback(double reference);
 			void rampCompleteCallback();
+
+			void bangUpdateCallback(double reference);
 	};
 }
 

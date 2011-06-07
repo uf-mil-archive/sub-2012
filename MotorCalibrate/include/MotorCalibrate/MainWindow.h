@@ -19,8 +19,11 @@ namespace subjugator {
 			void onStopReferenceButtonClicked();
 			void onStartRampButtonClicked();
 			void onStopRampButtonClicked();
+			void onStartBangButtonClicked();
+			void onStopBangButtonClicked();
 			void onNewMotorInfo();
 			void onNewRampReference(double reference);
+			void onNewBangReference(double reference);
 			void onNewForce(double force);
 
 		private:

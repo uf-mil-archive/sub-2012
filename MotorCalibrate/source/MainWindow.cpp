@@ -17,8 +17,11 @@ MainWindow::MainWindow(int haladdr)
 	connect(ui.stopReferenceButton, SIGNAL(clicked()), this, SLOT(onStopReferenceButtonClicked()));
 	connect(ui.startRampButton, SIGNAL(clicked()), this, SLOT(onStartRampButtonClicked()));
 	connect(ui.stopRampButton, SIGNAL(clicked()), this, SLOT(onStopRampButtonClicked()));
+	connect(ui.startBangButton, SIGNAL(clicked()), this, SLOT(onStartBangButtonClicked()));
+	connect(ui.stopBangButton, SIGNAL(clicked()), this, SLOT(onStopBangButtonClicked()));
 	connect(&motorcontroller, SIGNAL(newInfo()), this, SLOT(onNewMotorInfo()));
 	connect(&motorcontroller, SIGNAL(newRampReference(double)), this, SLOT(onNewRampReference(double)));
+	connect(&motorcontroller, SIGNAL(newBangReference(double)), this, SLOT(onNewBangReference(double)));
 	connect(&logger, SIGNAL(onNewForce(double)), this, SLOT(onNewForce(double)));
 }
 
@@ -52,19 +55,28 @@ void MainWindow::onStartRampButtonClicked() {
 	settings.holdtime = ui.holdTimeSpinBox->value();
 	settings.ramptime = ui.rampTimeSpinBox->value();
 	settings.divisions = ui.divisionsSpinBox->value();
-	settings.maxreference = 1;
+	settings.maxreference = ui.maxSpeedSpinBox->value()/100.0;
 	settings.repeat = ui.repeatCheckbox->isChecked();
-
-	if (ui.logCheckBox->isChecked()) {
-		QString filename = QFileDialog::getSaveFileName(this);
-		logger.start(filename.toUtf8().constData());
-	}
-
 	motorcontroller.startRamp(settings);
 }
 
 void MainWindow::onStopRampButtonClicked() {
-	logger.stop();
 	motorcontroller.stopRamp();
+}
+
+void MainWindow::onStartBangButtonClicked() {
+	MotorBangBang::Settings settings;
+	settings.holdtime = ui.bangHoldTimeSpinBox->value();
+	settings.maxreference = ui.bangMaxSpeedSpinBox->value()/100.0;
+	settings.random = ui.bangRandomCheckBox->isChecked();
+	motorcontroller.startBangBang(settings);
+}
+
+void MainWindow::onStopBangButtonClicked() {
+	motorcontroller.stopBangBang();
+}
+
+void MainWindow::onNewBangReference(double reference) {
+	ui.bangReferenceLabel->setText(QString::number(reference*100, 'f', 2));
 }
 
