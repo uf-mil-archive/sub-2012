@@ -3,12 +3,14 @@
 #include "DataObjects/MotorDriver/SetReference.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <iostream>
+#include <QFileDialog>
 
 using namespace subjugator;
 using namespace std;
 
 MainWindow::MainWindow(int haladdr)
-: motorcontroller(haladdr) {
+: motorcontroller(haladdr),
+  logger(motorcontroller, "/dev/ttyUSB1") {
 	ui.setupUi(this);
 
 	connect(ui.setReferenceButton, SIGNAL(clicked()), this, SLOT(onSetReferenceButtonClicked()));
@@ -17,6 +19,7 @@ MainWindow::MainWindow(int haladdr)
 	connect(ui.stopRampButton, SIGNAL(clicked()), this, SLOT(onStopRampButtonClicked()));
 	connect(&motorcontroller, SIGNAL(newInfo()), this, SLOT(onNewMotorInfo()));
 	connect(&motorcontroller, SIGNAL(newRampReference(double)), this, SLOT(onNewRampReference(double)));
+	connect(&logger, SIGNAL(onNewForce(double)), this, SLOT(onNewForce(double)));
 }
 
 void MainWindow::onNewMotorInfo() {
@@ -32,6 +35,10 @@ void MainWindow::onNewRampReference(double reference) {
 	ui.rampReferenceLabel->setText(QString::number(reference*100, 'f', 2));
 }
 
+void MainWindow::onNewForce(double force) {
+	ui.forceLabel->setText(QString::number(force, 'f', 2));
+}
+
 void MainWindow::onSetReferenceButtonClicked() {
 	motorcontroller.setReference(ui.setReferenceSpinBox->value()/100.0);
 }
@@ -45,13 +52,19 @@ void MainWindow::onStartRampButtonClicked() {
 	settings.holdtime = ui.holdTimeSpinBox->value();
 	settings.ramptime = ui.rampTimeSpinBox->value();
 	settings.divisions = ui.divisionsSpinBox->value();
-	settings.maxreference = .9;
+	settings.maxreference = 1;
 	settings.repeat = ui.repeatCheckbox->isChecked();
+
+	if (ui.logCheckBox->isChecked()) {
+		QString filename = QFileDialog::getSaveFileName(this);
+		logger.start(filename.toUtf8().constData());
+	}
 
 	motorcontroller.startRamp(settings);
 }
 
 void MainWindow::onStopRampButtonClicked() {
+	logger.stop();
 	motorcontroller.stopRamp();
 }
 

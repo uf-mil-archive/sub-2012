@@ -1,5 +1,7 @@
 #include "MotorCalibrate/FTSensorLogger.h"
 #include <stdexcept>
+#include <boost/regex.hpp>
+#include <boost/thread.hpp>
 
 enum {
 	ACK = 6,
@@ -9,6 +11,7 @@ enum {
 using namespace subjugator;
 using namespace boost;
 using namespace boost::asio;
+using namespace boost::posix_time;
 using namespace std;
 
 FTSensorLogger::FTSensorLogger(const std::string &device, io_service &ioservice, const LogCallback &logcallback)
@@ -16,12 +19,18 @@ FTSensorLogger::FTSensorLogger(const std::string &device, io_service &ioservice,
 	port.open(device);
 	port.set_option(serial_port::baud_rate(9600));
 	port.set_option(serial_port::flow_control(serial_port::flow_control::none));
+
+	sendCommand("");
+	this_thread::sleep(milliseconds(200));
+	clearReadBuffer();
+}
+
+void FTSensorLogger::bias() {
+	sendCommandACK("SB");
 }
 
 void FTSensorLogger::begin() {
 	assert(!running);
-
-	clearReadBuffer();
 	sendCommandACK("CD A");
 	sendCommandACK("CD R");
 
@@ -67,9 +76,20 @@ void FTSensorLogger::receiveCallback(const boost::system::error_code& error, std
 	if (error)
 		throw runtime_error("FTSensorLogger got error in receiveCallback: " + error.message());
 
+	int drop;
+	LogEntry entry;
+	recvstream >> drop; recvstream.get(); // some initial value
+	recvstream >> entry.fx; recvstream.get(); // skip the comma
+	recvstream >> entry.fy; recvstream.get();
+	recvstream >> entry.fz; recvstream.get();
+	recvstream >> entry.mx; recvstream.get();
+	recvstream >> entry.my; recvstream.get();
+	recvstream >> entry.mz;
+	logcallback(entry);
+
 	string line;
 	getline(recvstream, line);
-	logcallback(line);
+
 	async_read_until(port, recvbuf, "\r\n", boost::bind(&FTSensorLogger::receiveCallback, this, _1, _2));
 }
 

@@ -11,7 +11,12 @@
 namespace subjugator {
 	class FTSensorLogger {
 		public:
-			typedef boost::function<void (const std::string &)> LogCallback;
+			struct LogEntry {
+				int fx, fy, fz;
+				int mx, my, mz;
+			};
+
+			typedef boost::function<void (const LogEntry &)> LogCallback;
 
 			FTSensorLogger(const std::string &device, boost::asio::io_service &ioservice, const LogCallback &logcallback);
 

@@ -2,6 +2,7 @@
 #define MOTORCALIBRATE_MAINWINDOW_H
 
 #include "MotorCalibrate/MotorDriverController.h"
+#include "MotorCalibrate/LoggerController.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
 #include <QMainWindow>
 #include "ui_mainwindow.h"
@@ -20,9 +21,11 @@ namespace subjugator {
 			void onStopRampButtonClicked();
 			void onNewMotorInfo();
 			void onNewRampReference(double reference);
+			void onNewForce(double force);
 
 		private:
 			MotorDriverController motorcontroller;
+			LoggerController logger;
 
 			Ui::MainWindow ui;
 	};

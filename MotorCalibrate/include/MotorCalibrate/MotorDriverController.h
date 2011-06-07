@@ -17,6 +17,8 @@ namespace subjugator {
 			MotorDriverController(int motaddr=2);
 			inline const MotorDriverInfo &getMotorInfo() { return motorinfo; }
 
+			inline boost::asio::io_service &getIOService() { return hal.getIOService(); } // needed for LoggerController, TODO ugly...
+
 		public slots:
 			void setReference(double reference);
 			void startRamp(const MotorRamper::Settings &settings);
