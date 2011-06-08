@@ -38,6 +38,9 @@ void MotorRamper::timerCallback(boost::system::error_code &error) {
 	if (error)
 		return;
 
+	if (settings.direction != Both)
+		direction = settings.direction;
+
 	bool done=false;
 	double outref;
 	if (rampdown) {
@@ -46,13 +49,16 @@ void MotorRamper::timerCallback(boost::system::error_code &error) {
 			rampdown = false;
 			curdivision = 0;
 			counter = 0;
-			if (direction == Forward)
-				direction = Reverse;
-			else {
-				direction = Forward;
-				rampcompletecallback();
-				if (!settings.repeat)
+
+			if (settings.direction == Both) {
+				if (direction == Forward)
+					direction = Reverse;
+				else {
+					direction = Forward;
 					done = true;
+				}
+			} else {
+				done = true;
 			}
 		}
 
@@ -75,8 +81,11 @@ void MotorRamper::timerCallback(boost::system::error_code &error) {
 			counter = 0;
 			curdivision++;
 
-			if (curdivision == settings.divisions)
+			if (curdivision == settings.divisions) {
 				rampdown = true;
+				if (settings.direction != Both || (settings.direction == Both && direction == Reverse))
+					rampcompletecallback();
+			}
 		}
 	}
 

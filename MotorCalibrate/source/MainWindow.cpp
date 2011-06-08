@@ -71,6 +71,7 @@ void MainWindow::onStartRampButtonClicked() {
 	settings.divisions = ui.divisionsSpinBox->value();
 	settings.maxreference = ui.maxSpeedSpinBox->value()/100.0;
 	settings.repeat = ui.repeatCheckbox->isChecked();
+	settings.direction = (MotorRamper::Direction)ui.directionsComboBox->currentIndex();
 	motorcontroller.startRamp(settings);
 
 	if (ui.autoLogCheckBox->isChecked())

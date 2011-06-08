@@ -8,12 +8,19 @@
 namespace subjugator {
 	class MotorRamper {
 		public:
+			enum Direction {
+				Both,
+				Forward,
+				Reverse
+			};
+
 			struct Settings {
 				double holdtime;
 				double ramptime;
 				int divisions;
 				double maxreference;
 				bool repeat;
+				Direction direction;
 			};
 
 			typedef boost::function<void (double)> RampUpdateCallback;
@@ -39,10 +46,6 @@ namespace subjugator {
 			int curdivision;
 			int counter;
 
-			enum Direction {
-				Forward,
-				Reverse
-			};
 			Direction direction;
 
 			void startTimer();
