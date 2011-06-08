@@ -27,6 +27,7 @@ MainWindow::MainWindow(int haladdr)
 	connect(&motorcontroller, SIGNAL(newInfo()), this, SLOT(onNewMotorInfo()));
 	connect(&motorcontroller, SIGNAL(newRampReference(double)), this, SLOT(onNewRampReference(double)));
 	connect(&motorcontroller, SIGNAL(newBangReference(double)), this, SLOT(onNewBangReference(double)));
+	connect(&motorcontroller, SIGNAL(rampComplete()), this, SLOT(onRampComplete()));
 	connect(&logger, SIGNAL(onNewForce(double)), this, SLOT(onNewForce(double)));
 }
 
@@ -41,6 +42,11 @@ void MainWindow::onNewMotorInfo() {
 
 void MainWindow::onNewRampReference(double reference) {
 	ui.rampReferenceLabel->setText(QString::number(reference*100, 'f', 2));
+}
+
+void MainWindow::onRampComplete() {
+	if (ui.autoLogCheckBox->isChecked())
+		onStopLogButtonClicked();
 }
 
 void MainWindow::onNewForce(double force) {
@@ -66,10 +72,16 @@ void MainWindow::onStartRampButtonClicked() {
 	settings.maxreference = ui.maxSpeedSpinBox->value()/100.0;
 	settings.repeat = ui.repeatCheckbox->isChecked();
 	motorcontroller.startRamp(settings);
+
+	if (ui.autoLogCheckBox->isChecked())
+		onStartLogButtonClicked();
 }
 
 void MainWindow::onStopRampButtonClicked() {
 	motorcontroller.stopRamp();
+
+	if (ui.autoLogCheckBox->isChecked())
+		onStopLogButtonClicked();
 }
 
 void MainWindow::onStartBangButtonClicked() {

@@ -27,6 +27,7 @@ namespace subjugator {
 			void onBrowseButtonClicked();
 			void onNewMotorInfo();
 			void onNewRampReference(double reference);
+			void onRampComplete();
 			void onNewBangReference(double reference);
 			void onNewForce(double force);
 

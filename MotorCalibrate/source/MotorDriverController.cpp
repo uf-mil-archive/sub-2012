@@ -72,7 +72,9 @@ void MotorDriverController::rampUpdateCallback(double reference) {
 	emit newRampReference(reference);
 }
 
-void MotorDriverController::rampCompleteCallback() { }
+void MotorDriverController::rampCompleteCallback() {
+	emit rampComplete();
+}
 
 void MotorDriverController::bangUpdateCallback(double reference) {
 	emit newBangReference(reference);

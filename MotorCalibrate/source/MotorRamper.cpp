@@ -38,6 +38,7 @@ void MotorRamper::timerCallback(boost::system::error_code &error) {
 	if (error)
 		return;
 
+	bool done=false;
 	double outref;
 	if (rampdown) {
 		outref = settings.maxreference * (1 - counter / (4*updateRateHz));
@@ -51,7 +52,7 @@ void MotorRamper::timerCallback(boost::system::error_code &error) {
 				direction = Forward;
 				rampcompletecallback();
 				if (!settings.repeat)
-					return;
+					done = true;
 			}
 		}
 
@@ -84,6 +85,7 @@ void MotorRamper::timerCallback(boost::system::error_code &error) {
 
 	endpoint.write(SetReference(outref));
 	rampupdatecallback(outref);
-	startTimer();
+	if (!done)
+		startTimer();
 }
 

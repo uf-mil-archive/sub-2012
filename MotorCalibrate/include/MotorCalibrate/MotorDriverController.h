@@ -31,6 +31,7 @@ namespace subjugator {
 			void newInfo();
 			void newRampReference(double reference);
 			void newBangReference(double reference);
+			void rampComplete();
 
 		private:
 			SubHAL hal;

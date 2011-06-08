@@ -139,7 +139,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,0">
           <item>
            <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1">
             <item row="1" column="0">
@@ -184,6 +184,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="autoLogCheckBox">
+            <property name="text">
+             <string>Auto Log</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="repeatCheckbox">
