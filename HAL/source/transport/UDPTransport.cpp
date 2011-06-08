@@ -74,9 +74,6 @@ void UDPTransport::pushSendQueueCallback(const ip::udp::endpoint &endpoint, cons
 }
 
 void UDPTransport::sendCallback(const system::error_code& error, std::size_t bytes) {
-	if (error)
-		throw runtime_error("UDPTransport received error while sending: " + error.message());
-
 	sendqueue.pop(); // pop the now sent packet off the queue
 	if (!sendqueue.empty()) // if there is another packet waiting
 		startAsyncSend(); // start another send
