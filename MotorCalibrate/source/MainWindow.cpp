@@ -10,7 +10,7 @@ using namespace std;
 
 MainWindow::MainWindow(int haladdr)
 : motorcontroller(haladdr),
-  logger(motorcontroller, "/dev/ttyUSB1") {
+  logger(motorcontroller, "/dev/ttyUSB0") {
 	ui.setupUi(this);
 
 	connect(ui.setReferenceButton, SIGNAL(clicked()), this, SLOT(onSetReferenceButtonClicked()));
@@ -23,6 +23,7 @@ MainWindow::MainWindow(int haladdr)
 	connect(ui.tareButton, SIGNAL(clicked()), &logger, SLOT(tare()));
 	connect(ui.startLogButton, SIGNAL(clicked()), this, SLOT(onStartLogButtonClicked()));
 	connect(ui.stopLogButton, SIGNAL(clicked()), this, SLOT(onStopLogButtonClicked()));
+	connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(onBrowseButtonClicked()));
 	connect(&motorcontroller, SIGNAL(newInfo()), this, SLOT(onNewMotorInfo()));
 	connect(&motorcontroller, SIGNAL(newRampReference(double)), this, SLOT(onNewRampReference(double)));
 	connect(&motorcontroller, SIGNAL(newBangReference(double)), this, SLOT(onNewBangReference(double)));
@@ -83,6 +84,10 @@ void MainWindow::onStopBangButtonClicked() {
 	motorcontroller.stopBangBang();
 }
 
+void MainWindow::onBrowseButtonClicked() {
+	ui.logFileEdit->setText(QFileDialog::getSaveFileName(this));
+}
+
 void MainWindow::onConnectButtonClicked() {
 	logger.connect();
 	ui.loggerConnectedLabel->setText("Yes");
@@ -90,10 +95,12 @@ void MainWindow::onConnectButtonClicked() {
 
 void MainWindow::onStartLogButtonClicked() {
 	logger.start(ui.logFileEdit->text().toUtf8().constData());
+	ui.loggingLabel->setText("Yes");
 }
 
 void MainWindow::onStopLogButtonClicked() {
 	logger.stop();
+	ui.loggingLabel->setText("No");
 }
 
 void MainWindow::onNewBangReference(double reference) {

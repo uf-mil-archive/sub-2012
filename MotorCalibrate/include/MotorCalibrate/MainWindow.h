@@ -24,6 +24,7 @@ namespace subjugator {
 			void onConnectButtonClicked();
 			void onStartLogButtonClicked();
 			void onStopLogButtonClicked();
+			void onBrowseButtonClicked();
 			void onNewMotorInfo();
 			void onNewRampReference(double reference);
 			void onNewBangReference(double reference);
