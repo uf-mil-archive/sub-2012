@@ -34,7 +34,7 @@ void MotorRamper::startTimer() {
 	timer.async_wait(bind(&MotorRamper::timerCallback, this, _1));
 }
 
-void MotorRamper::timerCallback(boost::system::error_code &error) {
+void MotorRamper::timerCallback(const boost::system::error_code &error) {
 	if (error)
 		return;
 

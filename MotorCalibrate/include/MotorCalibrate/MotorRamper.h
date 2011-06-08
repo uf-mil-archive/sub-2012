@@ -49,7 +49,7 @@ namespace subjugator {
 			Direction direction;
 
 			void startTimer();
-			void timerCallback(boost::system::error_code &error);
+			void timerCallback(const boost::system::error_code &error);
 	};
 }
 

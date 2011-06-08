@@ -1,6 +1,7 @@
 #include "MotorCalibrate/MotorBangBang.h"
 #include "DataObjects/MotorDriver/SetReference.h"
 #include <boost/bind.hpp>
+#include <boost/asio.hpp>
 #include <cstdlib>
 
 using namespace subjugator;
@@ -28,10 +29,10 @@ void MotorBangBang::stop() {
 
 void MotorBangBang::startTimer() {
 	timer.expires_from_now(milliseconds(1000*settings.holdtime));
-	timer.async_wait(bind(&MotorBangBang::timerCallback, this, _1));
+	timer.async_wait(bind(&MotorBangBang::timerCallback, this, boost::asio::placeholders::error));
 }
 
-void MotorBangBang::timerCallback(boost::system::error_code &error) {
+void MotorBangBang::timerCallback(const boost::system::error_code &error) {
 	if (error)
 		return;
 

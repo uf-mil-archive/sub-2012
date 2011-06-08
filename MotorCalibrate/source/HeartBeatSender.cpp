@@ -21,7 +21,7 @@ void HeartBeatSender::stop() {
 	timer.cancel();
 }
 
-void HeartBeatSender::timerCallback(boost::system::error_code &error) {
+void HeartBeatSender::timerCallback(const boost::system::error_code &error) {
 	if (error)
 		return;
 

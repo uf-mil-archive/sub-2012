@@ -17,7 +17,7 @@ namespace subjugator {
 			DataObjectEndpoint &endpoint;
 			double hz;
 
-			void timerCallback(boost::system::error_code &error);
+			void timerCallback(const boost::system::error_code &error);
 	};
 }
 

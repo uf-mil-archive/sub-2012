@@ -32,7 +32,7 @@ namespace subjugator {
 			bool toggle;
 
 			void startTimer();
-			void timerCallback(boost::system::error_code &error);
+			void timerCallback(const boost::system::error_code &error);
 	};
 }
 
