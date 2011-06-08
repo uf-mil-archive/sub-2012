@@ -8,6 +8,7 @@ namespace subjugator {
 	class SubHAL : public HAL {
 		public:
 			SubHAL();
+			~SubHAL();
 
 			void startIOThread();
 			inline boost::asio::io_service &getIOService() { return iothread.getIOService(); }

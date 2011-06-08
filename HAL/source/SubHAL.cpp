@@ -13,6 +13,10 @@ SubHAL::SubHAL() {
 	loadAddressFile(embeddedAddressesPath);
 }
 
+SubHAL::~SubHAL() {
+	clearTransports(); // delete transports before IOThread, since IOThread owns the io_service
+}
+
 void SubHAL::startIOThread() {
 	iothread.start();
 }

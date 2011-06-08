@@ -13,6 +13,10 @@ void HAL::addTransport(Transport *transport) {
 	transports.push_back(transport);
 }
 
+void HAL::clearTransports() {
+	transports.clear();
+}
+
 void HAL::loadAddressFile(const std::string &filename) {
 	ifstream in(filename.c_str());
 	addrtable.read(in);

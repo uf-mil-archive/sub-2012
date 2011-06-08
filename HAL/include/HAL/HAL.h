@@ -14,6 +14,7 @@ namespace subjugator {
 
 			void addTransport(Transport *transport);
 			void loadAddressFile(const std::string &filename);
+			void clearTransports();
 
 			AddressTable &getAddressTable() { return addrtable; }
 			const AddressTable &getAddressTable() const { return addrtable; }
@@ -21,6 +22,7 @@ namespace subjugator {
 
 			Endpoint *openEndpoint(int addr);
 			DataObjectEndpoint *openDataObjectEndpoint(int addr, DataObjectFormatter *dobjformat, PacketFormatter *packetformat);
+
 
 		private:
 			AddressTable addrtable;
