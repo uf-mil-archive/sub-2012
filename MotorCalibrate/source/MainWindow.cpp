@@ -19,6 +19,10 @@ MainWindow::MainWindow(int haladdr)
 	connect(ui.stopRampButton, SIGNAL(clicked()), this, SLOT(onStopRampButtonClicked()));
 	connect(ui.startBangButton, SIGNAL(clicked()), this, SLOT(onStartBangButtonClicked()));
 	connect(ui.stopBangButton, SIGNAL(clicked()), this, SLOT(onStopBangButtonClicked()));
+	connect(ui.connectButton, SIGNAL(clicked()), this, SLOT(onConnectButtonClicked()));
+	connect(ui.tareButton, SIGNAL(clicked()), &logger, SLOT(tare()));
+	connect(ui.startLogButton, SIGNAL(clicked()), this, SLOT(onStartLogButtonClicked()));
+	connect(ui.stopLogButton, SIGNAL(clicked()), this, SLOT(onStopLogButtonClicked()));
 	connect(&motorcontroller, SIGNAL(newInfo()), this, SLOT(onNewMotorInfo()));
 	connect(&motorcontroller, SIGNAL(newRampReference(double)), this, SLOT(onNewRampReference(double)));
 	connect(&motorcontroller, SIGNAL(newBangReference(double)), this, SLOT(onNewBangReference(double)));
@@ -39,7 +43,10 @@ void MainWindow::onNewRampReference(double reference) {
 }
 
 void MainWindow::onNewForce(double force) {
-	ui.forceLabel->setText(QString::number(force, 'f', 2));
+	QString forcestr = QString::number(force, 'f', 2);
+	ui.forceLabel->setText(forcestr);
+	ui.bangForceLabel->setText(forcestr);
+	ui.loggerForceLabel->setText(forcestr);
 }
 
 void MainWindow::onSetReferenceButtonClicked() {
@@ -74,6 +81,19 @@ void MainWindow::onStartBangButtonClicked() {
 
 void MainWindow::onStopBangButtonClicked() {
 	motorcontroller.stopBangBang();
+}
+
+void MainWindow::onConnectButtonClicked() {
+	logger.connect();
+	ui.loggerConnectedLabel->setText("Yes");
+}
+
+void MainWindow::onStartLogButtonClicked() {
+	logger.start(ui.logFileEdit->text().toUtf8().constData());
+}
+
+void MainWindow::onStopLogButtonClicked() {
+	logger.stop();
 }
 
 void MainWindow::onNewBangReference(double reference) {

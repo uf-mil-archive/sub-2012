@@ -13,8 +13,12 @@ namespace subjugator {
 		public:
 			LoggerController(MotorDriverController &motorcontroller, const std::string &device);
 
+		public slots:
+			void connect();
 			void start(const std::string &filename);
 			void stop();
+
+			void tare();
 
 		signals:
 			void onNewForce(double force);

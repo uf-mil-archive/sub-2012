@@ -8,8 +8,10 @@ LoggerController::LoggerController(MotorDriverController &motorcontroller, const
 : motorcontroller(motorcontroller),
   sensorlogger(device, motorcontroller.getIOService(), boost::bind(&LoggerController::logCallback, this, _1)),
   logging(false) {
- 	sensorlogger.bias();
- 	sensorlogger.begin();
+}
+
+void LoggerController::connect() {
+	sensorlogger.begin();
 }
 
 void LoggerController::start(const std::string &filename) {
@@ -18,8 +20,14 @@ void LoggerController::start(const std::string &filename) {
 }
 
 void LoggerController::stop() {
-	logstream.close();
 	logging = false;
+	logstream.close();
+}
+
+void LoggerController::tare() {
+	sensorlogger.end();
+	sensorlogger.bias();
+	sensorlogger.begin();
 }
 
 void LoggerController::logCallback(const FTSensorLogger::LogEntry &entry) {

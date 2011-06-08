@@ -28,6 +28,7 @@ namespace subjugator {
 		private:
 			bool running;
 
+			std::string device;
 			boost::asio::serial_port port;
 			boost::asio::streambuf recvbuf;
 			std::istream recvstream;
@@ -40,6 +41,7 @@ namespace subjugator {
 			void sendCommandACK(const std::string &command);
 
 			static void getlineCRLN(std::istream &in, std::string &out);
+			void sync();
 			void clearReadBuffer();
 	};
 }
