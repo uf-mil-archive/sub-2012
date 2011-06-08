@@ -1,7 +1,10 @@
 #include "MotorCalibrate/LoggerController.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
 #include <cmath>
 
 using namespace subjugator;
+using namespace boost;
+using namespace boost::posix_time;
 using namespace std;
 
 LoggerController::LoggerController(MotorDriverController &motorcontroller, const std::string &device)
@@ -17,6 +20,7 @@ void LoggerController::connect() {
 void LoggerController::start(const std::string &filename) {
 	logstream.open(filename.c_str());
 	logging = true;
+	logstream << "Time, fx, fy, fz, mx, my, mz, RefInput, PresOutput, Vrail, Current" << endl;
 }
 
 void LoggerController::stop() {
@@ -36,7 +40,7 @@ void LoggerController::logCallback(const FTSensorLogger::LogEntry &entry) {
 
 	if (logging) {
 		const MotorDriverInfo &info = motorcontroller.getMotorInfo();
-		logstream << entry.fx << ", " << entry.fy << ", " << entry.fz << ", " << entry.mx << ", " << entry.my << ", " << entry.mz << ", ";
+		logstream << second_clock::local_time().time_of_day() << ", " << entry.fx << ", " << entry.fy << ", " << entry.fz << ", " << entry.mx << ", " << entry.my << ", " << entry.mz << ", ";
 		logstream << info.getReferenceInput() << ", " << info.getPresentOutput() << ", " << info.getRailVoltage() << ", " << info.getCurrent() << endl;
 	}
 }
