@@ -1,6 +1,7 @@
 #include "HAL/transport/UDPTransport.h"
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include <algorithm>
 #include <memory>
 #include <cassert>
@@ -19,7 +20,7 @@ const string &UDPTransport::getName() const {
 }
 
 Endpoint *UDPTransport::makeEndpoint(const std::string &address, const ParamMap &params) {
-	static const regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
+ 	regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
 	smatch match;
 	if (!regex_match(address, match, ipreg))
 		throw runtime_error("UDPTransport::makeEndpoint called with invalid address " + address);
