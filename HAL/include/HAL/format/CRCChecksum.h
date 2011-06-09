@@ -9,7 +9,7 @@ namespace subjugator {
 			CRCChecksum();
 
 			virtual ByteVec compute(ByteVec::const_iterator begin, ByteVec::const_iterator end) const;
-			virtual int getSize() const;
+			virtual unsigned int getSize() const;
 	};
 }
 

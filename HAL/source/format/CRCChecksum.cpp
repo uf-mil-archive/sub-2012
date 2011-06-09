@@ -22,5 +22,5 @@ ByteVec CRCChecksum::compute(ByteVec::const_iterator begin, ByteVec::const_itera
 	return out;
 }
 
-int CRCChecksum::getSize() const { return 2; }
+unsigned int CRCChecksum::getSize() const { return 2; }
 

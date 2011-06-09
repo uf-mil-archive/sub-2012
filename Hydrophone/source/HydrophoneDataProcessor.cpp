@@ -11,7 +11,7 @@ using namespace boost::property_tree::xml_parser;
 using namespace std;
 
 HydrophoneDataProcessor::HydrophoneDataProcessor(const Data &rawdata, double pingfreq, const Config &config)
-: data(rawdata), pingfreq(pingfreq), valid(false), template_pos(0) {
+: pingfreq(pingfreq), data(rawdata), template_pos(0), valid(false) {
 	period = (int)round((config.samplingrate * config.scalefact) / pingfreq); // compute period from ping freq
 
 	processRawData(config);
@@ -132,10 +132,8 @@ void HydrophoneDataProcessor::computeAngles(const Config &config) {
 	double cos_alpha1 = (2*dist*y1 + y1*y1 - dist_h*dist_h)/(-2*dist*dist_h);
 	double cos_alpha2 = -(2*dist*y2 + y2*y2 - dist_h*dist_h)/(-2*dist*dist_h);
 	double cos_alpha = (cos_alpha1 + cos_alpha2)/2;
-	double alpha = acos(cos_alpha);
 
 	double cos_beta = (2*dist*y3 + y3*y3 - dist_h4*dist_h4)/(-2*dist*dist_h4);
-	double beta = acos(cos_beta);
 
 	double dist_x = cos_alpha*dist;
 	double dist_y = cos_beta*dist;
@@ -232,7 +230,7 @@ Eigen::VectorXd HydrophoneDataProcessor::Config::strToVec(const std::string &str
 	}
 
 	VectorXd vec(vals.size()); // no good way to go STL -> Eigen?
-	for (int i=0; i < vals.size(); i++)
+	for (unsigned int i=0; i < vals.size(); i++)
 		vec[i] = vals[i];
 
 	return vec;

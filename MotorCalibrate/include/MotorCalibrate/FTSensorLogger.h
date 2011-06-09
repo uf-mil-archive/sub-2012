@@ -26,14 +26,13 @@ namespace subjugator {
 			void end();
 
 		private:
-			bool running;
-
 			std::string device;
 			boost::asio::serial_port port;
 			boost::asio::streambuf recvbuf;
 			std::istream recvstream;
-
 			LogCallback logcallback;
+
+			bool running;
 
 			void receiveCallback(const boost::system::error_code& error, std::size_t bytes);
 

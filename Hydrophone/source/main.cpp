@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
 
 	Eigen::Matrix<double, Eigen::Dynamic, 5> data = parseCSV("Temp.csv");
 
-	int count=0;
 	int start=0;
 	while (start < data.rows()) {
 		int stop = start;
@@ -92,8 +91,8 @@ static Eigen::Matrix<double, Eigen::Dynamic, 5> parseCSV(const string &filename)
 
 	Eigen::Matrix<double, Eigen::Dynamic, 5> data(datavec.size(), 5);
 
-	for (int row=0; row<datavec.size(); row++) {
-		for (int col=0; col<5; col++) {
+	for (unsigned int row=0; row<datavec.size(); row++) {
+		for (unsigned int col=0; col<5; col++) {
 			data(row, col) = datavec[row][col];
 		}
 	}

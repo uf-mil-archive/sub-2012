@@ -15,7 +15,7 @@ using namespace boost::posix_time;
 using namespace std;
 
 FTSensorLogger::FTSensorLogger(const std::string &device, io_service &ioservice, const LogCallback &logcallback)
-: port(ioservice), device(device), running(false), recvstream(&recvbuf), logcallback(logcallback) {
+: device(device), port(ioservice), recvstream(&recvbuf), logcallback(logcallback), running(false) {
 }
 
 void FTSensorLogger::bias() {

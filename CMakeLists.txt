@@ -29,6 +29,9 @@ if(NOT QT_FOUND)
 	message("QT Not found! No projects depending on QT will be built.")
 endif()
 
+# Turn on warnings
+add_definitions(-Wall)
+
 # Add projects subdirectories here
 # (maybe possible to find projects automatically?)
 

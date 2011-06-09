@@ -25,7 +25,7 @@ namespace subjugator {
 
 			virtual ByteVec compute(ByteVec::const_iterator begin, ByteVec::const_iterator end) const =0;
 
-			virtual int getSize() const =0;
+			virtual unsigned int getSize() const =0;
 	};
 }
 
