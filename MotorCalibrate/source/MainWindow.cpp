@@ -12,6 +12,7 @@ MainWindow::MainWindow(int haladdr)
 : motorcontroller(haladdr),
   logger(motorcontroller, "/dev/ttyUSB0") {
 	ui.setupUi(this);
+	ui.statusBar->showMessage("No connection to motor driver");
 
 	connect(ui.setReferenceButton, SIGNAL(clicked()), this, SLOT(onSetReferenceButtonClicked()));
 	connect(ui.stopReferenceButton, SIGNAL(clicked()), this, SLOT(onStopReferenceButtonClicked()));
@@ -38,6 +39,20 @@ void MainWindow::onNewMotorInfo() {
 	ui.outputLabel->setText(QString::number(info.getPresentOutput()));
 	ui.railVoltageLabel->setText(QString::number(info.getRailVoltage()));
 	ui.currentLabel->setText(QString::number(info.getCurrent()));
+
+	QString flagstr;
+	if (!info.getValidMotor())
+		flagstr.append("Invalid motor. ");
+	if (!info.getHeartbeat())
+		flagstr.append("Missing heartbeat. ");
+	if (!info.getUnderVoltage())
+		flagstr.append("Under voltage. ");
+	if (!info.getOverCurrent())
+		flagstr.append("Over current. ");
+	if (!flagstr.size())
+		flagstr = "Ok";
+
+	ui.statusBar->showMessage(flagstr);
 }
 
 void MainWindow::onNewRampReference(double reference) {

@@ -30,12 +30,12 @@ namespace subjugator {
 				BRUSHLESS
 			};
 
-			bool getValidMotor() const { return flags & (1 << 0) != 0; }
-			ControlType getControlType() const { return flags & (1 << 1) != 0 ? CLOSED : OPEN; }
-			MotorType getMotorType() const { return flags & (1 << 2) != 0 ? BRUSHLESS : BRUSHED; }
-			bool getHeartbeat() const { return flags & (1 << 3) != 0; }
-			bool getUnderVoltage() const { return flags & (1 << 4) != 0; }
-			bool getOverCurrent() const { return flags & (1 << 5) != 0; }
+			bool getValidMotor() const { return (flags & (1 << 0)) != 0; }
+			ControlType getControlType() const { return (flags & (1 << 1)) != 0 ? CLOSED : OPEN; }
+			MotorType getMotorType() const { return (flags & (1 << 2)) != 0 ? BRUSHLESS : BRUSHED; }
+			bool getHeartbeat() const { return (flags & (1 << 3)) != 0; }
+			bool getUnderVoltage() const { return (flags & (1 << 4)) != 0; }
+			bool getOverCurrent() const { return (flags & (1 << 5)) != 0; }
 
 		private:
 			int tickcount;
@@ -53,7 +53,7 @@ namespace subjugator {
 
 			template <int fractional>
 			static double convertSignedFixedPoint(uint16_t val) {
-				bool negative = val & 0x80 != 0;
+				bool negative = (val & 0x80) != 0;
 				double d = (double)(val & ~0x80) / std::pow(2, fractional);
 				return negative ? -d : d;
 			}

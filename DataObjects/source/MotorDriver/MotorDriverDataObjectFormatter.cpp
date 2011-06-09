@@ -7,7 +7,7 @@ using namespace subjugator;
 using namespace boost;
 
 MotorDriverDataObjectFormatter::MotorDriverDataObjectFormatter(boost::uint8_t devaddress, boost::uint8_t pcaddress, EmbeddedTypeCode typecode)
-: devaddress(devaddress), pcaddress(pcaddress), packetcount_out(0), packetcount_in(0), typecode(typecode) { }
+: devaddress(devaddress), pcaddress(pcaddress), typecode(typecode), packetcount_out(0), packetcount_in(0) { }
 
 DataObject *MotorDriverDataObjectFormatter::toDataObject(const Packet &packet) {
 	// motor drivers only send back one kind of packet
@@ -34,7 +34,7 @@ Packet MotorDriverDataObjectFormatter::toPacket(const DataObject &dobj) {
 	packetcount_out++;
 
 	// Leaving this somewhat ugly because I think Heartbeat is going to be completely refactored out of here once multicast gets in place
-	if (const HeartBeat *hb = dynamic_cast<const HeartBeat *>(&dobj)) {
+	if (dynamic_cast<const HeartBeat *>(&dobj)) {
 		packet.push_back(HeartBeat::TypeCode);
 	} else if (const MotorDriverCommand *command = dynamic_cast<const MotorDriverCommand *>(&dobj)) {
 		packet.push_back(typecode);
