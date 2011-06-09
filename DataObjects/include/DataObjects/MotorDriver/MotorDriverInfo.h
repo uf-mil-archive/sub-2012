@@ -8,7 +8,9 @@
 namespace subjugator {
 	class MotorDriverInfo : public DataObject {
 		public:
+			MotorDriverInfo();
 			MotorDriverInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
+			MotorDriverInfo(const MotorDriverInfo &info);
 
 			static const int Length = 12;
 
@@ -46,13 +48,13 @@ namespace subjugator {
 			// TODO common header somewhere
 			template <int fractional>
 			static double convertFixedPoint(uint16_t val) {
-				return (double)val * std::pow(2, fractional);
+				return (double)val / std::pow(2, fractional);
 			}
 
 			template <int fractional>
 			static double convertSignedFixedPoint(uint16_t val) {
 				bool negative = val & 0x80 != 0;
-				double d = (double)(val & ~0x80) * std::pow(2, fractional);
+				double d = (double)(val & ~0x80) / std::pow(2, fractional);
 				return negative ? -d : d;
 			}
 	};
