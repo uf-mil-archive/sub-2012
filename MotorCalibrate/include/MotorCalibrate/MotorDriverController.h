@@ -15,6 +15,7 @@ namespace subjugator {
 
 		public:
 			MotorDriverController(int motaddr=2);
+			inline const MotorDriverInfo &getMotorInfo() { return motorinfo; }
 
 		public slots:
 			void setReference(double reference);
@@ -22,12 +23,13 @@ namespace subjugator {
 			void stopRamp();
 
 		signals:
-			void newInfo(const MotorDriverInfo &info);
+			void newInfo();
 			void newRampReference(double reference);
 
 		private:
 			SubHAL hal;
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;
+			MotorDriverInfo motorinfo;
 
 			HeartBeatSender heartbeatsender;
 			MotorRamper motorramper;

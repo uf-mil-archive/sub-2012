@@ -18,7 +18,7 @@ namespace subjugator {
 			void onStopReferenceButtonClicked();
 			void onStartRampButtonClicked();
 			void onStopRampButtonClicked();
-			void onNewMotorInfo(const MotorDriverInfo &info);
+			void onNewMotorInfo();
 			void onNewRampReference(double reference);
 
 		private:

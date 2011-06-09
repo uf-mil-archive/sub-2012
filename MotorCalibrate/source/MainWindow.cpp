@@ -15,11 +15,12 @@ MainWindow::MainWindow(int haladdr)
 	connect(ui.stopReferenceButton, SIGNAL(clicked()), this, SLOT(onStopReferenceButtonClicked()));
 	connect(ui.startRampButton, SIGNAL(clicked()), this, SLOT(onStartRampButtonClicked()));
 	connect(ui.stopRampButton, SIGNAL(clicked()), this, SLOT(onStopRampButtonClicked()));
-	connect(&motorcontroller, SIGNAL(newInfo(const MotorDriverInfo &)), this, SLOT(onNewMotorInfo(const MotorDriverInfo &)));
+	connect(&motorcontroller, SIGNAL(newInfo()), this, SLOT(onNewMotorInfo()));
 	connect(&motorcontroller, SIGNAL(newRampReference(double)), this, SLOT(onNewRampReference(double)));
 }
 
-void MainWindow::onNewMotorInfo(const MotorDriverInfo &info) {
+void MainWindow::onNewMotorInfo() {
+	const MotorDriverInfo &info = motorcontroller.getMotorInfo();
 	ui.tickCountLabel->setText(QString::number(info.getTickCount()));
 	ui.refInputLabel->setText(QString::number(info.getReferenceInput()));
 	ui.outputLabel->setText(QString::number(info.getPresentOutput()));
@@ -32,7 +33,7 @@ void MainWindow::onNewRampReference(double reference) {
 }
 
 void MainWindow::onSetReferenceButtonClicked() {
-	motorcontroller.setReference(ui.setReferenceSpinBox->value());
+	motorcontroller.setReference(ui.setReferenceSpinBox->value()/100.0);
 }
 
 void MainWindow::onStopReferenceButtonClicked() {
@@ -44,7 +45,8 @@ void MainWindow::onStartRampButtonClicked() {
 	settings.holdtime = ui.holdTimeSpinBox->value();
 	settings.ramptime = ui.rampTimeSpinBox->value();
 	settings.divisions = ui.divisionsSpinBox->value();
-	settings.maxreference = 1;
+	settings.maxreference = .9;
+	settings.repeat = ui.repeatCheckbox->isChecked();
 
 	motorcontroller.startRamp(settings);
 }

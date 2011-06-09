@@ -13,6 +13,7 @@ namespace subjugator {
 				double ramptime;
 				int divisions;
 				double maxreference;
+				bool repeat;
 			};
 
 			typedef boost::function<void (double)> RampUpdateCallback;

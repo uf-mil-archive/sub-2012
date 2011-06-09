@@ -48,8 +48,10 @@ void MotorRamper::timerCallback(boost::system::error_code &error) {
 			if (direction == Forward)
 				direction = Reverse;
 			else {
+				direction = Forward;
 				rampcompletecallback();
-				return;
+				if (!settings.repeat)
+					return;
 			}
 		}
 

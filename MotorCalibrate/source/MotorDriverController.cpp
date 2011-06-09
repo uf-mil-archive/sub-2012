@@ -6,6 +6,7 @@
 #include "DataObjects/HeartBeat.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <boost/bind.hpp>
+#include <iostream>
 
 using namespace subjugator;
 using namespace boost::asio;
@@ -14,9 +15,10 @@ using namespace std;
 
 MotorDriverController::MotorDriverController(int motaddr)
 : endpoint(hal.openDataObjectEndpoint(motaddr, new MotorDriverDataObjectFormatter(motaddr, 1, BRUSHEDOPEN), new Sub7EPacketFormatter())),
-  heartbeatsender(hal.getIOService(), *endpoint),
+  heartbeatsender(hal.getIOService(), *endpoint, 2),
   motorramper(hal.getIOService(), *endpoint) {
 	endpoint->configureCallbacks(bind(&MotorDriverController::endpointReadCallback, this, _1), bind(&MotorDriverController::endpointStateChangeCallback, this));
+	endpoint->open();
 	motorramper.configureCallbacks(bind(&MotorDriverController::rampUpdateCallback, this, _1), bind(&MotorDriverController::rampCompleteCallback, this));
 	hal.startIOThread();
 }
@@ -37,12 +39,14 @@ void MotorDriverController::stopRamp() {
 
 void MotorDriverController::endpointReadCallback(auto_ptr<DataObject> &dobj) {
 	if (const MotorDriverInfo *info = dynamic_cast<const MotorDriverInfo *>(dobj.get())) {
-		emit newInfo(*info);
+		motorinfo = *info;
+		emit newInfo();
 	}
 }
 
 void MotorDriverController::endpointStateChangeCallback() {
 	if (endpoint->getState() == Endpoint::OPEN) {
+		cout << "State change open" << endl;
 		endpoint->write(HeartBeat());
 		endpoint->write(StartPublishing(10));
 

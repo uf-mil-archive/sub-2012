@@ -10,9 +10,7 @@ using namespace boost;
 using namespace std;
 
 HeartBeatSender::HeartBeatSender(io_service &io_service, DataObjectEndpoint &endpoint, double hz)
-: timer(io_service), endpoint(endpoint), hz(hz) {
-	start();
-}
+: timer(io_service), endpoint(endpoint), hz(hz) { }
 
 void HeartBeatSender::start() {
 	timer.expires_from_now(milliseconds(1000/hz));
