@@ -12,7 +12,7 @@ using namespace boost::asio;
 using namespace boost::system;
 using namespace std;
 
-UDPTransport::UDPTransport(IOThread &iothread) : iothread(iothread), socket(iothread.getIOService()) { }
+UDPTransport::UDPTransport(IOThread &iothread, int port) : iothread(iothread), port(port), socket(iothread.getIOService()), recvbuffer(4096) { }
 
 const string &UDPTransport::getName() const {
 	static const string name = "udp";
@@ -20,7 +20,9 @@ const string &UDPTransport::getName() const {
 }
 
 Endpoint *UDPTransport::makeEndpoint(const std::string &address, const ParamMap &params) {
- 	regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
+	openSocket();
+
+	static const regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
 	smatch match;
 	if (!regex_match(address, match, ipreg))
 		throw runtime_error("UDPTransport::makeEndpoint called with invalid address " + address);
@@ -39,6 +41,7 @@ void UDPTransport::openSocket() {
 
 	error_code error;
 	socket.open(ip::udp::v4(), error); // open the UDP socket
+	socket.bind(ip::udp::endpoint(ip::udp::v4(), port), error);
 
 	if (error)
 		throw runtime_error("UDPTransport failed to open socket: " + error.message()); // TODO make errors appear on endpoints
@@ -99,6 +102,7 @@ void UDPTransport::startAsyncSend() {
 
 	const ip::udp::endpoint &endpoint = sendqueue.front().first;
 	const ByteVec &data = sendqueue.front().second;
+
 	socket.async_send_to(buffer(data), endpoint, bind(&UDPTransport::sendCallback, this, _1, _2));
 }
 
