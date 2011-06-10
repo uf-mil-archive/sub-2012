@@ -53,8 +53,8 @@ namespace subjugator {
 
 			template <int fractional>
 			static double convertSignedFixedPoint(uint16_t val) {
-				bool negative = (val & 0x80) != 0;
-				double d = (double)(val & ~0x80) / std::pow(2, fractional);
+				bool negative = (val & 0x8000) != 0;
+				double d = (double)(val & ~0x8000) / std::pow(2, fractional);
 				return negative ? -d : d;
 			}
 	};
