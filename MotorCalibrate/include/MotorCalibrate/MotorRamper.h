@@ -33,7 +33,7 @@ namespace subjugator {
 			void stop();
 
 		private:
-			static const double updateRateHz = 10;
+			static const double updateRateHz = 50;
 
 			boost::asio::deadline_timer timer;
 			DataObjectEndpoint &endpoint;

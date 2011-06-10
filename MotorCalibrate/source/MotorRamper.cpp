@@ -94,7 +94,7 @@ void MotorRamper::timerCallback(const boost::system::error_code &error) {
 
 	endpoint.write(SetReference(outref));
 	rampupdatecallback(outref);
-	if (!done)
+	if (!done || settings.repeat)
 		startTimer();
 }
 

@@ -6,7 +6,6 @@
 #include "DataObjects/HeartBeat.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <boost/bind.hpp>
-#include <iostream>
 
 using namespace subjugator;
 using namespace boost::asio;
@@ -61,9 +60,8 @@ void MotorDriverController::endpointReadCallback(auto_ptr<DataObject> &dobj) {
 
 void MotorDriverController::endpointStateChangeCallback() {
 	if (endpoint->getState() == Endpoint::OPEN) {
-		cout << "State change open" << endl;
 		endpoint->write(HeartBeat());
-		endpoint->write(StartPublishing(10));
+		endpoint->write(StartPublishing(100));
 
 		heartbeatsender.start();
 	} else {
