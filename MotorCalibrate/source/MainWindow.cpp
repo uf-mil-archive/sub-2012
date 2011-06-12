@@ -45,9 +45,9 @@ void MainWindow::onNewMotorInfo() {
 		flagstr.append("Invalid motor. ");
 	if (!info.getHeartbeat())
 		flagstr.append("Missing heartbeat. ");
-	if (!info.getUnderVoltage())
+	if (info.getUnderVoltage())
 		flagstr.append("Under voltage. ");
-	if (!info.getOverCurrent())
+	if (info.getOverCurrent())
 		flagstr.append("Over current. ");
 	if (!flagstr.size())
 		flagstr = "Ok";
