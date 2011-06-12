@@ -11,7 +11,7 @@ using namespace boost;
 using namespace boost::asio;
 using namespace std;
 
-TCPTransport::TCPTransport(IOThread &iothread) : iothread(iothread) { }
+TCPTransport::TCPTransport(io_service &ioservice) : ioservice(ioservice) { }
 
 const string &TCPTransport::getName() const {
 	static const string name = "tcp";
@@ -27,6 +27,6 @@ Endpoint *TCPTransport::makeEndpoint(const std::string &address, const ParamMap 
 	ip::address ipaddr = ip::address::from_string(match[1]);
 	unsigned short port = boost::lexical_cast<unsigned short>(match[2]);
 
-	return new TCPEndpoint(ip::tcp::endpoint(ipaddr, port), iothread);
+	return new TCPEndpoint(ip::tcp::endpoint(ipaddr, port), ioservice);
 }
 

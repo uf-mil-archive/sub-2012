@@ -12,7 +12,8 @@ using namespace boost::asio;
 using namespace boost::system;
 using namespace std;
 
-UDPTransport::UDPTransport(IOThread &iothread, int port) : iothread(iothread), port(port), socket(iothread.getIOService()), recvbuffer(4096) { }
+UDPTransport::UDPTransport(io_service &ioservice, int port)
+: port(port), socket(ioservice), recvbuffer(4096) { }
 
 const string &UDPTransport::getName() const {
 	static const string name = "udp";
@@ -29,8 +30,9 @@ Endpoint *UDPTransport::makeEndpoint(const std::string &address, const ParamMap 
 
 	string ipaddr = match[1];
 	unsigned short port = boost::lexical_cast<unsigned short>(match[2]);
+	ip::udp::endpoint endpoint(ip::address::from_string(ipaddr), port);
 
-	auto_ptr<UDPEndpoint> udpendpoint(new UDPEndpoint(ip::udp::endpoint(ip::address::from_string(ipaddr), port), iothread, *this));
+	auto_ptr<UDPEndpoint> udpendpoint(new UDPEndpoint(endpoint, *this));
 	endpoints.push_back(udpendpoint.get());
 	return udpendpoint.release();
 }
@@ -52,7 +54,7 @@ void UDPTransport::openSocket() {
 void UDPTransport::endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator begin, ByteVec::const_iterator end) {
 	// we can't touch the send queue, io thread has exclusive use of it
 	// so, we run a callback on the io thread which will do the work for us
-	iothread.run(bind(&UDPTransport::pushSendQueueCallback, this, endpoint->getEndpoint(), ByteVec(begin, end)));
+	socket.get_io_service().dispatch(bind(&UDPTransport::pushSendQueueCallback, this, endpoint->getEndpoint(), ByteVec(begin, end)));
 }
 
 void UDPTransport::endpointDeleted(UDPEndpoint *endpoint) {

@@ -2,7 +2,6 @@
 #define HAL_STREAMTRANSPORT_H
 
 #include "HAL/transport/BaseEndpoint.h"
-#include "HAL/IOThread.h"
 #include <boost/function.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
@@ -13,14 +12,14 @@ namespace subjugator {
 	template <class StreamType> // designed to be either a tcp::socket or a serial_port
 	class BaseStreamEndpoint : public BaseEndpoint {
 		public:
-			BaseStreamEndpoint(IOThread &iothread) : iothread(iothread), stream(iothread.getIOService()) {
+			BaseStreamEndpoint(boost::asio::io_service &ioservice) : stream(ioservice) {
 				pendingsendbuf.reserve(4096);
 				outgoingsendbuf.reserve(4096);
 				recvbuf.resize(4096);
 			}
 
 			virtual void write(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
-				iothread.run(boost::bind(&BaseStreamEndpoint<StreamType>::appendSendBufCallback, this, ByteVec(begin, end)));
+				stream.get_io_service().dispatch(boost::bind(&BaseStreamEndpoint<StreamType>::appendSendBufCallback, this, ByteVec(begin, end)));
 			}
 
 			virtual void close() {
@@ -48,8 +47,6 @@ namespace subjugator {
 			}
 
 		private:
-			IOThread &iothread;
-
 			ByteVec pendingsendbuf; // data waiting to be sent
 			ByteVec outgoingsendbuf; // data currently being sent asynchronously by asio
 			ByteVec recvbuf;
@@ -63,7 +60,7 @@ namespace subjugator {
 				}
 			}
 
-			void sendCallback(const boost::system::error_code& error, std::size_t bytes) { // called when an async send completes
+			void sendCallback(const boost::system::error_code &error, std::size_t bytes) { // called when an async send completes
 				if (error) { // if an error occured
 					setState(ERROR, "BaseStreamEndpoint received error while sending: " + error.message()); // set an error state
 					stream.close();
@@ -78,7 +75,7 @@ namespace subjugator {
 					startAsyncSend(); // start another send
 			}
 
-			void receiveCallback(const boost::system::error_code& error, std::size_t bytes) {
+			void receiveCallback(const boost::system::error_code &error, std::size_t bytes) {
 				if (error) {
 					setState(ERROR, "BaseStreamEndpoint received error while receiving: " + error.message()); // call the error callback
 					stream.close();

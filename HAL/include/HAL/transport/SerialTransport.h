@@ -2,7 +2,7 @@
 #define HAL_SERIALTRANSPORT_H
 
 #include "HAL/transport/Transport.h"
-#include "HAL/IOThread.h"
+#include <boost/asio.hpp>
 #include <utility>
 #include <vector>
 #include <string>
@@ -10,13 +10,13 @@
 namespace subjugator {
 	class SerialTransport : public Transport {
 		public:
-			SerialTransport(IOThread &iothread);
+			SerialTransport(boost::asio::io_service &ioservice);
 
 			virtual const std::string &getName() const;
 			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);
 
 		private:
-			IOThread &iothread;
+			boost::asio::io_service &ioservice;
 	};
 }
 

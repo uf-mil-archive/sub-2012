@@ -13,7 +13,7 @@ namespace subjugator {
 				virtual void endpointDeleted(UDPEndpoint *endpoint) = 0;
 			};
 
-			UDPEndpoint(const boost::asio::ip::udp::endpoint &endpoint, IOThread &iothread, TransportCallbacks &callbacks);
+			UDPEndpoint(const boost::asio::ip::udp::endpoint &endpoint, TransportCallbacks &callbacks);
 			virtual ~UDPEndpoint();
 
 			virtual void open();

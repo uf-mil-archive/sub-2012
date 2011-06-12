@@ -6,7 +6,7 @@
 namespace subjugator {
 	class SerialEndpoint : public BaseStreamEndpoint<boost::asio::serial_port> {
 		public:
-			SerialEndpoint(const std::string &devicename, int baud, IOThread &iothread);
+			SerialEndpoint(const std::string &devicename, int baud, boost::asio::io_service &ioservice);
 
 			virtual void open();
 

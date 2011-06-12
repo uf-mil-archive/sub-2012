@@ -14,13 +14,12 @@
 namespace subjugator {
 	class UDPTransport : public Transport, UDPEndpoint::TransportCallbacks {
 		public:
-			UDPTransport(IOThread &iothread, int port=50000);
+			UDPTransport(boost::asio::io_service &ioservice, int port=50000);
 
 			virtual const std::string &getName() const;
 			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);
 
 		private:
-			IOThread &iothread;
 			int port;
 
 			typedef std::vector<UDPEndpoint *> EndpointPtrVec;

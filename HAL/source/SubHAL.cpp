@@ -5,11 +5,13 @@
 #include "config.h"
 
 using namespace subjugator;
+using namespace boost::asio;
 
 SubHAL::SubHAL() {
-	addTransport(new TCPTransport(iothread));
-	addTransport(new UDPTransport(iothread));
-	addTransport(new SerialTransport(iothread));
+	io_service &ioservice = iothread.getIOService();
+	addTransport(new TCPTransport(ioservice));
+	addTransport(new UDPTransport(ioservice));
+	addTransport(new SerialTransport(ioservice));
 	loadAddressFile(embeddedAddressesPath);
 }
 

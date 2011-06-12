@@ -16,6 +16,7 @@ namespace subjugator {
 
 			inline boost::asio::io_service &getIOService() { return ioservice; }
 			inline const boost::asio::io_service &getIOService() const { return ioservice; }
+			inline bool getStarted() const { return running; }
 
 		private:
 			bool running;
