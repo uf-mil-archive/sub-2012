@@ -8,11 +8,6 @@ using namespace std;
 
 FTD2XXEndpoint::FTD2XXEndpoint(int devnum) : devnum(devnum) { }
 
-void FTD2XXEndpoint::configureCallbacks(const ReadCallback &readcallback, const StateChangeCallback &statechangecallback) {
-	this->readcallback = readcallback;
-	this->statechangecallback = statechangecallback;
-}
-
 void FTD2XXEndpoint::open() {
 	assert(getState() == CLOSED);
 
@@ -45,8 +40,7 @@ void FTD2XXEndpoint::readthread_run() {
 	try {
 		while (true) {
 			size_t got = ftd.read(&recvbuf[0], recvbuf.size());
-			if (readcallback)
-				readcallback(recvbuf.begin(), recvbuf.begin() + got);
+			callReadCallback(recvbuf.begin(), recvbuf.begin() + got);
 		}
 	} catch (FTD2XX::Error &err) {
 		if (ftd.getOpen())
@@ -76,13 +70,4 @@ void FTD2XXEndpoint::writethread_run() {
 			setState(ERROR, "Write thread terminated: " + string(err.what()));
 	}
 }
-
-void FTD2XXEndpoint::setState(State state, const std::string &errmsg) {
-	this->state = state;
-	this->errmsg = errmsg;
-
-	if (statechangecallback)
-		statechangecallback();
-}
-
 

@@ -13,7 +13,7 @@ namespace subjugator {
 	template <class StreamType> // designed to be either a tcp::socket or a serial_port
 	class BaseStreamEndpoint : public BaseEndpoint {
 		public:
-			BaseStreamEndpoint(IOThread &iothread) : BaseEndpoint(iothread), stream(iothread.getIOService()) {
+			BaseStreamEndpoint(IOThread &iothread) : iothread(iothread), stream(iothread.getIOService()) {
 				pendingsendbuf.reserve(4096);
 				outgoingsendbuf.reserve(4096);
 				recvbuf.resize(4096);
@@ -48,6 +48,8 @@ namespace subjugator {
 			}
 
 		private:
+			IOThread &iothread;
+
 			ByteVec pendingsendbuf; // data waiting to be sent
 			ByteVec outgoingsendbuf; // data currently being sent asynchronously by asio
 			ByteVec recvbuf;

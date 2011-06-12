@@ -2,18 +2,14 @@
 #define HYDROPHONE_FTD2XXENDPOINT_H
 
 #include "Hydrophone/ftd2xx/FTD2XX.h"
-#include "HAL/transport/Endpoint.h"
+#include "HAL/transport/BaseEndpoint.h"
 #include <boost/thread.hpp>
 #include <string>
 
 namespace subjugator {
-	class FTD2XXEndpoint : public Endpoint {
+	class FTD2XXEndpoint : public BaseEndpoint {
 		public:
 			FTD2XXEndpoint(int devnum);
-
-			virtual void configureCallbacks(const ReadCallback &readcallback, const StateChangeCallback &statechangecallback);
-			virtual State getState() const { return state; }
-			virtual const std::string &getErrorMessage() const { return errmsg; }
 
 			virtual void open();
 			virtual void close();
@@ -31,13 +27,6 @@ namespace subjugator {
 			ByteVec writebuf;
 			boost::mutex writemutex;
 			boost::condition_variable writecond;
-
-			ReadCallback readcallback;
-			StateChangeCallback statechangecallback;
-			State state;
-			std::string errmsg;
-
-			void setState(State state, const std::string &errmsg="");
 	};
 }
 
