@@ -21,8 +21,6 @@ const string &UDPTransport::getName() const {
 }
 
 Endpoint *UDPTransport::makeEndpoint(const std::string &address, const ParamMap &params) {
-	openSocket();
-
 	static const regex ipreg("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)");
 	smatch match;
 	if (!regex_match(address, match, ipreg))
@@ -37,7 +35,7 @@ Endpoint *UDPTransport::makeEndpoint(const std::string &address, const ParamMap 
 	return udpendpoint.release();
 }
 
-void UDPTransport::openSocket() {
+void UDPTransport::endpointOpened(UDPEndpoint *endpoint) {
 	if (socket.is_open())
 		return;
 
@@ -45,10 +43,15 @@ void UDPTransport::openSocket() {
 	socket.open(ip::udp::v4(), error); // open the UDP socket
 	socket.bind(ip::udp::endpoint(ip::udp::v4(), port), error);
 
-	if (error)
-		throw runtime_error("UDPTransport failed to open socket: " + error.message()); // TODO make errors appear on endpoints
+	if (error) {
+		setError("UDPTransport failed to open socket: " + error.message()); // TODO make errors appear on endpoints
+		return;
+	}
 
+	setError("");
 	startAsyncReceive();
+	if (sendqueue.size() > 0)
+		startAsyncSend();
 }
 
 void UDPTransport::endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator begin, ByteVec::const_iterator end) {
@@ -56,6 +59,8 @@ void UDPTransport::endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator 
 	// so, we run a callback on the io thread which will do the work for us
 	socket.get_io_service().dispatch(bind(&UDPTransport::pushSendQueueCallback, this, endpoint->getEndpoint(), ByteVec(begin, end)));
 }
+
+void UDPTransport::endpointClosed(UDPEndpoint *endpoint) { }
 
 void UDPTransport::endpointDeleted(UDPEndpoint *endpoint) {
 	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end(); ++i) {
@@ -65,6 +70,8 @@ void UDPTransport::endpointDeleted(UDPEndpoint *endpoint) {
 		}
 	}
 }
+
+const string &UDPTransport::getEndpointError() const { return errmsg; }
 
 void UDPTransport::pushSendQueueCallback(const ip::udp::endpoint &endpoint, const ByteVec &bytes) {
     // we're in the io thread now, so we can manipulate the send queue
@@ -76,12 +83,22 @@ void UDPTransport::pushSendQueueCallback(const ip::udp::endpoint &endpoint, cons
 }
 
 void UDPTransport::sendCallback(const system::error_code& error, std::size_t bytes) {
+	if (error) {
+		setError("Error while sending: " + error.message());
+		return;
+	}
+
 	sendqueue.pop(); // pop the now sent packet off the queue
 	if (!sendqueue.empty()) // if there is another packet waiting
 		startAsyncSend(); // start another send
 }
 
 void UDPTransport::receiveCallback(const system::error_code& error, std::size_t bytes) {
+	if (error) {
+		setError("Error while receiving: " + error.message());
+		return;
+	}
+
 	UDPEndpoint *endpoint = NULL; // first, determine the endpoint we received from
 	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end(); ++i) { // loop through all UDPEndpoint instances
 		if ((*i)->getEndpoint() == recvendpoint) { // if we find one with an endpoint matching the one we just got on a packet
@@ -107,5 +124,18 @@ void UDPTransport::startAsyncSend() {
 
 void UDPTransport::startAsyncReceive() {
 	socket.async_receive_from(buffer(recvbuffer), recvendpoint, bind(&UDPTransport::receiveCallback, this, _1, _2));
+}
+
+void UDPTransport::setError(const std::string &errmsg) {
+	if (this->errmsg == errmsg)
+		return;
+
+	this->errmsg = errmsg;
+	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end(); ++i) {
+		(*i)->errorChanged();
+	}
+
+	if (errmsg.size())
+		port.close();
 }
 

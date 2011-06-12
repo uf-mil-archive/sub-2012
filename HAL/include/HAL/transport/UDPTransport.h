@@ -31,8 +31,11 @@ namespace subjugator {
 
 			std::queue<std::pair<boost::asio::ip::udp::endpoint, ByteVec> > sendqueue;
 
+			virtual void endpointOpened(UDPEndpoint *endpoint);
 			virtual void endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator begin, ByteVec::const_iterator end);
+			virtual void endpointClosed(UDPEndpoint *endpoint);
 			virtual void endpointDeleted(UDPEndpoint *endpoint);
+			virtual const std::string &getEndpointError() const;
 
 			void pushSendQueueCallback(const boost::asio::ip::udp::endpoint &endpoint, const ByteVec &bytes);
 			void receiveCallback(const boost::system::error_code& error, std::size_t bytes);
@@ -41,7 +44,8 @@ namespace subjugator {
 			void startAsyncReceive();
 			void startAsyncSend();
 
-			void openSocket();
+			void setError(const std::string &errmsg);
+			std::string errmsg;
 	};
 }
 

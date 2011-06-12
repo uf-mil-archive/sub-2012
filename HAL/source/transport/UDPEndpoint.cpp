@@ -6,19 +6,40 @@ using namespace boost::asio;
 using namespace std;
 
 UDPEndpoint::UDPEndpoint(const ip::udp::endpoint &endpoint, TransportCallbacks &callbacks)
-: endpoint(endpoint), callbacks(callbacks) { }
+: endpoint(endpoint), callbacks(callbacks), opened(false) { }
 
 UDPEndpoint::~UDPEndpoint() {
 	callbacks.endpointDeleted(this);
 }
 
+void UDPEndpoint::configureCallbacks(const ReadCallback &readcallback, const StateChangeCallback &statechangecallback) {
+	this->readcallback = readcallback;
+	this->statechangecallback = statechangecallback;
+}
+
+UDPEndpoint::State UDPEndpoint::getState() const {
+	if (callbacks.getEndpointError().size())
+		return ERROR;
+	else
+		return opened ? OPEN : CLOSED;
+}
+
+const string &UDPEndpoint::getErrorMessage() const {
+	return callbacks.getEndpointError();
+}
+
 void UDPEndpoint::open() {
 	assert(getState() == CLOSED);
-	setState(OPEN);
+	opened = true;
+	callStateChangeCallback();
+	callbacks.endpointOpened(this);
 }
 
 void UDPEndpoint::close() {
-	setState(CLOSED);
+	assert(getState() != CLOSED);
+	opened = false;
+	callStateChangeCallback();
+	callbacks.endpointClosed(this);
 }
 
 void UDPEndpoint::write(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
@@ -26,6 +47,16 @@ void UDPEndpoint::write(ByteVec::const_iterator begin, ByteVec::const_iterator e
 }
 
 void UDPEndpoint::packetReceived(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
-	callReadCallback(begin, end);
+	if (readcallback)
+		readcallback(begin, end);
+}
+
+void UDPEndpoint::errorChanged() {
+	callStateChangeCallback();
+}
+
+void UDPEndpoint::callStateChangeCallback() {
+	if (statechangecallback)
+		statechangecallback();
 }
 
