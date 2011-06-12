@@ -136,6 +136,6 @@ void UDPTransport::setError(const std::string &errmsg) {
 	}
 
 	if (errmsg.size())
-		port.close();
+		socket.close();
 }
 
