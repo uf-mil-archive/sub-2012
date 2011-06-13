@@ -28,6 +28,9 @@ size_t FTD2XX::read(uint8_t *buf, size_t bufsize) {
 	if (FT_Read(handle, buf, 1, &dummy) != FT_OK) // blocking read for the first byte
 		throw Error("Failed to FT_Read first byte");
 
+	buf++; // advance buf
+	bufsize--;
+
 	DWORD rxsize;
 	if (FT_GetQueueStatus(handle, &rxsize) != FT_OK) // determine how many bytes follow
 		throw Error("Failed to FT_GetQueueStatus");
@@ -35,11 +38,11 @@ size_t FTD2XX::read(uint8_t *buf, size_t bufsize) {
 	if (!rxsize) // no more bytes
 		return 1; // just return one
 
-	if (rxsize > bufsize-1) // don't read more bytes than the caller has room for in its buffer
-		rxsize = bufsize-1;
+	if (rxsize > bufsize) // don't read more bytes than the caller has room for in its buffer
+		rxsize = bufsize;
 
 	DWORD readcount;
-	if (FT_Read(handle, buf+1, rxsize, &readcount) != FT_OK) // read the following bytes (should never block)
+	if (FT_Read(handle, buf, rxsize, &readcount) != FT_OK) // read the following bytes (should never block)
 		throw Error("Failed to FT_Read");
 
 	return readcount+1;

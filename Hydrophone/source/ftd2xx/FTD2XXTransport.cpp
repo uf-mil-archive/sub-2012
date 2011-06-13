@@ -41,7 +41,7 @@ int FTD2XXTransport::findDeviceFromDescription(const std::string &description) {
 	if (FT_GetDeviceInfoList(&infonodes[0], &numdevs))
 		throw runtime_error("Failed to FT_GetDeviceInfoList");
 
-	for (int i=0; i<numdevs; i++) {
+	for (unsigned int i=0; i<numdevs; i++) {
 		if (infonodes[i].Description == description)
 			return i;
 	}
