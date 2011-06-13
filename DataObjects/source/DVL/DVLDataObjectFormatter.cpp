@@ -1,5 +1,5 @@
 #include "DataObjects/DVL/DVLDataObjectFormatter.h"
-#include "DataObjects/DVL/DVLConfiguration.h"
+#include "DataObjects/DVL/DVLCommand.h"
 
 using namespace subjugator;
 
@@ -10,6 +10,6 @@ DataObject *DVLDataObjectFormatter::toDataObject(const Packet &packet) {
 }
 
 Packet DVLDataObjectFormatter::toPacket(const DataObject &dobj) {
-	return dynamic_cast<const DVLConfiguration &>(dobj).makePacket();
+	return dynamic_cast<const DVLCommand &>(dobj).makePacket();
 }
 
