@@ -1,26 +1,17 @@
 #ifndef DATAOBJECTS_MOTORDRIVER_MOTORDRIVERDATAOBJECTFORMATTER_H
 #define DATAOBJECTS_MOTORDRIVER_MOTORDRIVERDATAOBJECTFORMATTER_H
 
+#include "DataObjects/Embedded/EmbeddedDataObjectFormatter.h"
 #include "DataObjects/EmbeddedTypeCodes.h"
-#include "HAL/format/DataObjectFormatter.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {
-	class MotorDriverDataObjectFormatter : public DataObjectFormatter {
+	class MotorDriverDataObjectFormatter : public EmbeddedDataObjectFormatter {
 		public:
-			MotorDriverDataObjectFormatter(boost::uint8_t devaddress, boost::uint8_t pcaddress, EmbeddedTypeCode typecode);
+			MotorDriverDataObjectFormatter(boost::uint8_t devaddress, boost::uint8_t pcaddress, EmbeddedTypeCode typecode=BRUSHEDOPEN);
 
-			virtual DataObject *toDataObject(const Packet &packet);
-
-			virtual Packet toPacket(const DataObject &dobj);
-
-		private:
-			boost::uint8_t devaddress;
-			boost::uint8_t pcaddress;
-			EmbeddedTypeCode typecode;
-
-			boost::uint16_t packetcount_out;
-			boost::uint16_t packetcount_in;
+		protected:
+			virtual DataObject *makeInfoDataObject(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 	};
 }
 

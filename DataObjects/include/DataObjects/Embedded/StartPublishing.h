@@ -1,11 +1,11 @@
-#ifndef DATAOBJECTS_MOTORDRIVER_STARTPUBLISHING_H
-#define DATAOBJECTS_MOTORDRIVER_STARTPUBLISHING_H
+#ifndef DATAOBJECTS_EMBEDDED_STARTPUBLISHING_H
+#define DATAOBJECTS_EMBEDDED_STARTPUBLISHING_H
 
-#include "DataObjects/MotorDriver/MotorDriverCommand.h"
+#include "DataObjects/Embedded/EmbeddedCommand.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {
-	class StartPublishing : public MotorDriverCommand {
+	class StartPublishing : public EmbeddedCommand {
 		public:
 			StartPublishing(boost::uint8_t rate);
 

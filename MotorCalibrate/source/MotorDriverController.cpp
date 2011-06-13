@@ -2,7 +2,7 @@
 #include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
 #include "DataObjects/MotorDriver/SetReference.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
-#include "DataObjects/MotorDriver/StartPublishing.h"
+#include "DataObjects/Embedded/StartPublishing.h"
 #include "DataObjects/HeartBeat.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <boost/bind.hpp>

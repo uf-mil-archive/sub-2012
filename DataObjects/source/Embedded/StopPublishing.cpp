@@ -1,4 +1,4 @@
-#include "DataObjects/MotorDriver/StopPublishing.h"
+#include "DataObjects/Embedded/StopPublishing.h"
 
 using namespace subjugator;
 using namespace boost;

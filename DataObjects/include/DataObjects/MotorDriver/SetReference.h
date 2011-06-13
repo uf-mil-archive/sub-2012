@@ -1,11 +1,11 @@
 #ifndef DATAOBJECTS_MOTORDRIVER_SETREFERENCE_H
 #define DATAOBJECTS_MOTORDRIVER_SETREFERENCE_H
 
-#include "DataObjects/MotorDriver/MotorDriverCommand.h"
+#include "DataObjects/Embedded/EmbeddedCommand.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {
-	class SetReference : public MotorDriverCommand {
+	class SetReference : public EmbeddedCommand {
 		public:
 			SetReference(double reference);
 
