@@ -63,7 +63,8 @@ namespace subjugator {
 			void sendCallback(const boost::system::error_code &error, std::size_t bytes) { // called when an async send completes
 				if (error) { // if an error occured
 					setState(ERROR, "BaseStreamEndpoint received error while sending: " + error.message()); // set an error state
-					stream.close();
+					boost::system::error_code error;
+					stream.close(error);
 					return;
 				}
 
@@ -78,7 +79,8 @@ namespace subjugator {
 			void receiveCallback(const boost::system::error_code &error, std::size_t bytes) {
 				if (error) {
 					setState(ERROR, "BaseStreamEndpoint received error while receiving: " + error.message()); // call the error callback
-					stream.close();
+					boost::system::error_code error;
+					stream.close(error);
 					return;
 				}
 
