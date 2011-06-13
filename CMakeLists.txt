@@ -40,6 +40,7 @@ add_subdirectory(Hydrophone)
 add_subdirectory(HAL)
 add_subdirectory(DataObjects)
 add_subdirectory(MotorCalibrate)
+add_subdirectory(SensorCalibrate)
 
 # Handle the example projects
 
