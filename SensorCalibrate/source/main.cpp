@@ -5,6 +5,7 @@
 #include "DataObjects/DVL/DVLBreak.h"
 #include "DataObjects/DVL/DVLHighresBottomTrack.h"
 #include "DataObjects/DVL/DVLBottomTrackRange.h"
+#include "DataObjects/DVL/DVLBottomTrack.h"
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
 #include <iostream>
@@ -31,6 +32,9 @@ void receiveCallback(auto_ptr<DataObject> &dobj) {
 			cout << btrange->getRange() << endl;
 		else
 			cout << "bad" << endl;
+	} else if (DVLBottomTrack *bt = dynamic_cast<DVLBottomTrack *>(dobj.get())) {
+		cout << "Got bottom track correlation: ";
+		cout << bt->getBeamCorrelation()(0) << " " << bt->getBeamCorrelation()(1) << " " << bt->getBeamCorrelation()(2) << " " << bt->getBeamCorrelation()(3) << " " << endl;
 	}
 }
 

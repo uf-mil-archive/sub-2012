@@ -2,6 +2,7 @@
 #include "DataObjects/DVL/DVLCommand.h"
 #include "DataObjects/DVL/DVLHighresBottomTrack.h"
 #include "DataObjects/DVL/DVLBottomTrackRange.h"
+#include "DataObjects/DVL/DVLBottomTrack.h"
 #include <memory>
 
 using namespace subjugator;
@@ -23,6 +24,10 @@ DataObject *DVLDataObjectFormatter::toDataObject(const Packet &packet) {
 			if (DVLBottomTrackRange::parse(packet.begin(), packet.end(), *rangeptr))
 				return rangeptr.release();
 		}
+	} else if (packet[1] == 0x06) {
+		auto_ptr<DVLBottomTrack> btptr(new DVLBottomTrack());
+		if (DVLBottomTrack::parse(packet.begin(), packet.end(), *btptr))
+			return btptr.release();
 	}
 
 	return NULL;

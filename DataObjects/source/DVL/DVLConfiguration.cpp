@@ -14,7 +14,7 @@ static const char preamble[] =
 	"CR0\r" // load factory settings (won't change baud rate)
 	"#CT0\r" // turn key operation off (DVL won't start pinging automatically on startup)
 	"BX00150\r" // set maximum depth to 15 meters
-	"#BJ 000 110 000\r" // enable only bottom track high res velocity and bottom track range
+	"#BJ 100 110 000\r" // enable only bottom track high res velocity and bottom track range
 	"ES0\r" // 0 salinity
 	"EX10010\r" // transform results to ship XYZ, allow 3 beam solutions
 	"EZ10000010\r"; // configure sensor sources. Provide manual data for everything except speed of sound and temperature
