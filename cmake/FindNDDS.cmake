@@ -8,9 +8,9 @@ else()
 endif()
 
 # Root directory
-find_path(NDDS_HOME rev_host_rtidds.4.5c HINTS $ENV{NDDSHOME} DOC "Root directory of RTI DDS")
+find_path(NDDS_HOME rev_host_rtidds.4.5d HINTS $ENV{NDDSHOME} DOC "Root directory of RTI DDS")
 if(NOT NDDS_HOME)
-	set(ERR_MSG "${ERR_MSG}Failed to find root containing rev_host_rtidds.4.5c. ")
+	set(ERR_MSG "${ERR_MSG}Failed to find root containing rev_host_rtidds.4.5d. ")
 endif()
 
 function(ndds_include_rtiddsgen_directories)
