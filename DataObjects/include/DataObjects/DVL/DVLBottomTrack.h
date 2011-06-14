@@ -8,8 +8,7 @@
 namespace subjugator {
 	class DVLBottomTrack : public DataObject {
 		public:
-			DVLBottomTrack();
-			static bool parse(ByteVec::const_iterator begin, ByteVec::const_iterator end, DVLBottomTrack &hrtrack);
+			static DVLBottomTrack *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
 			const Eigen::Vector4d &getBeamCorrelation() { return beamcorr; }
 

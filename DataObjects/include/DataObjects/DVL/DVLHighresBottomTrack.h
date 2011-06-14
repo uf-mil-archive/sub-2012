@@ -8,8 +8,7 @@
 namespace subjugator {
 	class DVLHighresBottomTrack : public DataObject {
 		public:
-			DVLHighresBottomTrack();
-			static bool parse(ByteVec::const_iterator begin, ByteVec::const_iterator end, DVLHighresBottomTrack &hrtrack);
+			static DVLHighresBottomTrack *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
 			const Eigen::Vector3d &getVelocity() { return bottomvel; }
 			bool isGood() const { return good; }

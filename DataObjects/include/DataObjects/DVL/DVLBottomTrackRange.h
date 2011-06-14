@@ -8,8 +8,7 @@
 namespace subjugator {
 	class DVLBottomTrackRange : public DataObject {
 		public:
-			DVLBottomTrackRange();
-			static bool parse(ByteVec::const_iterator begin, ByteVec::const_iterator end, DVLBottomTrackRange &hrtrack);
+			static DVLBottomTrackRange *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
 			double getRange() const { return range; }
 			bool isGood() const { return good; }

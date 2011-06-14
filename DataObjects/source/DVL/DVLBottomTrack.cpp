@@ -3,21 +3,20 @@
 using namespace subjugator;
 using namespace boost;
 
-DVLBottomTrack::DVLBottomTrack() : beamcorr(0, 0, 0, 0) { }
-
-bool DVLBottomTrack::parse(ByteVec::const_iterator begin, ByteVec::const_iterator end, DVLBottomTrack &btrack) {
+DVLBottomTrack *DVLBottomTrack::parse(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
 	if (end - begin != 81) // check the length
-		return false;
+		return NULL;
 
 	if (begin[0] != 0x00 || begin[1] != 0x06) // check the header
-		return false;
+		return NULL;
 
-	btrack.beamcorr(0) = begin[32] / 255.0;
-	btrack.beamcorr(1) = begin[33] / 255.0;
-	btrack.beamcorr(2) = begin[34] / 255.0;
-	btrack.beamcorr(3) = begin[35] / 255.0;
+	DVLBottomTrack *btrack = new DVLBottomTrack();
+	btrack->beamcorr(0) = begin[32] / 255.0;
+	btrack->beamcorr(1) = begin[33] / 255.0;
+	btrack->beamcorr(2) = begin[34] / 255.0;
+	btrack->beamcorr(3) = begin[35] / 255.0;
 
-	return true;
+	return btrack;
 }
 
 int32_t DVLBottomTrack::getS32LE(ByteVec::const_iterator i) {

@@ -14,21 +14,13 @@ DataObject *DVLDataObjectFormatter::toDataObject(const Packet &packet) {
 	if (packet.size() < 2)
 		return NULL;
 
-	if (packet[1] == 0x58) {
-		if (packet[0] == 0x03) {
-			auto_ptr<DVLHighresBottomTrack> highresptr(new DVLHighresBottomTrack());
-			if (DVLHighresBottomTrack::parse(packet.begin(), packet.end(), *highresptr))
-				return highresptr.release();
-		} else if (packet[0] == 0x04) {
-			auto_ptr<DVLBottomTrackRange> rangeptr(new DVLBottomTrackRange());
-			if (DVLBottomTrackRange::parse(packet.begin(), packet.end(), *rangeptr))
-				return rangeptr.release();
-		}
-	} else if (packet[1] == 0x06) {
-		auto_ptr<DVLBottomTrack> btptr(new DVLBottomTrack());
-		if (DVLBottomTrack::parse(packet.begin(), packet.end(), *btptr))
-			return btptr.release();
-	}
+	DataObject *dobj;
+	if ((dobj = DVLBottomTrack::parse(packet.begin(), packet.end())) != NULL)
+		return dobj;
+	if ((dobj = DVLHighresBottomTrack::parse(packet.begin(), packet.end())) != NULL)
+		return dobj;
+	if ((dobj = DVLBottomTrackRange::parse(packet.begin(), packet.end())) != NULL)
+		return dobj;
 
 	return NULL;
 }
