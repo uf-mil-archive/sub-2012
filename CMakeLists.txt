@@ -20,7 +20,10 @@ add_definitions(-DEIGEN_FFTW_DEFAULT)
 
 # find DDS, but not REQUIRED
 find_package(NDDS)
-if(NOT NDDS_FOUND)
+if(NDDS_FOUND)
+	add_subdirectory(DDSMessages)
+	ndds_include_project_rtiddsgen_directories(DDSMessages idl)
+else()
 	message("DDS Not found! No projects depending on DDS will be built.")
 endif()
 

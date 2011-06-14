@@ -1,5 +1,5 @@
-#include "DDSPublisher/ChatMessage.h"
-#include "DDSPublisher/ChatMessageSupport.h"
+#include "DDSMessages/ChatMessage.h"
+#include "DDSMessages/ChatMessageSupport.h"
 #include <ndds/ndds_cpp.h>
 #include <iostream>
 #include <stdexcept>

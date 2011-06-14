@@ -89,15 +89,6 @@ function(sub_executable projectname)
 	if(dds)
 		include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
 		set(libraries ${libraries} ${NDDS_LIBRARIES}) # link to DDS
-
-		file(GLOB_RECURSE interfaces "idl/*.idl") # build a shared lib to hold DDS generated code if we have any idl files
-		if (interfaces)
-			set(ddslibname ${exename}_ddslib)
-			ndds_run_rtiddsgen(interfaces_sources ${interfaces})
-			add_library(${ddslibname} ${interfaces_sources})
-			set(libraries ${libraries} ${ddslibname}) # link the library to our binary
-			ndds_include_rtiddsgen_directories(idl) # put the directory containing headers generated with rtiddsgen on the include path
-		endif()
 	endif()
 
 	#optionally set up qt functionality
@@ -163,34 +154,6 @@ function(sub_library projectname)
 	# install configs
 	file(GLOB_RECURSE configs "config/*")
 	install(FILES ${configs} DESTINATION ${SUBJUGATOR_CONFIG_DIRECTORY})
-endfunction()
-
-#############################################
-# sub_reference_executable(ProjectName ReferencedProject1 ReferencedProject2 ...)
-#
-# This allows an executable project to access DDS generated datatype code from other executable projects.
-# It does so by placing the generated header files of each ReferencedProject in the include path of ProjectName,
-# as well as linking the binary from ProjectName with each of the DDS generated shared libraries of the
-# referenced projects.
-#
-# When possible, an executable which publishes a datatype should contain any associated IDL, and any executable
-# which subscribes to topics using that datatype should reference it.
-#############################################
-
-function(sub_reference_executable projectname)
-	if(NOT NDDS_FOUND)
-		message(ERROR "sub_reference_executable called, but DDS not found")
-	endif()
-
-	string(TOLOWER ${projectname} exename)
-
-	foreach(refprojectname ${ARGN})
-		string(TOLOWER ${refprojectname} refexename)
-		set(refddslibname ${refexename}_ddslib)
-
-		ndds_include_project_rtiddsgen_directories(${refprojectname} idl)
-		target_link_libraries(${exename} ${refddslibname})
-	endforeach()
 endfunction()
 
 #############################################
