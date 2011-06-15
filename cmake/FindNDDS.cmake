@@ -44,8 +44,10 @@ if(NDDS_RTIDDSGEN)
 
 			add_custom_command(OUTPUT ${SOURCEFILES} DEPENDS "${IDLFILE}" COMMAND ${NDDS_RTIDDSGEN} -language C++ -inputIDL ${IDLFILE} -replace -d "${SOURCEFILE_DIR}")
 
-			set(${OUTPUT_SOURCES_VARNAME} ${${OUTPUT_SOURCES_VARNAME}} ${SOURCEFILES} PARENT_SCOPE)
+			set(OUTPUT_SOURCES ${OUTPUT_SOURCES} ${SOURCEFILES})
 		endforeach()
+
+		set(${OUTPUT_SOURCES_VARNAME} ${OUTPUT_SOURCES} PARENT_SCOPE)
 	endfunction()
 else()
 	set(ERR_MSG "${ERR_MSG}Failed to find rtiddsgen binary. ")
