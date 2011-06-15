@@ -1,0 +1,7 @@
+struct DepthBoardMessage {
+	double depth;
+	double humidity;
+	double thermistertemp;
+	double humiditytemp;
+};
+

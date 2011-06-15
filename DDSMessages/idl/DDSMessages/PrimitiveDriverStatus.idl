@@ -1,0 +1,3 @@
+struct PrimitiveDriverStatus {
+	double current[8];
+};

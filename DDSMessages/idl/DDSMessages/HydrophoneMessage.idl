@@ -1,0 +1,7 @@
+struct HydrophoneMessage {
+	double declination; // ang1 in matlab/HydrophoneDataProcessor
+	double heading; // ang2 in matlab/HydrophoneDataProcessor
+	double dist;
+	boolean valid;
+};
+

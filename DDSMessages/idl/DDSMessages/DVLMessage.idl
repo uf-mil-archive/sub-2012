@@ -1,0 +1,7 @@
+struct DVLMessage {
+	double velocity[3];
+	double velocityerror;
+	double height;
+	double beamcorrelation[4];
+};
+

@@ -1,0 +1,6 @@
+struct State {
+	string workername; //@key
+	long state;
+	double health;
+};
+
