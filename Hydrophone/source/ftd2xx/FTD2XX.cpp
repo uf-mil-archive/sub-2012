@@ -13,6 +13,15 @@ FTD2XX::FTD2XX(int ftdnum) : handle(NULL) { open(ftdnum); }
 void FTD2XX::open(int ftdnum) {
 	if (FT_Open(ftdnum, &handle) != FT_OK)
 		throw Error("Failed to FT_Open device number " + lexical_cast<string>(ftdnum));
+
+	if (FT_SetBitMode(handle, 0xFF, FT_BITMODE_SYNC_FIFO) != FT_OK) // turn on synchronous fifo mode
+		throw Error("Failed to FT_SetBitMode");
+
+	if (FT_SetLatencyTimer(handle, 2)) // 2 ms
+		throw Error("Failed to FT_SetLatencyTimer");
+
+	if (FT_SetUSBParameters(handle, 0x10000, 0x10000) != FT_OK) // set buffers to 64kb
+		throw Error("Failed to FT_SetUSBParameter");
 }
 
 void FTD2XX::close() {
