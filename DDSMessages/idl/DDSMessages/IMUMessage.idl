@@ -1,0 +1,7 @@
+struct IMUMessage {
+	unsigned long long timestamp;
+	double accel[3];
+	double gyro[3];
+	double mag[3];
+};
+
