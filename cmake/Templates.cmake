@@ -8,7 +8,7 @@
 set(SUBJUGATOR_CONFIG_DIRECTORY etc/subjugator CACHE STRING "Where the configuration files for the various subjugator binaries will be placed, relative to the install prefix")
 
 #############################################
-# sub_executable(ProjectName [DDS])
+# sub_executable(ProjectName [DDS] [Qt])
 # Configures this project to build and install an executable, which is always
 # the name of the project in lowercase. If the project depends on DDS,
 # the DDS flag must be placed after the project name. All DDS generated code is placed in a
@@ -77,7 +77,10 @@ function(sub_executable projectname)
 	else()
 		set(headers "")
 	endif()
-	set(libraries ${Boost_LIBRARIES} ${FFTW_LIBRARIES})
+	set(libraries ${libraries} ${Boost_LIBRARIES})
+	if(FFTW_FOUND)
+		set(libraries ${libraries} ${FFTW_LIBRARIES})
+	endif()
 	string(TOLOWER ${projectname} exename)
 
 	# Optionally process the config header

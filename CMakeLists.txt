@@ -14,9 +14,11 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 # find Eigen and FFTW
 find_package(Eigen3 REQUIRED)
-find_package(FFTW REQUIRED)
+find_package(FFTW QUIET)
 include_directories(${EIGEN3_INCLUDE_DIR} ${FFTW_INCLUDES})
+if(FFTW_FOUND)
 add_definitions(-DEIGEN_FFTW_DEFAULT)
+endif()
 
 # find DDS, but not REQUIRED
 find_package(NDDS)
@@ -35,15 +37,37 @@ endif()
 # Turn on warnings
 add_definitions(-Wall)
 
+# Handle build types
+
+set(SUB_BUILD_TYPE all CACHE STRING "The set of programs to build. all, sub, or gumstix")
+
+if(${SUB_BUILD_TYPE} STREQUAL "sub")
+	set(BUILD_SUB TRUE)
+	set(BUILD_GUMSTIX FALSE)
+elseif(${SUB_BUILD_TYPE} STREQUAL "gumstix")
+	set(BUILD_SUB FALSE)
+	set(BUILD_GUMSTIX TRUE)
+else()
+	set(BUILD_SUB TRUE)
+	set(BUILD_GUMSTIX TRUE)
+endif()
+
 # Add projects subdirectories here
 # (maybe possible to find projects automatically?)
 
-add_subdirectory(SubMain)
-add_subdirectory(Hydrophone)
 add_subdirectory(HAL)
 add_subdirectory(DataObjects)
+
+if(BUILD_SUB)
+add_subdirectory(SubMain)
+add_subdirectory(Hydrophone)
 add_subdirectory(MotorCalibrate)
 add_subdirectory(SensorCalibrate)
+endif()
+
+if(BUILD_GUMSTIX)
+# TODO
+endif()
 
 # Handle the example projects
 
