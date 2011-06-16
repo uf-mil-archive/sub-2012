@@ -11,10 +11,12 @@ namespace subjugator {
 			static DVLHighresBottomTrack *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
 			const Eigen::Vector3d &getVelocity() { return bottomvel; }
+			double getVelocityError() { return bottomvelerror; }
 			bool isGood() const { return good; }
 
 		private:
 			Eigen::Vector3d bottomvel;
+			double bottomvelerror;
 			bool good;
 
 			static const boost::int32_t BADVEL = -3276801;

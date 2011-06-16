@@ -13,6 +13,7 @@ DVLHighresBottomTrack *DVLHighresBottomTrack::parse(ByteVec::const_iterator begi
 	int32_t x = getS32LE(begin + 2);
 	int32_t y = getS32LE(begin + 6);
 	int32_t z = getS32LE(begin + 10);
+	int32_t error = getS32LE(begin + 14);
 
 	DVLHighresBottomTrack *hrtrack = new DVLHighresBottomTrack();
 
@@ -20,6 +21,7 @@ DVLHighresBottomTrack *DVLHighresBottomTrack::parse(ByteVec::const_iterator begi
 	hrtrack->bottomvel(0) = x / 100000.0;
 	hrtrack->bottomvel(1) = y / 100000.0;
 	hrtrack->bottomvel(2) = z / 100000.0;
+	hrtrack->bottomvelerror = error / 100000.0;
 
 	return hrtrack;
 }
