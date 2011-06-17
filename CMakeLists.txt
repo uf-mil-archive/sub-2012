@@ -66,11 +66,11 @@ add_subdirectory(Hydrophone)
 if(NOT QT_FOUND)
 add_subdirectory(MotorCalibrate)
 endif()
-add_subdirectory(SensorCalibrate)
 endif()
 
 if(BUILD_GUMSTIX)
 add_subdirectory(IMUSmartSensor)
+add_subdirectory(SensorLogger)
 endif()
 
 # Handle the example projects
