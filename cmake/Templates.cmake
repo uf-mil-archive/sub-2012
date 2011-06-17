@@ -5,6 +5,13 @@
 # process can be kept isolated to this one file, while the rest of our cmake code
 # is a simple definition of the desired project layout.
 
+# Set up variables used in config.h.in files
+# There may be a better way to do this but I can't find it
+if(CMAKE_CROSSCOMPILING)
+	file(RELATIVE_PATH SUBJUGATOR_RUNTIME_INSTALL_PREFIX ${CMAKE_FIND_ROOT_PATH} ${CMAKE_INSTALL_PREFIX}) # Strip the find root path from the install prefix to get the runtime path of the installed binaries
+else()
+	set(SUBJUGATOR_RUNTIME_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+endif()
 set(SUBJUGATOR_CONFIG_DIRECTORY etc/subjugator CACHE STRING "Where the configuration files for the various subjugator binaries will be placed, relative to the install prefix")
 
 #############################################
