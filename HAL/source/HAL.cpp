@@ -19,6 +19,8 @@ void HAL::clearTransports() {
 
 void HAL::loadAddressFile(const std::string &filename) {
 	ifstream in(filename.c_str());
+	if (!in)
+		throw runtime_error("Failed to open address file " + filename);
 	addrtable.read(in);
 }
 
