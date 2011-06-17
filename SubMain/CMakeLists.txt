@@ -1,7 +1,7 @@
 project(SubMain)
 
 include_directories(include)
-include_directories(include/Workers)
+include_directories(include/SubMain/Workers)
 set(HEADER_FILES
 	include/SubMain/Workers/SubWorker.h
 	include/SubMain/SubThruster.h

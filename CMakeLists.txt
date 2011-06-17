@@ -15,8 +15,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 # find Eigen and FFTW
 find_package(Eigen3 REQUIRED)
 find_package(FFTW QUIET)
-include_directories(${EIGEN3_INCLUDE_DIR} ${FFTW_INCLUDES})
+include_directories(${EIGEN3_INCLUDE_DIR})
 if(FFTW_FOUND)
+include_directories(${FFTW_INCLUDES})
 add_definitions(-DEIGEN_FFTW_DEFAULT)
 endif()
 
@@ -57,16 +58,19 @@ endif()
 
 add_subdirectory(HAL)
 add_subdirectory(DataObjects)
+add_subdirectory(SubMain)
 
 if(BUILD_SUB)
 add_subdirectory(SubMain)
 add_subdirectory(Hydrophone)
+if(NOT QT_FOUND)
 add_subdirectory(MotorCalibrate)
+endif()
 add_subdirectory(SensorCalibrate)
 endif()
 
 if(BUILD_GUMSTIX)
-# TODO
+add_subdirectory(IMUSmartSensor)
 endif()
 
 # Handle the example projects
