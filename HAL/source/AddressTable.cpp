@@ -13,11 +13,9 @@ AddressTable::AddressTable() { }
 
 void AddressTable::read(std::istream &in) {
 	int linenum=0;
-	while (true) {
+	while (!in.eof()) {
 		string line; // get a line
 		getline(in, line);
-		if (in.eof())
-			break;
 
 		static const regex cleanupreg("\\s*([^#]*).*"); // strip any indentation and comments
 		smatch match;
