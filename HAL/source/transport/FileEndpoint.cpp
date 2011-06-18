@@ -14,9 +14,9 @@ void FileEndpoint::open()
 	cout << "in filendpoint open" << endl;
 	cout << "Trying to open: " << mFileName << endl;
 
-	mFileStream.open(mFileName.c_str(), ios::binary | ios::in | ios::out);
+	fileDesc = ::open(mFileName.c_str(), O_RDWR);
 
-	if(!mFileStream.fail())
+	if(fileDesc >= 0)
 	{
 		readthread = thread(&FileEndpoint::readthread_run, this);
 		writethread = thread(&FileEndpoint::writethread_run, this);
@@ -30,9 +30,10 @@ void FileEndpoint::open()
 
 void FileEndpoint::close()
 {
-	if(mFileStream.is_open())
+	if(fileDesc >= 0)
 	{
-		mFileStream.close();
+		::close(fileDesc);
+		fileDesc = -1;
 	}
 	readthread.join();
 	writethread.join();
@@ -50,22 +51,15 @@ void FileEndpoint::readthread_run()
 {
 	ByteVec recvbuf(4096);
 
-	while (true)
+	while(true)
 	{
-		mFileStream.read((char *)&recvbuf[0], recvbuf.size());
-		size_t got = mFileStream.gcount();
+		size_t got = ::read(fileDesc, (char *)&recvbuf[0], recvbuf.size());
 
-		cout << "rthread got: " << got << endl;
-
-		if(mFileStream.fail())
-		{
-			break;
-		}
-
-		callReadCallback(recvbuf.begin(), recvbuf.begin() + got);
+		if(got > 0)
+			callReadCallback(recvbuf.begin(), recvbuf.begin() + got);
 	}
 
-	if (mFileStream.is_open())
+	if (fileDesc >= 0)
 		setState(ERROR, "Read thread terminated: ");
 }
 
@@ -83,12 +77,12 @@ void FileEndpoint::writethread_run()
 		lock.unlock();
 
 		size_t wrote=0;
-		while (wrote < outbuf.size())
-			mFileStream.write((const char*)&outbuf[wrote], outbuf.size() - wrote);
+//		while (wrote < outbuf.size())
+//			mFileStream.write((const char*)&outbuf[wrote], outbuf.size() - wrote);
 		outbuf.clear();
 	}
 
-	if (mFileStream.is_open())
-		setState(ERROR, "Write thread terminated: ");
+	//if (mFileStream.is_open())
+		//setState(ERROR, "Write thread terminated: ");
 }
 

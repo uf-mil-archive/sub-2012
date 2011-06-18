@@ -8,14 +8,15 @@
  */
 
 using namespace subjugator;
+using namespace std;
 
 IMUInfo *IMUInfo::parse(ByteVec::const_iterator begin, ByteVec::const_iterator end)
 {
-	// Validate the length
-	std::cout << "Length " << end - begin << std::endl;
-
 	if (end - begin != IMUInfo::IMU_PACKET_LENGTH) // check the length
+	{
+		cout << "Packet invalid length" << endl;
 		return NULL;
+	}
 
 	IMUInfo *imuinfo = new IMUInfo();
 
@@ -28,9 +29,9 @@ IMUInfo *IMUInfo::parse(ByteVec::const_iterator begin, ByteVec::const_iterator e
 	// The next 9 are gyro xyz, acc xyz, mag xyz
 	for(int i = 0; i < 3; i++)
 	{
-		imuinfo->ang_rate(i) = getS16LE((begin + 4) + 2*i) * IMUInfo::GYRO_CONVERSION;
-		imuinfo->acceleration(i) = getS16LE((begin + 6) + 2*i) * IMUInfo::ACC_CONVERSION;
-		imuinfo->mag_field(i) = getS16LE((begin + 8) + 2*i) * IMUInfo::MAG_CONVERSION;
+		imuinfo->ang_rate(i) = getS16LE((begin + 4) + 2*i);// * IMUInfo::GYRO_CONVERSION;
+		imuinfo->acceleration(i) = getS16LE((begin + 6) + 2*i);// * IMUInfo::ACC_CONVERSION;
+		imuinfo->mag_field(i) = getS16LE((begin + 8) + 2*i);// * IMUInfo::MAG_CONVERSION;
 	}
 
 	// Then the temperature signed int

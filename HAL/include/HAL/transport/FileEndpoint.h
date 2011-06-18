@@ -4,8 +4,9 @@
 #include "HAL/transport/BaseEndpoint.h"
 #include <boost/thread.hpp>
 #include <string>
-#include <fstream>
-#include <iostream>
+
+#include <fcntl.h>
+#include <unistd.h>
 
 namespace subjugator {
 	class FileEndpoint : public BaseEndpoint {
@@ -18,8 +19,7 @@ namespace subjugator {
 
 		private:
 			std::string mFileName;
-			std::fstream mFileStream;
-
+			int fileDesc;
 
 			boost::thread readthread;
 			void readthread_run();

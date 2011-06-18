@@ -16,12 +16,6 @@ std::vector<Packet> SPIPacketFormatter::parsePackets(const ByteVec &data)
 	// and truncate anything else
 	int count  = (data.size() / packetSize);
 
-	cout << "Size: " << data.size() << endl;
-
-	cout << "In spi packet formatter" << endl;
-
-	cout << "Data[0]: " << data[0] << endl;
-
 	vector<Packet> packets(count, ByteVec(packetSize));
 
 	for(int i = 0; i < count; i++)
@@ -30,7 +24,6 @@ std::vector<Packet> SPIPacketFormatter::parsePackets(const ByteVec &data)
 		ByteVec::const_iterator pEnd = pBegin + packetSize;
 		copy(pBegin, pEnd, packets[i].begin());
 	}
-
 
 	return packets;
 }

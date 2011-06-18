@@ -27,8 +27,7 @@ void receiveCallback(auto_ptr<DataObject> &dobj)
 
 	if (IMUInfo *info = dynamic_cast<IMUInfo *>(dobj.get()))
 	{
-		cout << "Got bottom track: ";
-
+		cout << "Flags: " << info->getFlags() << endl;
 		cout << "Timestamp: " << info->getTimestamp() << endl;
 		cout << "Supply Voltage: " << info->getSupplyVoltage() << endl;
 		cout << "Acceleration: " << info->getAcceleration() << endl;

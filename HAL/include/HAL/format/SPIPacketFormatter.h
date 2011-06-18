@@ -16,6 +16,8 @@ namespace subjugator
 
 		private:
 			int packetSize;
+			int count;
+			ByteVec buf;
 	};
 }
 
