@@ -44,8 +44,6 @@ int main(int argc, char **argv)
 
 	SubHAL hal;
 
-
-
 	scoped_ptr<DataObjectEndpoint> endpoint(hal.openDataObjectEndpoint(25, new IMUDataObjectFormatter(), new SPIPacketFormatter(32)));
 
 	cout << "Past endpoint constructor.\n";
@@ -55,7 +53,7 @@ int main(int argc, char **argv)
 
 	if(endpoint->getState() == Endpoint::ERROR)
 	{
-		cout << endpoint->getErrorMessage();
+		cout << endpoint->getErrorMessage() << endl;
 		return 1;
 	}
 

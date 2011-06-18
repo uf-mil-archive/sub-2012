@@ -4,6 +4,7 @@
 using namespace subjugator;
 using namespace boost;
 
+
 IMUDataObjectFormatter::IMUDataObjectFormatter()
 {
 

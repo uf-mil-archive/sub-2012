@@ -1,4 +1,5 @@
 #include "DataObjects/IMU/IMUInfo.h"
+#include <iostream>
 
 /*
  * This is not a good example of a dataobject converter. Since the IMU is sitting on the SPI bus,
@@ -11,9 +12,12 @@ using namespace subjugator;
 IMUInfo *IMUInfo::parse(ByteVec::const_iterator begin, ByteVec::const_iterator end)
 {
 	// Validate the length
+	std::cout << "Length " << end - begin << std::endl;
+
 	if (end - begin != IMUInfo::IMU_PACKET_LENGTH) // check the length
 		return NULL;
 
+	std::cout << "Flags: " << begin[0] << std::endl;
 	// There is no checksum or data header. The flags indicate whether data is good or not.
 	if(begin[0])	// An error field failed. We don't push up bad data.
 		return NULL;

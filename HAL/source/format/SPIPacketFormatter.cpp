@@ -1,5 +1,6 @@
 #include "HAL/format/SPIPacketFormatter.h"
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 using namespace subjugator;
@@ -15,8 +16,13 @@ std::vector<Packet> SPIPacketFormatter::parsePackets(const ByteVec &data)
 	// and truncate anything else
 	int count  = (data.size() / packetSize);
 
-	vector<Packet> packets(count, ByteVec(packetSize));
+	cout << "Size: " << data.size() << endl;
 
+	cout << "In spi packet formatter" << endl;
+
+	cout << "Data[0]: " << data[0] << endl;
+
+	vector<Packet> packets(count, ByteVec(packetSize));
 
 	for(int i = 0; i < count; i++)
 	{

@@ -11,8 +11,6 @@
  * this is guaranteed to be called on the same architecture(endianess) machine as the driver assembling
  * the packet. Hence, the ugly casting does work.
  */
-
-
 namespace subjugator
 {
 	class IMUInfo : public DataObject
