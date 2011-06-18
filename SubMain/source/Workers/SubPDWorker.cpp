@@ -75,7 +75,6 @@ namespace subjugator
 
 	void PDWorker::allState()
 	{
-		static int count = 0;
 
 		std::cout << "In " << "ALL" << std::endl;
 	}

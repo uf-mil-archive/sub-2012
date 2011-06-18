@@ -24,6 +24,7 @@ namespace subjugator
 			Eigen::Vector3d getAcceleration() { return acceleration; }
 			Eigen::Vector3d getAngularRate(){ return ang_rate; }
 			Eigen::Vector3d getMagneticField(){ return mag_field; }
+			boost::uint16_t getFlags()	{ return flags;	}
 
 		private:
 			// These conversions change the bit values in the registers to useful units
@@ -38,7 +39,11 @@ namespace subjugator
 
 			static const int IMU_PACKET_LENGTH = 32;
 
+			static boost::uint16_t getU16LE(ByteVec::const_iterator pos);
+			static boost::int16_t getS16LE(ByteVec::const_iterator pos);
+			static boost::uint64_t getU64LE(ByteVec::const_iterator pos);
 
+			boost::uint16_t flags;
 			double supplyVoltage;
 			double temperature;
 			boost::uint64_t timestamp;
