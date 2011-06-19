@@ -64,6 +64,7 @@ if(BUILD_SUB)
 add_subdirectory(Hydrophone)
 if(QT_FOUND)
 add_subdirectory(MotorCalibrate)
+add_subdirectory(DepthTest)
 endif()
 endif()
 

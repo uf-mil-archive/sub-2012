@@ -7,6 +7,7 @@ namespace subjugator {
 		BRUSHEDCLOSED = 1,
 		BRUSHLESSOPEN = 2,
 		BRUSHLESSCLOSED = 3,
+		DEPTHBOARD = 4,
 
 		HEARTBEAT = 100,
 		ESTOP = 101
