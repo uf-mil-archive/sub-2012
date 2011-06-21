@@ -8,7 +8,7 @@ using namespace boost::posix_time;
 using namespace std;
 
 void callback(const IMUMessage &message) {
-	cout << "Got message!";
+	cout << "Got message!" << endl;
 
 	cout << "Accels: ";
 	for (int i=0; i<3; i++)

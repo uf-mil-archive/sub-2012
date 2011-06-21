@@ -29,6 +29,9 @@ namespace subjugator {
 
 				if (messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS) != DDS_RETCODE_OK)
 					throw std::runtime_error("Failed to set listener on the IMUMessageDataReader");
+					
+			    this->callback = callback;
+					
 			}
 
 			~DDSReceiver() {
