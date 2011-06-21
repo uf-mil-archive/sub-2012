@@ -18,6 +18,7 @@ MainWindow::MainWindow(int haladdr)
 	connect(ui.stopLogButton, SIGNAL(clicked()), this, SLOT(onStopLogButtonClicked()));
 	connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(onBrowseButtonClicked()));
 	connect(&depthcontroller, SIGNAL(newInfo()), this, SLOT(onNewDepthInfo()));
+	
 }
 
 void MainWindow::onNewDepthInfo() {

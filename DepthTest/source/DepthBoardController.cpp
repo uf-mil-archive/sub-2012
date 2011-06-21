@@ -12,8 +12,11 @@ using namespace boost::asio;
 using namespace boost;
 using namespace std;
 
+#define DEST_ADDR 2
+#define SOURCE_ADDR 1
+
 DepthBoardController::DepthBoardController(int depthaddr)
-: endpoint(hal.openDataObjectEndpoint(depthaddr, new DepthBoardDataObjectFormatter(depthaddr, GUMSTIX_ADDR, DEPTHBOARD), new Sub7EPacketFormatter())),
+: endpoint(hal.openDataObjectEndpoint(depthaddr, new DepthBoardDataObjectFormatter(DEST_ADDR, SOURCE_ADDR, DEPTHBOARD), new Sub7EPacketFormatter())),
   heartbeatsender(hal.getIOService(), *endpoint, 2){
 	endpoint->configureCallbacks(bind(&DepthBoardController::endpointReadCallback, this, _1), bind(&DepthBoardController::endpointStateChangeCallback, this));
 	endpoint->open();
@@ -22,7 +25,7 @@ DepthBoardController::DepthBoardController(int depthaddr)
 
 void DepthBoardController::setReference(double reference) {
 	endpoint->write(SetReference(reference));
-}
+}   
 
 void DepthBoardController::endpointReadCallback(auto_ptr<DataObject> &dobj) {
 	if (const DepthBoardInfo *info = dynamic_cast<const DepthBoardInfo *>(dobj.get())) {

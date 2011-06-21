@@ -14,10 +14,10 @@ DepthBoardInfo::DepthBoardInfo(ByteVec::const_iterator i, ByteVec::const_iterato
 	i += 2;
 
     // Flags are currently ignored
-	flags = i[0] | (i[1]<<8);
-	i += 2;
+	flags = i[0];
+	i += 1;
 
-	depth = convertFixedPoint<6>(i[0] | (i[1]<<8));
+	depth = convertFixedPoint<10>(i[0] | (i[1]<<8));
 	i += 2;
 
     //ThermisterTemp is currently not used.
