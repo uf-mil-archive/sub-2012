@@ -1,9 +1,9 @@
 #ifndef DEPTHTEST_MAINWINDOW_H
 #define DEPTHTEST_MAINWINDOW_H
 
-#include "DepthTest/DepthBoardController.h"
+#include "DepthTest/DepthController.h"
 #include "DepthTest/LoggerController.h"
-#include "DataObjects/DepthBoard/DepthBoardInfo.h"
+#include "DataObjects/Depth/DepthInfo.h"
 #include <QMainWindow>
 #include "ui_depthtest.h"
 
@@ -21,7 +21,7 @@ namespace subjugator {
 			void onNewDepthInfo();
 
 		private:
-			DepthBoardController depthcontroller;
+			DepthController depthcontroller;
 			LoggerController logger;
 
 			Ui::DepthTest ui;

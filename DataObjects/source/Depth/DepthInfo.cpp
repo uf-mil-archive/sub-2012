@@ -1,14 +1,20 @@
-#include "DataObjects/DepthBoard/DepthBoardInfo.h"
+#include "DataObjects/Depth/DepthInfo.h"
 #include <cassert>
+#include <time.h>
 
 using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-DepthBoardInfo::DepthBoardInfo() { }
+DepthInfo::DepthInfo() { }
 
-DepthBoardInfo::DepthBoardInfo(ByteVec::const_iterator i, ByteVec::const_iterator end) {
+DepthInfo::DepthInfo(ByteVec::const_iterator i, ByteVec::const_iterator end) {
 	assert(end - i == Length);
+
+	timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+
+	timestamp = ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 
 	tickcount = i[0] | (i[1]<<8);
 	i += 2;
@@ -33,7 +39,7 @@ DepthBoardInfo::DepthBoardInfo(ByteVec::const_iterator i, ByteVec::const_iterato
 	i += 2;
 }
 
-DepthBoardInfo::DepthBoardInfo(const DepthBoardInfo &info) {
+DepthInfo::DepthInfo(const DepthInfo &info) {
 	tickcount = info.tickcount;
 	flags = info.flags;
 	depth = info.depth;

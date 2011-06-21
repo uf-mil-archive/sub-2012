@@ -7,7 +7,7 @@ using namespace boost;
 using namespace boost::posix_time;
 using namespace std;
 
-LoggerController::LoggerController(DepthBoardController &depthcontroller, const std::string &device)
+LoggerController::LoggerController(DepthController &depthcontroller, const std::string &device)
 : depthcontroller(depthcontroller),
   logging(false) {
 }
@@ -25,7 +25,7 @@ void LoggerController::stop() {
 
 void LoggerController::logCallback() {
 	if (logging) {
-		const DepthBoardInfo &info = depthcontroller.getDepthInfo();
+		const DepthInfo &info = depthcontroller.getDepthInfo();
 		logstream << second_clock::local_time().time_of_day() << ", ";
 		logstream << info.getDepth() << endl;
 	}

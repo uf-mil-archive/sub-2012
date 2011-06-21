@@ -1,7 +1,7 @@
 #ifndef DEPTHTEST_LOGGERCONTROLLER_H
 #define DEPTHTEST_LOGGERCONTROLLER_H
 
-#include "DepthTest/DepthBoardController.h"
+#include "DepthTest/DepthController.h"
 #include <fstream>
 #include <QObject>
 
@@ -10,14 +10,14 @@ namespace subjugator {
 		Q_OBJECT
 
 		public:
-			LoggerController(DepthBoardController &depthcontroller, const std::string &device);
+			LoggerController(DepthController &depthcontroller, const std::string &device);
 
 		public slots:
 			void start(const std::string &filename);
 			void stop();
 
 		private:
-			DepthBoardController &depthcontroller;
+			DepthController &depthcontroller;
 			std::ofstream logstream;
 			bool logging;
 

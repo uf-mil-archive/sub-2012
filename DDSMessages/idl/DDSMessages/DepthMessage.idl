@@ -1,4 +1,4 @@
-struct DepthBoardMessage {
+struct DepthMessage {
 	unsigned long long timestamp; // in nanoseconds
 	double depth;
 	double humidity;

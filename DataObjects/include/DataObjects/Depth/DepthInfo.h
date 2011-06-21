@@ -1,26 +1,30 @@
-#ifndef DATAOBJECTS_DEPTHBOARD_DEPTHBOARDINFO
-#define DATAOBJECTS_DEPTHBOARD_DEPTHBOARDINFO
+#ifndef DATAOBJECTS_DEPTH_DEPTHINFO
+#define DATAOBJECTS_DEPTH_DEPTHINFO
 
 #include "HAL/format/DataObject.h"
 #include <boost/cstdint.hpp>
 #include <cmath>
 
+#define NSEC_PER_SEC 1000000000
+
 namespace subjugator {
-	class DepthBoardInfo : public DataObject {
+	class DepthInfo : public DataObject {
 		public:
-			DepthBoardInfo();
-			DepthBoardInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
-			DepthBoardInfo(const DepthBoardInfo &info);
+			DepthInfo();
+			DepthInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
+			DepthInfo(const DepthInfo &info);
 
 			static const int Length = 10;
 
 			int getTickCount() const { return tickcount; }
+			long long int getTimestamp()	{ return timestamp; }
 			double getDepth() const { return depth; }
 			double getThermisterTemp() const { return thermistertemp; }
 			double getHumidity() const { return humidity; }
 			double getHumiditySensorTemp() const { return humiditysensortemp; }
 
 		private:
+			long long int timestamp;
 			int tickcount;
 			int flags;
 			double depth;
