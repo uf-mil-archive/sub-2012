@@ -25,13 +25,6 @@ void stateChangeCallback()
 
 void receiveCallback(auto_ptr<DataObject> &dobj)
 {
-	static int divisor = 0;
-
-	divisor = (divisor + 1) % 1000;
-
-	if(divisor)
-		return;
-
 	if (IMUInfo *info = dynamic_cast<IMUInfo *>(dobj.get()))
 	{
 		listener->Publish(info);
