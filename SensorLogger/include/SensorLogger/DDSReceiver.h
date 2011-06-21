@@ -31,7 +31,6 @@ namespace subjugator {
 					throw std::runtime_error("Failed to set listener on the IMUMessageDataReader");
 					
 			    this->callback = callback;
-					
 			}
 
 			~DDSReceiver() {

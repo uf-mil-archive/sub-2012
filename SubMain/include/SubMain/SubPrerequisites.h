@@ -1,5 +1,5 @@
-#ifndef _SubPrerequisites_H__
-#define _SubPrerequisites_H__
+#ifndef SubPrerequisites_H__
+#define SubPrerequisites_H__
 
 /*
  * I got tired of including 500 files in every new module,
@@ -22,4 +22,4 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
-#endif // _SubPrerequisites_H__
+#endif // SubPrerequisites_H__

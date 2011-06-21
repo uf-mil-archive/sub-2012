@@ -21,6 +21,9 @@ namespace subjugator
 			boost::uint64_t getTimestamp()	{ return timestamp; }
 			double getTemperature() { return temperature; }
 			double getSupplyVoltage() { return supplyVoltage; }
+			double getAngularRateI(int i){ return ang_rate(i); }
+			double getAccelerationI(int i){ return acceleration(i); }
+			double getMagneticFieldI(int i){ return mag_field(i); }
 			Eigen::Vector3d getAcceleration() { return acceleration; }
 			Eigen::Vector3d getAngularRate(){ return ang_rate; }
 			Eigen::Vector3d getMagneticField(){ return mag_field; }

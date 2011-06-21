@@ -12,17 +12,17 @@ void callback(const IMUMessage &message) {
 
 	cout << "Accels: ";
 	for (int i=0; i<3; i++)
-		cout << message.accel[i] << " ";
+		cout << message.acceleration[i] << " ";
 	cout << endl;
 
 	cout << "Gyros: ";
 	for (int i=0; i<3; i++)
-		cout << message.gyro[i] << " ";
+		cout << message.angular_rate[i] << " ";
 	cout << endl;
 
 	cout << "Mags: ";
 	for (int i=0; i<3; i++)
-		cout << message.mag[i] << " ";
+		cout << message.mag_field[i] << " ";
 	cout << endl;
 }
 

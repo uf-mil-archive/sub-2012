@@ -11,9 +11,6 @@ void FileEndpoint::open()
 {
 	assert(getState() == CLOSED);
 
-	cout << "in filendpoint open" << endl;
-	cout << "Trying to open: " << mFileName << endl;
-
 	fileDesc = ::open(mFileName.c_str(), O_RDWR);
 
 	if(fileDesc >= 0)
@@ -77,12 +74,12 @@ void FileEndpoint::writethread_run()
 		lock.unlock();
 
 		size_t wrote=0;
-//		while (wrote < outbuf.size())
-//			mFileStream.write((const char*)&outbuf[wrote], outbuf.size() - wrote);
+		while (wrote < outbuf.size())
+			::write(fileDesc, (const char*)&outbuf[wrote], outbuf.size() - wrote);
 		outbuf.clear();
 	}
 
-	//if (mFileStream.is_open())
-		//setState(ERROR, "Write thread terminated: ");
+	if (fileDesc >= 0)
+		setState(ERROR, "Write thread terminated: ");
 }
 
