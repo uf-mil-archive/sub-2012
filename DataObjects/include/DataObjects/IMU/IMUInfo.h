@@ -34,7 +34,7 @@ namespace subjugator
 			static const double TEMP_CENTER = 25.0;			// Temps are centered around 25.0 degC
 
 			static const double GYRO_CONVERSION = 0.000872664626;	// rad/s
-			static const double ACC_CONVERSION = 0.010;				// g's
+			static const double ACC_CONVERSION = 0.0033;				// g's
 			static const double MAG_CONVERSION = 0.0005;			// gauss
 
 			static const int IMU_PACKET_LENGTH = 32;

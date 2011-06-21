@@ -21,43 +21,26 @@ IMUInfo *IMUInfo::parse(ByteVec::const_iterator begin, ByteVec::const_iterator e
 	IMUInfo *imuinfo = new IMUInfo();
 
 	// The first field is valid data flags
-	imuinfo->flags = getU16LE(begin);
+	imuinfo->flags = *((boost::uint16_t *)(&*((begin))));
 
 	// Then the supply voltage in 14bit unsigned
-	imuinfo->supplyVoltage = getU16LE(begin+2) * IMUInfo::SUPPLY_CONVERSION;
+	imuinfo->supplyVoltage = (*((boost::uint16_t *)(&*(begin+2)))) * IMUInfo::SUPPLY_CONVERSION;
 
-	// The next 9 are gyro xyz, acc xyz, mag xyz
+
 	for(int i = 0; i < 3; i++)
 	{
-		imuinfo->ang_rate(i) = getS16LE((begin + 4) + 2*i);// * IMUInfo::GYRO_CONVERSION;
-		imuinfo->acceleration(i) = getS16LE((begin + 6) + 2*i);// * IMUInfo::ACC_CONVERSION;
-		imuinfo->mag_field(i) = getS16LE((begin + 8) + 2*i);// * IMUInfo::MAG_CONVERSION;
+		imuinfo->ang_rate(i) = (*((boost::int16_t *)(&*(begin+4+2*i))))* IMUInfo::GYRO_CONVERSION;
+		imuinfo->acceleration(i) = (*((boost::int16_t *)(&*(begin+10+2*i))))* IMUInfo::ACC_CONVERSION;
+		imuinfo->mag_field(i) = (*((boost::int16_t *)(&*(begin+16+2*i))))* IMUInfo::MAG_CONVERSION;
 	}
 
 	// Then the temperature signed int
-	imuinfo->temperature =  getS16LE(begin + 22) * IMUInfo::TEMP_CONVERSION + IMUInfo::TEMP_CENTER;
+	imuinfo->temperature =  (*((boost::int16_t *)(&*(begin + 22)))) * IMUInfo::TEMP_CONVERSION + IMUInfo::TEMP_CENTER;
 
-	imuinfo->timestamp = getU64LE(begin + 24);
+	imuinfo->timestamp = *((boost::int64_t *)(&*(begin + 24)));
 
 	return imuinfo;
 }
 
-boost::uint16_t IMUInfo::getU16LE(ByteVec::const_iterator pos)
-{
-	return (pos[0] | (pos[1]<<8));
-}
-
-boost::int16_t IMUInfo::getS16LE(ByteVec::const_iterator pos)
-{
-	return (pos[0] | (pos[1]<<8));
-}
-
-boost::uint64_t IMUInfo::getU64LE(ByteVec::const_iterator pos)
-{
-	return (boost::uint64_t)(pos[0] | (pos[1]<<8) | (pos[2]<<16) | (pos[3]<<24)) |
-		   (((boost::uint64_t)pos[4]<<32) | ((boost::uint64_t)pos[5]<<40) |
-		   ((boost::uint64_t)pos[6]<<48) |
-		   ((boost::uint64_t)pos[7]<<56));
-}
 
 
