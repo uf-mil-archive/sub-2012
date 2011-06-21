@@ -1,25 +1,22 @@
-#ifndef DEPTHTEST_DEPTHBOARDCONTROLLER_H
-#define DEPTHTEST_DEPTHBOARDCONTROLLER_H
+#ifndef DEPTHTEST_DEPTHCONTROLLER_H
+#define DEPTHTEST_DEPTHCONTROLLER_H
 
 #include "DepthTest/HeartBeatSender.h"
 #include "HAL/SubHAL.h"
 #include "HAL/format/DataObjectEndpoint.h"
-#include "DataObjects/DepthBoard/DepthBoardInfo.h"
+#include "DataObjects/Depth/DepthInfo.h"
 #include <QObject>
 #include <boost/scoped_ptr.hpp>
 
 namespace subjugator {
-	class DepthBoardController : public QObject {
+	class DepthController : public QObject {
 		Q_OBJECT
 
 		public:
-			DepthBoardController(int depthaddr=4);
-			inline const DepthBoardInfo &getDepthInfo() { return depthinfo; }
+			DepthController(int depthaddr=4);
+			inline const DepthInfo &getDepthInfo() { return depthinfo; }
 
 			inline boost::asio::io_service &getIOService() { return hal.getIOService(); } // needed for LoggerController, TODO ugly...
-
-		public slots:
-			void setReference(double reference);
 
 		signals:
 			void newInfo();
@@ -27,7 +24,7 @@ namespace subjugator {
 		private:
 			SubHAL hal;
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;
-			DepthBoardInfo depthinfo;
+			DepthInfo depthinfo;
 
 			HeartBeatSender heartbeatsender;
 

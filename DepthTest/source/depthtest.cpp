@@ -1,6 +1,5 @@
 #include "DepthTest/depthtest.h"
-#include "DataObjects/DepthBoard/DepthBoardDataObjectFormatter.h"
-#include "DataObjects/DepthBoard/SetReference.h"
+#include "DataObjects/Depth/DepthDataObjectFormatter.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <iostream>
 #include <QFileDialog>
@@ -10,7 +9,7 @@ using namespace std;
 
 MainWindow::MainWindow(int haladdr)
 : depthcontroller(haladdr),
-  logger(depthcontroller, "/dev/ttyUSB0") {
+  logger(depthcontroller, "/dev/ttyUSB1") {
 	ui.setupUi(this);   
 	ui.statusBar->showMessage("No connection to depth board");
 
@@ -22,7 +21,7 @@ MainWindow::MainWindow(int haladdr)
 }
 
 void MainWindow::onNewDepthInfo() {
-	const DepthBoardInfo &info = depthcontroller.getDepthInfo();
+	const DepthInfo &info = depthcontroller.getDepthInfo();
 	ui.tickCountLabel->setText(QString::number(info.getTickCount()));
 	ui.depthLabel->setText(QString::number(info.getDepth()));
 
