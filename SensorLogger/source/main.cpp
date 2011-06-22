@@ -3,6 +3,7 @@
 #include "SensorLogger/DepthDDSReceiver.h"
 
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/date_time/gregorian/gregorian.hpp"
 #include <iostream>
 #include <fstream>
 #include <boost/thread.hpp>
@@ -10,9 +11,9 @@
 using namespace subjugator;
 using namespace boost;
 using namespace boost::posix_time;
+using namespace boost::gregorian;
 using namespace std;
 
-string logFile = "SensorLog1.csv";
 std::ofstream logstream;
 double depth;
 double humidity;
@@ -148,11 +149,13 @@ int main(int argc, char **argv) {
 	DepthDDSReceiver depthreceiver(participantDepth, "Depth", callbackDepth);
 
 	// SETUP Logger
-	char buffer[100];
-	sprintf(buffer, "SensorLog_%i", second_clock::local_time().time_of_day() );
-	logstream.open(logFile.c_str());
+	char logFile[100];
+	ptime time = second_clock::local_time();
 
-	//logstream << buffer << endl;
+	sprintf(logFile, "SensorLog_%s_%02d%02d%02d.csv", to_iso_string( day_clock::local_day() ).c_str(),
+			time.time_of_day().hours(),time.time_of_day().minutes(),time.time_of_day().seconds());
+
+	logstream.open(logFile);
 
 	logstream << "TIME, DVLVELX, DVLVELY, DVLVELZ, DVLVELERR, IMUTEMP, IMUSUPPLY, IMUACCX, IMUACCY, IMUACCZ, IMUGYROX, IMUGYROY, ";
 	logstream << "IMUGYROZ, IMUMAGX, IMUMAGY, IMUMAGZ, DEPTH, HUMIDITY, THERMISTERTEMP, HUMIDITYTEMP" << endl;
