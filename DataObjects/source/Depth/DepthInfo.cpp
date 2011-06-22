@@ -27,7 +27,7 @@ DepthInfo::DepthInfo(ByteVec::const_iterator i, ByteVec::const_iterator end) {
 	i += 2;
 
     //ThermisterTemp is currently not used.
-	thermistertemp = i[0] | (i[1]<<8);
+	thermistertemp = convertFixedPoint<8>(i[0] | (i[1]<<8));
 	i += 2;
 
     //Humidity is currently not used

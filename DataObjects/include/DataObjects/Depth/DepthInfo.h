@@ -14,7 +14,7 @@ namespace subjugator {
 			DepthInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 			DepthInfo(const DepthInfo &info);
 
-			static const int Length = 10;
+			static const int Length = 11;
 
 			int getTickCount() const { return tickcount; }
 			long long int getTimestamp()	{ return timestamp; }

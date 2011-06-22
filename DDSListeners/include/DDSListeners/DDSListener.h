@@ -1,9 +1,15 @@
 #ifndef DDSListener_H
 #define DDSListener_H
 
+#include "HAL/format/DataObject.h"
+//#include "SubMain/Workers/SubWorker.h"
+//#include "SubMain/Workers/SubListener.h"
+
 #include <ndds/ndds_cpp.h>
-#include <HAL/format/DataObject.h>
+
 #include <stdexcept>
+#include <boost/shared_ptr.hpp>
+#include <boost/signals2.hpp>
 
 using namespace std;
 
@@ -33,6 +39,7 @@ namespace subjugator
 
 		~DDSListener()
 		{
+			listenConnection.disconnect();
 			participant->delete_datawriter(writer);
 			participant->delete_topic(topic);
 		}
@@ -54,9 +61,8 @@ namespace subjugator
 		DDSDataWriter *writer;
 		DDSTopic *topic;
 		MessageDataWriterT *messageWriter;
+		boost::signals2::connection listenConnection;
 	};
-
-
 }
 
 #endif // DDSListener_H
