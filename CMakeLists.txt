@@ -73,6 +73,7 @@ endif()
 
 if(BUILD_GUMSTIX)
 if(NDDS_FOUND)
+add_subdirectory(DepthPublisher)
 add_subdirectory(IMUSmartSensor)
 add_subdirectory(DepthSmartSensor)
 add_subdirectory(DDSListeners)
