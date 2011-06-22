@@ -1,11 +1,15 @@
 #include "HAL/SubHAL.h"
-#include "HAL/format/SPIPacketFormatter.h"
-#include "DataObjects/IMU/IMUDataObjectFormatter.h"
-#include "DataObjects/IMU/IMUInfo.h"
+#include "DataObjects/DVL/DVLDataObjectFormatter.h"
+#include "DataObjects/DVL/DVLPacketFormatter.h"
+#include "DataObjects/DVL/DVLConfiguration.h"
+#include "DataObjects/DVL/DVLBreak.h"
+#include "DataObjects/DVL/DVLHighresBottomTrack.h"
+#include "DataObjects/DVL/DVLBottomTrackRange.h"
+#include "DataObjects/DVL/DVLBottomTrack.h"
 
 #include <ndds/ndds_cpp.h>
 
-#include "DDSListeners/IMUDDSListener.h"
+#include "DDSListeners/DVLDDSListener.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
@@ -16,7 +20,7 @@ using namespace boost;
 using namespace boost::posix_time;
 using namespace std;
 
-IMUDDSListener *listener;
+DVLDDSListener *listener;
 
 void stateChangeCallback()
 {
@@ -25,19 +29,11 @@ void stateChangeCallback()
 
 void receiveCallback(auto_ptr<DataObject> &dobj)
 {
-	if (IMUInfo *info = dynamic_cast<IMUInfo *>(dobj.get()))
+	if (DVLHighresBottomTrack *info = dynamic_cast<DVLHighresBottomTrack *>(dobj.get()))
 	{
 		listener->Publish(info);
-
-
-		/*cout << "Flags: " << info->getFlags() << endl;
-		cout << "Timestamp: " << info->getTimestamp() << endl;
-		cout << "Supply Voltage: " << info->getSupplyVoltage() << endl;
-		cout << "Acceleration: " << info->getAcceleration() << endl;
-		cout << "Gyro: " << info->getAngularRate() << endl;
-		cout << "Magnetometer: " << info->getMagneticField() << endl;
-		cout << "Temperature: " << info->getTemperature() << endl;*/
 	}
+	// Not interested in the other packets
 }
 
 int main(int argc, char **argv)
@@ -48,12 +44,12 @@ int main(int argc, char **argv)
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
 
-	if (IMUMessageTypeSupport::register_type(participant, IMUMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+	if (DVLMessageTypeSupport::register_type(participant, DVLMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
-	listener = new IMUDDSListener(participant);
+	listener = new DVLDDSListener(participant);
 
-	scoped_ptr<DataObjectEndpoint> endpoint(hal.openDataObjectEndpoint(25, new IMUDataObjectFormatter(), new SPIPacketFormatter(32)));
+	scoped_ptr<DataObjectEndpoint> endpoint(hal.openDataObjectEndpoint(50, new DVLDataObjectFormatter(), new DVLPacketFormatter()));
 
 	endpoint->configureCallbacks(receiveCallback, stateChangeCallback);
 	endpoint->open();
@@ -65,6 +61,11 @@ int main(int argc, char **argv)
 	}
 
 	hal.startIOThread();
+
+	endpoint->write(DVLBreak());
+	this_thread::sleep(seconds(2));
+
+	endpoint->write(DVLConfiguration(15, 0));
 
 	while (true)
 		this_thread::sleep(seconds(1));
