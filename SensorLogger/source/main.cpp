@@ -14,18 +14,22 @@ using namespace boost::posix_time;
 using namespace boost::gregorian;
 using namespace std;
 
+// Mutex Lock
+boost::mutex writemutex;
+
+// Global Variables to hold data for logging.
 std::ofstream logstream;
-double depth;
-double humidity;
-double thermistertemp;
-double humiditytemp;
-double temp;
-double supply;
-double acceleration[3];
-double angular_rate[3];
-double mag_field[3];
-double velocity[3];
-double velocityerror;
+double depth = -9999;
+double humidity = -9999;
+double thermistertemp = -9999;
+double humiditytemp = -9999;
+double temp = -9999;
+double supply = -9999;
+double acceleration[3] = {-9999, -9999, -9999};
+double angular_rate[3] = {-9999, -9999, -9999};
+double mag_field[3] = {-9999, -9999, -9999};
+double velocity[3] = {-9999, -9999, -9999};
+double velocityerror = -9999;
 
 void logData() {
 	logstream << second_clock::local_time().time_of_day() << ", " << velocity[0] << ", " << velocity[1] << ", " << velocity[2] << ", ";
@@ -51,7 +55,11 @@ void callbackDVL(const DVLMessage &message) {
 	cout << endl;
 
 	// Log Data
+	unique_lock<mutex> lock(writemutex);
+
 	logData();
+
+	lock.unlock();
 }
 
 void callbackIMU(const IMUMessage &message) {
@@ -84,7 +92,11 @@ void callbackIMU(const IMUMessage &message) {
 	cout << endl;
 
 	// Log Data
+	unique_lock<mutex> lock(writemutex);
+
 	logData();
+
+	lock.unlock();
 }
 
 
@@ -111,11 +123,15 @@ void callbackDepth(const DepthMessage &message) {
     cout << endl;
 
     // Log Data
+    unique_lock<mutex> lock(writemutex);
+
     logData();
+
+    lock.unlock();
 }
 
 int main(int argc, char **argv) {
-	// SETUP DepthDDSReceiver
+	// SETUP DVLDDSReceiver
 	DDSDomainParticipant *participantDVL = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 	if (!participantDVL)
 		throw runtime_error("Failed to create DDSDomainParticipant");
@@ -124,7 +140,7 @@ int main(int argc, char **argv) {
 	if (DVLMessageTypeSupport::register_type(participantDVL, DVLMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
-	DVLDDSReceiver DVLreceiver(participantDVL, "DVL", callbackDVL);
+	DVLDDSReceiver dvlreceiver(participantDVL, "DVL", callbackDVL);
 
 	// SETUP IMUDDSReceiver
 	DDSDomainParticipant *participantIMU = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);

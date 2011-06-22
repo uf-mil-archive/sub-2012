@@ -25,10 +25,10 @@ namespace subjugator {
 
 				messagereader = MessageDataReaderT::narrow(reader);
 				if (!messagereader)
-					throw std::runtime_error("Failed to narrow to IMUMessageDataReader");
+					throw std::runtime_error("Failed to narrow to MessageDataReader");
 
 				if (messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS) != DDS_RETCODE_OK)
-					throw std::runtime_error("Failed to set listener on the IMUMessageDataReader");
+					throw std::runtime_error("Failed to set listener on the MessageDataReader");
 					
 			    this->callback = callback;
 			}
