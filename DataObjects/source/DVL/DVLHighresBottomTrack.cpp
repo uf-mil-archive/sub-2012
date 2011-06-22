@@ -1,5 +1,7 @@
 #include "DataObjects/DVL/DVLHighresBottomTrack.h"
 
+#include <time.h>
+
 using namespace subjugator;
 using namespace boost;
 
@@ -16,6 +18,11 @@ DVLHighresBottomTrack *DVLHighresBottomTrack::parse(ByteVec::const_iterator begi
 	int32_t error = getS32LE(begin + 14);
 
 	DVLHighresBottomTrack *hrtrack = new DVLHighresBottomTrack();
+
+	timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+
+	hrtrack->timestamp = ((boost::int64_t)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 
 	hrtrack->good = !(x == BADVEL && y == BADVEL && z == BADVEL);
 	hrtrack->bottomvel(0) = x / 100000.0;
