@@ -12,6 +12,7 @@ void IMUDDSListener::BuildMessage(IMUMessage *msg, DataObject *obj)
 	msg->timestamp = imuinfo->getTimestamp();
 	msg->flags = imuinfo->getFlags();
 	msg->supply = imuinfo->getSupplyVoltage();
+	msg->temp = imuinfo->getTemperature();
 
 	for(int i = 0; i < 3; i++)
 	{
