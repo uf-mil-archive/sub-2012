@@ -5,6 +5,7 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
+#include <boost/weak_ptr.hpp>
 #include <iostream>
 
 using namespace subjugator;
@@ -17,7 +18,7 @@ int main(int argc, char **argv)
 	boost::asio::io_service io;
 
 	// We need a worker
-	DepthWorker worker(io, 2 /*hz - this is the heartbeat tick rate*/);
+	DepthWorker worker(io, 2 /* hz - this is the heartbeat tick rate */);
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start Depth Worker!");
 

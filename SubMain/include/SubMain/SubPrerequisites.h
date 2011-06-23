@@ -18,9 +18,11 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/signals2.hpp>
+#include <boost/thread/mutex.hpp>
 
 
 #endif // SubPrerequisites_H__

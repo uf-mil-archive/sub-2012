@@ -14,13 +14,11 @@ namespace subjugator
 			  {
 				  UNKNOWN,
 				  ALL,
-				  STARTUP,
 				  INITIALIZE,
 				  READY,
 				  STANDBY,
 				  EMERGENCY,
 				  FAIL,
-				  SHUTDOWN,
 			  };
 	};
 
@@ -28,7 +26,7 @@ namespace subjugator
 	{
 	public:
 		StateManager();
-		void SetStateCallback(SubStates::StateCode state, std::string name, boost::function<void(void)> callback);
+		void SetStateCallback(SubStates::StateCode state, std::string name, const boost::function<void(void)> callback);
 		void ChangeState(SubStates::StateCode newState);
 		const SubStates::StateCode GetCurrentStateCode() { return mCurrentState; }
 		const SubStates::StateCode GetPreviousStateCode() { return mPreviousState; }

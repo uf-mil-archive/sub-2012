@@ -5,6 +5,7 @@
 
 #include "SubMain/SubTranslations.h"
 #include "SubMain/SubStateManager.h"
+#include "SubMain/Workers/SubInputToken.h"
 
 #include "HAL/format/DataObject.h"
 
@@ -14,6 +15,19 @@ namespace subjugator
   {
   public:
 	  typedef boost::signals2::signal<void (boost::shared_ptr<DataObject> obj)> emittingsignal_t;
+  protected:
+	  class TokenHelper
+	 	  {
+	 	  public:
+	 		  TokenHelper(const boost::function<void (const DataObject &obj)> f, const boost::function<void (int cmd)> df):
+	 			  func(f), dFunc(df) {}
+
+	 		  boost::mutex lock;
+	 		  int currentOwnerPriority;
+	 		  boost::shared_ptr<InputToken> token;
+	 		  boost::function<void (const DataObject &obj)> func;
+	 		  boost::function<void (int cmd)> dFunc;
+	 	  };
   public:
 	  Worker(boost::asio::io_service& io, int64_t rateHz) : mRate(rateHz)
 	  {
@@ -26,19 +40,66 @@ namespace subjugator
 			mRateTimer->async_wait(boost::bind(&Worker::work, this, boost::asio::placeholders::error));
 	  }
 
+	  virtual bool Startup()=0;
+	  virtual void Shutdown(){}
+
+	  SubStates::StateCode getState(){return mStateManager.GetCurrentStateCode();}
+
 	  boost::signals2::connection ConnectToEmitting(boost::function<void (boost::shared_ptr<DataObject> obj)> callback)
 	  {
 		  return onEmitting.connect(callback);
 	  }
 
-	  virtual bool Startup(){ return true; }
-	  virtual void Shutdown(){}
+	  boost::weak_ptr<InputToken> ConnectToCommand(int cmd, int priority)
+	  {
+		  // If the command arg is higher than the vector size, ignore the command - it's invalid
+		  if((size_t)cmd > mInputTokenList.size())
+			  return boost::weak_ptr<InputToken>();
+
+		  // Does this owner have priority?
+		  if(mInputTokenList[cmd]->currentOwnerPriority < priority)
+		  {
+			  mInputTokenList[cmd]->lock.lock();
+
+			  if(mInputTokenList[cmd]->currentOwnerPriority != 0)
+				  mInputTokenList[cmd]->token.reset();
+
+			  mInputTokenList[cmd]->token = boost::shared_ptr<InputToken>(
+					  new InputToken(cmd, mInputTokenList[cmd]->lock,
+							  mInputTokenList[cmd]->func,
+							  mInputTokenList[cmd]->dFunc));
+
+			  mInputTokenList[cmd]->lock.unlock();
+
+			  return boost::weak_ptr<InputToken>(mInputTokenList[cmd]->token);
+		  }
+
+		  return boost::weak_ptr<InputToken>();
+	  }
 
   protected:
 	  StateManager mStateManager;
 
 	  // The signal that is used to publish to the listeners
 	  emittingsignal_t onEmitting;
+
+	  std::vector<boost::shared_ptr<TokenHelper> > mInputTokenList;
+	  void setControlToken(int cmd, const boost::function<void (const DataObject &obj)> callback)
+	  {
+			if((size_t)cmd > mInputTokenList.capacity())
+			{
+				mInputTokenList.resize(cmd);
+			}
+
+			mInputTokenList[cmd] = boost::shared_ptr<TokenHelper>(new TokenHelper(callback,
+					boost::bind(&Worker::disconnect, this, _1)));
+	  }
+
+	  void disconnect(int cmd)	// This can only get called by the owner of the cmd through the InputToken
+	  {
+		  mInputTokenList[cmd]->token.reset();
+		  mInputTokenList[cmd]->currentOwnerPriority = 0;
+	  }
 
   private:
 	  int64_t mRate;
