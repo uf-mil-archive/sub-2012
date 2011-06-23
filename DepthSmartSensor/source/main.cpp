@@ -18,6 +18,8 @@ int main(int argc, char **argv)
 
 	// We need a worker
 	DepthWorker worker(io, 2 /*hz - this is the heartbeat tick rate*/);
+	if(!worker.Startup())
+		throw new runtime_error("Failed to start Depth Worker!");
 
 	// Now we need a listener to push the data up
 	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
@@ -31,5 +33,7 @@ int main(int argc, char **argv)
 
 	// Start the worker
 	io.run();
+
+	worker.Shutdown();
 }
 

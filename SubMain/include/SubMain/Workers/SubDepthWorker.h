@@ -23,18 +23,18 @@ namespace subjugator
 					delete pEndpoint;
 			}
 
+			bool Startup();
+			void Shutdown();
+
 		private:
-			bool initialized;
 			SubHAL hal;
 			DataObjectEndpoint* pEndpoint;
 
-			void startupState();
 			void readyState();
 			void emergencyState();
 			void failState();
 			void halReceiveCallback(std::auto_ptr<DataObject> &dobj);
 			void halStateChangeCallback();
-			void shutdownState();
 	};
 }
 

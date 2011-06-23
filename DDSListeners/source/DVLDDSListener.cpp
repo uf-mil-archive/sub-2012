@@ -2,12 +2,15 @@
 
 using namespace subjugator;
 
-void DVLDDSListener::BuildMessage(DVLMessage *msg, DataObject *obj)
+bool DVLDDSListener::BuildMessage(DVLMessage *msg, DataObject *obj)
 {
 	// Cast the data object into its real type
 	DVLHighresBottomTrack *dvlinfo = dynamic_cast<DVLHighresBottomTrack *>(obj);
 	if(!dvlinfo)
-		return;
+	{
+		// Not interested in any other object type
+		return false;
+	}
 
 	msg->timestamp = dvlinfo->getTimestamp();
 
@@ -17,4 +20,5 @@ void DVLDDSListener::BuildMessage(DVLMessage *msg, DataObject *obj)
 	msg->height = 0.0;
 	//msg->beamcorrelation = {0.0,0.0,0.0,0.0};
 
+	return true;
 }

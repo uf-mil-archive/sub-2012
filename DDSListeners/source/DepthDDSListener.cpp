@@ -2,17 +2,20 @@
 
 using namespace subjugator;
 
-void DepthDDSListener::BuildMessage(DepthMessage *msg, DataObject *obj)
+bool DepthDDSListener::BuildMessage(DepthMessage *msg, DataObject *obj)
 {
 	// Cast the data object into its real type
 	DepthInfo *depthinfo = dynamic_cast<DepthInfo *>(obj);
 	if(!depthinfo)
-		return;
-
+	{
+		return false;
+	}
 	msg->timestamp = depthinfo->getTimestamp();
 
 	msg->depth = depthinfo->getDepth();
 	msg->thermistertemp = depthinfo->getThermisterTemp();
 	msg->humidity = depthinfo->getHumidity();
 	msg->humiditytemp = depthinfo->getHumiditySensorTemp();
+
+	return true;
 }

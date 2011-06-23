@@ -19,7 +19,7 @@ namespace subjugator
 		 : DDSListener<DVLMessage, DVLMessageDataWriter, DVLMessageTypeSupport>(worker, part, "DVL") {}
 
 	protected:
-		virtual void BuildMessage(DVLMessage *msg, DataObject *obj);
+		virtual bool BuildMessage(DVLMessage *msg, DataObject *obj);
 	private:
 	};
 }

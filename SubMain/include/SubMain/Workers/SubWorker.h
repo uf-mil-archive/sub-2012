@@ -25,10 +25,14 @@ namespace subjugator
 			// When calling bind on a member function, the object to operate on is prepended as an argument, hence the this
 			mRateTimer->async_wait(boost::bind(&Worker::work, this, boost::asio::placeholders::error));
 	  }
+
 	  boost::signals2::connection ConnectToEmitting(boost::function<void (boost::shared_ptr<DataObject> obj)> callback)
 	  {
 		  return onEmitting.connect(callback);
 	  }
+
+	  virtual bool Startup(){ return true; }
+	  virtual void Shutdown(){}
 
   protected:
 	  StateManager mStateManager;

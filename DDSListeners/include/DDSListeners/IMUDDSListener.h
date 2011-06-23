@@ -20,7 +20,7 @@ namespace subjugator
 		 : DDSListener<IMUMessage, IMUMessageDataWriter, IMUMessageTypeSupport>(worker, part, "IMU") {}
 
 	protected:
-		virtual void BuildMessage(IMUMessage *msg, DataObject *obj);
+		virtual bool BuildMessage(IMUMessage *msg, DataObject *obj);
 	private:
 	};
 }

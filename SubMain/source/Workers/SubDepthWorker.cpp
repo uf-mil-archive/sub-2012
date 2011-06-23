@@ -5,10 +5,6 @@ namespace subjugator
 	DepthWorker::DepthWorker(boost::asio::io_service& io, int64_t rate)
 		: Worker(io, rate)
 	{
-		initialized = false;
-		mStateManager.SetStateCallback(SubStates::STARTUP,
-				STATE_STARTUP_STRING,
-				boost::bind(&DepthWorker::startupState, this));
 		mStateManager.SetStateCallback(SubStates::READY,
 				STATE_READY_STRING,
 				boost::bind(&DepthWorker::readyState, this));
@@ -18,11 +14,6 @@ namespace subjugator
 		mStateManager.SetStateCallback(SubStates::FAIL,
 				STATE_FAIL_STRING,
 				boost::bind(&DepthWorker::failState, this));
-		mStateManager.SetStateCallback(SubStates::SHUTDOWN,
-				STATE_SHUTDOWN_STRING,
-				boost::bind(&DepthWorker::shutdownState, this));
-
-		mStateManager.ChangeState(SubStates::STARTUP);
 	}
 
 	void DepthWorker::halStateChangeCallback()
@@ -32,21 +23,13 @@ namespace subjugator
 
 	void DepthWorker::halReceiveCallback(std::auto_ptr<DataObject> &dobj)
 	{
+		// Why does this segfault if we use the raw ptr owned by the auto_ptr?
 		// Dispatch to the listeners
-		onEmitting(boost::shared_ptr<DataObject>(dobj.get()));
+		onEmitting(boost::shared_ptr<DataObject>(dobj));
 	}
 
-	// The worker thread is running when this is called!
-	void DepthWorker::startupState()
+	bool DepthWorker::Startup()
 	{
-		static int tryCount = 0;
-		// Only one call allowed past here at a time. I'm not worried about multithreading, this is
-		// for sequential state machine invocations
-		if(initialized)
-			return;
-
-		initialized = true;	// assume success
-
 		// TODO: pull Depth address from the address config file. it needs an extra column
 		// In startup we try to initialize the hal layer. If it fails, we push to fail.
 		pEndpoint = hal.openDataObjectEndpoint(4, new DepthDataObjectFormatter(DEPTH_ADDR, GUMSTIX_ADDR, DEPTH), new Sub7EPacketFormatter());
@@ -58,11 +41,8 @@ namespace subjugator
 		// Unable to open the endpoint
 		if(pEndpoint->getState() == Endpoint::ERROR)
 		{
-			// Retry
-			initialized = false;
-			tryCount++;
-			if(tryCount >= 1)	// No retry right now, just fail
-				mStateManager.ChangeState(SubStates::FAIL);
+			// Retry?
+			return false;
 		}
 
 		// We're good to go. Start the hal
@@ -76,6 +56,8 @@ namespace subjugator
 
 		// Push to ready
 		mStateManager.ChangeState(SubStates::READY);
+
+		return true;
 	}
 
 	void DepthWorker::readyState()
@@ -94,7 +76,7 @@ namespace subjugator
 
 	}
 
-	void DepthWorker::shutdownState()
+	void DepthWorker::Shutdown()
 	{
 		// Tell the depth board to stop publishing
 		pEndpoint->write(StopPublishing());

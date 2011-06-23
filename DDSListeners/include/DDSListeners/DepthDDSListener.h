@@ -20,7 +20,7 @@ namespace subjugator
 		 : DDSListener<DepthMessage, DepthMessageDataWriter, DepthMessageTypeSupport>(worker, part, "Depth") {}
 
 	protected:
-		virtual void BuildMessage(DepthMessage *msg, DataObject *obj);
+		virtual bool BuildMessage(DepthMessage *msg, DataObject *obj);
 	private:
 	};
 }

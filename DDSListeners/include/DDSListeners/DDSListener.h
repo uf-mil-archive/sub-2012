@@ -40,7 +40,6 @@ namespace subjugator
 
 		~DDSListener()
 		{
-			listenConnection.disconnect();
 			participant->delete_datawriter(writer);
 			participant->delete_topic(topic);
 		}
@@ -48,13 +47,13 @@ namespace subjugator
 		void Publish(boost::shared_ptr<DataObject> obj)
 		{
 			MessageT *msg = MessageTypeSupportT::create_data();
-			BuildMessage(msg, obj.get());
-			messageWriter->write(*msg, DDS_HANDLE_NIL);
+			if(BuildMessage(msg, obj.get()))
+				messageWriter->write(*msg, DDS_HANDLE_NIL);
 		}
 
 	protected:
 		// This builds the message in place
-		virtual void BuildMessage(MessageT *msg, DataObject *obj){}
+		virtual bool BuildMessage(MessageT *msg, DataObject *obj){ return false; }
 
 
 	private:
@@ -62,7 +61,6 @@ namespace subjugator
 		DDSDataWriter *writer;
 		DDSTopic *topic;
 		MessageDataWriterT *messageWriter;
-		boost::signals2::connection listenConnection;
 	};
 }
 

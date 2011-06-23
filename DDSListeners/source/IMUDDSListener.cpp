@@ -2,12 +2,14 @@
 
 using namespace subjugator;
 
-void IMUDDSListener::BuildMessage(IMUMessage *msg, DataObject *obj)
+bool IMUDDSListener::BuildMessage(IMUMessage *msg, DataObject *obj)
 {
 	// Cast the data object into its real type
 	IMUInfo *imuinfo = dynamic_cast<IMUInfo *>(obj);
 	if(!imuinfo)
-		return;
+	{
+		return false;
+	}
 
 	msg->timestamp = imuinfo->getTimestamp();
 	msg->flags = imuinfo->getFlags();
@@ -20,4 +22,6 @@ void IMUDDSListener::BuildMessage(IMUMessage *msg, DataObject *obj)
 		msg->mag_field[i] = imuinfo->getMagneticFieldI(i);
 		msg->angular_rate[i] = imuinfo->getAngularRateI(i);
 	}
+
+	return true;
 }

@@ -20,12 +20,12 @@ namespace subjugator
 					delete pEndpoint;
 			}
 
+			bool Startup();
+
 		private:
-			bool initialized;
 			SubHAL hal;
 			DataObjectEndpoint* pEndpoint;
 
-			void startupState();
 			void readyState();
 			void emergencyState();
 			void failState();

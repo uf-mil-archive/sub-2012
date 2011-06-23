@@ -17,6 +17,8 @@ int main(int argc, char **argv)
 
 	// We need a worker
 	DVLWorker worker(io, 1 /*hz*/);
+	if(!worker.Startup())
+		throw new runtime_error("Failed to start DVL Worker!");
 
 	// Now we need a DDS listener to push all the data up
 	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
@@ -30,5 +32,7 @@ int main(int argc, char **argv)
 
 	// Start the worker
 	io.run();
+
+	worker.Shutdown();
 }
 
