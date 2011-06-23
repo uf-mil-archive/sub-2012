@@ -2,8 +2,8 @@
 #define DDSListener_H
 
 #include "HAL/format/DataObject.h"
-//#include "SubMain/Workers/SubWorker.h"
-//#include "SubMain/Workers/SubListener.h"
+#include "SubMain/Workers/SubWorker.h"
+#include "SubMain/Workers/SubListener.h"
 
 #include <ndds/ndds_cpp.h>
 
@@ -16,10 +16,11 @@ using namespace std;
 namespace subjugator
 {
 	template <class MessageT, class MessageDataWriterT, class MessageTypeSupportT>
-	class DDSListener
+	class DDSListener : Listener
 	{
 	public:
-		DDSListener(DDSDomainParticipant *part, const std::string &topicName)
+		DDSListener(Worker &worker, DDSDomainParticipant *part, const std::string &topicName)
+			: Listener(worker, boost::bind(&DDSListener::Publish, this, _1))
 		{
 			if(part)
 				participant = part;
@@ -44,10 +45,10 @@ namespace subjugator
 			participant->delete_topic(topic);
 		}
 
-		void Publish(DataObject *obj)
+		void Publish(boost::shared_ptr<DataObject> obj)
 		{
 			MessageT *msg = MessageTypeSupportT::create_data();
-			BuildMessage(msg, obj);
+			BuildMessage(msg, obj.get());
 			messageWriter->write(*msg, DDS_HANDLE_NIL);
 		}
 

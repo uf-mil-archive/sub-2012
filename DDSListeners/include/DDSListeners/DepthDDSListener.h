@@ -4,6 +4,8 @@
 #include "DataObjects/Depth/DepthDataObjectFormatter.h"
 #include "DataObjects/Depth/DepthInfo.h"
 
+#include "SubMain/Workers/SubWorker.h"
+
 #include "DDSMessages/DepthMessage.h"
 #include "DDSMessages/DepthMessageSupport.h"
 #include "DDSListeners/DDSListener.h"
@@ -14,8 +16,8 @@ namespace subjugator
 	class DepthDDSListener : public DDSListener<DepthMessage, DepthMessageDataWriter, DepthMessageTypeSupport>
 	{
 	public:
-		DepthDDSListener(DDSDomainParticipant *part)
-		 : DDSListener<DepthMessage, DepthMessageDataWriter, DepthMessageTypeSupport>(part, "Depth") {}
+		DepthDDSListener(Worker &worker, DDSDomainParticipant *part)
+		 : DDSListener<DepthMessage, DepthMessageDataWriter, DepthMessageTypeSupport>(worker, part, "Depth") {}
 
 	protected:
 		virtual void BuildMessage(DepthMessage *msg, DataObject *obj);

@@ -1,5 +1,5 @@
-#ifndef _SubWorker_H__
-#define _SubWorker_H__
+#ifndef SubWorker_H__
+#define SubWorker_H__
 
 #include "SubMain/SubPrerequisites.h"
 

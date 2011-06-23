@@ -15,8 +15,8 @@ namespace subjugator
 	class DVLDDSListener : public DDSListener<DVLMessage, DVLMessageDataWriter, DVLMessageTypeSupport>
 	{
 	public:
-		DVLDDSListener(DDSDomainParticipant *part)
-		 : DDSListener<DVLMessage, DVLMessageDataWriter, DVLMessageTypeSupport>(part, "DVL") {}
+		DVLDDSListener(Worker &worker, DDSDomainParticipant *part)
+		 : DDSListener<DVLMessage, DVLMessageDataWriter, DVLMessageTypeSupport>(worker, part, "DVL") {}
 
 	protected:
 		virtual void BuildMessage(DVLMessage *msg, DataObject *obj);

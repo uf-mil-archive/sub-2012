@@ -1,5 +1,5 @@
-#ifndef SubListenerCallback_H
-#define SubListenerCallback_H
+#ifndef SubListener_H
+#define SubListener_H
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/SubWorker.h"
@@ -21,4 +21,4 @@ namespace subjugator
 	};
 }
 
-#endif // SubListenerCallback_H
+#endif // SubListener_H
