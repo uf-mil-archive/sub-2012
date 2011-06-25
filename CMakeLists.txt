@@ -21,12 +21,6 @@ include_directories(${FFTW_INCLUDES})
 add_definitions(-DEIGEN_FFTW_DEFAULT)
 endif()
 
-#find OPENCV not required
-find_package(OPENCV)
-if(OPENCV_FOUND)
-#add open cv includes/etc. here
-endif()
-
 # find DDS, but not REQUIRED
 find_package(NDDS)
 if(NDDS_FOUND)
@@ -39,6 +33,14 @@ endif()
 find_package(Qt4)
 if(NOT QT_FOUND)
 	message("QT Not found! No projects depending on QT will be built.")
+endif()
+
+#find OPENCV not required
+find_package(OpenCV)
+if(OPENCV_FOUND)
+#add open cv includes/etc. here
+else()
+	message("OpenCV not found! No projects depending on OpenCV will be built")
 endif()
 
 # Turn on warnings
