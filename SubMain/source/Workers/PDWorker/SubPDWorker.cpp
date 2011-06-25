@@ -1,4 +1,4 @@
-#include "SubMain/Workers/SubPDWorker.h"
+#include "SubMain/Workers/PDWorker/SubPDWorker.h"
 
 namespace subjugator
 {
