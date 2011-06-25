@@ -13,7 +13,7 @@ Thruster::Thruster(int address, boost::shared_ptr<DataObjectEndpoint> ep, Vector
 
 void Thruster::SetEffort(double effort)
 {
-
+	endpoint->write(SetReference(effort));
 }
 
 int Thruster::Compare(Thruster &i, Thruster &j)
@@ -25,3 +25,9 @@ int Thruster::Compare(Thruster &i, Thruster &j)
 	return 0;
 }
 
+void Thruster::OnMotorInfo(std::auto_ptr<DataObject> &dobj)
+{
+	if (const MotorDriverInfo *info = dynamic_cast<const MotorDriverInfo *>(dobj.get())) {
+		mInfo = *info;
+	}
+}

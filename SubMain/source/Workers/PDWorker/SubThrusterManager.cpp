@@ -3,12 +3,13 @@
 using namespace subjugator;
 using namespace Eigen;
 
-ThrusterManager::ThrusterManager(boost::shared_ptr<SubHAL> hal)
+ThrusterManager::ThrusterManager(boost::shared_ptr<SubHAL> h)
+:hal(h)
 {
-	// nothing
 }
 
-ThrusterManager::ThrusterManager(std::string fileName)
+ThrusterManager::ThrusterManager(boost::shared_ptr<SubHAL> h, std::string fileName)
+:hal(h)
 {
 	// Deserialize the file into thrusters
 }
@@ -22,17 +23,17 @@ void ThrusterManager::addThruster(Thruster t)
 void ThrusterManager::RebuildMapper()
 {
 	// Rebuild the thruster mapper.
-	Vector3d originToCOM = thrusterMapper.getOriginToCom();
+	Vector3d originToCOM = thrusterMapper->getOriginToCom();
 
 	thrusterMapper.reset();
-	thrusterMapper = boost::scoped_ptr(new ThrusterMapper(originToCOM, thrusters));
+	thrusterMapper = std::auto_ptr<ThrusterMapper>(new ThrusterMapper(originToCOM, thrusters));
 }
 
 void ThrusterManager::ImplementScrew(const Vector6D& screw)
 {
-	VectorXD res = thrusterMapper.MapScrewtoEffort(screw);
-	for(int i = 0; i < thrusters.size(); i++)
+	VectorXd res = thrusterMapper->MapScrewtoEffort(screw);
+	for(size_t i = 0; i < thrusters.size(); i++)
 	{
-		thruster.SetEffort(res(i));
+		thrusters[i].SetEffort(res(i));
 	}
 }

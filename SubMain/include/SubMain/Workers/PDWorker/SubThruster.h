@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include "HAL/format/DataObjectEndpoint.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
+#include "DataObjects/MotorDriver/SetReference.h"
 #include "HAL/SubHAL.h"
 
 namespace subjugator
@@ -20,8 +21,10 @@ namespace subjugator
 		Eigen::Vector3d getOriginToThruster() const { return mOriginToThruster; }
 		double getFSatForce() { return mFSatForce; }
 		double getRSatForce() { return mRSatForce; }
+		const MotorDriverInfo& getInfo() const { return mInfo; }
 
 		void SetEffort(double effort);
+		void OnMotorInfo(std::auto_ptr<DataObject> &dobj);
 
 		inline bool operator<(const Thruster& thruster) const
 		{
@@ -40,7 +43,7 @@ namespace subjugator
 		boost::shared_ptr<DataObjectEndpoint> endpoint;	// Since this is passed in, and scoped are noncopyable
 		Eigen::Vector3d mLineOfAction;			// The unit vector that describes the line of action of this thruster
 		Eigen::Vector3d mOriginToThruster;		// The vector that points from the origin to the COM of the thruster
-		MotorDriverInfo info;
+		MotorDriverInfo mInfo;
 
 	};
 }
