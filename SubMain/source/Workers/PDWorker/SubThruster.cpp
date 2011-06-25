@@ -3,9 +3,9 @@
 using namespace Eigen;
 using namespace subjugator;
 
-Thruster::Thruster(int address, boost::shared_ptr<DataObjectEndpoint> ep, Vector3d lineOfAction, Vector3d originToThruster)
-	:mAddress(address),
-	 endpoint(ep),
+Thruster::Thruster(int address, int srcAddress, SubHAL &hal, Vector3d lineOfAction, Vector3d originToThruster)
+	:endpoint(hal.openDataObjectEndpoint(address, new MotorDriverDataObjectFormatter(address, srcAddress, BRUSHEDOPEN), new Sub7EPacketFormatter())),
+	 mAddress(address),
 	 mLineOfAction(lineOfAction),
 	 mOriginToThruster(originToThruster)
 {

@@ -6,7 +6,8 @@ using namespace boost;
 namespace subjugator
 {
 	DVLWorker::DVLWorker(boost::asio::io_service& io, int64_t rate)
-		: Worker(io, rate)
+		: Worker(io, rate),
+		pEndpoint(hal.openDataObjectEndpoint(50, new DVLDataObjectFormatter(), new DVLPacketFormatter()))
 	{
 		mStateManager.SetStateCallback(SubStates::READY,
 				STATE_READY_STRING,
@@ -35,8 +36,6 @@ namespace subjugator
 	{
 		// TODO: pull DVL address from the address config file. it needs an extra column
 		// In startup we try to initialize the hal layer. If it fails, we push to fail.
-		pEndpoint = hal.openDataObjectEndpoint(50, new DVLDataObjectFormatter(), new DVLPacketFormatter());
-
 		pEndpoint->configureCallbacks(boost::bind(&DVLWorker::halReceiveCallback, this, _1),
 									  boost::bind(&DVLWorker::halStateChangeCallback, this));
 		pEndpoint->open();

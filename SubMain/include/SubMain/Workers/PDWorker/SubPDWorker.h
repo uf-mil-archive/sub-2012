@@ -5,6 +5,12 @@
 
 #include "SubMain/SubTranslations.h"
 #include "SubMain/Workers/SubWorker.h"
+#include "SubMain/Workers/PDWorker/SubThrusterManager.h"
+#include "HAL/SubHAL.h"
+#include "HAL/format/Sub7EPacketFormatter.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
+#include "DataObjects/HeartBeat.h"
+#include "DataObjects/EmbeddedTypeCodes.h"
 
 namespace subjugator
 {
@@ -13,7 +19,7 @@ namespace subjugator
 	public:
 		enum PDWorkerCommandCode
 		{
-			SetWrench = 0,
+			SetScrew = 0,
 			SetActuator = 1,
 		};
 	};
@@ -31,9 +37,12 @@ namespace subjugator
 		  void emergencyState();
 		  void failState();
 		  void allState();
-
 	private:
-		  void setWrench(const DataObject &obj);
+		  boost::shared_ptr<SubHAL> hal;
+		  boost::scoped_ptr<DataObjectEndpoint> hbeatEndpoint;
+		  std::auto_ptr<ThrusterManager> thrusterManager;
+
+		  void setScrew(const DataObject &obj);
 		  void setActuator(const DataObject &obj);
 	};
 }

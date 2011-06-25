@@ -1,9 +1,10 @@
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 
 namespace subjugator
-{
+{//TODO address hardcoding = not cool
 	PDWorker::PDWorker(boost::asio::io_service& io, int64_t rate)
-		: Worker(io, rate)
+		: Worker(io, rate),hal(new SubHAL()),
+		hbeatEndpoint(hal->openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()))
 	{
 		mStateManager.SetStateCallback(SubStates::INITIALIZE,
 				STATE_INITIALIZE_STRING,
@@ -27,13 +28,13 @@ namespace subjugator
 		// Set the command vector
 		mInputTokenList.resize(3);
 
-		setControlToken((int)PDWorkerCommands::SetWrench, boost::bind(&PDWorker::setWrench, this, _1));
+		setControlToken((int)PDWorkerCommands::SetScrew, boost::bind(&PDWorker::setScrew, this, _1));
 		setControlToken((int)PDWorkerCommands::SetActuator, boost::bind(&PDWorker::setActuator, this, _1));
 	}
 
-	void PDWorker::setWrench(const DataObject &obj)
+	void PDWorker::setScrew(const DataObject &obj)
 	{
-		std::cout << "Setting new wrench!" << std::endl;
+		//thrusterManager->ImplementScrew();
 	}
 
 	void PDWorker::setActuator(const DataObject &obj)
@@ -43,55 +44,38 @@ namespace subjugator
 
 	bool PDWorker::Startup()
 	{
-		mStateManager.ChangeState(SubStates::READY);
+		// Build the ThrusterManager
+		thrusterManager = std::auto_ptr<ThrusterManager>(new ThrusterManager(hal));
 
 		return true;
 	}
 
 	void PDWorker::initializeState()
 	{
-		static int count = 0;
-
-		std::cout << "In " << mStateManager.GetStateName(mStateManager.GetCurrentStateCode()) << std::endl;
-
-		if(count++ > 4)
-			mStateManager.ChangeState(SubStates::STANDBY);
+		if(thrusterManager->IsReady())
+			mStateManager.ChangeState(SubStates::READY);
 	}
 
 	void PDWorker::standbyState()
 	{
-		static int count = 0;
-
-		std::cout << "In " << mStateManager.GetStateName(mStateManager.GetCurrentStateCode()) << std::endl;
-
-		if(count++ > 4)
-			mStateManager.ChangeState(SubStates::READY);
+		// In standby we don't publish
 	}
 
 	void PDWorker::readyState()
 	{
-		static int count = 0;
-
-		std::cout << "In " << mStateManager.GetStateName(mStateManager.GetCurrentStateCode()) << std::endl;
-
-		if(count++ > 4)
-			mStateManager.ChangeState(SubStates::EMERGENCY);
+		// We publish the worker object here
+		//onEmitting();
 	}
 
 	void PDWorker::allState()
 	{
-
-		std::cout << "In " << "ALL" << std::endl;
+		// push out the heartbeat
+		hbeatEndpoint->write(HeartBeat());
 	}
 
 	void PDWorker::emergencyState()
 	{
-		static int count = 0;
 
-		std::cout << "In " << mStateManager.GetStateName(mStateManager.GetCurrentStateCode()) << std::endl;
-
-		if(count++ > 4)
-			mStateManager.ChangeState(SubStates::FAIL);
 	}
 
 	void PDWorker::failState()

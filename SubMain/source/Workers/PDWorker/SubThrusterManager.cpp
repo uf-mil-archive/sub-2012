@@ -4,36 +4,51 @@ using namespace subjugator;
 using namespace Eigen;
 
 ThrusterManager::ThrusterManager(boost::shared_ptr<SubHAL> h)
-:hal(h)
+	:mHal(h)
 {
 }
 
 ThrusterManager::ThrusterManager(boost::shared_ptr<SubHAL> h, std::string fileName)
-:hal(h)
+	:mHal(h)
 {
-	// Deserialize the file into thrusters
+/*	// Deserialize the file into thrusters
+	boost::scoped_ptr<std::ifstream> file(new ifstream(fileName.c_str()));
+
+	while(!file->eof())
+	{
+		std::string line; // get a line
+		getline(in, line);
+
+
+	}
+
+	file->close();
+
+	RebuildMapper(originToCOM);*/
 }
 
-void ThrusterManager::addThruster(Thruster t)
+void ThrusterManager::addThruster(const Thruster& t)
 {
-	thrusters.push_back(t);
+	mThrusters.push_back(t);
+}
+
+void ThrusterManager::SetOriginToCOM(Vector3d pCom)
+{
+	mOriginToCOM = pCom;
 }
 
 // Call this after you call addthruster to correctly build the mapper back up
 void ThrusterManager::RebuildMapper()
 {
-	// Rebuild the thruster mapper.
-	Vector3d originToCOM = thrusterMapper->getOriginToCom();
-
-	thrusterMapper.reset();
-	thrusterMapper = std::auto_ptr<ThrusterMapper>(new ThrusterMapper(originToCOM, thrusters));
+	mThrusterMapper.reset();
+	mThrusterMapper = std::auto_ptr<ThrusterMapper>(new ThrusterMapper(mOriginToCOM, mThrusters));
 }
 
 void ThrusterManager::ImplementScrew(const Vector6D& screw)
 {
-	VectorXd res = thrusterMapper->MapScrewtoEffort(screw);
-	for(size_t i = 0; i < thrusters.size(); i++)
+	VectorXd res = mThrusterMapper->MapScrewtoEffort(screw);
+	for(size_t i = 0; i < mThrusters.size(); i++)
 	{
-		thrusters[i].SetEffort(res(i));
+		mThrusters[i].SetEffort(res(i));
 	}
 }

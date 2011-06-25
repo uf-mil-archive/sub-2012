@@ -16,14 +16,18 @@ namespace subjugator
 		ThrusterManager(boost::shared_ptr<SubHAL> h);
 		ThrusterManager(boost::shared_ptr<SubHAL> h, std::string fileName);
 
-		void addThruster(Thruster t);
+		void addThruster(const Thruster& t);
 		void RebuildMapper();
 		void ImplementScrew(const Vector6D& screw);
+		void SetOriginToCOM(Vector3d pCom);
+		bool IsReady(){ return mIsReady; }
 
 	private:
-		boost::shared_ptr<SubHAL> hal;
-		std::vector<Thruster> thrusters;
-		std::auto_ptr<ThrusterMapper> thrusterMapper;
+		boost::shared_ptr<SubHAL> mHal;
+		std::vector<Thruster> mThrusters;
+		std::auto_ptr<ThrusterMapper> mThrusterMapper;
+		Vector3d mOriginToCOM;
+		bool mIsReady;
 	};
 }
 

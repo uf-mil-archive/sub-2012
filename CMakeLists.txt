@@ -88,6 +88,7 @@ add_subdirectory(IMUSmartSensor)
 add_subdirectory(DepthSmartSensor)
 add_subdirectory(DVLSmartSensor)
 add_subdirectory(DDSListeners)
+add_subdirectory(PrimitiveDriver)
 endif()
 endif()
 

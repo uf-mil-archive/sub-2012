@@ -19,18 +19,13 @@ namespace subjugator
 	{
 		public:
 			DVLWorker(boost::asio::io_service& io, int64_t rate);
-			~DVLWorker()
-			{
-				if(pEndpoint)
-					delete pEndpoint;
-			}
 
 			bool Startup();
 			void Shutdown();
 
 		private:
 			SubHAL hal;
-			DataObjectEndpoint* pEndpoint;
+			boost::scoped_ptr<DataObjectEndpoint> pEndpoint;
 
 			void readyState();
 			void emergencyState();

@@ -5,7 +5,9 @@
 #include <Eigen/Dense>
 #include "HAL/format/DataObjectEndpoint.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
 #include "DataObjects/MotorDriver/SetReference.h"
+#include "HAL/format/Sub7EPacketFormatter.h"
 #include "HAL/SubHAL.h"
 
 namespace subjugator
@@ -13,7 +15,7 @@ namespace subjugator
 	class Thruster
 	{
 	public:
-		Thruster(int address, boost::shared_ptr<DataObjectEndpoint> ep, Eigen::Vector3d lineOfAction, Eigen::Vector3d originToThruster);
+		Thruster(int address, int srcAddress, SubHAL &hal, Eigen::Vector3d lineOfAction, Eigen::Vector3d originToThruster);
 
 		int getAddress() const { return mAddress; }
 
@@ -37,14 +39,13 @@ namespace subjugator
 
 		static int Compare(Thruster &i, Thruster &j);
 	private:
+		boost::shared_ptr<DataObjectEndpoint> endpoint;
 		int mAddress;							// The local address of the thruster, used for sorting
 		double mFSatForce;						// The forward saturation force
 		double mRSatForce;						// The backward saturation force
-		boost::shared_ptr<DataObjectEndpoint> endpoint;	// Since this is passed in, and scoped are noncopyable
 		Eigen::Vector3d mLineOfAction;			// The unit vector that describes the line of action of this thruster
 		Eigen::Vector3d mOriginToThruster;		// The vector that points from the origin to the COM of the thruster
 		MotorDriverInfo mInfo;
-
 	};
 }
 
