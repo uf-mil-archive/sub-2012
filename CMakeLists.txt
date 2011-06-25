@@ -21,6 +21,12 @@ include_directories(${FFTW_INCLUDES})
 add_definitions(-DEIGEN_FFTW_DEFAULT)
 endif()
 
+#find OPENCV not required
+find_package(OPENCV)
+if(OPENCV_FOUND)
+#add open cv includes/etc. here
+endif()
+
 # find DDS, but not REQUIRED
 find_package(NDDS)
 if(NDDS_FOUND)
@@ -62,6 +68,9 @@ add_subdirectory(SubMain)
 
 if(BUILD_SUB)
 add_subdirectory(Hydrophone)
+if(OPENCV_FOUND)
+#put in vision projects here
+endif()
 if(QT_FOUND)
 add_subdirectory(MotorCalibrate)
 add_subdirectory(DepthTest)
