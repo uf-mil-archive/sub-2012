@@ -2,6 +2,8 @@
 #define SUBKALMAN_H
 
 #include "SubMain/SubPrerequisites.h"
+#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include <Eigen/Dense>
 
 using namespace Eigen;
@@ -13,13 +15,13 @@ namespace subjugator
 	public:
 		double DepthError;
 		Vector3d VelocityError;
-		Vector4d QuaternionError;
+		Vector3d QuaternionError;
 		Vector3d Acceleration_bias;
 		Vector3d Gyro_bias;
 		Vector3d PositionErrorEst;	// This also has depth error superimposed!
 
 		KalmanData();
-		KalmanData(double depthError, Vector3d velError, Vector4d quatError, Vector3d a_bias, Vector3d w_bias, Vector3d pestErr) :
+		KalmanData(double depthError, Vector3d velError, Vector3d quatError, Vector3d a_bias, Vector3d w_bias, Vector3d pestErr) :
 			DepthError(depthError), VelocityError(velError), QuaternionError(quatError), Acceleration_bias(a_bias),
 			Gyro_bias(w_bias), PositionErrorEst(pestErr)
 		{
@@ -34,29 +36,73 @@ namespace subjugator
 		typedef Matrix<double, 1, 27> RowVector27d;
 		typedef Matrix<double, 13, 13> Matrix13d;
 		typedef Matrix<double, 7, 7> Matrix7d;
-		//typedef Matrix<double, >
+		typedef Matrix<double, 7, 1> Vector7d;
+		typedef Matrix<double, 13, 7> Matrix13x7d;
+		typedef Matrix<double, 13, 12> Matrix13x12d;
+		typedef Matrix<double, 13, 26> Matrix13x26d;
+		typedef Matrix<double, 13, 27> Matrix13x27d;
+		typedef Matrix<double, 12, 13> Matrix12x13d;
+		typedef Matrix<double, 12, 12> Matrix12d;
+		typedef Matrix<double, 4, 27> Matrix4x27d;
+		typedef Matrix<double, 3,27> Matrix3x27d;
+		typedef Matrix<double, 7, 27> Matrix7x27d;
+		typedef Matrix<double, 7, 26> Matrix7x26d;
 	public:
-
-
-		//public Vector3d getP_Error() { return }
-
+		KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P_hat,
+					 double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
+					 Vector3d white_noise_sigma_f, Vector3d white_noise_sigma_w, double T_f,
+					 double T_w, double depth_sigma, Vector3d dvl_sigma, Vector3d att_sigma);
+		boost::shared_ptr<KalmanData> Update(const Vector7d& z, const Vector3d& f_IMU,
+					 const Vector3d& v_INS, const Vector4d& q_INS, boost::uint64_t currentTickCount);
+		boost::shared_ptr<KalmanData> Reset();
 	private:
+		static const double SECPERNANOSEC = 1e-9;
+		static double Pi;
+
 		boost::mutex lock;
 		boost::uint64_t prevTickCount;
+		bool initialized;
 
 		RowVector27d ones2LXp1;
 		RowVector26d ones2LX;
-		double gravityMag;
 
 		int L;
+		double gravityMag;
+
 		Vector13d x_hat;
 
 		// Internally the units of the noise for the gyro and IMU are converted to match the units of the Kalman filter
 		// provided they are specified as documented in the matlab sensorCharacteristics file.
 		Vector4d q_hat;
 
+		Matrix13d P_hat;
+		Matrix7d R;
+		Matrix13x7d K;
+		Vector3d P_est_error;
 
-		Matrix13d P_Hat;
+		Matrix13x12d gamma;
+		Matrix12x13d gammaTransposed;
+
+		double alpha;
+		double beta;
+		double kappa;
+		double lambda;
+
+		double W_s[2];
+		double W_c[2];
+
+		Matrix3d white_bias_sigma_f;
+		double bias_var_f;
+		Matrix3d T_f_inv;
+
+		Matrix3d white_bias_sigma_w;
+		double bias_var_w;
+		Matrix3d T_w_inv;
+
+		double T_f;
+		double T_w;
+
+		boost::shared_ptr<KalmanData> prevData;
 	};
 }
 

@@ -20,6 +20,7 @@ namespace subjugator
 		static double DAngleClamp(double a);
 		static Vector4d RotationToQuaternion(const Matrix3d& R);
 		static Matrix3d VectorSkew3(const Vector3d& v);
+		static MatrixXd DiagMatrixFromVector(const VectorXd& v);
 	};
 }
 
