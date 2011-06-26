@@ -1,30 +1,23 @@
-#ifndef DDSListener_H
-#define DDSListener_H
+#ifndef DDSSender_H
+#define DDSSender_H
 
 #include "HAL/format/DataObject.h"
-#include "SubMain/Workers/SubWorker.h"
-#include "SubMain/Workers/SubListener.h"
-
 #include <ndds/ndds_cpp.h>
-
-#include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
+#include <stdexcept>
 
 using namespace std;
 
 namespace subjugator
 {
 	template <class MessageT, class MessageDataWriterT, class MessageTypeSupportT>
-	class DDSListener : Listener
+	class DDSSender
 	{
 	public:
-		DDSListener(Worker &worker, DDSDomainParticipant *part, const std::string &topicName)
-			: Listener(worker, boost::bind(&DDSListener::Publish, this, _1))
+		DDSSender(DDSDomainParticipant *participant, const std::string &topicName)
+		: participant(participant)
 		{
-			if(part)
-				participant = part;
-
 			topic = participant->create_topic(topicName.c_str(), MessageTypeSupportT::get_type_name(), DDS_TOPIC_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 			if (!topic)
 				throw runtime_error("Failed to create Topic");
@@ -38,23 +31,16 @@ namespace subjugator
 				throw runtime_error("Failed to narrow to CoordDataWriter");
 		}
 
-		~DDSListener()
+		~DDSSender()
 		{
 			participant->delete_datawriter(writer);
 			participant->delete_topic(topic);
 		}
 
-		void Publish(boost::shared_ptr<DataObject> obj)
+		void Send(const MessageT &message)
 		{
-			MessageT *msg = MessageTypeSupportT::create_data();
-			if(BuildMessage(msg, obj.get()))
-				messageWriter->write(*msg, DDS_HANDLE_NIL);
-			MessageTypeSupportT::delete_data(msg);
+			messageWriter->write(message, DDS_HANDLE_NIL);
 		}
-
-	protected:
-		// This builds the message in place
-		virtual bool BuildMessage(MessageT *msg, DataObject *obj){ return false; }
 
 
 	private:
@@ -65,4 +51,4 @@ namespace subjugator
 	};
 }
 
-#endif // DDSListener_H
+#endif // DDSSender_H

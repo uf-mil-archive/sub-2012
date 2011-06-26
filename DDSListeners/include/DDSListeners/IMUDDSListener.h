@@ -5,23 +5,25 @@
 #include "DataObjects/IMU/IMUInfo.h"
 
 #include "SubMain/Workers/SubWorker.h"
+#include "SubMain/Workers/SubListener.h"
 
 #include "DDSMessages/IMUMessage.h"
 #include "DDSMessages/IMUMessageSupport.h"
-#include "DDSListeners/DDSListener.h"
+#include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
 
 namespace subjugator
 {
-	class IMUDDSListener : public DDSListener<IMUMessage, IMUMessageDataWriter, IMUMessageTypeSupport>
+	class IMUDDSListener : public Listener
 	{
 	public:
-		IMUDDSListener(Worker &worker, DDSDomainParticipant *part)
-		 : DDSListener<IMUMessage, IMUMessageDataWriter, IMUMessageTypeSupport>(worker, part, "IMU") {}
+		IMUDDSListener(Worker &worker, DDSDomainParticipant *part);
 
 	protected:
-		virtual bool BuildMessage(IMUMessage *msg, DataObject *obj);
+		virtual void DataObjectEmitted(boost::shared_ptr<DataObject> dobj);
+
 	private:
+		DDSSender<IMUMessage, IMUMessageDataWriter, IMUMessageTypeSupport> ddssender;
 	};
 }
 

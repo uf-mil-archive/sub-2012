@@ -5,23 +5,25 @@
 #include "DataObjects/Depth/DepthInfo.h"
 
 #include "SubMain/Workers/SubWorker.h"
+#include "SubMain/Workers/SubListener.h"
 
 #include "DDSMessages/DepthMessage.h"
 #include "DDSMessages/DepthMessageSupport.h"
-#include "DDSListeners/DDSListener.h"
+#include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
 
 namespace subjugator
 {
-	class DepthDDSListener : public DDSListener<DepthMessage, DepthMessageDataWriter, DepthMessageTypeSupport>
+	class DepthDDSListener : public Listener
 	{
 	public:
-		DepthDDSListener(Worker &worker, DDSDomainParticipant *part)
-		 : DDSListener<DepthMessage, DepthMessageDataWriter, DepthMessageTypeSupport>(worker, part, "Depth") {}
+		DepthDDSListener(Worker &worker, DDSDomainParticipant *part);
 
 	protected:
-		virtual bool BuildMessage(DepthMessage *msg, DataObject *obj);
+		virtual void DataObjectEmitted(boost::shared_ptr<DataObject> dobj);
+
 	private:
+		DDSSender<DepthMessage, DepthMessageDataWriter, DepthMessageTypeSupport> ddssender;
 	};
 }
 

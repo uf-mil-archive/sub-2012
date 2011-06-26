@@ -3,6 +3,8 @@
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/SubWorker.h"
+#include <boost/bind.hpp>
+#include <memory>
 
 namespace subjugator
 {
@@ -10,11 +12,14 @@ namespace subjugator
 	class Listener
 	{
 	public:
-		Listener(Worker &worker, boost::function<void (boost::shared_ptr<DataObject> obj)> callback)
+		Listener(Worker &worker)
 		{
-			listenConnection = worker.ConnectToEmitting(callback);
+			listenConnection = worker.ConnectToEmitting(boost::bind(&Listener::DataObjectEmitted, this, _1));
 		}
 		~Listener() { listenConnection.disconnect(); }
+
+	protected:
+		virtual void DataObjectEmitted(boost::shared_ptr<DataObject> obj) =0;
 
 	private:
 		boost::signals2::connection listenConnection;

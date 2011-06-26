@@ -2,15 +2,17 @@
 
 using namespace subjugator;
 
-bool IMUDDSListener::BuildMessage(IMUMessage *msg, DataObject *obj)
+IMUDDSListener::IMUDDSListener(Worker &worker, DDSDomainParticipant *part)
+: Listener(worker), ddssender(part, "IMU") { }
+
+void IMUDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {
 	// Cast the data object into its real type
-	IMUInfo *imuinfo = dynamic_cast<IMUInfo *>(obj);
-	if(!imuinfo)
-	{
-		return false;
-	}
+	IMUInfo *imuinfo = dynamic_cast<IMUInfo *>(dobj.get());
+	if (!imuinfo)
+		return;
 
+	IMUMessage *msg = IMUMessageTypeSupport::create_data();
 	msg->timestamp = imuinfo->getTimestamp();
 	msg->flags = imuinfo->getFlags();
 	msg->supply = imuinfo->getSupplyVoltage();
@@ -23,5 +25,7 @@ bool IMUDDSListener::BuildMessage(IMUMessage *msg, DataObject *obj)
 		msg->angular_rate[i] = imuinfo->getAngularRateI(i);
 	}
 
-	return true;
+	ddssender.Send(*msg);
+	IMUMessageTypeSupport::delete_data(msg);
 }
+
