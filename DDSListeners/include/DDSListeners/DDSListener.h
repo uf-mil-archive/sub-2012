@@ -49,6 +49,7 @@ namespace subjugator
 			MessageT *msg = MessageTypeSupportT::create_data();
 			if(BuildMessage(msg, obj.get()))
 				messageWriter->write(*msg, DDS_HANDLE_NIL);
+			MessageTypeSupportT::delete_data(msg);
 		}
 
 	protected:

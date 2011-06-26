@@ -29,8 +29,8 @@ namespace subjugator {
 
 				if (messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS) != DDS_RETCODE_OK)
 					throw std::runtime_error("Failed to set listener on the MessageDataReader");
-					
-			    this->callback = callback;
+
+				this->callback = callback;
 			}
 
 			~DDSReceiver() {
@@ -55,11 +55,9 @@ namespace subjugator {
 					for (int i=0; i<messageseq.length(); ++i)
 						callback(messageseq[i]);
 
-					messageseq.unloan();
-					infoseq.unloan();
+					messagereader->return_loan(messageseq, infoseq);
 				} catch (...) {
-					messageseq.unloan(); // RTI can't use destructors properly grumble grumble. This is the only way to ensure this won't leak memory in the event of an exception
-					infoseq.unloan();
+					messagereader->return_loan(messageseq, infoseq);
 					throw;
 				}
 			}
