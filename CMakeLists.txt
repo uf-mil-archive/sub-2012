@@ -37,8 +37,8 @@ endif()
 
 #find OPENCV not required
 find_package(OpenCV)
-if(OPENCV_FOUND)
-#add open cv includes/etc. here
+if(OpenCV_FOUND)
+	add_subdirectory(Vision)
 else()
 	message("OpenCV not found! No projects depending on OpenCV will be built")
 endif()
