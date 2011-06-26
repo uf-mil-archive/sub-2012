@@ -39,12 +39,24 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
 	R.block<3,3>(1,1) = W_dvl;
 	R.block<3,3>(4,4) = W_att;
 
+	ones2LX = RowVector26d::Ones();
+	ones2LXp1 = RowVector27d::Ones();
+
+    prevData = boost::shared_ptr<KalmanData>(new KalmanData(x_hat(0),
+    		x_hat.block<3,1>(1,0),
+    		x_hat.block<3,1>(4,0),
+    		x_hat.block<3,1>(7,0),
+    		x_hat.block<3,1>(10,0),
+    		P_est_error));
+
 	initialized = true;
 }
 
 boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
 			 const Vector3d& v_INS, const Vector4d& q_INS, boost::uint64_t currentTickCount)
 {
+	lock.lock();
+
     // Update dt
     double dt = (currentTickCount - prevTickCount)*SECPERNANOSEC;
     prevTickCount = currentTickCount;
@@ -70,7 +82,7 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
 
     Matrix3d R_hat = MILQuaternionOps::Quat2Rot(q_hat);
 
-    Matrix3d tempQSkew = AttitudeHelpers::VectorSkew3(x_hat.block<3,1>(4,1));
+    Matrix3d tempQSkew = AttitudeHelpers::VectorSkew3(x_hat.block<3,1>(4,0));
     tempQSkew *= tempQSkew;
 
     Matrix3d Q_eps = (0.25 * (Matrix3d::Identity() - tempQSkew))
@@ -82,10 +94,10 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
     Q.block<3,3>(6,6) = Q_f;
     Q.block<3,3>(9,9) = Q_w;
 
-    int limit = 2 * L + 1;
-
     // Replicate x_hat into a matrix form
     Matrix13x27d x_hat_mat = x_hat * ones2LXp1;
+
+    int limit = 2 * L + 1;
 
     // Calculate the square root of the covariance matrix
     Matrix13d root_cov =((L + lambda)*P_hat).llt().matrixU();
@@ -110,7 +122,7 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
 
     	Vector4d q_tilde_inverse(sqrt(1.0 - (chi_57.transpose()*chi_57)(0,0)),
     			-1.0*chi_57(0), -1.0*chi_57(1), -1.0*chi_57(2));
-    	q_hat_chi.block<4,1>(0,i) = MILQuaternionOps::QuatMultiply(q_INS, q_tilde_inverse);
+    	q_hat_chi.col(i) = MILQuaternionOps::QuatMultiply(q_INS, q_tilde_inverse);
 
     	// Skew matrices for the chi_dot equation
     	Matrix3d S_beta = AttitudeHelpers::VectorSkew3(chi_1113);
@@ -121,7 +133,7 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
 
     	// Calculate the time derivative of chi - f(x)_dot
     	chi_dot(0,i) = chi(3,i);
-    	chi_dot.block<3,1>(1,i) = MILQuaternionOps::QuatRotate(q_hat_chi.block<4,1>(0,i), delv_dot_nonrot);
+    	chi_dot.block<3,1>(1,i) = MILQuaternionOps::QuatRotate(q_hat_chi.col(i), delv_dot_nonrot);
     	chi_dot.block<3,1>(4,i) = (1.0 / 2.0 * chi_1113 + 1.0 / 2.0 * S_beta * chi_57);
     	chi_dot.block<3,1>(7,i) = (-1.0 * T_f_inv * chi_810);
     	chi_dot.block<3,1>(10,i) = (-1.0 * T_w_inv * chi_1113);

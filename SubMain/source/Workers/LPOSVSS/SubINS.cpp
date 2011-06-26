@@ -109,10 +109,11 @@ boost::shared_ptr<INSData> INS::Reset(KalmanData& kData, bool tare, Vector3d tar
 
 	v_prev -= kData.VelocityError;
 
-	//Vector4d qErrorInverse = Vector4d(sqrt(1.0 - (kData.QuaternionError.transpose()*kData.QuaternionError)(0,0)));
-	//q_prev = MILQuaternionOps::QuatMultiply(q_prev, qErrorInverse);
+	Vector4d qErrorInverse = Vector4d(sqrt(1.0 - (kData.QuaternionError.transpose()*kData.QuaternionError)(0,0)),
+			-1.0*kData.QuaternionError(0), -1.0*kData.QuaternionError(1), -1.0*kData.QuaternionError(2));
+	q_prev = MILQuaternionOps::QuatMultiply(q_prev, qErrorInverse);
 
-	Vector3d g_body = MILQuaternionOps::QuatRotate(q_prev, g);
+	Vector3d g_body = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(q_prev), g);
 	Vector3d a_body_no_gravity = a_body_prev - a_bias;
 	Vector3d w_dif_temp = w_dif_prev - w_bias;
 
