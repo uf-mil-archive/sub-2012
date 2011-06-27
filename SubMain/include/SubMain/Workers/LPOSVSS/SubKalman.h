@@ -5,6 +5,7 @@
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include <Eigen/Dense>
+#include <cmath>
 
 using namespace Eigen;
 
@@ -57,7 +58,6 @@ namespace subjugator
 		boost::shared_ptr<KalmanData> Reset();
 	private:
 		static const double SECPERNANOSEC = 1e-9;
-		static double Pi;
 
 		boost::mutex lock;
 		boost::uint64_t prevTickCount;

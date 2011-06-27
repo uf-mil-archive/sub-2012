@@ -5,10 +5,11 @@
 #include "DataObjects/IMU/IMUInfo.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-#include <math.h>
+#include <cmath>
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubKalman.h"
+#include <iostream>
 
 using namespace Eigen;
 
@@ -24,6 +25,8 @@ namespace subjugator
 					Acceleration_BODY(a_body), AngularRate_BODY(w_body), AccelerationBias(a_bias),
 					AngularRateBias(w_bias){}
 
+		void Print();
+
 		Vector3d Position_NED;
 		Vector3d Velocity_NED;
 		Vector4d Quaternion;
@@ -32,6 +35,7 @@ namespace subjugator
 		Vector3d AngularRate_BODY;
 		Vector3d AccelerationBias;
 		Vector3d AngularRateBias;
+
 	};
 
 	class INS
@@ -43,6 +47,8 @@ namespace subjugator
 
 		boost::shared_ptr<INSData> Update(const std::auto_ptr<IMUInfo> info);
 		boost::shared_ptr<INSData> Reset(KalmanData& kData, bool tare, Vector3d tarePosition);
+
+		void Print();
 
 	private:
 		static const double SECPERNANOSEC = 1e-9;

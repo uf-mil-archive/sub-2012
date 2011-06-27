@@ -16,6 +16,12 @@ namespace subjugator
 	class IMUInfo : public DataObject
 	{
 		public:
+			IMUInfo(){}
+			IMUInfo(boost::uint16_t flags, double supply, double temp, boost::uint64_t timestamp, Eigen::Vector3d acc,
+					Eigen::Vector3d ang, Eigen::Vector3d mag_field):
+					flags(flags), supplyVoltage(supply), temperature(temp), timestamp(timestamp), acceleration(acc),
+					ang_rate(ang), mag_field(mag_field){}
+
 			static IMUInfo *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
 			boost::uint64_t getTimestamp()	{ return timestamp; }

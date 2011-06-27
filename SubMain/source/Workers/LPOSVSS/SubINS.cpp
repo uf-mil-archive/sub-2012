@@ -1,6 +1,7 @@
 #include "SubMain/Workers/LPOSVSS/SubINS.h"
 
 using namespace subjugator;
+using namespace std;
 using namespace Eigen;
 
 /**
@@ -23,10 +24,14 @@ INS::INS(double lat, Vector3d w_dif_prev, Vector3d a_body_prev, Vector3d p_prev,
 			Vector3d v_prev, Vector3d g, Vector4d q_prev, Vector3d w_bias, Vector3d a_bias,
 			Vector4d q_SUB_IMU, double imuTime):
 			lat(lat), w_dif_prev(w_dif_prev), a_body_prev(a_body_prev), p_prev(p_prev),
-			v_prev(v_prev), g(g), gMag(abs(g(2))), q_prev(q_prev), w_bias(w_bias), a_bias(a_bias),
+			v_prev(v_prev), g(g), gMag(std::abs(g(2))), q_prev(q_prev), w_bias(w_bias), a_bias(a_bias),
 			q_SUB_IMU(q_SUB_IMU), prevData(new INSData(p_prev, v_prev, q_prev, g, a_body_prev, w_dif_prev, a_bias, w_bias)),
-			imuPreviousTime(imuTime),w_ie_n(w_ie_e*cos(lat),0.0,-w_ie_e*sin(lat))
+			imuPreviousTime(imuTime)
 {
+	w_ie_n(0) = w_ie_e*std::cos(lat);
+	w_ie_n(1) = 0.0;
+	w_ie_n(2) = -1.0*w_ie_e*std::sin(lat);
+
 	initialized = true;
 }
 
@@ -47,7 +52,7 @@ boost::shared_ptr<INSData> INS::Update(const std::auto_ptr<IMUInfo> info)
     }
 
     Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, info->getAngularRate());
-    Vector3d a_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, info->getAcceleration());
+    Vector3d a_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, info->getAcceleration())*gMag;	// Convert the IMU to m/s^2
 
     w_en_n(0) = v_prev(1) / (r_earth - p_prev(2));
     w_en_n(1) = -v_prev(0) / (r_earth - p_prev(2));
@@ -122,4 +127,20 @@ boost::shared_ptr<INSData> INS::Reset(KalmanData& kData, bool tare, Vector3d tar
 	lock.unlock();
 
 	return prevData;
+}
+
+void INSData::Print()
+{
+	cout << "P:\n" << Position_NED << endl;
+	cout << "V:\n" << Velocity_NED << endl;
+	cout << "Q:\n" << Quaternion << endl;
+}
+
+void INS::Print()
+{
+	cout << "P:\n" << p_prev << endl;
+	cout << "V:\n" << v_prev << endl;
+	cout << "Q:\n" << q_prev << endl;
+	cout << "W_dif\n" << w_dif_prev << endl;
+	cout << "A_dif\n" << a_body_prev;
 }
