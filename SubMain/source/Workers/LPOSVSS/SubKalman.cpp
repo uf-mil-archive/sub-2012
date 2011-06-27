@@ -1,6 +1,8 @@
 #include "SubMain/Workers/LPOSVSS/SubKalman.h"
 
 using namespace subjugator;
+using namespace std;
+using namespace Eigen;
 
 KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P_hat,
 			 double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
@@ -11,7 +13,6 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
 			 bias_var_w(bias_var_w*boost::math::constants::pi<double>()/(180.0*3600.0)),
 			 T_f(T_f), T_w(T_w)
 {
-	Pi = boost::math::constants::pi<double>();
 	lambda = alpha*alpha*(L+kappa) - L;
 
 	// Initialize Weighting Parameters
@@ -22,22 +23,28 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
 	W_s[1] = 1.0 / (2.0 * (L + lambda));
 
 	white_bias_sigma_f = gravityMag * AttitudeHelpers::DiagMatrixFromVector(white_noise_sigma_f);
-	white_bias_sigma_w = Pi / (180.0 * 60.0) * AttitudeHelpers::DiagMatrixFromVector(white_noise_sigma_w);
+	white_bias_sigma_w = boost::math::constants::pi<double>() / (180.0 * 60.0) * AttitudeHelpers::DiagMatrixFromVector(white_noise_sigma_w);
 
 	T_f_inv = 1.0 / T_f * Matrix3d::Identity();
 	T_w_inv = 1.0 / T_w * Matrix3d::Identity();
 
 	// Shallow transpose, they share data
+	gamma = Matrix13x12d::Zero();
 	gamma.block<12,12>(1,0).setIdentity();
 	gammaTransposed = gamma.transpose();
 
 	// Build the R Matrix
 	Matrix3d W_dvl = AttitudeHelpers::DiagMatrixFromVector(dvl_sigma.cwiseProduct(dvl_sigma));
-	Matrix3d W_att = (Pi/180.0)*(Pi/180.0)*AttitudeHelpers::DiagMatrixFromVector(att_sigma.cwiseProduct(att_sigma));
+	Matrix3d W_att = (boost::math::constants::pi<double>()/180.0)*(boost::math::constants::pi<double>()/180.0)*AttitudeHelpers::DiagMatrixFromVector(att_sigma.cwiseProduct(att_sigma));
 
+	R = Matrix7d::Zero();
 	R(0,0) = depth_sigma*depth_sigma;
 	R.block<3,3>(1,1) = W_dvl;
 	R.block<3,3>(4,4) = W_att;
+
+	K = Matrix13x7d::Zero();
+
+	P_est_error = Vector3d::Zero();
 
 	ones2LX = RowVector26d::Ones();
 	ones2LXp1 = RowVector27d::Ones();
@@ -71,13 +78,13 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
     // Gyro Error
     double sigma_Q_w = AttitudeHelpers::Markov_wStdDev(dt, T_w, bias_var_w);
     double sigma_Q_w_squared = sigma_Q_w*sigma_Q_w;
-    Matrix3d Q_w;
+    Matrix3d Q_w = Matrix3d::Zero();
     Q_w(0,0) = Q_w(1,1) = Q_w(2,2) = sigma_Q_w_squared;
 
     // Accelerometer error
     double sigma_Q_f = AttitudeHelpers::Markov_wStdDev(dt, T_f, bias_var_f);
     double sigma_Q_f_squared = sigma_Q_f*sigma_Q_f;
-    Matrix3d Q_f;
+    Matrix3d Q_f = Matrix3d::Zero();
     Q_f(0,0) = Q_f(1,1) = Q_f(2,2) = sigma_Q_f_squared;
 
     Matrix3d R_hat = MILQuaternionOps::Quat2Rot(q_hat);
@@ -88,7 +95,7 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
     Matrix3d Q_eps = (0.25 * (Matrix3d::Identity() - tempQSkew))
     		* white_bias_sigma_w * white_bias_sigma_w;
 
-    Matrix12d Q;
+    Matrix12d Q = Matrix12d::Zero();
     Q.block<3,3>(0,0) = R_hat * white_bias_sigma_f * R_hat.transpose();
     Q.block<3,3>(3,3) = Q_eps;
     Q.block<3,3>(6,6) = Q_f;
@@ -142,7 +149,7 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
     }
 
     // Get the sum for x_pred W_2
-    Vector13d sum_W2;
+    Vector13d sum_W2 = Vector13d::Zero();
     for(int i = 1; i < limit; i++)
     {
     	sum_W2 += chi_pred.col(i);
@@ -159,7 +166,7 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
     Matrix13d P_pred = P_int + gamma*Q*gammaTransposed;
 
     // Predict the measurement
-    Matrix3x27d gamma_2;
+    Matrix3x27d gamma_2 = Matrix3x27d::Zero();
     for(int i = 0; i < limit; i++)
     {
     	Matrix3d R_chi = MILQuaternionOps::Quat2Rot(q_hat_chi.col(i));
@@ -167,13 +174,13 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
     	gamma_2.col(i) = chi_pred.block<3,1>(1,i) - (R_chi*(2.0*(gamma_skew + gamma_skew*gamma_skew))*v_INS);
     }
 
-    Matrix7x27d gamma_mat;
+    Matrix7x27d gamma_mat = Matrix7x27d::Zero();
     gamma_mat.row(0) = chi_pred.row(0);
     gamma_mat.block<3,27>(1,0) = gamma_2;
     gamma_mat.block<3,27>(4,0) = chi_pred.block<3,27>(4,0);
 
     // Get the sum for z_pred
-    Vector7d sum_Z2;
+    Vector7d sum_Z2 = Vector7d::Zero();
     for(int j = 1; j< limit;j++)
     {
     	sum_Z2 += gamma_mat.col(j);

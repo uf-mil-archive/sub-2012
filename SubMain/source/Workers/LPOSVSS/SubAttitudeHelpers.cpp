@@ -4,6 +4,7 @@
 
 using namespace subjugator;
 using namespace Eigen;
+using namespace std;
 
 Vector3d AttitudeHelpers::LocalGravity(double lat, double depth)
 {
@@ -64,7 +65,7 @@ double AttitudeHelpers::DAngleClamp(double a)
 Vector4d AttitudeHelpers::RotationToQuaternion(const Matrix3d& R)
 {
 	// Build the K matrix
-	Matrix4d K;
+	Matrix4d K = Matrix4d::Zero();
 
 	double K12 = R(1,0) + R(0,1);
 	double K13 = R(2,0) + R(0,2);
@@ -132,7 +133,7 @@ Vector4d AttitudeHelpers::RotationToQuaternion(const Matrix3d& R)
 
 Matrix3d AttitudeHelpers::VectorSkew3(const Vector3d& vec)
 {
-	Matrix3d res;
+	Matrix3d res = Matrix3d::Zero();
 
 	res(0,1) = -vec(2);
 	res(0,2) = vec(1);

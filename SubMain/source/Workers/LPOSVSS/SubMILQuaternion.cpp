@@ -2,6 +2,7 @@
 
 using namespace subjugator;
 using namespace Eigen;
+using namespace std;
 
 Matrix3d MILQuaternionOps::Quat2Rot(const Vector4d& q)
 {
