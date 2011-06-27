@@ -213,7 +213,7 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
 
     // Lastly, approximate the position (x,y) error by integrating the velocity errors
     P_est_error.block<2,1>(0,0) += dt * x_hat.block<2,1>(1,0);
-    P_est_error(3) = x_hat(0);
+    P_est_error(2) = x_hat(0);
 
     prevData = boost::shared_ptr<KalmanData>(new KalmanData(x_hat(0),
     		x_hat.block<3,1>(1,0),

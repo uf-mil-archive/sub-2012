@@ -23,7 +23,7 @@ using namespace Eigen;
 int main(int argc, char **argv)
 {
 	ifstream infile;
-	infile.open("kalmanfeed.in");
+	infile.open("/home/devin/Versioned/git_folder/sub_pc/sub_bin/bin/pre.txt");
 
 	int L = 13;
 	Vector3d g = AttitudeHelpers::LocalGravity(29.647*boost::math::constants::pi<double>()/180, 0);
@@ -47,21 +47,30 @@ int main(int argc, char **argv)
 			bias_var_w, white_noise_var_f, white_noise_var_w, T_f, T_w, depth_sigma, dvl_sigma,
 			att_sigma);
 
+   if (!infile) {
+		cout << "Unable to open file";
+		exit(1); // terminate with error
+	}
+
 	boost::uint64_t tick;
 	while(!infile.eof())
 	{
-		Matrix<double, 7, 1> z = Matrix<double, 7, 1>::Zero();
-		Vector3d f_IMU = Vector3d::Zero();
-		Vector3d v_INS = Vector3d::Zero();
-		Vector4d q_INS = Vector4d::Zero();
-		q_INS(0) = 1.0;
+		double z0,z1,z2,z3,z4,z5,z6,f0,f1,f2,v0,v1,v2,q0,q1,q2,q3;
+
 		double dt;
-		infile >> z(0) >> z(1) >> z(2) >> z(3) >> z(4)
-			   >> z(5) >> z(6) >> f_IMU(0) >> f_IMU(1)
-			   >> f_IMU(2) >> v_INS(0) >> v_INS(1)
-			   >> v_INS(2) >> q_INS(0) >> q_INS(1)
-			   >> q_INS(2) >> q_INS(3) >> dt;
-		tick+=dt*1e9;
+		infile >> z0 >> z1 >> z2 >> z3 >> z4
+			   >> z5 >> z6 >> f0 >> f1
+			   >> f2 >> v0 >> v1
+			   >> v2 >> q0 >> q1
+			   >> q2 >> q3 >> dt;
+		tick+=(boost::uint64_t)(dt*1e9);
+
+		Matrix<double, 7, 1> z;
+		z << z0,z1,z2,z3,z4,z5,z6;
+
+		Vector3d f_IMU(f0,f1,f2);
+		Vector3d v_INS(v0,v1,v2);
+		Vector4d q_INS(q0,q1,q2,q3);
 
 		kf.Update(z, f_IMU, v_INS, q_INS, tick);
 	}
