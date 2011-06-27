@@ -1,6 +1,10 @@
 #include <ndds/ndds_cpp.h>
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include "SubMain/Workers/LPOSVSS/SubTriad.h"
+#include "SubMain/Workers/LPOSVSS/SubINS.h"
+
+#include "DataObjects/IMU/IMUInfo.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -11,17 +15,10 @@
 using namespace subjugator;
 using namespace boost;
 using namespace std;
+using namespace Eigen;
 
 int main(int argc, char **argv)
 {
-	// Test eigen
-
-
-
-
-
-
-
 
 
 	return 0;

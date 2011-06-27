@@ -1,5 +1,6 @@
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include <stdexcept>
+#include <iostream>
 
 using namespace subjugator;
 using namespace Eigen;
@@ -96,7 +97,7 @@ Vector4d AttitudeHelpers::RotationToQuaternion(const Matrix3d& R)
 	K(3,2) = K34;
 	K(3,3) = R(0,0) + R(1,1) + R(2,2);
 
-	K *= (1.0/3.0)*K;
+	K *= (1.0/3.0);
 
 	EigenSolver<Matrix4d> es(K);	// This computes both eigenvalues and eigenvectors. Sweet!
 	Vector4d D = es.eigenvalues().real();		// get the real portion of the eigenvalues
@@ -107,7 +108,7 @@ Vector4d AttitudeHelpers::RotationToQuaternion(const Matrix3d& R)
 	double temp;
 	for(int i = 0; i < 4; i++)
 	{
-		if((temp = abs(D(i))) > maxValue)
+		if((temp = std::abs(D(i))) > maxValue)
 		{
 			maxValue = temp;
 			maxIndex = i;
@@ -115,16 +116,21 @@ Vector4d AttitudeHelpers::RotationToQuaternion(const Matrix3d& R)
 	}
 
 	// Reorder the eigenvector correctly - this yields the inverse rotation of what we're after
-	Vector4d q_inv(es.eigenvectors().real()(3),
-				   es.eigenvectors().real()(0),
-				   es.eigenvectors().real()(1),
-				   es.eigenvectors().real()(2));
+	Vector4d q_inv(es.eigenvectors().real()(3,maxIndex),
+				   es.eigenvectors().real()(0,maxIndex),
+				   es.eigenvectors().real()(1,maxIndex),
+				   es.eigenvectors().real()(2,maxIndex));
 
 	// return the inverse of the inverse rotation - Presto - the quaternion we wanted.
-	return MILQuaternionOps::QuatInverse(q_inv);
+	Vector4d q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatInverse(q_inv));
+
+	if(q(0) < 0)
+		q*=-1.0;
+
+	return q;
 }
 
-Matrix3d VectorSkew3(const Vector3d& vec)
+Matrix3d AttitudeHelpers::VectorSkew3(const Vector3d& vec)
 {
 	Matrix3d res;
 

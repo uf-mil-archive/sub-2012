@@ -2,7 +2,7 @@
 #define SUBATTITUDEHELPERS_H_
 
 #include <Eigen/Dense>
-#include <math.h>
+#include <cmath>
 #include <boost/math/constants/constants.hpp>
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 

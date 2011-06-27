@@ -2,7 +2,7 @@
 #define SUBMILQUATERNION_H
 
 #include <Eigen/Dense>
-#include <math.h>
+#include <cmath>
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 
 using namespace Eigen;
