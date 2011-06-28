@@ -3,6 +3,7 @@
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 #include "DDSListeners/PDDDSListener.h"
+#include "DDSCommanders/PDDDSCommander.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -30,6 +31,7 @@ int main(int argc, char **argv)
 		throw runtime_error("Failed to register type");
 
 	PDDDSListener ddsListener(worker, participant);
+	PDDDSCommander ddsCommander(worker, participant);
 
 	// Start the worker
 	io.run();
