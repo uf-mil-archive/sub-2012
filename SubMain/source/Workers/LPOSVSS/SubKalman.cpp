@@ -7,13 +7,16 @@ using namespace Eigen;
 KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P_hat,
 			 double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
 			 Vector3d white_noise_sigma_f, Vector3d white_noise_sigma_w, double T_f,
-			 double T_w, double depth_sigma, Vector3d dvl_sigma, Vector3d att_sigma):
+			 double T_w, double depth_sigma, Vector3d dvl_sigma, Vector3d att_sigma,
+			 boost::uint64_t startTickCount) :
 			 L(L), gravityMag(gravityMag), q_hat(q_hat), P_hat(P_hat), alpha(alpha),
 			 beta(beta), kappa(kappa), bias_var_f(bias_var_f*gravityMag),
 			 bias_var_w(bias_var_w*boost::math::constants::pi<double>()/(180.0*3600.0)),
-			 T_f(T_f), T_w(T_w)
+			 T_f(T_f), T_w(T_w), prevTickCount(startTickCount)
 {
 	lambda = alpha*alpha*(L+kappa) - L;
+
+	x_hat = Vector13d::Zero();
 
 	// Initialize Weighting Parameters
 	W_c[0] = (lambda / (L + lambda)) + (1 - alpha*alpha + beta);
@@ -51,7 +54,7 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
 
     prevData = boost::shared_ptr<KalmanData>(new KalmanData(x_hat(0),
     		x_hat.block<3,1>(1,0),
-    		x_hat.block<3,1>(4,0),
+    		Vector4d(1.0,0.0,0.0,0.0),
     		x_hat.block<3,1>(7,0),
     		x_hat.block<3,1>(10,0),
     		P_est_error));
@@ -59,21 +62,18 @@ KalmanFilter::KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P
 	initialized = true;
 }
 
-boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
+void KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
 			 const Vector3d& v_INS, const Vector4d& q_INS, boost::uint64_t currentTickCount)
 {
-	lock.lock();
-
     // Update dt
     double dt = (currentTickCount - prevTickCount)*SECPERNANOSEC;
     prevTickCount = currentTickCount;
 
     //Protect the filter against the debugger and non monotonic time
     if((dt <= 0) || (dt > .150))
-    {
-    	lock.unlock();
-    	return prevData;
-    }
+    	return;
+
+	lock.lock();
 
     // Gyro Error
     double sigma_Q_w = AttitudeHelpers::Markov_wStdDev(dt, T_w, bias_var_w);
@@ -209,7 +209,9 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
     Vector3d x_hat_57 = x_hat.block<3,1>(4,0);
     Vector4d q_hat_tilde_inverse(sqrt(1-(x_hat_57.transpose()*x_hat_57)(0,0)),
     		-1.0*x_hat_57(0), -1.0*x_hat_57(1), -1.0*x_hat_57(2));
-    q_hat = MILQuaternionOps::QuatMultiply(q_hat_tilde_inverse, q_INS);
+
+    // This was reversed in the sub, but matlab says this way?
+    q_hat = MILQuaternionOps::QuatMultiply(q_INS, q_hat_tilde_inverse);
 
     // Lastly, approximate the position (x,y) error by integrating the velocity errors
     P_est_error.block<2,1>(0,0) += dt * x_hat.block<2,1>(1,0);
@@ -217,17 +219,15 @@ boost::shared_ptr<KalmanData> KalmanFilter::Update(const Vector7d& z, const Vect
 
     prevData = boost::shared_ptr<KalmanData>(new KalmanData(x_hat(0),
     		x_hat.block<3,1>(1,0),
-    		x_hat.block<3,1>(4,0),
+    		q_hat_tilde_inverse,
     		x_hat.block<3,1>(7,0),
     		x_hat.block<3,1>(10,0),
     		P_est_error));
 
     lock.unlock();
-
-	return prevData;
 }
 
-boost::shared_ptr<KalmanData> KalmanFilter::Reset()
+void KalmanFilter::Reset()
 {
 	lock.lock();
 
@@ -236,12 +236,10 @@ boost::shared_ptr<KalmanData> KalmanFilter::Reset()
 
     prevData = boost::shared_ptr<KalmanData>(new KalmanData(x_hat(0),
     		x_hat.block<3,1>(1,0),
-    		x_hat.block<3,1>(4,0),
+    		Vector4d(1.0,0.0,0.0,0.0),
     		x_hat.block<3,1>(7,0),
     		x_hat.block<3,1>(10,0),
     		P_est_error));
 
 	lock.unlock();
-
-	return prevData;
 }

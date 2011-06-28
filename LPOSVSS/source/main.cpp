@@ -1,11 +1,5 @@
 #include <ndds/ndds_cpp.h>
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
-#include "SubMain/Workers/LPOSVSS/SubTriad.h"
-#include "SubMain/Workers/LPOSVSS/SubINS.h"
-#include "SubMain/Workers/LPOSVSS/SubKalman.h"
-
-#include "DataObjects/IMU/IMUInfo.h"
+#include "SubMain/Workers/LPOSVSS/SubNavigationComputer.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -22,6 +16,7 @@ using namespace Eigen;
 
 int main(int argc, char **argv)
 {
+/*
 	ifstream infile;
 	infile.open("/home/devin/Versioned/git_folder/sub_pc/sub_bin/bin/pre.txt");
 
@@ -47,34 +42,9 @@ int main(int argc, char **argv)
 			bias_var_w, white_noise_var_f, white_noise_var_w, T_f, T_w, depth_sigma, dvl_sigma,
 			att_sigma);
 
-   if (!infile) {
-		cout << "Unable to open file";
-		exit(1); // terminate with error
-	}
-
-	boost::uint64_t tick;
-	while(!infile.eof())
-	{
-		double z0,z1,z2,z3,z4,z5,z6,f0,f1,f2,v0,v1,v2,q0,q1,q2,q3;
-
-		double dt;
-		infile >> z0 >> z1 >> z2 >> z3 >> z4
-			   >> z5 >> z6 >> f0 >> f1
-			   >> f2 >> v0 >> v1
-			   >> v2 >> q0 >> q1
-			   >> q2 >> q3 >> dt;
-		tick+=(boost::uint64_t)(dt*1e9);
-
-		Matrix<double, 7, 1> z;
-		z << z0,z1,z2,z3,z4,z5,z6;
-
-		Vector3d f_IMU(f0,f1,f2);
-		Vector3d v_INS(v0,v1,v2);
-		Vector4d q_INS(q0,q1,q2,q3);
-
-		kf.Update(z, f_IMU, v_INS, q_INS, tick);
-	}
-
+*/
+	boost::asio::io_service io;
+	NavigationComputer nav(io);
 	return 0;
 
 /*	boost::asio::io_service io;

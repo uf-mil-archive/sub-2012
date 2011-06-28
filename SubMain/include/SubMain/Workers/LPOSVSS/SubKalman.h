@@ -16,14 +16,14 @@ namespace subjugator
 	public:
 		double DepthError;
 		Vector3d VelocityError;
-		Vector3d QuaternionError;
+		Vector4d ErrorQuaternion;
 		Vector3d Acceleration_bias;
 		Vector3d Gyro_bias;
 		Vector3d PositionErrorEst;	// This also has depth error superimposed!
 
 		KalmanData();
-		KalmanData(double depthError, Vector3d velError, Vector3d quatError, Vector3d a_bias, Vector3d w_bias, Vector3d pestErr) :
-			DepthError(depthError), VelocityError(velError), QuaternionError(quatError), Acceleration_bias(a_bias),
+		KalmanData(double depthError, Vector3d velError, Vector4d errorQuat, Vector3d a_bias, Vector3d w_bias, Vector3d pestErr) :
+			DepthError(depthError), VelocityError(velError), ErrorQuaternion(errorQuat), Acceleration_bias(a_bias),
 			Gyro_bias(w_bias), PositionErrorEst(pestErr)
 		{
 		}
@@ -52,15 +52,23 @@ namespace subjugator
 		KalmanFilter(int L, double gravityMag, Vector4d q_hat, Matrix13d P_hat,
 					 double alpha, double beta, double kappa, double bias_var_f, double bias_var_w,
 					 Vector3d white_noise_sigma_f, Vector3d white_noise_sigma_w, double T_f,
-					 double T_w, double depth_sigma, Vector3d dvl_sigma, Vector3d att_sigma);
-		boost::shared_ptr<KalmanData> Update(const Vector7d& z, const Vector3d& f_IMU,
+					 double T_w, double depth_sigma, Vector3d dvl_sigma, Vector3d att_sigma,
+					 boost::uint64_t startTickCount);
+		void Update(const Vector7d& z, const Vector3d& f_IMU,
 					 const Vector3d& v_INS, const Vector4d& q_INS, boost::uint64_t currentTickCount);
-		boost::shared_ptr<KalmanData> Reset();
+		void Reset();
+		boost::shared_ptr<KalmanData> GetData()
+		{
+			lock.lock();
+			boost::shared_ptr<KalmanData> temp(prevData);
+			lock.unlock();
+
+			return temp;
+		}
 	private:
 		static const double SECPERNANOSEC = 1e-9;
 
 		boost::mutex lock;
-		boost::uint64_t prevTickCount;
 		bool initialized;
 
 		RowVector27d ones2LXp1;
@@ -101,6 +109,7 @@ namespace subjugator
 
 		double T_f;
 		double T_w;
+		boost::uint64_t prevTickCount;
 
 		boost::shared_ptr<KalmanData> prevData;
 	};
