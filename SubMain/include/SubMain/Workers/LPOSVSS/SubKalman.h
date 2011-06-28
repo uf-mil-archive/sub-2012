@@ -59,9 +59,9 @@ namespace subjugator
 		void Reset();
 		boost::shared_ptr<KalmanData> GetData()
 		{
-			lock.lock();
+			datalock.lock();
 			boost::shared_ptr<KalmanData> temp(prevData);
-			lock.unlock();
+			datalock.unlock();
 
 			return temp;
 		}
@@ -69,6 +69,7 @@ namespace subjugator
 		static const double SECPERNANOSEC = 1e-9;
 
 		boost::mutex lock;
+		boost::mutex datalock;
 		bool initialized;
 
 		RowVector27d ones2LXp1;
@@ -109,7 +110,7 @@ namespace subjugator
 
 		double T_f;
 		double T_w;
-		boost::uint64_t prevTickCount;
+		boost::int64_t prevTickCount;
 
 		boost::shared_ptr<KalmanData> prevData;
 	};

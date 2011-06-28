@@ -99,12 +99,14 @@ void INS::Update(const std::auto_ptr<IMUInfo> info)
     Vector3d g_body = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(q), g);
     //Vector3d a_body_no_gravity = a_dif + g_body;
 
+    datalock.lock();
     prevData = boost::shared_ptr<INSData>(new INSData(p, v, q, g_body, a_dif, a_body, w_dif, a_bias, w_bias));
+    datalock.unlock();
 
     lock.unlock();
 }
 
-void INS::Reset(KalmanData& kData, bool tare, Vector3d tarePosition)
+void INS::Reset(const KalmanData& kData, bool tare, const Vector3d& tarePosition)
 {
 	lock.lock();
 
@@ -121,23 +123,10 @@ void INS::Reset(KalmanData& kData, bool tare, Vector3d tarePosition)
 	Vector3d a_body_no_gravity = a_body_prev - a_bias;
 	Vector3d w_dif_temp = w_dif_prev - w_bias;
 
+	datalock.lock();
 	prevData = boost::shared_ptr<INSData>(new INSData(p_prev, v_prev, q_prev, g_body, a_body_no_gravity, a_body_no_gravity, w_dif_temp, a_bias, w_bias));
+	datalock.unlock();
 
 	lock.unlock();
 }
 
-void INSData::Print()
-{
-	cout << "P:\n" << Position_NED << endl;
-	cout << "V:\n" << Velocity_NED << endl;
-	cout << "Q:\n" << Quaternion << endl;
-}
-
-void INS::Print()
-{
-	cout << "P:\n" << p_prev << endl;
-	cout << "V:\n" << v_prev << endl;
-	cout << "Q:\n" << q_prev << endl;
-	cout << "W_dif\n" << w_dif_prev << endl;
-	cout << "A_dif\n" << a_body_prev;
-}

@@ -32,7 +32,9 @@ namespace subjugator
 		void Update(std::auto_ptr<DepthInfo> info);
 		void Update(std::auto_ptr<DVLHighresBottomTrack> info);
 
-		void TarePosition(Vector3d tarePosition);
+		void Shutdown();
+		void TarePosition(const Vector3d& position);
+		void GetNavInfo();
 
 	private:
 		static const double latitudeDeg = 29.651388889; /*gainesville*/
@@ -67,11 +69,10 @@ namespace subjugator
 
 		std::vector<ThrusterCurrentCorrector> thrusterCurrentCorrectors;
 
-		bool useDVL;
-
 		Vector4d q_MagCorrectionInverse;
 
-		double depth_zero_tare;
+		double depth_zero_offset;
+		double depth_tare;
 
 		bool depthRefAvailable;
 		bool attRefAvailable;
@@ -81,6 +82,10 @@ namespace subjugator
 		Vector3d velRef;
 		Vector7d z;
 
+		Vector3d magSum;
+		Vector3d accSum;
+		double acceptable_gravity_mag;
+
 		std::auto_ptr<Triad> triad;
 		std::auto_ptr<KalmanFilter> kFilter;
 		std::auto_ptr<INS> ins;
@@ -88,14 +93,20 @@ namespace subjugator
 		bool initialized;
 
 		boost::shared_mutex kLock;
-		boost::shared_mutex tareLock;
+		boost::mutex tareLock;
+
+		bool shutdown;
 
 		int kalmanCount;
-		bool kalmanTimerInitialized;
 		boost::int64_t kTimerMs;
 		std::auto_ptr<boost::asio::deadline_timer> kTimer;
+		boost::int64_t dvlTimerMs;
+		std::auto_ptr<boost::asio::deadline_timer> dvlTimer;
+		void fakeDVL(const boost::system::error_code& /*e*/);
+
 		void updateKalman(const boost::system::error_code& /*e*/);
-		boost::uint64_t getTimestamp(void);
+		boost::int64_t getTimestamp(void);
+		void resetErrors(bool tare, const Vector3d& tarePosition);
 	};
 }
 

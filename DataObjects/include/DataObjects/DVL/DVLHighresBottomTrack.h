@@ -12,6 +12,9 @@
 namespace subjugator {
 	class DVLHighresBottomTrack : public DataObject {
 		public:
+			DVLHighresBottomTrack(){};
+			DVLHighresBottomTrack(boost::int64_t timestamp, Eigen::Vector3d velocity, double velerror, bool good):
+				timestamp(timestamp), bottomvel(velocity), bottomvelerror(velerror), good(good){}
 			static DVLHighresBottomTrack *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
 			const Eigen::Vector3d &getVelocity() { return bottomvel; }

@@ -217,12 +217,14 @@ void KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
     P_est_error.block<2,1>(0,0) += dt * x_hat.block<2,1>(1,0);
     P_est_error(2) = x_hat(0);
 
+    datalock.lock();
     prevData = boost::shared_ptr<KalmanData>(new KalmanData(x_hat(0),
     		x_hat.block<3,1>(1,0),
     		q_hat_tilde_inverse,
     		x_hat.block<3,1>(7,0),
     		x_hat.block<3,1>(10,0),
     		P_est_error));
+    datalock.unlock();
 
     lock.unlock();
 }
@@ -234,12 +236,14 @@ void KalmanFilter::Reset()
 	x_hat.block<7,1>(0,0) = Vector7d::Zero();
 	P_est_error = Vector3d::Zero();
 
+	datalock.lock();
     prevData = boost::shared_ptr<KalmanData>(new KalmanData(x_hat(0),
     		x_hat.block<3,1>(1,0),
     		Vector4d(1.0,0.0,0.0,0.0),
     		x_hat.block<3,1>(7,0),
     		x_hat.block<3,1>(10,0),
     		P_est_error));
+    datalock.unlock();
 
 	lock.unlock();
 }

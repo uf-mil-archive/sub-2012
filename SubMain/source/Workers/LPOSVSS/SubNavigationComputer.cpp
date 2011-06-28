@@ -16,17 +16,23 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 	covariance(0,0) *= .01;
 	covariance.block<3,3>(2,2) = 10*covariance.block<3,3>(2,2);
 
+	// TODO Thruster corrector list
 	referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, initialPosition(2));
-	//thrusterCurrentCorrectors.push_back(std::auto_ptr<ThrusterCurrentCorrector>(new ThrusterCurrentCorrector()))
+	//thrusterCurrentCorrectors.push_back(ThrusterCurrentCorrector());
+
+	acceptable_gravity_mag = referenceGravityVector.norm() * 1.02;
 
 	q_MagCorrectionInverse = MILQuaternionOps::QuatInverse(q_MagCorrection);
+
+	z = Vector7d::Zero();
 
 	depthRefAvailable = false;
 	attRefAvailable = false;
 	velRefAvailable = false;
+	shutdown = false;
 }
 
-boost::uint64_t NavigationComputer::getTimestamp(void)
+boost::int64_t NavigationComputer::getTimestamp(void)
 {
 	timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
@@ -36,14 +42,9 @@ boost::uint64_t NavigationComputer::getTimestamp(void)
 
 void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLHighresBottomTrack> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL)
 {
-	this->useDVL = useDVL;
-	if(!useDVL)
-	{
-
-	}
-
 	// Tare the depth sensor
-	depth_zero_tare = depthInfo->getDepth();
+	depth_zero_offset = depthInfo->getDepth();
+	depth_tare = depth_zero_offset;
 
 	// Attitude initialization
 	// We need an approximation of the attitude to correctly initialize the Kalman filter and the INS.
@@ -108,12 +109,29 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 	// When calling bind on a member function, the object to operate on is prepended as an argument, hence the this
 	kTimer->async_wait(boost::bind(&NavigationComputer::updateKalman, this, boost::asio::placeholders::error));
 
+	if(!useDVL)
+	{
+		// Now build up the kalman timer.
+		dvlTimerMs = 1000 / 5 /*Hz*/;
+		dvlTimer = std::auto_ptr<boost::asio::deadline_timer>(
+			new boost::asio::deadline_timer(io, boost::posix_time::milliseconds(dvlTimerMs)));
+
+		// When calling bind on a member function, the object to operate on is prepended as an argument, hence the this
+		dvlTimer->async_wait(boost::bind(&NavigationComputer::fakeDVL, this, boost::asio::placeholders::error));
+
+	}
+
 	initialized = true;
 }
 
-void NavigationComputer::TarePosition(Vector3d tarePosition)
+void NavigationComputer::TarePosition(const Vector3d& position)
 {
+	tareLock.lock();
 
+	resetErrors(true, position);
+	depth_tare = depth_zero_offset + position(2);
+
+	tareLock.unlock();
 }
 
 void NavigationComputer::updateKalman(const boost::system::error_code& e)
@@ -121,20 +139,81 @@ void NavigationComputer::updateKalman(const boost::system::error_code& e)
 
 	boost::shared_ptr<INSData> insdata = ins->GetData();
 
+	kLock.lock();
+	// Constant error kalman errors
+	if(attRefAvailable)
+	{
+		attRefAvailable = false;
+		Vector4d tempQuat = MILQuaternionOps::QuatMultiply(MILQuaternionOps::QuatInverse(attRef), insdata->Quaternion);
+		z.block<3,1>(4,0) = tempQuat.block<3,1>(1,0);
+	}
+	if(depthRefAvailable)
+	{
+		depthRefAvailable = false;
+		z(0) = insdata->Position_NED(2) - depthRef;
+	}
+	if(velRefAvailable)
+	{
+		velRefAvailable = false;
+		z.block<3,1>(1,0) = insdata->Velocity_NED - velRef;
+	}
+	kLock.unlock();
+
+	kFilter->Update(z, insdata->Acceleration_BODY_RAW, insdata->Velocity_NED, insdata->Quaternion, getTimestamp());
+
+	if(++kalmanCount >= 100)	// 2s reset time
+	{
+		kalmanCount = 0;
+		tareLock.lock();
+		resetErrors(false, Vector3d::Zero());
+		tareLock.unlock();
+	}
 
 	// Setup to expire again - 1 shot timer hacks
-	kTimer->expires_at(kTimer->expires_at() + boost::posix_time::milliseconds(kTimerMs));
-	kTimer->async_wait(boost::bind(&NavigationComputer::updateKalman, this, boost::asio::placeholders::error));
+	if(!shutdown)
+		kTimer->expires_at(kTimer->expires_at() + boost::posix_time::milliseconds(kTimerMs));
+		kTimer->async_wait(boost::bind(&NavigationComputer::updateKalman, this, boost::asio::placeholders::error));
+}
+
+void NavigationComputer::resetErrors(bool tare, const Vector3d& tarePosition)
+{
+	boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
+
+	ins->Reset(*kdata.get(), tare, tarePosition);
+	kFilter->Reset();
+	kLock.lock();
+	z = Vector7d::Zero();
+	kLock.unlock();
+}
+
+void NavigationComputer::Shutdown()
+{
+	shutdown = true;	// Stop timer callbacks
+}
+
+void NavigationComputer::GetNavInfo()
+{
+	assert(initialized);
+
+	// Subtract errors to build best current estimate
+	boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
+	boost::shared_ptr<INSData> insdata = ins->GetData();
+
+	Vector3d p = insdata->Position_NED - kdata->PositionErrorEst;
+	Vector3d v = insdata->Velocity_NED - kdata->VelocityError;
+	Vector4d q = MILQuaternionOps::QuatMultiply(insdata->Quaternion, kdata->ErrorQuaternion);
+	Vector3d a_body_no_g = insdata->Acceleration_BODY - kdata->Acceleration_bias +
+			MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(q), referenceGravityVector);
+	Vector3d w = insdata->AngularRate_BODY - kdata->Gyro_bias;
+
 }
 
 void NavigationComputer::Update(std::auto_ptr<IMUInfo> info)
 {
+	static int count = 0;
+
 	// The INS has the rotation info already, so just push the packet through
 	ins->Update(info);
-
-	// Magnetometer info now comes from the IMU as well. Run a low pass on it
-
-	// Moving average getMag goes here
 
 	// TODO thruster current correctors go here
 	double deleteme[8];
@@ -142,26 +221,42 @@ void NavigationComputer::Update(std::auto_ptr<IMUInfo> info)
 	Vector3d tempMag = info->getMagneticField() -
 			ThrusterCurrentCorrector::CalculateTotalCorrection(thrusterCurrentCorrectors, deleteme/*thrusterCurrents*/);
 
-	// Hard and soft correct the data
+	boost::shared_ptr<INSData> insdata = ins->GetData();
+	// We just do a very basic average over the last 10 samples (reduces to 20Hz)
+	// the magnetometer and accelerometer
+	magSum += tempMag;
+	accSum += insdata->Acceleration_BODY_RAW;
+
+	count = (count + 1) % 20;
+	if(count)	// Don't have enough samples yet
+		return;
+
+	tempMag = 0.1 * magSum;
+
+	// Hard and soft correct the data - not dependent on current, so okay to do after average
 	tempMag += magShift;
 	tempMag = MILQuaternionOps::QuatRotate(q_MagCorrection, tempMag);
 	tempMag = tempMag.cwiseQuotient(magScale);
 	tempMag = MILQuaternionOps::QuatRotate(q_MagCorrectionInverse, tempMag);
 	tempMag = MILQuaternionOps::QuatRotate(q_SUB_IMU, tempMag);
 
-
 	// Now we play some games to get a gravitational estimate. We can't feed in the
 	// gravity best estimate, because then you get circular dependencies between
-	// the filter and the reference sensor, and the filter drifts badly. So we take a
-	// moving average of acceleration and make the assumption that accelerations are short lived.
-	// To ensure this, we check to make sure the gravitational average is close to the magnitude of
-	// normal gravity. If it isn't we ignore it, and reference attitude updates come in slower.
+	// the filter and the reference sensor, and the filter drifts badly. So we make the assumption
+	// that accelerations are short lived. To ensure this, we check to make sure the gravitational
+	// average is close to the magnitude of normal gravity. If it isn't we ignore it, and reference
+	// attitude updates come in slower.
 
-	boost::shared_ptr<INSData> insdata = ins->GetData();
 	boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
 
-	// TODO make this an averaged acceleration and check its magnitude
-	Vector3d bodyg = insdata->Acceleration_BODY_RAW;
+	Vector3d bodyg = 0.1 * accSum;
+
+	// Reset the sums
+	magSum = Vector3d::Zero();
+	accSum = Vector3d::Zero();
+
+	if(bodyg.norm() > acceptable_gravity_mag)	// Bad acceleration data would just hurt the filter, eliminate it
+		return;
 
 	triad->Update(bodyg, tempMag);
 
@@ -177,11 +272,14 @@ void NavigationComputer::Update(std::auto_ptr<DepthInfo> info)
 {
 	// The depth inside the packet is given in NED, we simply
 	// subtract the tare value
-	double temp = (info->getDepth() - depth_zero_tare);
+	tareLock.lock();
+	double temp = (info->getDepth() - depth_tare);
+	tareLock.unlock();
+
 	if(std::abs(temp) > MAX_DEPTH)
 		return;
 
-	kLock.lock_shared();	// The kalman is the unique reader to multiple seperate
+	kLock.lock_shared();	// The kalman is the unique reader to multiple separate
 							// updaters, hence, the backwards lock.
 
 	depthRef = temp;
@@ -197,17 +295,11 @@ void NavigationComputer::Update(std::auto_ptr<DVLHighresBottomTrack> info)
     // to the sub frame, and then transformed by the current best quaternion estimate
     // of SUB to NED
 	Vector3d dvl_vel;
-	if(useDVL)
-	{
-		// Check for bad DVL data - Flags for this now
-		if(info->isGood())
-			return;
-		dvl_vel = MILQuaternionOps::QuatRotate(q_SUB_DVL, info->getVelocity());
-	}
-	else
-	{
-		dvl_vel = Vector3d::Zero();
-	}
+
+	// Check for bad DVL data - Flags for this now
+	if(!info->isGood())
+		return;
+	dvl_vel = MILQuaternionOps::QuatRotate(q_SUB_DVL, info->getVelocity());
 
 	boost::shared_ptr<INSData> insdata = ins->GetData();
 	boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
@@ -221,3 +313,15 @@ void NavigationComputer::Update(std::auto_ptr<DVLHighresBottomTrack> info)
 	kLock.unlock_shared();
 }
 
+void NavigationComputer::fakeDVL(const boost::system::error_code& /*e*/)
+{
+	std::auto_ptr<DVLHighresBottomTrack> info = std::auto_ptr<DVLHighresBottomTrack>(
+			new DVLHighresBottomTrack(getTimestamp(), Vector3d::Zero(), 0.0, true ));
+
+	Update(info);
+
+	// Setup to expire again - 1 shot timer hacks
+	if(!shutdown)
+		dvlTimer->expires_at(dvlTimer->expires_at() + boost::posix_time::milliseconds(dvlTimerMs));
+		dvlTimer->async_wait(boost::bind(&NavigationComputer::fakeDVL, this, boost::asio::placeholders::error));
+}
