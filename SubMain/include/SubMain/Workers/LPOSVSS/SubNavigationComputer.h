@@ -7,6 +7,7 @@
 #include "DataObjects/IMU/IMUInfo.h"
 #include "DataObjects/Depth/DepthInfo.h"
 #include "DataObjects/PD/PDInfo.h"
+#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "SubMain/Workers/LPOSVSS/SubTriad.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
@@ -36,7 +37,7 @@ namespace subjugator
 
 		void Shutdown();
 		void TarePosition(const Vector3d& position);
-		void GetNavInfo();
+		void GetNavInfo(LPOSVSSInfo& info);
 
 	private:
 		static const double latitudeDeg = 29.651388889; /*gainesville*/
@@ -84,6 +85,8 @@ namespace subjugator
 		Vector4d attRef;
 		Vector3d velRef;
 		Vector7d z;
+
+		Vector3d r_ORIGIN_NAV;
 
 		Vector3d magSum;
 		Vector3d accSum;

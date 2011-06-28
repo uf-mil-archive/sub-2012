@@ -1,5 +1,6 @@
 struct PDStatusMessage {
 	unsigned long long timestamp;
+	short state;
 	boolean estop;
 	double current[8];
 };

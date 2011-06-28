@@ -36,6 +36,7 @@ namespace subjugator
 				new boost::asio::deadline_timer(
 					io, boost::posix_time::milliseconds(mMilliseconds)));
 
+			shutdown = false;
 			// When calling bind on a member function, the object to operate on is prepended as an argument, hence the this
 			mRateTimer->async_wait(boost::bind(&Worker::work, this, boost::asio::placeholders::error));
 	  }
@@ -79,7 +80,7 @@ namespace subjugator
 
   protected:
 	  StateManager mStateManager;
-
+	  bool shutdown;
 	  // The signal that is used to publish to the listeners
 	  emittingsignal_t onEmitting;
 
@@ -124,8 +125,11 @@ namespace subjugator
 			mStateManager.Execute();
 
 			// Setup to expire again - 1 shot timer hacks
-			mRateTimer->expires_at(mRateTimer->expires_at() + boost::posix_time::milliseconds(mMilliseconds));
-			mRateTimer->async_wait(boost::bind(&Worker::work, this, boost::asio::placeholders::error));
+			if(!shutdown)
+			{
+				mRateTimer->expires_at(mRateTimer->expires_at() + boost::posix_time::milliseconds(mMilliseconds));
+				mRateTimer->async_wait(boost::bind(&Worker::work, this, boost::asio::placeholders::error));
+			}
 	  }
   };
 }
