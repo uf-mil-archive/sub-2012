@@ -14,7 +14,7 @@ namespace subjugator
 		typedef Matrix<double, 6, 1> Vector6D;
 	public:
 		ThrusterManager(boost::shared_ptr<SubHAL> h);
-		ThrusterManager(boost::shared_ptr<SubHAL> h, std::string fileName);
+		//ThrusterManager(boost::shared_ptr<SubHAL> h, std::string fileName); // some day config files (maybe seperate config struct?)
 
 		void addThruster(const Thruster& t);
 		void RebuildMapper();

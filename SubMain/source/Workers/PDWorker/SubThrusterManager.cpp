@@ -6,25 +6,16 @@ using namespace Eigen;
 ThrusterManager::ThrusterManager(boost::shared_ptr<SubHAL> h)
 	:mHal(h)
 {
-}
+	addThruster(Thruster(30, 20, *h, Vector3d(0, 0, 1),  Vector3d( 11.7103,  5.3754, -1.9677))); // FRV
+	addThruster(Thruster(31, 20, *h, Vector3d(0, 0, 1),  Vector3d( 11.7125, -5.3754, -1.9677))); // FLV
+	addThruster(Thruster(32, 20, *h, Vector3d(0, -1, 0), Vector3d( 22.3004,  1.8020,  1.9190))); // FS
+	addThruster(Thruster(33, 20, *h, Vector3d(0, 0, 1),  Vector3d(-11.7125, -5.3754, -1.9677))); // RLV
+	addThruster(Thruster(34, 20, *h, Vector3d(1, 0, 0),  Vector3d(-24.9072, -4.5375, -2.4285))); // LFOR
+	addThruster(Thruster(35, 20, *h, Vector3d(1, 0, 0),  Vector3d(-24.9072,  4.5375, -2.4285))); // RFOR
+	addThruster(Thruster(36, 20, *h, Vector3d(0, 1, 0),  Vector3d(-20.8004, -1.8020,  2.0440))); // RS
+	addThruster(Thruster(37, 20, *h, Vector3d(0, 0, 1),  Vector3d(-11.7147,  5.3754, -1.9677))); // RRV
 
-ThrusterManager::ThrusterManager(boost::shared_ptr<SubHAL> h, std::string fileName)
-	:mHal(h)
-{
-/*	// Deserialize the file into thrusters
-	boost::scoped_ptr<std::ifstream> file(new ifstream(fileName.c_str()));
-
-	while(!file->eof())
-	{
-		std::string line; // get a line
-		getline(in, line);
-
-
-	}
-
-	file->close();
-
-	RebuildMapper(originToCOM);*/
+	RebuildMapper();
 }
 
 void ThrusterManager::addThruster(const Thruster& t)
@@ -40,7 +31,6 @@ void ThrusterManager::SetOriginToCOM(Vector3d pCom)
 // Call this after you call addthruster to correctly build the mapper back up
 void ThrusterManager::RebuildMapper()
 {
-	mThrusterMapper.reset();
 	mThrusterMapper = std::auto_ptr<ThrusterMapper>(new ThrusterMapper(mOriginToCOM, mThrusters));
 }
 
@@ -52,3 +42,4 @@ void ThrusterManager::ImplementScrew(const Vector6D& screw)
 		mThrusters[i].SetEffort(res(i));
 	}
 }
+

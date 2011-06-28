@@ -1,5 +1,8 @@
 #include <ndds/ndds_cpp.h>
+#include "DDSMessages/PDStatusMessage.h"
+#include "DDSMessages/PDStatusMessageSupport.h"
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
+#include "DDSListeners/PDDDSListener.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -23,10 +26,10 @@ int main(int argc, char **argv)
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
 
-	//if (IMUMessageTypeSupport::register_type(participant, IMUMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-		//throw runtime_error("Failed to register type");
+	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
 
-	//IMUDDSListener ddsListener(worker, participant);
+	PDDDSListener ddsListener(worker, participant);
 
 	// Start the worker
 	io.run();
