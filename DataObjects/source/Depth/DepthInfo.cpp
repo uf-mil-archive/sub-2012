@@ -8,6 +8,9 @@ using namespace std;
 
 DepthInfo::DepthInfo() { }
 
+DepthInfo::DepthInfo(boost::uint64_t timestamp, int tickcount, int flags, double depth, double thermistertemp, double humidity, double humiditysensortemp)
+: timestamp(timestamp), tickcount(tickcount), flags(flags), depth(depth), thermistertemp(thermistertemp), humidity(humidity), humiditysensortemp(humiditysensortemp) { }
+
 DepthInfo::DepthInfo(ByteVec::const_iterator i, ByteVec::const_iterator end) {
 	assert(end - i == Length);
 
