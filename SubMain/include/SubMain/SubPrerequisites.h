@@ -24,6 +24,8 @@
 #include <boost/signals2.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/scoped_ptr.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 
 #endif // SubPrerequisites_H__

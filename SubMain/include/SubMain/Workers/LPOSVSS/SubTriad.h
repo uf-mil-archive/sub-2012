@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include <SubMain/SubPrerequisites.h>
 
 using namespace Eigen;
 
@@ -13,10 +14,14 @@ namespace subjugator
 	public:
 		Triad(const Vector4d& q, const Vector3d& v1_NED, const Vector3d& v2_NED);
 
-		Vector4d Update(const Vector3d& v1_BOD, const Vector3d& v2_BOD);
+		void Update(const Vector3d& v1_BOD, const Vector3d& v2_BOD);
 
+		Vector4d getQuaternion()
+		{
+			return quaternion;
+		}
 	private:
-		Vector4d Quaternion;
+		Vector4d quaternion;
 		Matrix3d R_NED_T;
 	};
 }
