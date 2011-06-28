@@ -12,7 +12,7 @@ namespace subjugator
 		ThrusterCurrentCorrector(int address, const double coeffX[], const double coeffY[],const double coeffZ[]);
 
 		Eigen::Vector3d CalculateDynamicMagCorrection(double current) const;
-		static Eigen::Vector3d CalculateTotalCorrection(const std::vector<ThrusterCurrentCorrector>& tList, double currents[]);
+		static Eigen::Vector3d CalculateTotalCorrection(const std::vector<ThrusterCurrentCorrector>& tList, const std::vector<double>& currents);
 	private:
 		double coeffX[4];
 		double coeffY[4];

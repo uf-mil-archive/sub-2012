@@ -6,6 +6,7 @@
 #include "DataObjects/DVL/DVLHighresBottomTrack.h"
 #include "DataObjects/IMU/IMUInfo.h"
 #include "DataObjects/Depth/DepthInfo.h"
+#include "DataObjects/PDWorkerInfo.h"
 #include "SubMain/Workers/LPOSVSS/SubTriad.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
@@ -31,6 +32,7 @@ namespace subjugator
 		void Update(std::auto_ptr<IMUInfo> info);
 		void Update(std::auto_ptr<DepthInfo> info);
 		void Update(std::auto_ptr<DVLHighresBottomTrack> info);
+		void UpdateCurrents(std::auto_ptr<PDWorkerInfo> info);
 
 		void Shutdown();
 		void TarePosition(const Vector3d& position);
@@ -68,6 +70,7 @@ namespace subjugator
 		Matrix<double, 13, 13>covariance;
 
 		std::vector<ThrusterCurrentCorrector> thrusterCurrentCorrectors;
+		std::vector<double> thrusterCurrents;
 
 		Vector4d q_MagCorrectionInverse;
 
@@ -94,6 +97,7 @@ namespace subjugator
 
 		boost::shared_mutex kLock;
 		boost::mutex tareLock;
+		boost::mutex currentLock;
 
 		bool shutdown;
 

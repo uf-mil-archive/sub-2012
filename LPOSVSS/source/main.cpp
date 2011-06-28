@@ -1,7 +1,9 @@
 #include <ndds/ndds_cpp.h>
-#include "SubMain/Workers/LPOSVSS/SubNavigationComputer.h"
+#include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
+#include "DataObjects/Depth/DepthInfo.h"
 
 #include <boost/scoped_ptr.hpp>
+#include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
 #include <iostream>
@@ -43,8 +45,33 @@ int main(int argc, char **argv)
 			att_sigma);
 
 */
+
 	boost::asio::io_service io;
-	NavigationComputer nav(io);
+
+	// We need a worker
+	LPOSVSSWorker worker(io, 50);
+	if(!worker.Startup())
+		throw new runtime_error("Failed to start LPOSVSS Worker!");
+
+	boost::weak_ptr<InputToken> token = worker.ConnectToCommand((int)LPOSVSSWorkerCommands::SetDepth, 1);
+
+	boost::thread iothread(bind(&boost::asio::io_service::run, &io)); // and start the io_service in its own thread
+	DepthInfo info;
+
+	while(worker.getState() != SubStates::READY)
+	{
+		if(boost::shared_ptr<InputToken> temp = token.lock())
+		{
+			temp->Operate(info);
+		}
+		else
+		{
+			cout << "Lost token" << endl;
+		}
+	}
+
+	iothread.join();
+
 	return 0;
 
 /*	boost::asio::io_service io;

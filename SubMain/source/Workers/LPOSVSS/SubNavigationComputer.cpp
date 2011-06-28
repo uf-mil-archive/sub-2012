@@ -215,11 +215,15 @@ void NavigationComputer::Update(std::auto_ptr<IMUInfo> info)
 	// The INS has the rotation info already, so just push the packet through
 	ins->Update(info);
 
+	currentLock.lock();
+
 	// TODO thruster current correctors go here
-	double deleteme[8];
+	std::vector<double> deleteme;
 	// Dynamic correction of the mag data
 	Vector3d tempMag = info->getMagneticField() -
 			ThrusterCurrentCorrector::CalculateTotalCorrection(thrusterCurrentCorrectors, deleteme/*thrusterCurrents*/);
+
+	currentLock.unlock();
 
 	boost::shared_ptr<INSData> insdata = ins->GetData();
 	// We just do a very basic average over the last 10 samples (reduces to 20Hz)
@@ -311,6 +315,15 @@ void NavigationComputer::Update(std::auto_ptr<DVLHighresBottomTrack> info)
 	velRefAvailable = true;
 
 	kLock.unlock_shared();
+}
+
+void NavigationComputer::UpdateCurrents(std::auto_ptr<PDWorkerInfo> info)
+{
+	currentLock.lock();
+	// TODO check this
+	thrusterCurrents = info->getCurrents();
+
+	currentLock.unlock();
 }
 
 void NavigationComputer::fakeDVL(const boost::system::error_code& /*e*/)
