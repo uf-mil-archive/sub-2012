@@ -17,10 +17,10 @@ namespace subjugator {
 				timestamp(timestamp), bottomvel(velocity), bottomvelerror(velerror), good(good){}
 			static DVLHighresBottomTrack *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
-			const Eigen::Vector3d &getVelocity() { return bottomvel; }
-			double getVelocityI(int i) { return bottomvel(i); }
-			double getVelocityError() { return bottomvelerror; }
-			boost::uint64_t getTimestamp() { return timestamp; }
+			const Eigen::Vector3d &getVelocity() const { return bottomvel; }
+			double getVelocityI(int i) const { return bottomvel(i); }
+			double getVelocityError() const { return bottomvelerror; }
+			boost::uint64_t getTimestamp() const { return timestamp; }
 			bool isGood() const { return good; }
 
 		private:

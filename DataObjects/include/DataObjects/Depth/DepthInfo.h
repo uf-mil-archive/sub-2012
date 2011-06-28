@@ -17,7 +17,7 @@ namespace subjugator {
 			static const int Length = 11;
 
 			int getTickCount() const { return tickcount; }
-			long long int getTimestamp()	{ return timestamp; }
+			long long int getTimestamp() const { return timestamp; }
 			double getDepth() const { return depth; }
 			double getThermisterTemp() const { return thermistertemp; }
 			double getHumidity() const { return humidity; }

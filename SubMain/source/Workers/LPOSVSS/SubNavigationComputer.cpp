@@ -16,9 +16,49 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 	covariance(0,0) *= .01;
 	covariance.block<3,3>(2,2) = 10*covariance.block<3,3>(2,2);
 
-	// TODO Thruster corrector list
 	referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, initialPosition(2));
-	//thrusterCurrentCorrectors.push_back(ThrusterCurrentCorrector());
+
+
+	// Build thruster current correctors -
+	double t0X[] = {0.0,0.0,0.0,0.0};double t0Y[] = {0.0,0.0,0.0,0.0};double t0Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t0(0, t0X, t0Y,t0Z);
+	thrusterCurrentCorrectors.push_back(t0);
+	thrusterCurrents.push_back(0.0);
+
+	double t1X[] = {0.0,0.0,0.0,0.0};double t1Y[] = {0.0,0.0,0.0,0.0};double t1Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t1(0, t1X, t1Y,t1Z);
+	thrusterCurrentCorrectors.push_back(t1);
+	thrusterCurrents.push_back(0.0);
+
+	double t2X[] = {0.0,0.0,0.0,0.0};double t2Y[] = {0.0,0.0,0.0,0.0};double t2Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t2(0, t2X, t2Y,t2Z);
+	thrusterCurrentCorrectors.push_back(t2);
+	thrusterCurrents.push_back(0.0);
+
+	double t3X[] = {0.0,0.0,0.0,0.0};double t3Y[] = {0.0,0.0,0.0,0.0};double t3Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t3(0, t3X, t3Y,t3Z);
+	thrusterCurrentCorrectors.push_back(t3);
+	thrusterCurrents.push_back(0.0);
+
+	double t4X[] = {0.0,0.0,0.0,0.0};double t4Y[] = {0.0,0.0,0.0,0.0};double t4Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t4(0, t4X, t4Y,t4Z);
+	thrusterCurrentCorrectors.push_back(t4);
+	thrusterCurrents.push_back(0.0);
+
+	double t5X[] = {0.0,0.0,0.0,0.0};double t5Y[] = {0.0,0.0,0.0,0.0};double t5Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t5(0, t5X, t5Y,t5Z);
+	thrusterCurrentCorrectors.push_back(t5);
+	thrusterCurrents.push_back(0.0);
+
+	double t6X[] = {0.0,0.0,0.0,0.0};double t6Y[] = {0.0,0.0,0.0,0.0};double t6Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t6(0, t6X, t6Y,t6Z);
+	thrusterCurrentCorrectors.push_back(t6);
+	thrusterCurrents.push_back(0.0);
+
+	double t7X[] = {0.0,0.0,0.0,0.0};double t7Y[] = {0.0,0.0,0.0,0.0};double t7Z[] = {0.0,0.0,0.0,0.0};
+	ThrusterCurrentCorrector t7(0, t7X, t7Y,t7Z);
+	thrusterCurrentCorrectors.push_back(t7);
+	thrusterCurrents.push_back(0.0);
 
 	acceptable_gravity_mag = referenceGravityVector.norm() * 1.02;
 
@@ -208,20 +248,22 @@ void NavigationComputer::GetNavInfo()
 
 }
 
-void NavigationComputer::Update(std::auto_ptr<IMUInfo> info)
+void NavigationComputer::UpdateIMU(const DataObject& dobj)
 {
 	static int count = 0;
 
+	const IMUInfo *info = dynamic_cast<const IMUInfo *>(&dobj);
+	if(!info)
+		return;
+
 	// The INS has the rotation info already, so just push the packet through
-	ins->Update(info);
+	ins->Update(*info);
 
 	currentLock.lock();
 
-	// TODO thruster current correctors go here
-	std::vector<double> deleteme;
 	// Dynamic correction of the mag data
 	Vector3d tempMag = info->getMagneticField() -
-			ThrusterCurrentCorrector::CalculateTotalCorrection(thrusterCurrentCorrectors, deleteme/*thrusterCurrents*/);
+			ThrusterCurrentCorrector::CalculateTotalCorrection(thrusterCurrentCorrectors, thrusterCurrents);
 
 	currentLock.unlock();
 
@@ -272,8 +314,12 @@ void NavigationComputer::Update(std::auto_ptr<IMUInfo> info)
 	kLock.unlock_shared();
 }
 
-void NavigationComputer::Update(std::auto_ptr<DepthInfo> info)
+void NavigationComputer::UpdateDepth(const DataObject& dobj)
 {
+	const DepthInfo *info = dynamic_cast<const DepthInfo *>(&dobj);
+	if(!info)
+		return;
+
 	// The depth inside the packet is given in NED, we simply
 	// subtract the tare value
 	tareLock.lock();
@@ -292,8 +338,12 @@ void NavigationComputer::Update(std::auto_ptr<DepthInfo> info)
 	kLock.unlock_shared();
 }
 
-void NavigationComputer::Update(std::auto_ptr<DVLHighresBottomTrack> info)
+void NavigationComputer::UpdateDVL(const DataObject& dobj)
 {
+	const DVLHighresBottomTrack *info = dynamic_cast<const DVLHighresBottomTrack *>(&dobj);
+	if(!info)
+		return;
+
     // DVL data is expected in the NED down frame by the error measurement
     // for the Kalman filter. It comes in the DVL frame, which needs to be rotated
     // to the sub frame, and then transformed by the current best quaternion estimate
@@ -317,10 +367,14 @@ void NavigationComputer::Update(std::auto_ptr<DVLHighresBottomTrack> info)
 	kLock.unlock_shared();
 }
 
-void NavigationComputer::UpdateCurrents(std::auto_ptr<PDWorkerInfo> info)
+void NavigationComputer::UpdateCurrents(const DataObject& dobj)
 {
+	const PDInfo *info = dynamic_cast<const PDInfo *>(&dobj);
+	if(!info)
+		return
+
 	currentLock.lock();
-	// TODO check this
+
 	thrusterCurrents = info->getCurrents();
 
 	currentLock.unlock();
@@ -328,10 +382,9 @@ void NavigationComputer::UpdateCurrents(std::auto_ptr<PDWorkerInfo> info)
 
 void NavigationComputer::fakeDVL(const boost::system::error_code& /*e*/)
 {
-	std::auto_ptr<DVLHighresBottomTrack> info = std::auto_ptr<DVLHighresBottomTrack>(
-			new DVLHighresBottomTrack(getTimestamp(), Vector3d::Zero(), 0.0, true ));
+	DVLHighresBottomTrack info(getTimestamp(), Vector3d::Zero(), 0.0, true );
 
-	Update(info);
+	UpdateDVL(info);
 
 	// Setup to expire again - 1 shot timer hacks
 	if(!shutdown)
