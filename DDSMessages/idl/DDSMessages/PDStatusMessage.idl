@@ -1,0 +1,6 @@
+struct PDStatusMessage {
+	unsigned long long timestamp;
+	boolean kill;
+	double current[8];
+};
+

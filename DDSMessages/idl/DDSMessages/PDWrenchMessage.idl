@@ -1,4 +1,4 @@
-struct PrimitiveDriverWrench {
+struct PDWrenchMessage {
 	double linear[3];
 	double moment[3];
 };
