@@ -3,7 +3,7 @@
 
 #include "DDSMessages/DVLMessage.h"
 #include "DDSMessages/DVLMessageSupport.h"
-#include "SensorLogger/DDSReceiver.h"
+#include "DDSCommanders/DDSReceiver.h"
 #include <ndds/ndds_cpp.h>
 #include <boost/function.hpp>
 

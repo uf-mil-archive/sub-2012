@@ -11,6 +11,7 @@ namespace subjugator {
 	class DepthInfo : public DataObject {
 		public:
 			DepthInfo();
+			DepthInfo(boost::uint64_t timestamp, int tickcount, int flags, double depth, double thermistertemp, double humidity, double humiditysensortemp);
 			DepthInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 			DepthInfo(const DepthInfo &info);
 
@@ -24,7 +25,7 @@ namespace subjugator {
 			double getHumiditySensorTemp() const { return humiditysensortemp; }
 
 		private:
-			long long int timestamp;
+			boost::uint64_t timestamp;
 			int tickcount;
 			int flags;
 			double depth;
