@@ -25,7 +25,7 @@ Eigen::Vector3d ThrusterCurrentCorrector::CalculateDynamicMagCorrection(double c
 	return res;
 }
 
-Eigen::Vector3d ThrusterCurrentCorrector::CalculateTotalCorrection(const std::vector<ThrusterCurrentCorrector>& tList, double currents[])
+Eigen::Vector3d ThrusterCurrentCorrector::CalculateTotalCorrection(const std::vector<ThrusterCurrentCorrector>& tList,const std::vector<double>& currents)
 {
 	Eigen::Vector3d res = Eigen::Vector3d::Zero();
 	for(size_t i = 0; i < tList.size(); i++)

@@ -6,6 +6,7 @@
 #include "DataObjects/DVL/DVLHighresBottomTrack.h"
 #include "DataObjects/IMU/IMUInfo.h"
 #include "DataObjects/Depth/DepthInfo.h"
+#include "DataObjects/PD/PDInfo.h"
 #include "SubMain/Workers/LPOSVSS/SubTriad.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
@@ -28,9 +29,10 @@ namespace subjugator
 		NavigationComputer(boost::asio::io_service& io);
 		void Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLHighresBottomTrack> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL);
 		bool getInitialized() { return initialized; }
-		void Update(std::auto_ptr<IMUInfo> info);
-		void Update(std::auto_ptr<DepthInfo> info);
-		void Update(std::auto_ptr<DVLHighresBottomTrack> info);
+		void UpdateIMU(const DataObject& dobj);
+		void UpdateDepth(const DataObject& dobj);
+		void UpdateDVL(const DataObject& dobj);
+		void UpdateCurrents(const DataObject& dobj);
 
 		void Shutdown();
 		void TarePosition(const Vector3d& position);
@@ -68,6 +70,7 @@ namespace subjugator
 		Matrix<double, 13, 13>covariance;
 
 		std::vector<ThrusterCurrentCorrector> thrusterCurrentCorrectors;
+		std::vector<double> thrusterCurrents;
 
 		Vector4d q_MagCorrectionInverse;
 
@@ -94,6 +97,7 @@ namespace subjugator
 
 		boost::shared_mutex kLock;
 		boost::mutex tareLock;
+		boost::mutex currentLock;
 
 		bool shutdown;
 

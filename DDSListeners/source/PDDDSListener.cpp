@@ -1,5 +1,5 @@
 #include "DDSListeners/PDDDSListener.h"
-#include "DataObjects/PD/PDStatus.h"
+#include "DataObjects/PD/PDInfo.h"
 
 using namespace subjugator;
 
@@ -9,7 +9,7 @@ PDDDSListener::PDDDSListener(Worker &worker, DDSDomainParticipant *part)
 void PDDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {
 	// Cast the data object into its real type
-	PDStatus *status = dynamic_cast<PDStatus *>(dobj.get());
+	PDInfo *status = dynamic_cast<PDInfo *>(dobj.get());
 	if(!status)
 		return;
 
@@ -18,7 +18,7 @@ void PDDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 
 	for(int i=0; i<8; i++)
 		msg->current[i] = status->getCurrent(i);
-	msg->kill = status->getKill();
+	msg->estop = status->getESTOP();
 
 	ddssender.Send(*msg);
 	PDStatusMessageTypeSupport::delete_data(msg);

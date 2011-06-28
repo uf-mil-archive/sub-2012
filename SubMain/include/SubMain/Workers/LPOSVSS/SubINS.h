@@ -45,7 +45,7 @@ namespace subjugator
 			Vector3d v_prev, Vector3d g, Vector4d q_prev, Vector3d w_bias, Vector3d a_bias,
 			Vector4d q_SUB_IMU, boost::uint64_t imuTime);
 
-		void Update(const std::auto_ptr<IMUInfo> info);
+		void Update(const IMUInfo& info);
 		void Reset(const KalmanData& kData, bool tare, const Vector3d& tarePosition);
 		boost::shared_ptr<INSData> GetData()
 		{

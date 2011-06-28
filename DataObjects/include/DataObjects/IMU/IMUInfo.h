@@ -24,16 +24,16 @@ namespace subjugator
 
 			static IMUInfo *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
-			boost::uint64_t getTimestamp()	{ return timestamp; }
-			double getTemperature() { return temperature; }
-			double getSupplyVoltage() { return supplyVoltage; }
-			double getAngularRateI(int i){ return ang_rate(i); }
-			double getAccelerationI(int i){ return acceleration(i); }
-			double getMagneticFieldI(int i){ return mag_field(i); }
-			const Eigen::Vector3d &getAcceleration() { return acceleration; }
-			const Eigen::Vector3d &getAngularRate(){ return ang_rate; }
-			const Eigen::Vector3d &getMagneticField(){ return mag_field; }
-			boost::uint16_t getFlags()	{ return flags;	}
+			boost::uint64_t getTimestamp()const { return timestamp; }
+			double getTemperature() const { return temperature; }
+			double getSupplyVoltage() const { return supplyVoltage; }
+			double getAngularRateI(int i) const { return ang_rate(i); }
+			double getAccelerationI(int i) const { return acceleration(i); }
+			double getMagneticFieldI(int i) const { return mag_field(i); }
+			const Eigen::Vector3d &getAcceleration() const{ return acceleration; }
+			const Eigen::Vector3d &getAngularRate() const { return ang_rate; }
+			const Eigen::Vector3d &getMagneticField()const { return mag_field; }
+			boost::uint16_t getFlags()	const { return flags;	}
 
 		private:
 			// These conversions change the bit values in the registers to useful units
