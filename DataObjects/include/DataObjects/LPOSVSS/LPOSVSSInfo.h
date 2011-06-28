@@ -23,7 +23,7 @@ namespace subjugator {
 			inline boost::int64_t getTimestamp() const { return timestamp; }
 			inline int getState(){ return state; }
 			const Vector3d &getPosition_NED() const { return position_NED; }
-			const Vector4d &getQaut_NED_B() const { return quaternion_NED_B; }
+			const Vector4d &getQuat_NED_B() const { return quaternion_NED_B; }
 			const Vector3d &getVelocity_NED() const { return velocity_NED; }
 			const Vector3d &getAngularRate_BODY() const { return angularRate_BODY; }
 			const Vector3d &getAcceleration_BODY() const { return acceleration_BODY; }
