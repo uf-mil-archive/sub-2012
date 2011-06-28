@@ -1,5 +1,6 @@
 #include <ndds/ndds_cpp.h>
 #include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
+#include "DDSCommanders/LPOSVSSDDSCommander.h"
 #include "DataObjects/Depth/DepthInfo.h"
 
 #include <boost/scoped_ptr.hpp>
@@ -29,6 +30,8 @@ int main(int argc, char **argv)
 	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
+
+	LPOSVSSDDSCommander commander(worker, participant);
 
 	//if (IMUMessageTypeSupport::register_type(participant, IMUMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		//throw runtime_error("Failed to register type");
