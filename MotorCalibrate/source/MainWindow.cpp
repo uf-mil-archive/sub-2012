@@ -30,6 +30,7 @@ MainWindow::MainWindow(int haladdr)
 	connect(&motorcontroller, SIGNAL(newBangReference(double)), this, SLOT(onNewBangReference(double)));
 	connect(&motorcontroller, SIGNAL(rampComplete()), this, SLOT(onRampComplete()));
 	connect(&logger, SIGNAL(onNewForce(double)), this, SLOT(onNewForce(double)));
+	connect(&imu, SIGNAL(onNewMessage()), this, SLOT(onNewIMU()));
 }
 
 void MainWindow::onNewMotorInfo() {
@@ -134,4 +135,12 @@ void MainWindow::onStopLogButtonClicked() {
 void MainWindow::onNewBangReference(double reference) {
 	ui.bangReferenceLabel->setText(QString::number(reference*100, 'f', 2));
 }
+
+void MainWindow::onNewIMU() {
+	const IMUMessage &msg = imu.getMessage();
+	ui.magXLabel->setText(QString::number(msg.mag_field[0], 'f', 4));
+	ui.magYLabel->setText(QString::number(msg.mag_field[1], 'f', 4));
+	ui.magZLabel->setText(QString::number(msg.mag_field[2], 'f', 4));
+}
+
 

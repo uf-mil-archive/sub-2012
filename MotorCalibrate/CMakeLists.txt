@@ -1,3 +1,3 @@
-sub_executable(MotorCalibrate Qt)
-sub_reference_library(MotorCalibrate HAL DataObjects)
+sub_executable(MotorCalibrate Qt DDS)
+sub_reference_library(MotorCalibrate HAL DataObjects DDSCommanders)
 

@@ -3,6 +3,7 @@
 
 #include "MotorCalibrate/MotorDriverController.h"
 #include "MotorCalibrate/LoggerController.h"
+#include "MotorCalibrate/IMUSensor.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
 #include <QMainWindow>
 #include "ui_mainwindow.h"
@@ -30,10 +31,12 @@ namespace subjugator {
 			void onRampComplete();
 			void onNewBangReference(double reference);
 			void onNewForce(double force);
+			void onNewIMU();
 
 		private:
 			MotorDriverController motorcontroller;
 			LoggerController logger;
+			IMUSensor imu;
 
 			Ui::MainWindow ui;
 	};
