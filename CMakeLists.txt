@@ -42,17 +42,19 @@ endif()
 
 #find OPENCV not required
 find_package(OpenCV)
-if(OpenCV_FOUND)
-#	add_subdirectory(Vision)
-else()
+if(NOT OpenCV_FOUND)
 	message("OpenCV not found! No projects depending on OpenCV will be built")
+endif()
+
+find_package(FlyCapture)
+if(NOT FLYCAPTURE_FOUND)
+	message("FlyCapture not found! No projects depending on FlyCapture will be built")
 endif()
 
 # Turn on warnings
 add_definitions(-Wall)
 
 # Handle build types
-
 set(SUB_BUILD_TYPE all CACHE STRING "The set of programs to build. all, sub, or gumstix")
 
 if(${SUB_BUILD_TYPE} STREQUAL "sub")
@@ -80,8 +82,9 @@ endif()
 
 if(BUILD_SUB)
 add_subdirectory(Hydrophone)
-	if(OPENCV_FOUND)
-	#put in vision projects here
+	if(OpenCV_FOUND AND FLYCAPTURE_FOUND)
+	add_subdirectory(Vision)
+	add_subdirectory(VisionTest)
 	endif()
 	if(QT_FOUND)
 	add_subdirectory(MotorCalibrate)

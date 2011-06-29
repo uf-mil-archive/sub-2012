@@ -1,0 +1,68 @@
+#include "HedgeFinder.h"
+
+HedgeFinder::HedgeFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+{
+	this->oIDs = objectIDs;
+	this->n = normalizer;
+	this->t = thresholder;
+	result = 0;
+}
+
+HedgeFinder::~HedgeFinder(void)
+{
+	delete n;
+	delete t;
+}
+
+vector<FinderResult*> HedgeFinder::find(IOImages* ioimages)
+{
+	vector<FinderResult*> resultVector;
+	// call to normalizer here
+	n->norm(ioimages);
+
+	for(unsigned int i=0; i<oIDs.size(); i++)
+	{
+		// call to thresholder here
+		t->thresh(ioimages,oIDs[i]);
+
+		// call to specific member function here
+		Line* line = new Line(2);	
+		result = line->findLines(ioimages);
+		line->drawResult(ioimages,oIDs[i]);
+	
+		// Prepare results
+		FinderResult2D *fResult2D = new FinderResult2D();
+		if(result)
+		{
+			if(line->avgLines[0].populated && line->avgLines[1].populated)
+			{
+				Point driveToCenter;
+				// cycle through both lines to find the center point
+				for(unsigned int j=0; j<line->avgLines.size(); j++)
+				{
+					if(line->avgLines[j].angle < 120*(3.1415/180) && line->avgLines[j].angle > 60*(3.1415/180)
+						|| line->avgLines[j].angle > -120*(3.1415/180) && line->avgLines[j].angle < -60*(3.1415/180))
+					{
+						driveToCenter.x = line->avgLines[j].centroid.x;
+					}
+					else
+						driveToCenter.y = line->avgLines[j].centroid.y;
+				}
+				circle(ioimages->prcd,driveToCenter,10,Scalar(100,0,255),4);
+				circle(ioimages->prcd,driveToCenter,5,Scalar(0,150,0),-1);
+				fResult2D->objectID = MIL_OBJECTID_GATE_HEDGE;
+				fResult2D->u = driveToCenter.x;
+				fResult2D->v = driveToCenter.y;
+				resultVector.push_back(fResult2D);
+			}				
+		}
+		else
+		{
+			fResult2D->objectID = MIL_OBJECTID_NO_OBJECT;
+			resultVector.push_back(fResult2D);
+		}
+		// clean up the line!
+		delete line;
+	}
+	return resultVector;
+}
