@@ -4,6 +4,7 @@
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <iostream>
 #include <QFileDialog>
+#include <sstream>
 
 using namespace subjugator;
 using namespace std;
@@ -35,6 +36,10 @@ MainWindow::MainWindow(int haladdr)
 	connect(ui.stopMagLogButton, SIGNAL(clicked()), this, SLOT(onStopMagLogButtonClicked()));
 	connect(ui.magBrowseButton, SIGNAL(clicked()), this, SLOT(onMagBrowseButtonClicked()));
 	connect(&imulogger, SIGNAL(onNewMessage()), this, SLOT(onNewIMU()));
+
+	stringstream buf;
+	buf << "Motor calibrate on address " << haladdr;
+	setWindowTitle(QString(buf.str().c_str()));
 }
 
 void MainWindow::onNewMotorInfo() {
