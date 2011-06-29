@@ -2,16 +2,22 @@
 #define MOTORCALIBRATE_IMUSENSOR_H
 
 #include "DDSCommanders/IMUDDSReceiver.h"
+#include "MotorCalibrate/MotorDriverController.h"
 #include <QObject>
+#include <fstream>
 
 namespace subjugator {
-	class IMUSensor : public QObject {
+	class IMUSensorLogger : public QObject {
 		Q_OBJECT
 
 		public:
-			IMUSensor();
+			IMUSensorLogger(MotorDriverController &motorcontroller);
 
 			const IMUMessage &getMessage() const { return msg; }
+
+		public slots:
+			void start(const std::string &filename);
+			void stop();
 
 		signals:
 			void onNewMessage();
@@ -27,9 +33,12 @@ namespace subjugator {
 					DDSDomainParticipant *participant;
 			};
 
+			MotorDriverController &motorcontroller;
 			DDSHelper dds;
 			IMUDDSReceiver imureceiver;
 			IMUMessage msg;
+			std::ofstream logstream;
+			bool logging;
 	};
 }
 
