@@ -103,10 +103,11 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 	tempMag = MILQuaternionOps::QuatRotate(q_MagCorrectionInverse, tempMag);
 	tempMag = MILQuaternionOps::QuatRotate(q_SUB_IMU, tempMag);
 
-	// Triad normalizes the vectors passed in so magnitude doesn't matter.
+	// Triad normalizes the vectors passed in so magnitude doesn't matter. - pay attention to the adis. Double -1's yield the raw again...
 	Vector3d a_prev = referenceGravityVector.norm()*MILQuaternionOps::QuatRotate(q_SUB_IMU, imuInfo->getAcceleration());
 	triad->Update(a_prev, tempMag);
 
+	a_prev*=-1.0; // The ins needs the correct right hand coordinate frame acceleration
 
 	//INS initialization
 	ins = std::auto_ptr<INS>(
@@ -253,7 +254,7 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 	Vector3d r_O_N_NED = MILQuaternionOps::QuatRotate(info.quaternion_NED_B, r_ORIGIN_NAV);
 	info.position_NED = (insdata->Position_NED - kdata->PositionErrorEst) - r_O_N_NED;
 	info.velocity_NED = (insdata->Velocity_NED - kdata->VelocityError) - info.angularRate_BODY.cross(r_O_N_NED);
-	info.acceleration_BODY = insdata->Acceleration_BODY - kdata->Acceleration_bias +
+	info.acceleration_BODY = insdata->Acceleration_BODY - kdata->Acceleration_bias -
 			MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), referenceGravityVector);
 
 	//cout << "INS V\n" << insdata->Velocity_NED << endl;
@@ -311,7 +312,7 @@ void NavigationComputer::UpdateIMU(const DataObject& dobj)
 
 	//cout << "tempmag\n" << tempMag << endl;
 
-	Vector3d bodyg = accSum / 20.0;
+	Vector3d bodyg = -1.0*accSum / 20.0;	// The INS data gives -ve gravity. This is so we get the proper direction of gravity
 
 	// Reset the sums
 	magSum = Vector3d::Zero();
