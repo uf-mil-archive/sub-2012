@@ -12,11 +12,11 @@ namespace subjugator
 	class Listener
 	{
 	public:
-		Listener(Worker &worker)
-		{
+		~Listener() { listenConnection.disconnect(); }
+
+		void connectWorker(Worker &worker) {
 			listenConnection = worker.ConnectToEmitting(boost::bind(&Listener::DataObjectEmitted, this, _1));
 		}
-		~Listener() { listenConnection.disconnect(); }
 
 	protected:
 		virtual void DataObjectEmitted(boost::shared_ptr<DataObject> obj) =0;

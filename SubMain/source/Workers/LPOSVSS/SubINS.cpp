@@ -1,4 +1,5 @@
 #include "SubMain/Workers/LPOSVSS/SubINS.h"
+#include <iostream>
 
 using namespace subjugator;
 using namespace std;
@@ -39,7 +40,7 @@ void INS::Update(const IMUInfo& info)
 {
 	// Validate the contents of the packet
     Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, info.getAngularRate());
-    Vector3d a_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, info.getAcceleration())*gMag;	// Convert the IMU to m/s^2
+    Vector3d a_body = -1.0*gMag*MILQuaternionOps::QuatRotate(q_SUB_IMU, info.getAcceleration());	// Convert the IMU to m/s^2 - ADIS wtf coordinate system
 
     // Update dt
     dt = (info.getTimestamp() - imuPreviousTime)*SECPERNANOSEC;
@@ -47,10 +48,14 @@ void INS::Update(const IMUInfo& info)
 
     //Protect the INS against the debugger and non monotonic time
     if((dt <= 0) || (dt > .050))
+    {
     	return;
+    }
 
     if(a_body.norm() > MAX_ACC_MAG)
+    {
     	return;
+    }
     if(w_body.norm() > MAX_ANG_RATE)
     	return;
 

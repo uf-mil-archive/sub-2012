@@ -6,13 +6,13 @@ namespace subjugator
 	{
 		mCurrentState = SubStates::UNKNOWN;
 		mPreviousState = SubStates::UNKNOWN;
-		mCallbackList.reserve(10);
+		mCallbackList.resize(10);
 	}
 
 	void StateManager::SetStateCallback(SubStates::StateCode state, std::string name, boost::function<void(void)> callback)
 	{
-		if((size_t)state > mCallbackList.capacity())
-			mCallbackList.resize(state);
+		if((size_t)state >= mCallbackList.capacity())
+			mCallbackList.resize(state + 1);
 
 		mCallbackList[state] = boost::shared_ptr<StateObject>(new StateObject(name, callback));
 	}

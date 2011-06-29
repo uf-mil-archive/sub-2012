@@ -14,17 +14,13 @@ namespace subjugator
 	{
 		public:
 			IMUWorker(boost::asio::io_service& io, int64_t rate);
-			~IMUWorker()
-			{
-				if(pEndpoint)
-					delete pEndpoint;
-			}
+			~IMUWorker(){}
 
 			bool Startup();
 
 		private:
 			SubHAL hal;
-			DataObjectEndpoint* pEndpoint;
+			std::auto_ptr<DataObjectEndpoint> pEndpoint;
 
 			void readyState();
 			void emergencyState();

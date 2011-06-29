@@ -1,22 +1,25 @@
 #include "SubMain/Workers/LPOSVSS/SubNavigationComputer.h"
 
 using namespace subjugator;
+using namespace std;
 
 NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 		io(io),
 		referenceNorthVector(24136.7,-2264.9,40603.4)/*gainesville*/, referenceGravityVector(0.0,0.0,1.0),
 		initialPosition(0.0,0.0,0.0), initialVelocity(0.0,0.0,0.0),
-		white_noise_sigma_f(0.0004,0.0004,0.0004), white_noise_sigma_w(3.5,3.5,3.5),
+		white_noise_sigma_f(0.0005,0.0005,0.0005), white_noise_sigma_w(0.05,0.05,0.05),
 		dvl_sigma(0.02, 0.02, 0.02), att_sigma(1.0,1.0,1.0),
 		q_SUB_DVL(1.0,0.0,0.0,0.0), q_SUB_IMU(1.0,0.0,0.0,0.0),
 		q_MagCorrection(1.0,0.0,0.0,0.0), magShift(0.0,0.0,0.0),
-		magScale(0.0,0.0,0.0)
+		magScale(1.0,1.0,1.0)
 {
 	covariance = 0.01*Matrix<double, 13, 13>::Identity();
 	covariance(0,0) *= .01;
 	covariance.block<3,3>(2,2) = 10*covariance.block<3,3>(2,2);
 
 	referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, initialPosition(2));
+
+	//cout << "grav " << referenceGravityVector << endl;
 
 	r_ORIGIN_NAV = Vector3d::Zero();
 
@@ -162,6 +165,7 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 
 	}
 
+	cout << "Kalman and INS Inited" << endl;
 	initialized = true;
 }
 
@@ -185,18 +189,18 @@ void NavigationComputer::updateKalman(const boost::system::error_code& e)
 	// Constant error kalman errors
 	if(attRefAvailable)
 	{
-		attRefAvailable = false;
+		//attRefAvailable = false;
 		Vector4d tempQuat = MILQuaternionOps::QuatMultiply(MILQuaternionOps::QuatInverse(attRef), insdata->Quaternion);
 		z.block<3,1>(4,0) = tempQuat.block<3,1>(1,0);
 	}
 	if(depthRefAvailable)
 	{
-		depthRefAvailable = false;
+		//depthRefAvailable = false;
 		z(0) = insdata->Position_NED(2) - depthRef;
 	}
 	if(velRefAvailable)
 	{
-		velRefAvailable = false;
+		//velRefAvailable = false;
 		z.block<3,1>(1,0) = insdata->Velocity_NED - velRef;
 	}
 	kLock.unlock();
@@ -251,6 +255,11 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 	info.velocity_NED = (insdata->Velocity_NED - kdata->VelocityError) - info.angularRate_BODY.cross(r_O_N_NED);
 	info.acceleration_BODY = insdata->Acceleration_BODY - kdata->Acceleration_bias +
 			MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), referenceGravityVector);
+
+	//cout << "INS V\n" << insdata->Velocity_NED << endl;
+/*	cout<<"RPY:" << endl;
+	cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;*/
+
 }
 
 void NavigationComputer::UpdateIMU(const DataObject& dobj)
@@ -282,7 +291,7 @@ void NavigationComputer::UpdateIMU(const DataObject& dobj)
 	if(count)	// Don't have enough samples yet
 		return;
 
-	tempMag = 0.1 * magSum;
+	tempMag = magSum / 20.0;
 
 	// Hard and soft correct the data - not dependent on current, so okay to do after average
 	tempMag += magShift;
@@ -300,7 +309,9 @@ void NavigationComputer::UpdateIMU(const DataObject& dobj)
 
 	boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
 
-	Vector3d bodyg = 0.1 * accSum;
+	//cout << "tempmag\n" << tempMag << endl;
+
+	Vector3d bodyg = accSum / 20.0;
 
 	// Reset the sums
 	magSum = Vector3d::Zero();

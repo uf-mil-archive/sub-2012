@@ -4,7 +4,7 @@
 using namespace subjugator;
 
 LPOSVSSDDSListener::LPOSVSSDDSListener(Worker &worker, DDSDomainParticipant *part)
-: Listener(worker), ddssender(part, "LPOSVSS") { }
+: ddssender(part, "LPOSVSS") { connectWorker(worker); }
 
 void LPOSVSSDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {
@@ -23,13 +23,13 @@ void LPOSVSSDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 		msg->quaternion_NED_B[i] = info->getQuat_NED_B()(i);
 
 	for (int i=0; i<3; i++)
-		msg->velocity_NED[3] = info->getVelocity_NED()(i);
+		msg->velocity_NED[i] = info->getVelocity_NED()(i);
 
 	for (int i=0; i<3; i++)
-		msg->angularRate_BODY[3] = info->getAngularRate_BODY()(i);
+		msg->angularRate_BODY[i] = info->getAngularRate_BODY()(i);
 
 	for (int i=0; i<3; i++)
-		msg->acceleration_BODY[3] = info->getAcceleration_BODY()(i);
+		msg->acceleration_BODY[i] = info->getAcceleration_BODY()(i);
 
 	ddssender.Send(*msg);
 	LPOSVSSMessageTypeSupport::delete_data(msg);

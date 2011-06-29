@@ -3,7 +3,7 @@
 using namespace subjugator;
 
 DepthDDSListener::DepthDDSListener(Worker &worker, DDSDomainParticipant *part)
-: Listener(worker), ddssender(part, "Depth") { }
+: ddssender(part, "Depth") { connectWorker(worker); }
 
 void DepthDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {

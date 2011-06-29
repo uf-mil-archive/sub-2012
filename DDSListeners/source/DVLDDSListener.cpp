@@ -3,7 +3,7 @@
 using namespace subjugator;
 
 DVLDDSListener::DVLDDSListener(Worker &worker, DDSDomainParticipant *part)
-: Listener(worker), ddssender(part, "DVL") { }
+: ddssender(part, "DVL") { connectWorker(worker); }
 
 void DVLDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {

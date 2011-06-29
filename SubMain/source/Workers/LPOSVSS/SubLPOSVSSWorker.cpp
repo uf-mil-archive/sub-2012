@@ -1,6 +1,7 @@
 #include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
 
 using namespace subjugator;
+using namespace std;
 
 LPOSVSSWorker::LPOSVSSWorker(boost::asio::io_service& io, int64_t rate, bool useDVL)
 	: Worker(io, rate), navComputer(new NavigationComputer(io)), useDVL(useDVL)
@@ -28,6 +29,7 @@ LPOSVSSWorker::LPOSVSSWorker(boost::asio::io_service& io, int64_t rate, bool use
 	setControlToken((int)LPOSVSSWorkerCommands::SetIMU, boost::bind(&LPOSVSSWorker::setIMU, this, _1));
 	setControlToken((int)LPOSVSSWorkerCommands::SetDVL, boost::bind(&LPOSVSSWorker::setDVL, this, _1));
 	setControlToken((int)LPOSVSSWorkerCommands::SetTare, boost::bind(&LPOSVSSWorker::setTare, this, _1));
+	setControlToken((int)LPOSVSSWorkerCommands::SetCurrents, boost::bind(&LPOSVSSWorker::setCurrents, this, _1));
 }
 
 /* DO NOT CHANGE CALLBACKS IN HANDLERS! DEADLOCK*/
@@ -43,6 +45,12 @@ void LPOSVSSWorker::setDepth(const DataObject& dobj)
 
 	lock.unlock();
 }
+
+void LPOSVSSWorker::setCurrents(const DataObject& dobj)
+{
+	return;
+}
+
 
 void LPOSVSSWorker::setIMU(const DataObject& dobj)
 {
@@ -87,11 +95,17 @@ void LPOSVSSWorker::initializeState()
 	lock.lock();
 
 	if(!imuInfo.get() || !depthInfo.get())
+	{
+		lock.unlock();
 		return;
+	}
 	if(useDVL)
 	{
 		if(!dvlInfo.get() || !dvlInfo->isGood())
+		{
+			lock.unlock();
 			return;
+		}
 	}
 
 	// Packets are present - go ahead and init

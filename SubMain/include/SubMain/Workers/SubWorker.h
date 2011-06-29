@@ -98,13 +98,10 @@ namespace subjugator
 
 	  void changeControlTokenCallback(int cmd, const boost::function<void (const DataObject &obj)> callback)
 	  {
-		  std::cout << "In change handler" << std::endl;
 		  mInputTokenList[cmd]->lock.lock();
-		  std::cout << "Got lock" << std::endl;
 
 		  mInputTokenList[cmd]->func = callback;
 		  mInputTokenList[cmd]->lock.unlock();
-		  std::cout << "changed handler" << std::endl;
 	  }
 
 	  void disconnect(int cmd)	// This can only get called by the owner of the cmd through the InputToken
