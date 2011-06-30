@@ -41,10 +41,23 @@ void UDPTransport::endpointOpened(UDPEndpoint *endpoint) {
 
 	error_code error;
 	socket.open(ip::udp::v4(), error); // open the UDP socket
+
+	if (error) {
+		setError("UDPTransport failed to open socket: " + error.message());
+		return;
+	}
+
 	socket.bind(ip::udp::endpoint(ip::udp::v4(), port), error);
 
 	if (error) {
-		setError("UDPTransport failed to open socket: " + error.message()); // TODO make errors appear on endpoints
+		setError("UDPTransport failed to bind socket: " + error.message());
+		return;
+	}
+
+	socket.set_option(socket_base::broadcast(true), error);
+
+	if (error) {
+		setError("UDPTransport failed to enable broadcast on socket: " + error.message());
 		return;
 	}
 
