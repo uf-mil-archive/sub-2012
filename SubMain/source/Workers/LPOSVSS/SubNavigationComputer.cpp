@@ -19,8 +19,6 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 
 	referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, initialPosition(2));
 
-	//cout << "grav " << referenceGravityVector << endl;
-
 	r_ORIGIN_NAV = Vector3d::Zero();
 
 	// Build thruster current correctors -
@@ -147,7 +145,7 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 	kalmanCount = 0;
 
 	// Now build up the kalman timer.
-	kTimerMs = 1000 / 50 /*Hz*/;
+	kTimerMs = 1000 / 100 /*Hz*/;
 	kTimer = std::auto_ptr<boost::asio::deadline_timer>(
 		new boost::asio::deadline_timer(io, boost::posix_time::milliseconds(kTimerMs)));
 
@@ -166,7 +164,6 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 
 	}
 
-	cout << "Kalman and INS Inited" << endl;
 	initialized = true;
 }
 
@@ -206,7 +203,7 @@ void NavigationComputer::updateKalman(const boost::system::error_code& e)
 	}
 	kLock.unlock();
 
-	kFilter->Update(z, insdata->Acceleration_BODY_RAW, insdata->Velocity_NED, insdata->Quaternion, getTimestamp());
+	kFilter->Update(z, -1*insdata->Acceleration_BODY_RAW, insdata->Velocity_NED, insdata->Quaternion, getTimestamp());
 
 	if(++kalmanCount >= 100)	// 2s reset time
 	{
@@ -254,12 +251,12 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 	Vector3d r_O_N_NED = MILQuaternionOps::QuatRotate(info.quaternion_NED_B, r_ORIGIN_NAV);
 	info.position_NED = (insdata->Position_NED - kdata->PositionErrorEst) - r_O_N_NED;
 	info.velocity_NED = (insdata->Velocity_NED - kdata->VelocityError) - info.angularRate_BODY.cross(r_O_N_NED);
-	info.acceleration_BODY = insdata->Acceleration_BODY - kdata->Acceleration_bias -
+	info.acceleration_BODY = insdata->Acceleration_BODY - kdata->Acceleration_bias +
 			MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), referenceGravityVector);
 
 	//cout << "INS V\n" << insdata->Velocity_NED << endl;
-/*	cout<<"RPY:" << endl;
-	cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;*/
+	//cout<<"RPY:" << endl;
+	//cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
 
 }
 
