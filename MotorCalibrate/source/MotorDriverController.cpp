@@ -12,11 +12,8 @@ using namespace boost::asio;
 using namespace boost;
 using namespace std;
 
-#define DEST_ADDR 108
-#define SOURCE_ADDR 112
-
 MotorDriverController::MotorDriverController(int motaddr)
-: endpoint(hal.openDataObjectEndpoint(motaddr, new MotorDriverDataObjectFormatter(DEST_ADDR, SOURCE_ADDR, BRUSHEDOPEN), new Sub7EPacketFormatter())),
+: endpoint(hal.openDataObjectEndpoint(motaddr, new MotorDriverDataObjectFormatter(motaddr, 20, BRUSHEDOPEN), new Sub7EPacketFormatter())),
   heartbeatsender(hal.getIOService(), *endpoint, 2),
   motorramper(hal.getIOService(), *endpoint),
   motorbangbang(hal.getIOService(), *endpoint)

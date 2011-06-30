@@ -4,13 +4,15 @@
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <iostream>
 #include <QFileDialog>
+#include <sstream>
 
 using namespace subjugator;
 using namespace std;
 
 MainWindow::MainWindow(int haladdr)
 : motorcontroller(haladdr),
-  logger(motorcontroller, "/dev/ttyUSB0") {
+  logger(motorcontroller, "/dev/ttyUSB0"),
+  imulogger(motorcontroller) {
 	ui.setupUi(this);
 	ui.statusBar->showMessage("No connection to motor driver");
 
@@ -30,6 +32,14 @@ MainWindow::MainWindow(int haladdr)
 	connect(&motorcontroller, SIGNAL(newBangReference(double)), this, SLOT(onNewBangReference(double)));
 	connect(&motorcontroller, SIGNAL(rampComplete()), this, SLOT(onRampComplete()));
 	connect(&logger, SIGNAL(onNewForce(double)), this, SLOT(onNewForce(double)));
+	connect(ui.startMagLogButton, SIGNAL(clicked()), this, SLOT(onStartMagLogButtonClicked()));
+	connect(ui.stopMagLogButton, SIGNAL(clicked()), this, SLOT(onStopMagLogButtonClicked()));
+	connect(ui.magBrowseButton, SIGNAL(clicked()), this, SLOT(onMagBrowseButtonClicked()));
+	connect(&imulogger, SIGNAL(onNewMessage()), this, SLOT(onNewIMU()));
+
+	stringstream buf;
+	buf << "Motor calibrate on address " << haladdr;
+	setWindowTitle(QString(buf.str().c_str()));
 }
 
 void MainWindow::onNewMotorInfo() {
@@ -131,7 +141,29 @@ void MainWindow::onStopLogButtonClicked() {
 	ui.loggingLabel->setText("No");
 }
 
+void MainWindow::onMagBrowseButtonClicked() {
+	ui.magLogFileEdit->setText(QFileDialog::getSaveFileName(this));
+}
+
+void MainWindow::onStartMagLogButtonClicked() {
+	imulogger.start(ui.magLogFileEdit->text().toUtf8().constData());
+	ui.magLoggingLabel->setText("Yes");
+}
+
+void MainWindow::onStopMagLogButtonClicked() {
+	imulogger.stop();
+	ui.magLoggingLabel->setText("No");
+}
+
 void MainWindow::onNewBangReference(double reference) {
 	ui.bangReferenceLabel->setText(QString::number(reference*100, 'f', 2));
 }
+
+void MainWindow::onNewIMU() {
+	const IMUMessage &msg = imulogger.getMessage();
+	ui.magXLabel->setText(QString::number(msg.mag_field[0], 'f', 4));
+	ui.magYLabel->setText(QString::number(msg.mag_field[1], 'f', 4));
+	ui.magZLabel->setText(QString::number(msg.mag_field[2], 'f', 4));
+}
+
 
