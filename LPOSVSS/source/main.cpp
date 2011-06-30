@@ -1,6 +1,7 @@
 #include <ndds/ndds_cpp.h>
 #include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
 #include "DDSCommanders/LPOSVSSDDSCommander.h"
+#include "DDSListeners/LPOSVSSDDSListener.h"
 #include "DataObjects/Depth/DepthInfo.h"
 
 #include <boost/scoped_ptr.hpp>
@@ -31,12 +32,24 @@ int main(int argc, char **argv)
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
 
+	if (DepthMessageTypeSupport::register_type(participant, DepthMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (IMUMessageTypeSupport::register_type(participant, IMUMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (DVLMessageTypeSupport::register_type(participant, DVLMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (LPOSVSSMessageTypeSupport::register_type(participant, LPOSVSSMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
 	LPOSVSSDDSCommander commander(worker, participant);
 
-	//if (IMUMessageTypeSupport::register_type(participant, IMUMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-		//throw runtime_error("Failed to register type");
-
-	//IMUDDSListener ddsListener(worker, participant);
+	LPOSVSSDDSListener listener(worker, participant);
 
 	// Start the worker
 	io.run();

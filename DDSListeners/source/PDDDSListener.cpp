@@ -4,7 +4,7 @@
 using namespace subjugator;
 
 PDDDSListener::PDDDSListener(Worker &worker, DDSDomainParticipant *part)
-: Listener(worker), ddssender(part, "PDStatus") { }
+: ddssender(part, "PDStatus") { connectWorker(worker); }
 
 void PDDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {

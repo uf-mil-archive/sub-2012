@@ -1,4 +1,7 @@
 #include "SubMain/Workers/SubIMUWorker.h"
+#include <iostream>
+
+using namespace std;
 
 namespace subjugator
 {
@@ -31,7 +34,7 @@ namespace subjugator
 	{
 		// TODO: pull IMU address from the address config file. it needs an extra column
 		// In startup we try to initialize the hal layer. If it fails, we push to fail.
-		pEndpoint = hal.openDataObjectEndpoint(25, new IMUDataObjectFormatter(), new SPIPacketFormatter(32));
+		pEndpoint = std::auto_ptr<DataObjectEndpoint>(hal.openDataObjectEndpoint(25, new IMUDataObjectFormatter(), new SPIPacketFormatter(32)));
 
 		pEndpoint->configureCallbacks(boost::bind(&IMUWorker::halReceiveCallback,this,_1),
 									  boost::bind(&IMUWorker::halStateChangeCallback,this));

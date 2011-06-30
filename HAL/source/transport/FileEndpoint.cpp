@@ -16,7 +16,7 @@ void FileEndpoint::open()
 	if(fileDesc >= 0)
 	{
 		readthread = thread(&FileEndpoint::readthread_run, this);
-		writethread = thread(&FileEndpoint::writethread_run, this);
+		//writethread = thread(&FileEndpoint::writethread_run, this);
 		setState(OPEN);
 	}
 	else
@@ -32,6 +32,8 @@ void FileEndpoint::close()
 		::close(fileDesc);
 		fileDesc = -1;
 	}
+
+	cout << "Join" << endl;
 	readthread.join();
 	writethread.join();
 	setState(CLOSED);
@@ -50,7 +52,12 @@ void FileEndpoint::readthread_run()
 
 	while(true)
 	{
-		size_t got = ::read(fileDesc, (char *)&recvbuf[0], recvbuf.size());
+		int got = ::read(fileDesc, (char *)&recvbuf[0], recvbuf.size());
+
+		if(got == -1)
+		{
+			break;
+		}
 
 		if(got > 0)
 			callReadCallback(recvbuf.begin(), recvbuf.begin() + got);
@@ -62,7 +69,7 @@ void FileEndpoint::readthread_run()
 
 void FileEndpoint::writethread_run()
 {
-	ByteVec outbuf;
+/*	ByteVec outbuf;
 
 	while (true)
 	{
@@ -80,6 +87,6 @@ void FileEndpoint::writethread_run()
 	}
 
 	if (fileDesc >= 0)
-		setState(ERROR, "Write thread terminated: ");
+		setState(ERROR, "Write thread terminated: ");*/
 }
 

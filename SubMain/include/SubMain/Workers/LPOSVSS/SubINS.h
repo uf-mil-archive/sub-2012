@@ -35,7 +35,6 @@ namespace subjugator
 		Vector3d AngularRate_BODY;
 		Vector3d AccelerationBias;
 		Vector3d AngularRateBias;
-
 	};
 
 	class INS
@@ -60,9 +59,8 @@ namespace subjugator
 		static const double SECPERNANOSEC = 1e-9;
 		static const double r_earth = 6378137;    // Radius of the earth (m)
 		static const double w_ie_e = 7.292115e-5;  // Angular rate of the earth (rad/s
-		static const double MAX_ACC_MAG = 3.0;	// m/s^2
+		static const double MAX_ACC_MAG = 10.0;	// m/s^2
 		static const double MAX_ANG_RATE = 2.0; // rad/s
-
 
 		boost::mutex lock;
 		boost::mutex datalock;

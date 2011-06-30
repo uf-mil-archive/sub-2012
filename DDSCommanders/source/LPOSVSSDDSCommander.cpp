@@ -12,9 +12,9 @@ LPOSVSSDDSCommander::LPOSVSSDDSCommander(Worker &worker, DDSDomainParticipant *p
   imureceiver(participant, "IMU", bind(&LPOSVSSDDSCommander::receivedIMU, this, _1)),
   pdreceiver(participant, "PDStatus", bind(&LPOSVSSDDSCommander::receivedPDInfo, this, _1)) {
 	depthtoken = worker.ConnectToCommand(LPOSVSSWorkerCommands::SetDepth, 5);
-	dvltoken = worker.ConnectToCommand(LPOSVSSWorkerCommands::SetDepth, 5);
-	imutoken = worker.ConnectToCommand(LPOSVSSWorkerCommands::SetDepth, 5);
-	pdtoken = worker.ConnectToCommand(LPOSVSSWorkerCommands::SetDepth, 5);
+	dvltoken = worker.ConnectToCommand(LPOSVSSWorkerCommands::SetDVL, 5);
+	imutoken = worker.ConnectToCommand(LPOSVSSWorkerCommands::SetIMU, 5);
+	pdtoken = worker.ConnectToCommand(LPOSVSSWorkerCommands::SetCurrents, 5);
 }
 
 void LPOSVSSDDSCommander::receivedDepth(const DepthMessage &depth) {

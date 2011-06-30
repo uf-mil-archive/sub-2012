@@ -17,7 +17,7 @@ namespace subjugator {
 			DDSReceiver(DDSDomainParticipant *participant, const std::string &topicname, const Callback &callback) {
 				topic = participant->create_topic(topicname.c_str(), MessageTypeSupportT::get_type_name(), DDS_TOPIC_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 				if (!topic)
-					throw std::runtime_error("Failed to create Topic");
+					throw std::runtime_error("Failed to create Topic" + topicname);
 
 				DDSDataReader *reader = participant->create_datareader(topic, DDS_DATAREADER_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 				if (!reader)

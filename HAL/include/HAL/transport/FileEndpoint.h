@@ -12,6 +12,7 @@ namespace subjugator {
 	class FileEndpoint : public BaseEndpoint {
 		public:
 			FileEndpoint(const std::string &filename);
+			~FileEndpoint(){close();}
 
 			virtual void open();
 			virtual void close();

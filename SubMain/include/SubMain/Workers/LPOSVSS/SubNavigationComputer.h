@@ -44,11 +44,11 @@ namespace subjugator
 		static const double alpha = 0.4082;
 		static const double beta = 2.0;
 		static const double kappa = 0;
-		static const double bias_var_f = 0.01;
-		static const double bias_var_w = 360;
-		static const double T_f = 300;
-		static const double T_w = 160;
-		static const double depth_sigma = 0.002027;
+		static const double bias_var_f = 0.00000004;
+		static const double bias_var_w = 26.2;
+		static const double T_f = 11; // TODO
+		static const double T_w = 100; // TODO
+		static const double depth_sigma = 0.02;
 
 		static const double MAX_DEPTH = 15; // m
 		static const double MAX_DVL_NORM = 10; // Sub can't run at 10m/s

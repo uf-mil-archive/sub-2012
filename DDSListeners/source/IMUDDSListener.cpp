@@ -1,9 +1,11 @@
 #include "DDSListeners/IMUDDSListener.h"
+#include <iostream>
 
 using namespace subjugator;
+using namespace std;
 
 IMUDDSListener::IMUDDSListener(Worker &worker, DDSDomainParticipant *part)
-: Listener(worker), ddssender(part, "IMU") { }
+: ddssender(part, "IMU") { connectWorker(worker); }
 
 void IMUDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {
@@ -26,6 +28,7 @@ void IMUDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 	}
 
 	ddssender.Send(*msg);
+
 	IMUMessageTypeSupport::delete_data(msg);
 }
 
