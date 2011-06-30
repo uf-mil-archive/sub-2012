@@ -28,11 +28,11 @@ namespace subjugator {
 			void setZ(double value) { Position_NED(2,0) = value; };
 
 			double getRoll() { return RPY(0,0); };
-			void getRoll(double value) { RPY(0,0) = value; };
+			void setRoll(double value) { RPY(0,0) = value; };
 			double getPitch() { return RPY(1,0); };
-			void getPitch(double value) { RPY(1,0) = value; };
+			void setPitch(double value) { RPY(1,0) = value; };
 			double getYaw() { return RPY(2,0); };
-			void getYaw(double value) { RPY(2,0) = value; };
+			void setYaw(double value) { RPY(2,0) = value; };
 	};
 }
 
