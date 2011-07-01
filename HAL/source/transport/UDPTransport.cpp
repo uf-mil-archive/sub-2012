@@ -76,10 +76,12 @@ void UDPTransport::endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator 
 void UDPTransport::endpointClosed(UDPEndpoint *endpoint) { }
 
 void UDPTransport::endpointDeleted(UDPEndpoint *endpoint) {
-	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end(); ++i) {
+	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end();) {
 		if (*i == endpoint) {
-			endpoints.erase(i);
+			i = endpoints.erase(i);
 			return;
+		} else {
+			i++;
 		}
 	}
 }
