@@ -20,7 +20,7 @@ namespace subjugator
 	 	  {
 	 	  public:
 	 		  TokenHelper(const boost::function<void (const DataObject &obj)> f, const boost::function<void (int cmd)> df):
-	 			  func(f), dFunc(df) {}
+	 			  currentOwnerPriority(0), func(f), dFunc(df) {}
 
 	 		  boost::mutex lock;
 	 		  int currentOwnerPriority;
@@ -87,9 +87,9 @@ namespace subjugator
 	  std::vector<boost::shared_ptr<TokenHelper> > mInputTokenList;
 	  void setControlToken(int cmd, const boost::function<void (const DataObject &obj)> callback)
 	  {
-			if((size_t)cmd > mInputTokenList.capacity())
+			if((size_t)cmd >= mInputTokenList.size())
 			{
-				mInputTokenList.resize(cmd);
+				mInputTokenList.resize(cmd+1);
 			}
 
 			mInputTokenList[cmd] = boost::shared_ptr<TokenHelper>(new TokenHelper(callback,

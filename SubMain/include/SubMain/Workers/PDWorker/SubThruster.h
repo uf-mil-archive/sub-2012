@@ -15,7 +15,7 @@ namespace subjugator
 	class Thruster
 	{
 	public:
-		Thruster(int address, int srcAddress, SubHAL &hal, Eigen::Vector3d lineOfAction, Eigen::Vector3d originToThruster);
+		Thruster(int address, int srcAddress, SubHAL &hal, Eigen::Vector3d lineOfAction, Eigen::Vector3d originToThruster, double fsatforce, double rsatforce);
 
 		int getAddress() const { return mAddress; }
 
@@ -27,6 +27,7 @@ namespace subjugator
 
 		void SetEffort(double effort);
 		void OnMotorInfo(std::auto_ptr<DataObject> &dobj);
+		void OnHALStateChange();
 
 		inline bool operator<(const Thruster& thruster) const
 		{

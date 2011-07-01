@@ -8,7 +8,7 @@ using namespace boost;
 
 PDDDSCommander::PDDDSCommander(Worker &worker, DDSDomainParticipant *participant)
 : wrenchreceiver(participant, "PDWrench", bind(&PDDDSCommander::receivedWrench, this, _1)) {
-	screwcmdtoken = worker.ConnectToCommand(PDWorkerCommands::SetScrew, 5);
+	screwcmdtoken = worker.ConnectToCommand((int)PDWorkerCommands::SetScrew, 5);
 }
 
 void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
@@ -17,6 +17,9 @@ void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
 		vec(i) = wrench.linear[i];
 	for (int i=0; i<3; i++)
 		vec(i+3) = wrench.moment[i];
-	screwcmdtoken.lock()->Operate(PDWrench(vec));
+
+	shared_ptr<InputToken> ptr = screwcmdtoken.lock();
+	if (ptr)
+		ptr->Operate(PDWrench(vec));
 }
 
