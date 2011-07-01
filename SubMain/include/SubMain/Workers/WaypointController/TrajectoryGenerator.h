@@ -88,6 +88,7 @@ namespace subjugator
     	typedef Matrix<double, 6, 1> Vector6d;
     	typedef Matrix<double, 8, 1> Vector8d;
 
+    	TrajectoryGenerator();
     	TrajectoryGenerator(Vector6d trajectory);
     	bool getTimeInitialized() {return timeInitialized;};
     	void setTimeInitialized(bool t) { timeInitialized = t; };
@@ -123,6 +124,8 @@ namespace subjugator
 		Vector6d Trajectory_dotdot;
 		Vector6d Trajectory_dotdotdot;
 
+		bool timeInitialized;
+
 		std::queue<TrajWaypoint> listWaypoints;
 
 	private:
@@ -143,8 +146,6 @@ namespace subjugator
         double tZ;
         double tPitch;
         double tYaw;
-
-        bool timeInitialized;
 
         int cheaterIndex;
 

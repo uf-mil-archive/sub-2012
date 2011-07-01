@@ -7,6 +7,12 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
+TrajectoryGenerator::TrajectoryGenerator()
+{
+
+}
+
+
 TrajectoryGenerator::TrajectoryGenerator(Vector6d trajectory)
 {
 	Trajectory = trajectory;
@@ -875,3 +881,5 @@ boost::int64_t TrajectoryGenerator::getTimestamp(void)
 
 	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 }
+
+

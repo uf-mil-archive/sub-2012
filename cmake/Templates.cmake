@@ -105,6 +105,10 @@ function(sub_executable projectname)
 	#optionally set up qt functionality
 	if(qt)
 		include(${QT_USE_FILE})
+		if (QWT_FOUND)
+		    include_directories(${QWT_INCLUDE_DIR}) # put QWT on the include path
+		    set(libraries ${libraries} ${QWT_LIBRARIES})
+		endif()
 		set(libraries ${libraries} ${QT_LIBRARIES})
 
 		QT4_WRAP_CPP(headers_moc_sources ${headers})
