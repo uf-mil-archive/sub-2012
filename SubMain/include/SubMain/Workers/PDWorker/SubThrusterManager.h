@@ -16,7 +16,7 @@ namespace subjugator
 		ThrusterManager(boost::shared_ptr<SubHAL> h);
 		//ThrusterManager(boost::shared_ptr<SubHAL> h, std::string fileName); // some day config files (maybe seperate config struct?)
 
-		void addThruster(const Thruster& t);
+		void addThruster(Thruster *t);
 		void RebuildMapper();
 		void ImplementScrew(const Vector6D& screw);
 		void SetOriginToCOM(Vector3d pCom);
@@ -24,7 +24,7 @@ namespace subjugator
 
 	private:
 		boost::shared_ptr<SubHAL> mHal;
-		std::vector<Thruster> mThrusters;
+		std::vector<boost::shared_ptr<Thruster> > mThrusters;
 		std::auto_ptr<ThrusterMapper> mThrusterMapper;
 		Vector3d mOriginToCOM;
 		bool mIsReady;

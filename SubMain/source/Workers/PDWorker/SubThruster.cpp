@@ -38,6 +38,7 @@ int Thruster::Compare(Thruster &i, Thruster &j)
 
 void Thruster::OnMotorInfo(std::auto_ptr<DataObject> &dobj)
 {
+	cout << "OnMotorInfo" << endl;
 	if (const MotorDriverInfo *info = dynamic_cast<const MotorDriverInfo *>(dobj.get())) {
 		mInfo = *info;
 	}

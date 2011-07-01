@@ -12,7 +12,7 @@ ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Vector3d> lines
 }
 
 // This expects a sorted thruster list
-ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Thruster> thrusterList):
+ThrusterMapper::ThrusterMapper(Vector3d originToCOM, const std::vector<boost::shared_ptr<Thruster> > &thrusterList):
 		mOriginToCOM(originToCOM)
 {
 	std::vector<Vector3d> actions;
@@ -23,10 +23,10 @@ ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Thruster> thrus
 
 	for(size_t i = 0; i < thrusterList.size(); i++)
 	{
-		actions.push_back(thrusterList[i].getLineOfAction());
-		origins.push_back(thrusterList[i].getOriginToThruster());
-		mFSatForce.push_back(thrusterList[i].getFSatForce());
-		mRSatForce.push_back(thrusterList[i].getRSatForce());
+		actions.push_back(thrusterList[i]->getLineOfAction());
+		origins.push_back(thrusterList[i]->getOriginToThruster());
+		mFSatForce.push_back(thrusterList[i]->getFSatForce());
+		mRSatForce.push_back(thrusterList[i]->getRSatForce());
 	}
 
 	buildMapMatrix(originToCOM, actions, origins);
