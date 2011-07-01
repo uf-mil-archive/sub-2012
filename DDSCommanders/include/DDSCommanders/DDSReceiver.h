@@ -14,7 +14,7 @@ namespace subjugator {
 		public:
 			typedef boost::function<void (const MessageT &message)> Callback;
 
-			DDSReceiver(DDSDomainParticipant *participant, const std::string &topicname, const Callback &callback) {
+			DDSReceiver(DDSDomainParticipant *participant, const std::string &topicname, const Callback &callback) : participant(participant) {
 				topic = participant->create_topic(topicname.c_str(), MessageTypeSupportT::get_type_name(), DDS_TOPIC_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 				if (!topic)
 					throw std::runtime_error("Failed to create Topic" + topicname);

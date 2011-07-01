@@ -13,7 +13,7 @@ using namespace boost;
 using namespace std;
 
 MotorDriverController::MotorDriverController(int motaddr)
-: endpoint(hal.openDataObjectEndpoint(motaddr, new MotorDriverDataObjectFormatter(motaddr, 20, BRUSHEDOPEN), new Sub7EPacketFormatter())),
+: endpoint(hal.openDataObjectEndpoint(motaddr, new MotorDriverDataObjectFormatter(motaddr, 21, BRUSHEDOPEN), new Sub7EPacketFormatter())),
   heartbeatsender(hal.getIOService(), *endpoint, 2),
   motorramper(hal.getIOService(), *endpoint),
   motorbangbang(hal.getIOService(), *endpoint)
@@ -59,7 +59,7 @@ void MotorDriverController::endpointReadCallback(auto_ptr<DataObject> &dobj) {
 void MotorDriverController::endpointStateChangeCallback() {
 	if (endpoint->getState() == Endpoint::OPEN) {
 		endpoint->write(HeartBeat());
-		endpoint->write(StartPublishing(100));
+		endpoint->write(StartPublishing(50));
 
 		heartbeatsender.start();
 	} else {
