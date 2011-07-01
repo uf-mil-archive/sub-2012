@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/new/RPY"/>
+    <qresource prefix="/new/POS"/>
+    <qresource prefix="/new/Error"/>
+</RCC>

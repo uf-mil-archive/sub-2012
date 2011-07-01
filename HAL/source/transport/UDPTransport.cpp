@@ -76,10 +76,12 @@ void UDPTransport::endpointWrite(UDPEndpoint *endpoint, ByteVec::const_iterator 
 void UDPTransport::endpointClosed(UDPEndpoint *endpoint) { }
 
 void UDPTransport::endpointDeleted(UDPEndpoint *endpoint) {
-	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end(); ++i) {
+	for (EndpointPtrVec::iterator i = endpoints.begin(); i != endpoints.end();) {
 		if (*i == endpoint) {
-			endpoints.erase(i);
+			i = endpoints.erase(i);
 			return;
+		} else {
+			i++;
 		}
 	}
 }
@@ -95,11 +97,7 @@ void UDPTransport::pushSendQueueCallback(const ip::udp::endpoint &endpoint, cons
 		startAsyncSend(); // start one now
 }
 
-#include <iostream>
-
 void UDPTransport::sendCallback(const system::error_code& error, std::size_t bytes) {
-	cout << "Sent " << bytes << " bytes" << endl;
-
 	if (error) {
 		setError("Error while sending: " + error.message());
 		return;

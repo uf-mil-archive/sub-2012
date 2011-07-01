@@ -128,6 +128,15 @@ namespace subjugator
 				mRateTimer->async_wait(boost::bind(&Worker::work, this, boost::asio::placeholders::error));
 			}
 	  }
+
+	protected:
+	  boost::int64_t getTimestamp(void)
+		{
+			timespec t;
+			clock_gettime(CLOCK_MONOTONIC, &t);
+
+			return ((long long int)t.tv_sec * 1E9) + t.tv_nsec;
+		}
   };
 }
 

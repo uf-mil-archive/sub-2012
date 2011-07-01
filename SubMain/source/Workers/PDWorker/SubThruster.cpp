@@ -18,12 +18,8 @@ Thruster::Thruster(int address, int srcAddress, SubHAL &hal, Vector3d lineOfActi
 	endpoint->open();
 }
 
-#include <iostream>
-using namespace std;
-
 void Thruster::SetEffort(double effort)
 {
-	cout << "Effort " << effort << endl;
 	endpoint->write(SetReference(effort));
 }
 
