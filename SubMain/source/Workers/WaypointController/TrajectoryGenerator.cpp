@@ -87,6 +87,8 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 		}
 	}
 
+	TrajectoryInfo(currentTickCount, Trajectory, Trajectory_dot);
+
 	updateLock.unlock();
 }
 

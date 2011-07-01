@@ -4,6 +4,8 @@
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "DataObjects/Waypoint/Waypoint.h"
+#include "DataObjects/Trajectory/TrajectoryInfo.h"
+#include "DataObjects/EmbeddedTypeCodes.h"
 
 #include <Eigen/Dense>
 #include <queue>
