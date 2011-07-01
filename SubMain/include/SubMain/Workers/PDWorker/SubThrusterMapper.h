@@ -25,7 +25,7 @@ namespace subjugator
 
 		ThrusterMapper(Vector3d originToCOM, std::vector<Vector3d> linesOfAction, std::vector<Vector3d> thrusterOrigins,
 				std::vector<double> fSatForce, std::vector<double> rSatForce);
-		ThrusterMapper(Vector3d originToCOM, std::vector<Thruster> thrusterList);
+		ThrusterMapper(Vector3d originToCOM, const std::vector<boost::shared_ptr<Thruster> > &thrusterList);
 
 		~ThrusterMapper(){ if(mLeastSolver) delete mLeastSolver; }
 

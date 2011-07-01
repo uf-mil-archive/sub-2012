@@ -29,12 +29,3 @@ MotorDriverInfo::MotorDriverInfo(ByteVec::const_iterator i, ByteVec::const_itera
 	i += 2;
 }
 
-MotorDriverInfo::MotorDriverInfo(const MotorDriverInfo &info) {
-	tickcount = info.tickcount;
-	flags = info.flags;
-	refinput = info.refinput;
-	presentoutput = info.presentoutput;
-	railvoltage = info.railvoltage;
-	current = info.current;
-}
-

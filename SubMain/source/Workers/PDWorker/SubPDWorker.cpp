@@ -1,11 +1,18 @@
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
+#include "DataObjects/PD/PDWrench.h"
+#include "DataObjects/PD/PDInfo.h"
+#include <boost/bind.hpp>
+
+using namespace boost;
 
 namespace subjugator
 {//TODO address hardcoding = not cool
 	PDWorker::PDWorker(boost::asio::io_service& io, int64_t rate)
 		: Worker(io, rate),hal(new SubHAL()),
-		hbeatEndpoint(hal->openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()))
+		hbeatEndpoint(hal->openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter())),
+		mergeManager(*hal)
 	{
+		hbeatEndpoint->open();
 		mStateManager.SetStateCallback(SubStates::INITIALIZE,
 				STATE_INITIALIZE_STRING,
 				boost::bind(&PDWorker::initializeState, this));
@@ -34,7 +41,10 @@ namespace subjugator
 
 	void PDWorker::setScrew(const DataObject &obj)
 	{
-		//thrusterManager->ImplementScrew();
+		if (const PDWrench *wrench = dynamic_cast<const PDWrench *>(&obj))
+		{
+			thrusterManager->ImplementScrew(wrench->getVec());
+		}
 	}
 
 	void PDWorker::setActuator(const DataObject &obj)
@@ -46,6 +56,9 @@ namespace subjugator
 	{
 		// Build the ThrusterManager
 		thrusterManager = std::auto_ptr<ThrusterManager>(new ThrusterManager(hal));
+
+		mStateManager.ChangeState(SubStates::INITIALIZE);
+		hal->startIOThread();
 
 		return true;
 	}
@@ -63,8 +76,12 @@ namespace subjugator
 
 	void PDWorker::readyState()
 	{
-		// We publish the worker object here
-		//onEmitting();
+		std::vector<double> currents(8);
+		for (int i=0; i<8; i++) {
+			currents[i] = thrusterManager->getCurrent(i);
+		}
+
+		onEmitting(boost::shared_ptr<DataObject>(new PDInfo(0, getTimestamp(), currents, mergeManager.getMergeInfo().getESTOP())));
 	}
 
 	void PDWorker::allState()

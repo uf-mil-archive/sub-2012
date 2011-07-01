@@ -10,7 +10,6 @@ namespace subjugator {
 		public:
 			MotorDriverInfo();
 			MotorDriverInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
-			MotorDriverInfo(const MotorDriverInfo &info);
 
 			static const int Length = 12;
 

@@ -12,7 +12,7 @@ ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Vector3d> lines
 }
 
 // This expects a sorted thruster list
-ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Thruster> thrusterList):
+ThrusterMapper::ThrusterMapper(Vector3d originToCOM, const std::vector<boost::shared_ptr<Thruster> > &thrusterList):
 		mOriginToCOM(originToCOM)
 {
 	std::vector<Vector3d> actions;
@@ -23,24 +23,30 @@ ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Thruster> thrus
 
 	for(size_t i = 0; i < thrusterList.size(); i++)
 	{
-		actions.push_back(thrusterList[i].getLineOfAction());
-		origins.push_back(thrusterList[i].getOriginToThruster());
-		mFSatForce.push_back(thrusterList[i].getFSatForce());
-		mRSatForce.push_back(thrusterList[i].getRSatForce());
+		actions.push_back(thrusterList[i]->getLineOfAction());
+		origins.push_back(thrusterList[i]->getOriginToThruster());
+		mFSatForce.push_back(thrusterList[i]->getFSatForce());
+		mRSatForce.push_back(thrusterList[i]->getRSatForce());
 	}
 
 	buildMapMatrix(originToCOM, actions, origins);
 }
 
+#include <iostream>
+
 void ThrusterMapper::buildMapMatrix(Vector3d originToCOM, std::vector<Vector3d> linesOfAction, std::vector<Vector3d> thrusterOrigins)
 {
 	mMapMatrix.resize(6, linesOfAction.size());
+	mMapMatrix.fill(0);
+
 	for(size_t i = 0; i < linesOfAction.size(); i++)
 	{
 		Vector3d moment = (thrusterOrigins[i] - originToCOM).cross(linesOfAction[i]);
 		mMapMatrix.block<3,1>(0,i) = linesOfAction[i];
 		mMapMatrix.block<3,1>(3,i) = moment;
 	}
+
+	cout << mMapMatrix << endl;
 
 	// Initialize the solver with the map matrix
 	mLeastSolver = new JacobiSVD<MatrixXd>(mMapMatrix, (ComputeThinU | ComputeThinV));
