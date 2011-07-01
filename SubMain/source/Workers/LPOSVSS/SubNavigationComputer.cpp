@@ -9,7 +9,7 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 		initialPosition(0.0,0.0,0.0), initialVelocity(0.0,0.0,0.0),
 		white_noise_sigma_f(0.0005,0.0005,0.0005), white_noise_sigma_w(0.05,0.05,0.05),
 		dvl_sigma(0.02, 0.02, 0.02), att_sigma(1.0,1.0,1.0),
-		q_SUB_DVL(1.0,0.0,0.0,0.0), q_SUB_IMU(1.0,0.0,0.0,0.0),
+		q_SUB_DVL(0.0,0.923879532511287,0.382683432365090,0.0), q_SUB_IMU(0.012621022547474,0.002181321593961,-0.004522523520991,0.999907744947984),
 		q_MagCorrection(1.0,0.0,0.0,0.0), magShift(0.0,0.0,0.0),
 		magScale(1.0,1.0,1.0)
 {
@@ -19,7 +19,7 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 
 	referenceGravityVector = AttitudeHelpers::LocalGravity(latitudeDeg*boost::math::constants::pi<double>()/180.0, initialPosition(2));
 
-	r_ORIGIN_NAV = Vector3d::Zero();
+	r_ORIGIN_NAV << 0.43115992,0.0,-0.00165058;
 
 	// Build thruster current correctors -
 	double t0X[] = {0.0,0.0,0.0,0.0};double t0Y[] = {0.0,0.0,0.0,0.0};double t0Z[] = {0.0,0.0,0.0,0.0};

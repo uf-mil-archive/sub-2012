@@ -17,12 +17,12 @@ namespace subjugator
 	public:
 		VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, Vector6d beta);
 
-		void UpdateJacobian(const Vector6d& x);
-		void UpdateJacobianInverse(const Vector6d& x);
-		Vector6d RiseFeedbackNoAccel(double dt);
-		Vector6d PDFeedback(double dt);
+		Vector6d& GetWrench() const( return currentControl; )
+		void Update(boost::int16_t currentTick, const TrajectoryData& traj, const LPOSVSSInfo& lposInfo)
 
 	private:
+		static const double SECPERNANOSEC = 1e-9;
+
 		Matrix6d k;
 		Matrix6d ks;
 		Matrix6d ksPlus1;
@@ -47,6 +47,15 @@ namespace subjugator
 
 		Vector6d xd;
 		Vector6d xd_dot;
+
+		boost::int64_t previousTime;
+
+		Vector6d currentControl;
+
+		void UpdateJacobian(const Vector6d& x);
+		void UpdateJacobianInverse(const Vector6d& x);
+		Vector6d RiseFeedbackNoAccel(double dt);
+		Vector6d PDFeedback(double dt);
 	};
 }
 
