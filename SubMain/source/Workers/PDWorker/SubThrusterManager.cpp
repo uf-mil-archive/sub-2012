@@ -36,15 +36,11 @@ void ThrusterManager::RebuildMapper()
 	mThrusterMapper = std::auto_ptr<ThrusterMapper>(new ThrusterMapper(mOriginToCOM, mThrusters));
 }
 
-#include <iostream>
-using namespace std;
-
 void ThrusterManager::ImplementScrew(const Vector6D& screw)
 {
 	VectorXd res = mThrusterMapper->MapScrewtoEffort(screw);
 	for(size_t i = 0; i < mThrusters.size(); i++)
 	{
-		cout << i << " effort " << res(i) << endl;
 		mThrusters[i]->SetEffort(res(i));
 	}
 }

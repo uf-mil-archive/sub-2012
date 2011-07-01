@@ -21,6 +21,7 @@ namespace subjugator
 		void ImplementScrew(const Vector6D& screw);
 		void SetOriginToCOM(Vector3d pCom);
 		bool IsReady(){ return mIsReady; }
+		double getCurrent(int thruster) { return mThrusters[thruster]->getInfo().getCurrent(); }
 
 	private:
 		boost::shared_ptr<SubHAL> mHal;

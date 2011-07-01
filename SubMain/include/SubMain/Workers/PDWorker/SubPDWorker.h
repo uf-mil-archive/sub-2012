@@ -6,6 +6,7 @@
 #include "SubMain/SubTranslations.h"
 #include "SubMain/Workers/SubWorker.h"
 #include "SubMain/Workers/PDWorker/SubThrusterManager.h"
+#include "SubMain/Workers/PDWorker/MergeManager.h"
 #include "HAL/SubHAL.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
@@ -31,19 +32,23 @@ namespace subjugator
 		bool Startup();
 
 	protected:
-		  void initializeState();
-		  void readyState();
-		  void standbyState();
-		  void emergencyState();
-		  void failState();
-		  void allState();
+		void initializeState();
+		void readyState();
+		void standbyState();
+		void emergencyState();
+		void failState();
+		void allState();
 	private:
-		  boost::shared_ptr<SubHAL> hal;
-		  boost::scoped_ptr<DataObjectEndpoint> hbeatEndpoint;
-		  std::auto_ptr<ThrusterManager> thrusterManager;
+		boost::shared_ptr<SubHAL> hal;
+		boost::scoped_ptr<DataObjectEndpoint> hbeatEndpoint;
+		std::auto_ptr<ThrusterManager> thrusterManager;
+		MergeManager mergeManager;
 
-		  void setScrew(const DataObject &obj);
-		  void setActuator(const DataObject &obj);
+		void setScrew(const DataObject &obj);
+		void setActuator(const DataObject &obj);
+
+		void halMergeReceiveCallback(std::auto_ptr<DataObject> &dobj);
+		void halMergeStateChangeCallback();
 	};
 }
 

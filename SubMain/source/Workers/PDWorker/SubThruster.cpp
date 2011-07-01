@@ -18,12 +18,8 @@ Thruster::Thruster(int address, int srcAddress, SubHAL &hal, Vector3d lineOfActi
 	endpoint->open();
 }
 
-#include <iostream>
-using namespace std;
-
 void Thruster::SetEffort(double effort)
 {
-	cout << "Effort " << effort << endl;
 	endpoint->write(SetReference(effort));
 }
 
@@ -38,7 +34,6 @@ int Thruster::Compare(Thruster &i, Thruster &j)
 
 void Thruster::OnMotorInfo(std::auto_ptr<DataObject> &dobj)
 {
-	cout << "OnMotorInfo" << endl;
 	if (const MotorDriverInfo *info = dynamic_cast<const MotorDriverInfo *>(dobj.get())) {
 		mInfo = *info;
 	}
