@@ -6,6 +6,8 @@
 
 #include <Eigen/Dense>
 
+using namespace Eigen;
+
 namespace subjugator {
 	class TrajectoryInfo : public DataObject {
 		public:
