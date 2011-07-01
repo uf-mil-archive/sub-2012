@@ -18,6 +18,7 @@ SubHAL::SubHAL() {
 }
 
 SubHAL::~SubHAL() {
+	iothread.stop(); // stop the IOThread before clearing the transports, since it may manage to get a callback in on a non-existent Transport
 	clearTransports(); // delete transports before IOThread, since IOThread owns the io_service
 }
 

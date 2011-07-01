@@ -11,7 +11,7 @@ namespace subjugator
 
 	void StateManager::SetStateCallback(SubStates::StateCode state, std::string name, boost::function<void(void)> callback)
 	{
-		if((size_t)state >= mCallbackList.capacity())
+		if((size_t)state >= mCallbackList.size())
 			mCallbackList.resize(state + 1);
 
 		mCallbackList[state] = boost::shared_ptr<StateObject>(new StateObject(name, callback));

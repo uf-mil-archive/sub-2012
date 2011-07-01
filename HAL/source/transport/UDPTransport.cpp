@@ -95,7 +95,11 @@ void UDPTransport::pushSendQueueCallback(const ip::udp::endpoint &endpoint, cons
 		startAsyncSend(); // start one now
 }
 
+#include <iostream>
+
 void UDPTransport::sendCallback(const system::error_code& error, std::size_t bytes) {
+	cout << "Sent " << bytes << " bytes" << endl;
+
 	if (error) {
 		setError("Error while sending: " + error.message());
 		return;

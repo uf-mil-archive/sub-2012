@@ -32,15 +32,21 @@ ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Thruster> thrus
 	buildMapMatrix(originToCOM, actions, origins);
 }
 
+#include <iostream>
+
 void ThrusterMapper::buildMapMatrix(Vector3d originToCOM, std::vector<Vector3d> linesOfAction, std::vector<Vector3d> thrusterOrigins)
 {
 	mMapMatrix.resize(6, linesOfAction.size());
+	mMapMatrix.fill(0);
+
 	for(size_t i = 0; i < linesOfAction.size(); i++)
 	{
 		Vector3d moment = (thrusterOrigins[i] - originToCOM).cross(linesOfAction[i]);
 		mMapMatrix.block<3,1>(0,i) = linesOfAction[i];
 		mMapMatrix.block<3,1>(3,i) = moment;
 	}
+
+	cout << mMapMatrix << endl;
 
 	// Initialize the solver with the map matrix
 	mLeastSolver = new JacobiSVD<MatrixXd>(mMapMatrix, (ComputeThinU | ComputeThinV));
