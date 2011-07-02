@@ -17,8 +17,8 @@ namespace subjugator
 	public:
 		VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, Vector6d beta);
 
-		Vector6d& GetWrench() const( return currentControl; )
-		void Update(boost::int16_t currentTick, const TrajectoryData& traj, const LPOSVSSInfo& lposInfo)
+		Vector6d GetWrench() const { return currentControl; }
+		//void Update(boost::int16_t currentTick, const TrajectoryData& traj, const LPOSVSSInfo& lposInfo)
 
 	private:
 		static const double SECPERNANOSEC = 1e-9;

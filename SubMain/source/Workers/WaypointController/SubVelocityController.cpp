@@ -13,7 +13,7 @@ VelocityController::VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, 
 	J_inv = Matrix6d::Zero();
 }
 
-// We cheat here and copy the current data to common class level variables so multiple controllers
+/*// We cheat here and copy the current data to common class level variables so multiple controllers
 // theoretically could be run in parallel.
 void VelocityController::Update(boost::int16_t currentTick, const TrajectoryData& traj, const LPOSVSSInfo& lposInfo)
 {
@@ -45,7 +45,7 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryData
 
     currentControl = PDFeedback(dt);
     //currentControl = RiseFeedbackNoAccel(dt);
-}
+}*/
 
 Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 {

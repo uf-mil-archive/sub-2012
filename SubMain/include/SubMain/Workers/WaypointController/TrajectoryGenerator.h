@@ -41,10 +41,6 @@ namespace subjugator
 		double q1;
 		double v0;
 		double v1;
-
-		TrajWaypointComponent()
-		{
-		}
 	};
 
 	class TrajWaypoint
@@ -60,11 +56,8 @@ namespace subjugator
 		std::queue<TrajWaypointComponent> trajWaypointsX;
 		std::queue<TrajWaypointComponent> trajWaypointsY;
 		std::queue<TrajWaypointComponent> trajWaypointsZ;
+		std::queue<TrajWaypointComponent> trajWaypointsPitch;
 		std::queue<TrajWaypointComponent> trajWaypointsYaw;
-
-		TrajWaypoint()
-		{
-		}
 	};
 
     class TrajectoryGeneratorDynamicInfo
@@ -75,7 +68,7 @@ namespace subjugator
     	Vector6d DesiredTrajectory;
     	Vector6d DesiredTrajectoryDot;
 
-        TrajectoryGeneratorDynamicInfo(Vector6d traj, Vector6d trajDot)
+        TrajectoryGeneratorDynamicInfo(const Vector6d& traj, const Vector6d& trajDot)
         {
             DesiredTrajectory = traj;
             DesiredTrajectoryDot = trajDot;
@@ -85,6 +78,7 @@ namespace subjugator
 	class TrajectoryGenerator
 	{
 	public:
+    	typedef Matrix<double, 5, 1> Vector5d;
     	typedef Matrix<double, 6, 1> Vector6d;
     	typedef Matrix<double, 8, 1> Vector8d;
 
@@ -93,19 +87,19 @@ namespace subjugator
     	bool getTimeInitialized() {return timeInitialized;};
     	void setTimeInitialized(bool t) { timeInitialized = t; };
 		void Update(boost::uint64_t currentTickCount);
-		Vector4d CalculateCurrentTrajectoryValue(TrajWaypointComponent const &comp, double time);
-		Vector4d AccelerationPhaseA(TrajWaypointComponent const &comp, double time);
-		Vector4d AccelerationPhaseB(TrajWaypointComponent const &comp, double time);
-		Vector4d AccelerationPhaseC(TrajWaypointComponent const &comp, double time);
-		Vector4d ConstantVelocityPhaseA(TrajWaypointComponent const &comp, double time);
-		Vector4d DecelerationPhaseA(TrajWaypointComponent const &comp, double time);
-		Vector4d DecelerationPhaseB(TrajWaypointComponent const &comp, double time);
-		Vector4d DecelerationPhaseC(TrajWaypointComponent const &comp, double time);
-		VectorXd getMaxValues(bool stompOnTheBrakes);
+		Vector4d CalculateCurrentTrajectoryValue(const TrajWaypointComponent &comp, double time);
+		Vector4d AccelerationPhaseA(const TrajWaypointComponent &comp, double time);
+		Vector4d AccelerationPhaseB(const TrajWaypointComponent &comp, double time);
+		Vector4d AccelerationPhaseC(const TrajWaypointComponent &comp, double time);
+		Vector4d ConstantVelocityPhaseA(const TrajWaypointComponent &comp, double time);
+		Vector4d DecelerationPhaseA(const TrajWaypointComponent &comp, double time);
+		Vector4d DecelerationPhaseB(const TrajWaypointComponent &comp, double time);
+		Vector4d DecelerationPhaseC(const TrajWaypointComponent &comp, double time);
+		Vector8d getMaxValues(bool stompOnTheBrakes);
 		void SetWaypoint(Waypoint &parWaypoint, bool clearOthers);
 		void DoIteration(std::vector<Waypoint> &waypointsToAdd);
 		double CalculateStoppingDistance(double Tj_star, double q0, double v0, double v1, double a_max);
-		Vector4d GetSigmas(Vector3d startPos, Vector3d endPos, double startYaw, double endYaw);
+		Vector5d GetSigmas(Vector3d startPos, Vector3d endPos, double startPitch, double endPitch, double startYaw, double endYaw);
 		Vector2d CalculateAccTimeIntervals1(double a_max, double j_max, double v_max, double v);
 		bool CalculateAngleTimesCase1(double j_max, double a_max, double v_max, double v0, double v1, double q0, double q1, TrajWaypointComponent &component);
 		bool CalculateTimesCase1(double j_max, double a_max, double v_max, double v0, double v1, double q0, double q1, TrajWaypointComponent &component);
@@ -114,7 +108,6 @@ namespace subjugator
 		void CalculateTimesCase2(double j_max, double a_max, double v_max, double v0, double v1, double q0, double q1, TrajWaypointComponent &component);
 		bool IsTrajectoryPossible(double a_max_div_j_max, double a_max, double v0, double v1, double q0, double q1, double Tj_star);
 		bool IsAngleTrajectoryPossible(double a_max_div_j_max, double a_max, double v0, double v1, double q0, double q1, double Tj_star);
-		TrajectoryGeneratorDynamicInfo ReportDynamicInfo();
 		void InitTimers(boost::uint64_t currentTickCount);
 
 		boost::mutex updateLock;
@@ -134,11 +127,13 @@ namespace subjugator
 		boost::uint64_t StartTickCountX;
 		boost::uint64_t StartTickCountY;
 		boost::uint64_t StartTickCountZ;
+		boost::uint64_t StartTickCountPitch;
 		boost::uint64_t StartTickCountYaw;
 
         bool holdXTime;
         bool holdYTime;
         bool holdZTime;
+        bool holdPitchTime;
         bool holdYawTime;
 
         double tX;

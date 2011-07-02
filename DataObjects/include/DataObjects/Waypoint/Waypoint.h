@@ -10,8 +10,12 @@ namespace subjugator {
 	class Waypoint : public DataObject {
 		public:
 			Waypoint();
+			Waypoint(const Vector3d& position, const Vector3d& rpy)
+			{
+				Position_NED = position;
+				RPY = rpy;
+			}
 
-			ushort Number;
 			Vector3d Position_NED;
 			Vector3d RPY;
 
