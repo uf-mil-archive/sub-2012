@@ -52,6 +52,9 @@ namespace subjugator
 		double StartYaw;
 		double EndYaw;
 		double EndYawRate;
+		double StartPitch;
+		double EndPitch;
+		double EndPitchRate;
 
 		std::queue<TrajWaypointComponent> trajWaypointsX;
 		std::queue<TrajWaypointComponent> trajWaypointsY;

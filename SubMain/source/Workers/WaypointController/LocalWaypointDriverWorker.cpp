@@ -27,7 +27,7 @@ LocalWaypointDriverWorker::LocalWaypointDriverWorker(boost::asio::io_service& io
 	trajectoryGenerator.timeInitialized = true;
 	trajectoryGenerator.Update(getTimestamp());
 
-	TrajectoryGeneratorDynamicInfo tgInfo = trajectoryGenerator.ReportDynamicInfo();
+//	TrajectoryGeneratorDynamicInfo tgInfo = trajectoryGenerator.ReportDynamicInfo();
 }
 
 void LocalWaypointDriverWorker::readyState()
