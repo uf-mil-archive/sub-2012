@@ -7,6 +7,48 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
+typedef Matrix<double, 5, 1> Vector5d;
+typedef Matrix<double, 8, 1> Vector8d;
+
+Vector8d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
+{
+	Vector8d max = Vector8d::Zero();
+
+	if (!stompOnTheBrakes)
+	{
+		// Normal easy acceleration
+		max <<
+			0.625,      // v_max_xy
+			.1,        // a_max_xy
+			20,         // j_max_xyz
+			0.2,        // v_max_z
+			0.125,      // a_max_z
+			0.5,        // v_max_yaw
+			0.2,        // a_max_yaw
+			10;         // j_max_yaw
+	}
+	else
+	{
+		max <<
+			0.625,      // v_max_xy
+			10*0.1,        // a_max_xy
+			10*10,         // j_max_xyz
+			10*0.2,        // v_max_z
+			10*0.125,      // a_max_z
+			0.5,        // v_max_yaw
+			10*0.2,        // a_max_yaw
+			10*10;         // j_max_yaw
+	}
+	return max;
+}
+
+
+TrajectoryGenerator::TrajectoryGenerator()
+{
+
+}
+
+
 TrajectoryGenerator::TrajectoryGenerator(Vector6d trajectory)
 {
 	Trajectory = trajectory;
@@ -24,16 +66,19 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
     TrajWaypointComponent twX = currentWaypoint.trajWaypointsX.front();
     TrajWaypointComponent twY = currentWaypoint.trajWaypointsY.front();
     TrajWaypointComponent twZ = currentWaypoint.trajWaypointsZ.front();
+    TrajWaypointComponent twPitch = currentWaypoint.trajWaypointsPitch.front();
     TrajWaypointComponent twYaw = currentWaypoint.trajWaypointsYaw.front();
 
     if(!holdXTime)
-		tX = (currentTickCount - StartTickCountX) / 1000.0;
+		tX = (currentTickCount - StartTickCountX) / NSEC_PER_SEC;
 	if (!holdYTime)
-		tY = (currentTickCount - StartTickCountY) / 1000.0;
+		tY = (currentTickCount - StartTickCountY) / NSEC_PER_SEC;
 	if (!holdZTime)
-		tZ = (currentTickCount - StartTickCountZ) / 1000.0;
+		tZ = (currentTickCount - StartTickCountZ) / NSEC_PER_SEC;
+	if (!holdPitchTime)
+			tPitch = (currentTickCount - StartTickCountPitch) / NSEC_PER_SEC;
 	if (!holdYawTime)
-		tYaw = (currentTickCount - StartTickCountYaw) / 1000.0;
+		tYaw = (currentTickCount - StartTickCountYaw) / NSEC_PER_SEC;
 
 	// Have we reached the end of each trajectory? If so,
 	// hold time at the correct place to give out a constant
@@ -53,6 +98,11 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 		holdZTime = true;
 		tZ = twZ.TotalTime;
 	}
+	if (twPitch.TotalTime < tPitch)
+	{
+		holdZTime = true;
+		tZ = twZ.TotalTime;
+	}
 	if (twYaw.TotalTime < tYaw)
 	{
 		holdYawTime = true;
@@ -62,22 +112,25 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	cheaterIndex = 0;
 	Vector4d x = CalculateCurrentTrajectoryValue(twX, tX); cheaterIndex++;
 	Vector4d y = CalculateCurrentTrajectoryValue(twY, tY); cheaterIndex++;
-	Vector4d z = CalculateCurrentTrajectoryValue(twZ, tZ); cheaterIndex = 5;
+	Vector4d z = CalculateCurrentTrajectoryValue(twZ, tZ); cheaterIndex = 4;
+	Vector4d pitch = CalculateCurrentTrajectoryValue(twPitch, tPitch); cheaterIndex++;
 	Vector4d yaw = CalculateCurrentTrajectoryValue(twYaw, tYaw);
 
 	Trajectory(0, 0) = x(0);
 	Trajectory(1, 0) = y(0);
 	Trajectory(2, 0) = z(0);
+	Trajectory(4, 0) = AttitudeHelpers::DAngleClamp(pitch(0));
 	Trajectory(5, 0) = AttitudeHelpers::DAngleClamp(yaw(0));
 
 	Trajectory_dot(0, 0) = x(1);
 	Trajectory_dot(1, 0) = y(1);
 	Trajectory_dot(2, 0) = z(1);
+	Trajectory_dot(4, 0) = pitch(1);
 	Trajectory_dot(5, 0) = yaw(1);
 
 	// Rollover to next waypoint if there is one, and we have arrived
 	// at the present one.
-	if (holdXTime && holdYTime && holdZTime && holdYawTime)
+	if (holdXTime && holdYTime && holdZTime && holdPitchTime && holdYawTime)
 	{
 		// We're at the waypoint.
 		if (listWaypoints.size() > 1)
@@ -92,7 +145,7 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	updateLock.unlock();
 }
 
-Vector4d TrajectoryGenerator::CalculateCurrentTrajectoryValue(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::CalculateCurrentTrajectoryValue(const TrajWaypointComponent &comp, double time)
 {
 	if(comp.TotalTime == 0.0)
 	{
@@ -114,11 +167,11 @@ Vector4d TrajectoryGenerator::CalculateCurrentTrajectoryValue(TrajWaypointCompon
 		return DecelerationPhaseB(comp, time);
 	else if (time > (comp.TotalTime - comp.Tj2) && time <= (comp.TotalTime))
 		return DecelerationPhaseC(comp, time);
-	else
+	else  // This returns the trajectory 0 entry for the component passed in. Why it doesn't do it directly, I'm not sure
 		return Vector4d(Trajectory(cheaterIndex, 0), Trajectory_dot(cheaterIndex, 0), Trajectory_dotdot(cheaterIndex, 0), Trajectory_dotdotdot(cheaterIndex, 0));
 }
 
-Vector4d TrajectoryGenerator::AccelerationPhaseA(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::AccelerationPhaseA(const TrajWaypointComponent &comp, double time)
 {
 	Vector4d result = Vector4d::Zero();
 
@@ -130,7 +183,7 @@ Vector4d TrajectoryGenerator::AccelerationPhaseA(TrajWaypointComponent const &co
 	return result;
 }
 
-Vector4d TrajectoryGenerator::AccelerationPhaseB(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::AccelerationPhaseB(const TrajWaypointComponent &comp, double time)
 {
 	Vector4d result = Vector4d::Zero();
 
@@ -142,7 +195,7 @@ Vector4d TrajectoryGenerator::AccelerationPhaseB(TrajWaypointComponent const &co
 	return result;
 }
 
-Vector4d TrajectoryGenerator::AccelerationPhaseC(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::AccelerationPhaseC(const TrajWaypointComponent &comp, double time)
 {
 	Vector4d result = Vector4d::Zero();
 
@@ -154,7 +207,7 @@ Vector4d TrajectoryGenerator::AccelerationPhaseC(TrajWaypointComponent const &co
 	return result;
 }
 
-Vector4d TrajectoryGenerator::ConstantVelocityPhaseA(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::ConstantVelocityPhaseA(const TrajWaypointComponent &comp, double time)
 {
 	Vector4d result = Vector4d::Zero();
 
@@ -166,7 +219,7 @@ Vector4d TrajectoryGenerator::ConstantVelocityPhaseA(TrajWaypointComponent const
 	return result;
 }
 
-Vector4d TrajectoryGenerator::DecelerationPhaseA(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::DecelerationPhaseA(const TrajWaypointComponent &comp, double time)
 {
 	Vector4d result = Vector4d::Zero();
 
@@ -178,7 +231,7 @@ Vector4d TrajectoryGenerator::DecelerationPhaseA(TrajWaypointComponent const &co
 	return result;
 }
 
-Vector4d TrajectoryGenerator::DecelerationPhaseB(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::DecelerationPhaseB(const TrajWaypointComponent &comp, double time)
 {
 	Vector4d result = Vector4d::Zero();
 
@@ -190,7 +243,7 @@ Vector4d TrajectoryGenerator::DecelerationPhaseB(TrajWaypointComponent const &co
 	return result;
 }
 
-Vector4d TrajectoryGenerator::DecelerationPhaseC(TrajWaypointComponent const &comp, double time)
+Vector4d TrajectoryGenerator::DecelerationPhaseC(const TrajWaypointComponent &comp, double time)
 {
 	Vector4d result = Vector4d::Zero();
 
@@ -202,49 +255,19 @@ Vector4d TrajectoryGenerator::DecelerationPhaseC(TrajWaypointComponent const &co
 	return result;
 }
 
-VectorXd TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
-{
-	Vector8d max = Vector8d::Zero();
-
-	if (!stompOnTheBrakes)
-	{
-		// Normal easy acceleration
-		max <<
-			0.625,      // v_max_xy
-			.1,        // a_max_xy
-			20,         // j_max_xyz
-			0.2,        // v_max_z
-			0.125,      // a_max_z
-			0.5,        // v_max_yaw
-			0.2,        // a_max_yaw
-			10;         // j_max_yaw
-	}
-	else
-	{
-		// Normal easy acceleration
-		max <<
-			0.625,      // v_max_xy
-			10*0.1,        // a_max_xy
-			10*10,         // j_max_xyz
-			10*0.2,        // v_max_z
-			10*0.125,      // a_max_z
-			0.5,        // v_max_yaw
-			10*0.2,        // a_max_yaw
-			10*10;         // j_max_yaw
-	}
-	return max;
-}
-
-
 void TrajectoryGenerator::SetWaypoint(Waypoint &parWaypoint, bool clearOthers)
 {
 	updateLock.lock();
 
-	vector<Waypoint>* waypointsToAdd = new vector<Waypoint>;
-
+	vector<Waypoint> waypointsToAdd(5);	// The maximum number of waypoints added when a single waypoint
+										// is requested is always less than 5
 	if (clearOthers)
 	{
 		listWaypoints.empty();
+
+		// If clearing the waypoint list to add these new ones,
+		// we must reset the timers so the curves begin correctly.
+		InitTimers(getTimestamp());
 	}
 
 	double intYaw = 0.0;
@@ -254,39 +277,25 @@ void TrajectoryGenerator::SetWaypoint(Waypoint &parWaypoint, bool clearOthers)
 		if ((parWaypoint.Position_NED.block<2,1>(0,0) - Trajectory.block<2,1>(0,0)).norm() > MAX_STRAFE_DISTANCE)
 		{
 			intYaw = atan2((parWaypoint.Position_NED(1, 0) - Trajectory(1, 0)), (parWaypoint.Position_NED(0, 0) - Trajectory(0, 0)));
-			intYaw = AttitudeHelpers::DAngleDiff(Trajectory(5, 0), intYaw) + Trajectory(5, 0);
+			intYaw = AttitudeHelpers::DAngleClamp(AttitudeHelpers::DAngleDiff(Trajectory(5, 0), intYaw) + Trajectory(5, 0));
 
-			Waypoint *wp1 = new Waypoint();
+			Waypoint wp1(parWaypoint.Position_NED, Vector3d(0.0, 0.0, intYaw));
 
-			wp1->setPosition_NED(parWaypoint.Position_NED);
-			wp1->setRoll(0);
-			wp1->setPitch(0);
-			wp1->setYaw(intYaw);
-			waypointsToAdd->push_back(*wp1);
+			waypointsToAdd.push_back(wp1);
 		}
 	}
-	else if ((parWaypoint.Position_NED.block<2,2>(0,0) - listWaypoints.back().EndPosition.block<2,2>(0,0)).norm() > MAX_STRAFE_DISTANCE)
+	else if ((parWaypoint.Position_NED.block<2,1>(0,0) - listWaypoints.back().EndPosition.block<2,1>(0,0)).norm() > MAX_STRAFE_DISTANCE)
 	{
 		intYaw = atan2((parWaypoint.Position_NED(1, 0) - listWaypoints.back().EndPosition(1, 0)), (parWaypoint.Position_NED(0, 0) - listWaypoints.back().EndPosition(0, 0)));
-		intYaw = AttitudeHelpers::DAngleDiff(listWaypoints.back().EndYaw, intYaw) + listWaypoints.back().EndYaw;
+		intYaw = AttitudeHelpers::DAngleClamp(AttitudeHelpers::DAngleDiff(listWaypoints.back().EndYaw, intYaw) + listWaypoints.back().EndYaw);
 
-		Waypoint *wp1 = new Waypoint();
-
-		wp1->setPosition_NED(parWaypoint.Position_NED);
-		wp1->setRoll(0);
-		wp1->setPitch(0);
-		wp1->setYaw(intYaw);
-		waypointsToAdd->push_back(*wp1);
+		Waypoint wp1(parWaypoint.Position_NED, Vector3d(0.0, 0.0, intYaw));
+		waypointsToAdd.push_back(wp1);
 	}
 
-	waypointsToAdd->push_back(parWaypoint);
+	waypointsToAdd.push_back(parWaypoint);
 
-	DoIteration(*waypointsToAdd);
-
-	// If clearing the waypoint list to add these new ones,
-	// we must reset the timers so the curves begin correctly.
-	if(clearOthers)
-		InitTimers(getTimestamp());
+	DoIteration(waypointsToAdd);
 
 	updateLock.unlock();
 }
@@ -303,15 +312,15 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 		// Since X and Y are coupled, we take the vector direction and scale each v_max_x and v_max_y correctly.
 		double v_max_x = 0.0, v_max_y = 0.0;
 
-		double v0_x = 0.0, v0_y = 0.0, v0_z = 0.0, v0_yaw = 0.0;
-		double v1_x = 0.0, v1_y = 0.0, v1_z = 0.0, v1_yaw = 0.0;
-		double q0_x = 0.0, q0_y = 0.0, q0_z = 0.0, q0_yaw = 0.0;
-		double q1_x = 0.0, q1_y = 0.0, q1_z = 0.0, q1_yaw = 0.0;
+		double v0_x = 0.0, v0_y = 0.0, v0_z = 0.0, v0_pitch = 0.0, v0_yaw = 0.0;
+		double v1_x = 0.0, v1_y = 0.0, v1_z = 0.0, v1_pitch = 0.0, v1_yaw = 0.0;
+		double q0_x = 0.0, q0_y = 0.0, q0_z = 0.0, q0_pitch = 0.0, q0_yaw = 0.0;
+		double q1_x = 0.0, q1_y = 0.0, q1_z = 0.0, q1_pitch = 0.0, q1_yaw = 0.0;
 
-		double sigma_x = 1.0, sigma_y = 1.0, sigma_z = 1.0, sigma_yaw = 1.0;
+		double sigma_x = 1.0, sigma_y = 1.0, sigma_z = 1.0, sigma_pitch = 1.0, sigma_yaw = 1.0;
 
 		Vector3d travelVector;
-		// First waypoint being added to the list, link with the current input values
+		// First waypoint being added to the list, link with the current trajectory values
 		// v1 = 0 means arrive at the waypoint with 0 velocity
 		if (listWaypoints.size() == 0)
 		{
@@ -518,9 +527,9 @@ double TrajectoryGenerator::CalculateStoppingDistance(double Tj_star, double q0,
 	return 1.0 / 2.0 * (v0 + v1) * (Tj_star + abs(v1 - v0) / a_max) + q0;
 }
 
-Vector4d TrajectoryGenerator::GetSigmas(Vector3d startPos, Vector3d endPos, double startYaw, double endYaw)
+Vector5d TrajectoryGenerator::GetSigmas(Vector3d startPos, Vector3d endPos, double startPitch, double endPitch, double startYaw, double endYaw)
 {
-	Vector4d sigmas = Vector4d::Zero();
+	Vector5d sigmas = Vector5d::Zero();
 
 	// X
 	if ((endPos(0,0) - startPos(0,0)) < 0)
@@ -540,11 +549,17 @@ Vector4d TrajectoryGenerator::GetSigmas(Vector3d startPos, Vector3d endPos, doub
 	else
 		sigmas[2]=1;
 
-	// Yaw
-	if ((AttitudeHelpers::DAngleDiff(startYaw, endYaw)) < 0)
+	// Pitch
+	if ((AttitudeHelpers::DAngleDiff(startPitch, endPitch)) < 0)
 		sigmas[3]=-1;
 	else
 		sigmas[3]=1;
+
+	// Yaw
+	if ((AttitudeHelpers::DAngleDiff(startYaw, endYaw)) < 0)
+		sigmas[4]=-1;
+	else
+		sigmas[4]=1;
 
 	return sigmas;
 }
@@ -837,34 +852,24 @@ bool TrajectoryGenerator::IsAngleTrajectoryPossible(double a_max_div_j_max, doub
 	}
 }
 
-TrajectoryGeneratorDynamicInfo TrajectoryGenerator::ReportDynamicInfo()
-{
-	updateLock.lock();
-
-	TrajectoryGeneratorDynamicInfo* tInfo = new TrajectoryGeneratorDynamicInfo(Trajectory,
-											  Trajectory_dot);
-
-	updateLock.unlock();
-
-	return *tInfo;
-}
-
-
 void TrajectoryGenerator::InitTimers(boost::uint64_t currentTickCount)
 {
 	StartTickCountX = currentTickCount;
 	StartTickCountY = currentTickCount;
 	StartTickCountZ = currentTickCount;
+	StartTickCountPitch = currentTickCount;
 	StartTickCountYaw = currentTickCount;
 
 	holdXTime = false;
 	holdYTime = false;
 	holdZTime = false;
+	holdPitchTime = false;
 	holdYawTime = false;
 
 	tX = 0;
 	tY = 0;
 	tZ = 0;
+	tPitch = 0;
 	tYaw = 0;
 }
 
@@ -875,3 +880,5 @@ boost::int64_t TrajectoryGenerator::getTimestamp(void)
 
 	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 }
+
+

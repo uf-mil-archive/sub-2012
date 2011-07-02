@@ -15,7 +15,6 @@ namespace subjugator {
 
 			TrajectoryInfo();
 			TrajectoryInfo(boost::uint64_t timestamp, Vector6d Trajectory, Vector6d Trajectory_dot);
-			TrajectoryInfo(const TrajectoryInfo &info);
 
 			inline boost::uint64_t getTimestamp() const { return timestamp; }
 			Vector6d getTrajectory() const { return Trajectory; }

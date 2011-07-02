@@ -4,6 +4,8 @@ using namespace subjugator;
 using namespace Eigen;
 using namespace std;
 
+typedef Matrix<double, 6, 1> Vector6d;
+
 VelocityController::VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, Vector6d beta)
 {
 	// TODO initialize variables - implement update function
@@ -11,13 +13,47 @@ VelocityController::VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, 
 	J_inv = Matrix6d::Zero();
 }
 
-Matrix<double, 6, 1> VelocityController::RiseFeedbackNoAccel(double dt)
+/*// We cheat here and copy the current data to common class level variables so multiple controllers
+// theoretically could be run in parallel.
+void VelocityController::Update(boost::int16_t currentTick, const TrajectoryData& traj, const LPOSVSSInfo& lposInfo)
+{
+    // Update dt
+    double dt = (currentTick - previousTime)*SECPERNANOSEC;
+    previousTime = currentTick;
+
+    //Protect the INS against the debugger and non monotonic time
+    if((dt <= 0) || (dt > .150))
+    	return;
+
+    // NED Position
+    x.block<3,1>(0,0) = lposInfo.getPosition_NED();
+    x.block<3,1>(3,0) = MILQuaternionOps::Quat2Euler(lposInfo.getQuat_NED_B());
+
+    // NED Velocity
+    x_dot<3,1>(0,0) = lposInfo.getVelocity_NED();
+    x_dot<3,1>(3,0) = MILQuaternionOps::QuatRotate(lposInfo.getQuat_NED_B(), lposInfo.getAngularRate_BODY());
+
+    // Body Velocity
+    vb.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo.getQuat_NED_B()), lposInfo.getVelocity_NED());
+    vb.block<3,1>(3,0) = lposInfo.getAngularRate_BODY();
+
+    // Save the relevant trajectory data
+    //xd =
+    //xd_dot =
+
+    UpdateJacobianInverse(x);
+
+    currentControl = PDFeedback(dt);
+    //currentControl = RiseFeedbackNoAccel(dt);
+}*/
+
+Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 {
 	e = Vector6d::Zero();
 	e.block<3,1>(0,0) = xd.block<3,1>(0,0) - x.block<3,1>(0,0);
-	e(3) = AttitudeHelpers::DAngleDiff(xd(3), xd(3));
-	e(4) = AttitudeHelpers::DAngleDiff(xd(4), xd(4));
-	e(5) = AttitudeHelpers::DAngleDiff(xd(5), xd(5));
+	e(3) = AttitudeHelpers::DAngleDiff(x(3), xd(3)); // This does b-a ( or xd-x)
+	e(4) = AttitudeHelpers::DAngleDiff(x(4), xd(4));
+	e(5) = AttitudeHelpers::DAngleDiff(x(5), xd(5));
 
 	Vector6d vbd = J_inv * (k * e + xd_dot);
 	e2 = vbd - vb;
@@ -37,13 +73,13 @@ Matrix<double, 6, 1> VelocityController::RiseFeedbackNoAccel(double dt)
 	return rise_control;
 }
 
-Matrix<double, 6, 1> VelocityController::PDFeedback(double dt)
+Vector6d VelocityController::PDFeedback(double dt)
 {
 	e = Vector6d::Zero();
 	e.block<3,1>(0,0) = xd.block<3,1>(0,0) - x.block<3,1>(0,0);
-	e(3) = AttitudeHelpers::DAngleDiff(xd(3), xd(3));
-	e(4) = AttitudeHelpers::DAngleDiff(xd(4), xd(4));
-	e(5) = AttitudeHelpers::DAngleDiff(xd(5), xd(5));
+	e(3) = AttitudeHelpers::DAngleDiff(x(3), xd(3));
+	e(4) = AttitudeHelpers::DAngleDiff(x(4), xd(4));
+	e(5) = AttitudeHelpers::DAngleDiff(x(5), xd(5));
 
 	Vector6d vbd = J_inv * (k * e + xd_dot);
 	e2 = vbd - vb;
@@ -121,5 +157,3 @@ void VelocityController::UpdateJacobianInverse(const Vector6d& x)
             -sphi,
             ctheta*cphi;
 }
-
-
