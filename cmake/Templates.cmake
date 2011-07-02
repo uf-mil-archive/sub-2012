@@ -99,7 +99,6 @@ function(sub_executable projectname)
 	else()
 		set(headers "")
 	endif()
-	set(libraries ${libraries} ${Boost_LIBRARIES})
 	if(FFTW_FOUND)
 		set(libraries ${libraries} ${FFTW_LIBRARIES})
 	endif()
@@ -146,9 +145,13 @@ function(sub_executable projectname)
 		set(libraries ${libraries} ${OpenCV_LIBS})
 	endif()
 
+
 	if(flycapture)
 		set(libraries ${libraries} ${FLYCAPTURE_LIBRARIES})
 	endif()
+
+	# Boost comes last, since flycapture depends on it
+	set(libraries ${libraries} ${Boost_LIBRARIES})
 
 	# Define executable
 	add_executable(${exename} ${sources})
