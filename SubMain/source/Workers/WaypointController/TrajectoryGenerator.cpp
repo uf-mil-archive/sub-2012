@@ -132,20 +132,13 @@ TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	Trajectory_dot(4, 0) = pitch(1);
 	Trajectory_dot(5, 0) = yaw(1);
 
-	cout << "tX: " << tX << endl;
-	cout << "Held: " << holdXTime << endl;
-	cout << "TotalXTime: " << twX.TotalTime << endl;
-
 	// Rollover to next waypoint if there is one, and we have arrived
 	// at the present one.
 	if (holdXTime && holdYTime && holdZTime && holdPitchTime && holdYawTime)
 	{
-		cout << "Hold times finished " << endl;
-
 		// We're at the waypoint.
 		if (listWaypoints.size() > 1)
 		{
-			cout << "Waypoint size: " << listWaypoints.size() << endl;
 			listWaypoints.pop();
 			InitTimers(getTimestamp());
 		}

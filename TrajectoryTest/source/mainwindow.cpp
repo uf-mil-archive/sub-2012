@@ -6,6 +6,7 @@
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_marker.h>
 #include <qwt_plot_curve.h>
+#include <qwt_legend.h>
 #include <qwt_plot_directpainter.h>
 #include <qpen.h>
 #include <QDebug>
@@ -13,6 +14,7 @@
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 
 using namespace subjugator;
+using namespace std;
 using namespace Eigen;
 
 QVector<TrajectoryInfo> poseList;
@@ -125,10 +127,13 @@ MainWindow::MainWindow(QWidget *parent) :
     d_paintedPoints(0),
     d_interval(0, 500),
     d_timerId(-1),
-	numOfPoints(500)
-{
-    int updateInterval = 20;
+	numOfPoints(500),
+	updateInterval(20), // ms
+	updateToggle(true),
+	posPlot(true),
+	rpyPlot(false)
 
+{
     testval = 0;
     testPts.resize(numOfPoints);
     testPts.fill(0);
@@ -141,14 +146,13 @@ MainWindow::MainWindow(QWidget *parent) :
     trajectoryGenerator.InitTimers(getTimestamp());
 
     ui->setupUi(this);
-    d_timerId = startTimer(updateInterval);
 
-    curve1_Plot1  = new QwtPlotCurve();
-    curve2_Plot1  = new QwtPlotCurve();
-    curve3_Plot1  = new QwtPlotCurve();
-    curve1_Plot2  = new QwtPlotCurve();
-    curve2_Plot2  = new QwtPlotCurve();
-    curve3_Plot2  = new QwtPlotCurve();
+    curve1_Plot1  = new QwtPlotCurve("Pos X");
+    curve2_Plot1  = new QwtPlotCurve("Pos Y");
+    curve3_Plot1  = new QwtPlotCurve("Pos Z");
+    curve1_Plot2  = new QwtPlotCurve("Vel X");
+    curve2_Plot2  = new QwtPlotCurve("Vel Y");
+    curve3_Plot2  = new QwtPlotCurve("Vel Z");
 
     setupPlot(ui->qwtPlot1);
     setupPlot(ui->qwtPlot2);
@@ -205,6 +209,10 @@ MainWindow::MainWindow(QWidget *parent) :
     curve2_Plot2->attach(ui->qwtPlot2);
     curve3_Plot2->attach(ui->qwtPlot2);
 
+    //ui->qwtPlot1->setAxisAutoScale(QwtPlot::yLeft);
+    ui->qwtPlot1->setTitle("Position");
+    ui->qwtPlot2->setTitle("Desired Velocity");
+
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
 
@@ -237,8 +245,14 @@ void MainWindow::setupPlot(QwtPlot *plot)
 
     plot->plotLayout()->setAlignCanvasToScales(true);
     plot->setAxisTitle(QwtPlot::xBottom, "Points Gathered");
-    plot->setAxisScale(QwtPlot::xBottom, d_interval.minValue(), d_interval.maxValue());
+    plot->setAxisScale(QwtPlot::xBottom, 0, numOfPoints);
     plot->setAxisScale(QwtPlot::yLeft, -1.0, 1.0);
+
+    // Setup Legend
+    QwtLegend *plotLegend = new QwtLegend();
+    plotLegend->setFrameShape(QFrame::Box);
+    plotLegend->setFrameShadow(QFrame::Plain);
+    plot->insertLegend(plotLegend, QwtPlot::RightLegend);
 
     // Create Grid within plot
     QwtPlotGrid *grid = new QwtPlotGrid();
@@ -252,7 +266,7 @@ void MainWindow::setupPlot(QwtPlot *plot)
     // Setup Plot Markers
     QwtPlotMarker *d_origin = new QwtPlotMarker();
     d_origin->setLineStyle(QwtPlotMarker::Cross);
-    d_origin->setValue(d_interval.minValue() + d_interval.width() / 2.0, 0.0);
+    d_origin->setValue(0 + numOfPoints / 2.0, 0.0);
     d_origin->setLinePen(QPen(Qt::gray, 0.0, Qt::DashLine));
     d_origin->attach(plot);
 }
@@ -296,6 +310,12 @@ void MainWindow::start()
 // Setup RPY and DesiredAngularVelocity plots
 void MainWindow::on_actionRPY_triggered()
 {
+	posPlot = false;
+	rpyPlot = true;
+
+	ui->qwtPlot1->setTitle("RPY");
+	ui->qwtPlot2->setTitle("Desired Angular Velocity");
+
 	// Setup Plot 1 for RPY
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
 	buffer1->setFunction(PlotRPY);
@@ -329,6 +349,12 @@ void MainWindow::on_actionRPY_triggered()
 // Setup Position and DesiredAngularVelocity plots
 void MainWindow::on_actionPOS_triggered()
 {
+	posPlot = true;
+	rpyPlot = false;
+
+	ui->qwtPlot1->setTitle("Position");
+	ui->qwtPlot2->setTitle("Desired Velocity");
+
 	curve2_Plot1->setVisible(true);
 	curve3_Plot1->setVisible(true);
 	curve2_Plot2->setVisible(true);
@@ -413,12 +439,6 @@ void MainWindow::timerEvent(QTimerEvent *)
     if (testPts.size() > numOfPoints)
     	testPts.remove(0,1);
 
-/*
-    qDebug() << "Waypt size: " << trajectoryGenerator.listWaypoints.size();
-    qDebug() << "Waypt x: " << trajectoryGenerator.listWaypoints.front().EndPosition(0,0) << "Waypt y: " << trajectoryGenerator.listWaypoints.front().EndPosition(1,0) << "Waypt z: " << trajectoryGenerator.listWaypoints.front().EndPosition(2,0);
-    qDebug() << "Traj x: " << trajectoryGenerator.Trajectory(0,0) << "Traj y: " << trajectoryGenerator.Trajectory(1,0) << "Traj z: " << trajectoryGenerator.Trajectory(2,0);
-*/
-
     DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
     buffer1->update(500);//poseList.size());
 
@@ -436,6 +456,63 @@ void MainWindow::timerEvent(QTimerEvent *)
 
     DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
     buffer6->update(500);//poseList.size());
+
+    double minVal = 0.0, maxVal = 0.0;
+
+    if (posPlot)
+    {
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+			temp = (poseList[j].getTrajectory().block<3,1>(0,0)).minCoeff();
+			if (temp < minVal)
+				minVal = temp;
+		}
+
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+			temp = (poseList[j].getTrajectory().block<3,1>(0,0)).maxCoeff();
+
+			cout << "Trajectory: " << poseList[j].getTrajectory().block<3,1>(0,0) << endl;
+			qDebug() << "Max: " << maxVal;
+
+			if (temp > maxVal)
+				maxVal = temp;
+		}
+    }
+    else if (rpyPlot)
+    {
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+			temp = poseList[j].getTrajectory().block<3,1>(3,0).minCoeff();
+			if (temp < minVal)
+				minVal = temp;
+		}
+
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+			temp = poseList[j].getTrajectory().block<3,1>(3,0).maxCoeff();
+			if (temp > maxVal)
+				maxVal = temp;
+		}
+    }
+
+    if (maxVal == 0)
+    	maxVal = 1;
+    else
+    	maxVal *= 1.05;
+
+    if (minVal == 0)
+    	minVal = -1;
+    else
+    	minVal *= 1.05;
+
+    //qDebug() << "Min Val: " << minVal << "Max Val: " << maxVal;
+
+    ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minVal, maxVal);
 
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
@@ -464,10 +541,40 @@ void MainWindow::on_btnSubmitWaypt_clicked()
 
 void MainWindow::on_btnSubmitStart_clicked()
 {
-
+	if (updateToggle)
+	{
+		updateToggle = false;
+		d_timerId = startTimer(updateInterval);
+	}
+	else
+	{
+		updateToggle = true;
+		killTimer(d_timerId);
+	}
 }
 
 void MainWindow::on_btnCallUpdate_clicked()
 {
+	addPoint(trajectoryGenerator.Update(getTimestamp()));
 
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->update(500);//poseList.size());
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->update(500);//poseList.size());
+
+	DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
+	buffer3->update(500);//poseList.size());
+
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->update(500);//poseList.size());
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->update(500);//poseList.size());
+
+	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+	buffer6->update(500);//poseList.size());
+
+	ui->qwtPlot1->replot();
+	ui->qwtPlot2->replot();
 }
