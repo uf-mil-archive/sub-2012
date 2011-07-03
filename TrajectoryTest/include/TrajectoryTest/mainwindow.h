@@ -16,6 +16,7 @@
 #include <Eigen/Dense>
 #include <time.h>
 #include <cmath>
+#include <algorithm>
 
 #define _USE_MATH_DEFINES
 #define NSEC_PER_SEC 1000000000
@@ -88,6 +89,11 @@ namespace subjugator
 		int d_timerId;
 		double testval;
 		int numOfPoints;
+		int updateInterval;
+		bool updateToggle;
+
+		bool posPlot;
+		bool rpyPlot;
 	};
 }
 #endif // MAINWINDOW_H
