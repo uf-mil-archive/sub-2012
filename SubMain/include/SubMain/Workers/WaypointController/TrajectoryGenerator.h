@@ -100,7 +100,7 @@ namespace subjugator
 		Vector4d DecelerationPhaseB(const TrajWaypointComponent &comp, double time);
 		Vector4d DecelerationPhaseC(const TrajWaypointComponent &comp, double time);
 		Vector11d getMaxValues(bool stompOnTheBrakes);
-		void SetWaypoint(Waypoint &parWaypoint, bool clearOthers);
+		void SetWaypoint(const Waypoint &parWaypoint, bool clearOthers);
 		void DoIteration(std::vector<Waypoint> &waypointsToAdd);
 		double CalculateStoppingDistance(double Tj_star, double q0, double v0, double v1, double a_max);
 		Vector5d GetSigmas(Vector3d startPos, Vector3d endPos, double startPitch, double endPitch, double startYaw, double endYaw);
@@ -112,7 +112,7 @@ namespace subjugator
 		void CalculateTimesCase2(double j_max, double a_max, double v_max, double v0, double v1, double q0, double q1, TrajWaypointComponent &component);
 		bool IsTrajectoryPossible(double a_max_div_j_max, double a_max, double v0, double v1, double q0, double q1, double Tj_star);
 		bool IsAngleTrajectoryPossible(double a_max_div_j_max, double a_max, double v0, double v1, double q0, double q1, double Tj_star);
-		void InitTimers(boost::uint64_t currentTickCount);
+		void InitTimers(boost::int64_t currentTickCount);
 
 		boost::mutex updateLock;
 
@@ -130,11 +130,11 @@ namespace subjugator
 
 		boost::int64_t getTimestamp(void);
 
-		boost::uint64_t StartTickCountX;
-		boost::uint64_t StartTickCountY;
-		boost::uint64_t StartTickCountZ;
-		boost::uint64_t StartTickCountPitch;
-		boost::uint64_t StartTickCountYaw;
+		boost::int64_t StartTickCountX;
+		boost::int64_t StartTickCountY;
+		boost::int64_t StartTickCountZ;
+		boost::int64_t StartTickCountPitch;
+		boost::int64_t StartTickCountYaw;
 
         bool holdXTime;
         bool holdYTime;

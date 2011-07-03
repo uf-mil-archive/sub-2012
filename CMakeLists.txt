@@ -105,6 +105,7 @@ add_subdirectory(DepthSmartSensor)
 add_subdirectory(DVLSmartSensor)
 add_subdirectory(PrimitiveDriver)
 add_subdirectory(LPOSVSS)
+add_subdirectory(LocalWaypointDriver)
 endif()
 endif()
 

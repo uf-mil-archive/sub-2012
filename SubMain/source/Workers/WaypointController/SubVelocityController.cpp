@@ -6,9 +6,33 @@ using namespace std;
 
 typedef Matrix<double, 6, 1> Vector6d;
 
-VelocityController::VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, Vector6d beta)
+VelocityController::VelocityController()
 {
-	// TODO initialize variables - implement update function
+	Vector6d ktemp;
+	ktemp << 0.0,0.0,0.0,0.0,0.0,0.0;
+	k = AttitudeHelpers::DiagMatrixFromVector(ktemp);
+
+	Vector6d kstemp;
+	kstemp << 0.0,0.0,0.0,0.0,0.0,0.0;
+	ks = AttitudeHelpers::DiagMatrixFromVector(kstemp);
+
+	Vector6d alphatemp;
+	alphatemp << 0.0,0.0,0.0,0.0,0.0,0.0;
+	alpha = AttitudeHelpers::DiagMatrixFromVector(alphatemp);
+
+	Vector6d betatemp;
+	betatemp << 0.0,0.0,0.0,0.0,0.0,0.0;
+	beta = AttitudeHelpers::DiagMatrixFromVector(betatemp);
+
+	x = Vector6d::Zero();
+	x_dot = Vector6d::Zero();
+	xd = Vector6d::Zero();
+	xd_dot = Vector6d::Zero();
+
+	vb = Vector6d::Zero();
+
+	currentControl = Vector6d::Zero();
+
 	J = Matrix6d::Zero();
 	J_inv = Matrix6d::Zero();
 }
@@ -43,8 +67,12 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
 
     UpdateJacobianInverse(x);
 
+    lock.lock();
+
     currentControl = PDFeedback(dt);
     //currentControl = RiseFeedbackNoAccel(dt);
+
+    lock.unlock();
 }
 
 Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
@@ -58,7 +86,7 @@ Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 	Vector6d vbd = J_inv * (k * e + xd_dot);
 	e2 = vbd - vb;
 
-	Vector6d sign_term = Vector6d::Zero();
+	Vector6d sign_term = GetSigns(e);
 
 	rise_term_int = ksPlus1*alpha*e2 + beta*sign_term;
 
@@ -156,4 +184,38 @@ void VelocityController::UpdateJacobianInverse(const Vector6d& x)
             0,
             -sphi,
             ctheta*cphi;
+}
+
+Vector6d VelocityController::GetSigns(const Vector6d& x)
+{
+	Vector6d signs = Vector6d::Ones();
+
+	for(int i = 0; i < 6; i++)
+	{
+		if(x(i) > 0)
+			signs(i) = 1.0;
+		else if(x(i) < 0)
+			signs(i) = -1.0;
+		else
+			signs(i) = 0.0;
+	}
+
+	return signs;
+}
+
+void VelocityController::InitTimer(boost::int64_t currentTickCount)
+{
+	previousTime = currentTickCount;
+}
+
+void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
+{
+	lock.lock();
+
+	info.Wrench = currentControl;
+	info.X = x;
+	info.Xd = xd;
+
+	lock.unlock();
+
 }

@@ -266,7 +266,7 @@ Vector4d TrajectoryGenerator::DecelerationPhaseC(const TrajWaypointComponent &co
 	return result;
 }
 
-void TrajectoryGenerator::SetWaypoint(Waypoint &parWaypoint, bool clearOthers)
+void TrajectoryGenerator::SetWaypoint(const Waypoint &parWaypoint, bool clearOthers)
 {
 	updateLock.lock();
 
@@ -899,7 +899,7 @@ bool TrajectoryGenerator::IsAngleTrajectoryPossible(double a_max_div_j_max, doub
 	}
 }
 
-void TrajectoryGenerator::InitTimers(boost::uint64_t currentTickCount)
+void TrajectoryGenerator::InitTimers(boost::int64_t currentTickCount)
 {
 	StartTickCountX = currentTickCount;
 	StartTickCountY = currentTickCount;

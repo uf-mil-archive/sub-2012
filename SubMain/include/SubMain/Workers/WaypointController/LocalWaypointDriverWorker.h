@@ -8,6 +8,7 @@
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
 #include "SubMain/Workers/WaypointController/SubVelocityController.h"
 #include "DataObjects/Waypoint/Waypoint.h"
+#include "DataObjects/PD/PDInfo.h"
 
 #include <Eigen/Dense>
 
@@ -17,6 +18,17 @@ using namespace Eigen;
 
 namespace subjugator
 {
+	class LocalWaypointDriverWorkerCommands
+	{
+	public:
+		enum LPOSVSSWorkerCommandCode
+		{
+			SetLPOSVSSInfo = 0,
+			SetPDInfo = 1,
+			SetWaypoint = 2,
+		};
+	};
+
 	class LocalWaypointDriverWorker : public Worker
 	{
 	public:
@@ -24,15 +36,10 @@ namespace subjugator
 		typedef Matrix<double, 6, 6> Matrix6d;
 
 		LocalWaypointDriverWorker(boost::asio::io_service& io, int64_t rate);
-		void Init(double rate);
-
-		Vector6d requestedWrench;
-		boost::mutex wrenchLock;
-		boost::mutex inputLock;
-		TrajectoryGenerator trajectoryGenerator;
+		bool Startup();
+		void Shutdown();
 
 	protected:
-		boost::int64_t getTimestamp(void);
 		void allState();
 		void readyState();
 		void initializeState();
@@ -40,18 +47,20 @@ namespace subjugator
 		void standbyState();
 
 	private:
-	};
+		std::auto_ptr<TrajectoryGenerator> trajectoryGenerator;
+		std::auto_ptr<VelocityController> velocityController;
+		std::auto_ptr<LPOSVSSInfo> lposInfo;
 
-	class LocalWaypointDriverDynamicInfo
-	{
-	public:
-//		typedef Matrix<double, 6, 1> Vector6d;
-//
-//		Vector6d RequestedWrench;
-//		TrajectoryGeneratorDynamicInfo *CurrentTrajectory;
-//		//VelocityControllerDynamicInfo CurrentVelocityController;
-//
-//		LocalWaypointDriverDynamicInfo();
+		boost::mutex lock;
+
+		boost::int64_t getTimestamp(void);
+
+		bool inReady;
+		bool hardwareKilled;
+
+		void setLPOSVSSInfo(const DataObject& dobj);
+		void setPDInfo(const DataObject& dobj);
+		void setWaypoint(const DataObject& dobj);
 	};
 }
 

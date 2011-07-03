@@ -1,10 +1,12 @@
 #ifndef SUBVELOCITYCONTROLLER_H
 #define SUBVELOCITYCONTROLLER_H
 
+#include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
+#include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
 #include <Eigen/Dense>
 #include <cmath>
 
@@ -18,10 +20,11 @@ namespace subjugator
 		typedef Matrix<double, 6, 1> Vector6d;
 		typedef Matrix<double, 6, 6> Matrix6d;
 	public:
-		VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, Vector6d beta);
+		VelocityController();
 
-		Vector6d GetWrench() const { return currentControl; }
+		void GetWrench(LocalWaypointDriverInfo &info);
 		void Update(boost::int16_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo);
+		void InitTimer(boost::int64_t currentTickCount);
 
 	private:
 		static const double SECPERNANOSEC = 1e-9;
@@ -54,11 +57,13 @@ namespace subjugator
 		boost::int64_t previousTime;
 
 		Vector6d currentControl;
+		boost::mutex lock;
 
 		void UpdateJacobian(const Vector6d& x);
 		void UpdateJacobianInverse(const Vector6d& x);
 		Vector6d RiseFeedbackNoAccel(double dt);
 		Vector6d PDFeedback(double dt);
+		Vector6d GetSigns(const Vector6d& x);
 	};
 }
 
