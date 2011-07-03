@@ -22,7 +22,7 @@ void LPOSVSSDDSCommander::receivedDepth(const DepthMessage &depth) {
 }
 
 void LPOSVSSDDSCommander::receivedDVL(const DVLMessage &dvl) {
-	dvltoken.lock()->Operate(DVLHighresBottomTrack(dvl.timestamp, Vector3d(dvl.velocity), dvl.velocityerror, true)); // DVLMessage is missing 'good', so force it to true?
+	dvltoken.lock()->Operate(DVLHighresBottomTrack(dvl.timestamp, Vector3d(dvl.velocity), dvl.velocityerror, dvl.good));
 }
 
 void LPOSVSSDDSCommander::receivedIMU(const IMUMessage &imu) {
