@@ -28,16 +28,17 @@ namespace subjugator
 
 		virtual QRectF boundingRect() const;
 
-		void setFunction(points(*y)(int));
-
-		QVector<points> dataPts;
+		void setFunction(points(*y)(int, char));
+		void setComponent(char c);
 
 	private:
-		points (*d_y)(int);
+		points (*d_y)(int, char);
+
+		char Component;
 
 		double d_referenceTime;
 		double d_interval;
-		QVector<double> d_values;
+		QVector<points> d_values;
 
 		double d_step;
 		int d_startIndex;

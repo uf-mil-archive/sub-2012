@@ -10,102 +10,196 @@
 #include <qpen.h>
 #include <QDebug>
 
+#include "DataObjects/Trajectory/TrajectoryInfo.h"
+
 using namespace subjugator;
 using namespace Eigen;
 
 QVector<LocalWaypointDriverDynamicInfo> poseList;
+QVector<double> testPts;
 
-static points update_pos(int index)
+static points PlotPosition(int index, char c)
 {
-    //return poseList.data()[index];
 	points pos;
-	//pos.x = poseList.data()[index].CurrentTrajectory->DesiredTrajectory(0,0);
-	pos.y = index;
+
+	pos.x = index;
+
+	if (c == 'x')
+		pos.y = 0.1;//poseList.data()[index].CurrentTrajectory->DesiredTrajectory(0,0);
+	else if (c == 'y')
+		pos.y = 0.2;
+	else if (c == 'z')
+		pos.y = 0.3;
+	else
+		pos.y = 0;
 
 	return pos;
 }
 
-//static double wave(double x)
-//{
-//    const double period = 1.0;
-//    const double c = 5.0;
-//
-//    double v = ::fmod(x, period);
-//
-//    const double amplitude = qAbs(x - qRound(x / c) * c) / ( 0.5 * c );
-//    v = amplitude * qSin(v / period * 2 * M_PI);
-//
-//    return v;
-//}
-//
-//static double noise(double)
-//{
-//    return 2.0 * ( qrand() / ((double)RAND_MAX + 1) ) - 1.0;
-//}
-//
-//static double ramp(double x)
-//{
-//    return x;
-//}
+
+static points PlotDesiredVelocity(int index, char c)
+{
+	points pos;
+
+	pos.x = index;
+
+	if (c == 'x')
+		pos.y = 0.1;//poseList.data()[index].CurrentTrajectory->DesiredTrajectory(0,0);
+	else if (c == 'y')
+		pos.y = 0.2;
+	else if (c == 'z')
+		pos.y = 0.3;
+	else
+		pos.y = 0;
+
+	return pos;
+}
+
+static points PlotRPY(int index, char c)
+{
+	points pos;
+
+	pos.x = index;
+	pos.y = 0.1;//poseList.data()[index].CurrentTrajectory->DesiredTrajectory(0,0);
+
+	return pos;
+}
+
+static points PlotDesiredAngularVelocity(int index, char c)
+{
+	points pos;
+
+	pos.x = index;
+	pos.y = 0.1;//poseList.data()[index].CurrentTrajectory->DesiredTrajectory(0,0);
+
+	return pos;
+}
+
+static points pointTest(int index, char c)
+{
+	points pos;
+
+    pos.x = index;
+
+    if (c == 'r')
+    	pos.y = (double)index/500.0;
+    else if (c == 's')
+    	pos.y = sin(3.14/index);
+    else if (c == 't')
+    	pos.y = testPts.data()[index];
+
+    return pos;
+}
 
 class FunctionData: public QwtSyntheticPointData
 {
 public:
-    FunctionData(points(*y)(int)):
-        QwtSyntheticPointData(100),
+    FunctionData(points(*y)(int, char)):
+        QwtSyntheticPointData(500),
         d_y(y)
     {
     }
 
-    virtual points y(int x) const
+    virtual points y(int x, char c) const
     {
-        return d_y(x);
+        return d_y(x,c);
     }
 
 private:
-    points(*d_y)(int);
+    points(*d_y)(int, char);
 };
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     d_paintedPoints(0),
-    d_interval(-20.0, 20.0),
+    d_interval(0, 500),
     d_timerId(-1),
 	numOfPoints(500)
 {
-    int updateInterval = 20;
+    int updateInterval = 50;
+
+    testval = 0;
+    testPts.resize(numOfPoints);
+    testPts.fill(0);
+
+    poseList.resize(numOfPoints);
+//    poseList.fill(0);
 
     // FOR TESTING TRAJECTORYGENERATOR
     Vector6d trajStartPoint = Vector6d::Zero();
 
-    //Waypoint *waypt = new Waypoint();
-
     trajectoryGenerator = new TrajectoryGenerator(trajStartPoint);
     trajectoryGenerator->SetWaypoint(*new Waypoint(), true);
+    trajectoryGenerator->InitTimers(getTimestamp());
 
     ui->setupUi(this);
     d_timerId = startTimer(updateInterval);
 
-    curvePlot1  = new QwtPlotCurve();
-    curvePlot2  = new QwtPlotCurve();
+    curve1_Plot1  = new QwtPlotCurve();
+    curve2_Plot1  = new QwtPlotCurve();
+    curve3_Plot1  = new QwtPlotCurve();
+    curve1_Plot2  = new QwtPlotCurve();
+    curve2_Plot2  = new QwtPlotCurve();
+    curve3_Plot2  = new QwtPlotCurve();
 
     setupPlot(ui->qwtPlot1);
     setupPlot(ui->qwtPlot2);
-    setupCurve(curvePlot1, QPen(Qt::cyan));
-    setupCurve(curvePlot2, QPen(Qt::green));
+    setupCurve(curve1_Plot1, QPen(Qt::cyan));
+    setupCurve(curve2_Plot1, QPen(Qt::green));
+    setupCurve(curve3_Plot1, QPen(Qt::yellow));
+    setupCurve(curve1_Plot2, QPen(Qt::cyan));
+	setupCurve(curve2_Plot2, QPen(Qt::green));
+	setupCurve(curve3_Plot2, QPen(Qt::yellow));
 
-    curvePlot1->setData(new DataSeries(20.0, 10));
+    curve1_Plot1->setData(new DataSeries(20.0, numOfPoints));
+    curve2_Plot1->setData(new DataSeries(20.0, numOfPoints));
+    curve3_Plot1->setData(new DataSeries(20.0, numOfPoints));
+    curve1_Plot2->setData(new DataSeries(20.0, numOfPoints));
+	curve2_Plot2->setData(new DataSeries(20.0, numOfPoints));
+	curve3_Plot2->setData(new DataSeries(20.0, numOfPoints));
 
-    DataSeries *buffer = (DataSeries *)curvePlot1->data();
-    buffer->setFunction(update_pos);
-    buffer->fill(20.0, 1000);
+	// Set Three curves per plot.
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+    buffer1->setFunction(PlotPosition);
+    buffer1->setComponent('x');
+    buffer1->fill(20.0, numOfPoints);
 
-    //curvePlot1->setData(new FunctionData(::cos));
-    curvePlot1->attach(ui->qwtPlot1);
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+    buffer2->setFunction(PlotPosition);
+    buffer2->setComponent('y');
+    buffer2->fill(20.0, numOfPoints);
 
-    //curvePlot2->setData(new FunctionData(::sin));
-    curvePlot2->attach(ui->qwtPlot2);
+	DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
+    buffer3->setFunction(PlotPosition);
+    buffer3->setComponent('z');
+    buffer3->fill(20.0, numOfPoints);
+
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+    buffer4->setFunction(PlotDesiredVelocity);
+    buffer4->setComponent('x');
+    buffer4->fill(20.0, numOfPoints);
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+    buffer5->setFunction(PlotDesiredVelocity);
+    buffer5->setComponent('y');
+    buffer5->fill(20.0, numOfPoints);
+
+	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+    buffer6->setFunction(PlotDesiredVelocity);
+    buffer6->setComponent('z');
+    buffer6->fill(20.0, numOfPoints);
+
+    // Attach curves to their respective plots
+    curve1_Plot1->attach(ui->qwtPlot1);
+    curve2_Plot1->attach(ui->qwtPlot1);
+    curve3_Plot1->attach(ui->qwtPlot1);
+    curve1_Plot2->attach(ui->qwtPlot2);
+    curve2_Plot2->attach(ui->qwtPlot2);
+    curve3_Plot2->attach(ui->qwtPlot2);
+
+    ui->qwtPlot1->replot();
+    ui->qwtPlot2->replot();
 
     d_clock.start();
 }
@@ -114,14 +208,6 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-
-//void MainWindow::addPoint(points pos)
-//{
-//    poseList.append(pos);
-//
-//    if (poseList.size() > numOfPoints)
-//        poseList.remove(1,1);
-//}
 
 void MainWindow::addPoint(LocalWaypointDriverDynamicInfo p)
 {
@@ -143,7 +229,7 @@ void MainWindow::setupPlot(QwtPlot *plot)
     initGradient(plot);
 
     plot->plotLayout()->setAlignCanvasToScales(true);
-    plot->setAxisTitle(QwtPlot::xBottom, "Time [s]");
+    plot->setAxisTitle(QwtPlot::xBottom, "Points Gathered");
     plot->setAxisScale(QwtPlot::xBottom, d_interval.minValue(), d_interval.maxValue());
     plot->setAxisScale(QwtPlot::yLeft, -1.0, 1.0);
 
@@ -170,12 +256,10 @@ void MainWindow::setupCurve(QwtPlotCurve *curve, QPen pen)
     // Create and setup Curves
     curve->setStyle(QwtPlotCurve::Lines);
     curve->setPen(pen);
-#if 1
     curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-#endif
-#if 1
     curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
-#endif
+
+    curve->data();
 }
 
 // Function to create gradient for plot backgrounds.
@@ -202,25 +286,70 @@ void MainWindow::start()
 
 }
 
+// Setup RPY and DesiredAngularVelocity plots
 void MainWindow::on_actionRPY_triggered()
 {
-    //curvePlot1->setData(new FunctionData(::sin));
-    curvePlot1->attach(ui->qwtPlot1);
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(PlotRPY);
+	buffer1->setComponent('x');
+	buffer1->fill(20.0, numOfPoints);
 
-    //curvePlot2->setData(new FunctionData(::cos));
-    curvePlot2->attach(ui->qwtPlot1);
+	curve2_Plot1->setVisible(false);
+	curve3_Plot1->setVisible(false);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(PlotDesiredAngularVelocity);
+	buffer4->setComponent('x');
+	buffer4->fill(20.0, numOfPoints);
+
+	curve2_Plot2->setVisible(false);
+	curve3_Plot2->setVisible(false);
 
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
 }
 
+// Setup Position and DesiredAngularVelocity plots
 void MainWindow::on_actionPOS_triggered()
 {
-    //curvePlot1->setData(new FunctionData(::sin));
-    curvePlot1->attach(ui->qwtPlot2);
+	curve2_Plot1->setVisible(true);
+	curve3_Plot1->setVisible(true);
+	curve2_Plot2->setVisible(true);
+	curve3_Plot2->setVisible(true);
 
-    //curvePlot2->setData(new FunctionData(::cos));
-    curvePlot2->attach(ui->qwtPlot2);
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(PlotPosition);
+	buffer1->setComponent('x');
+	buffer1->fill(20.0, numOfPoints);
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->setFunction(PlotPosition);
+	buffer2->setComponent('y');
+	buffer2->fill(20.0, numOfPoints);
+
+	DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
+	buffer3->setFunction(PlotPosition);
+	buffer3->setComponent('z');
+	buffer3->fill(20.0, numOfPoints);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(PlotDesiredVelocity);
+	buffer4->setComponent('x');
+	buffer4->fill(20.0, numOfPoints);
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->setFunction(PlotDesiredVelocity);
+	buffer5->setComponent('y');
+	buffer5->fill(20.0, numOfPoints);
+
+	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+	buffer6->setFunction(PlotDesiredVelocity);
+	buffer6->setComponent('z');
+	buffer6->fill(20.0, numOfPoints);
 
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
@@ -228,6 +357,28 @@ void MainWindow::on_actionPOS_triggered()
 
 void MainWindow::on_actionError_triggered()
 {
+	curve2_Plot1->setVisible(false);
+	curve3_Plot1->setVisible(false);
+	curve3_Plot2->setVisible(false);
+
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(pointTest);
+	buffer1->setComponent('x');
+	buffer1->fill(20.0, numOfPoints);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(pointTest);
+	buffer4->setComponent('t');
+	buffer4->fill(20.0, numOfPoints);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->setFunction(pointTest);
+	buffer5->setComponent('s');
+	buffer5->fill(20.0, numOfPoints);
+
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
 }
@@ -235,10 +386,10 @@ void MainWindow::on_actionError_triggered()
 // ADDED FOR SIMULATION
 void MainWindow::timerEvent(QTimerEvent *)
 {
-	Vector6d wrench = Vector6d::Zero();
+//	Vector6d wrench = Vector6d::Zero();
 	trajectoryGenerator->Update(getTimestamp());
 
-	LocalWaypointDriverDynamicInfo info;
+//	LocalWaypointDriverDynamicInfo info;
 //	info.RequestedWrench = wrench;
 //	info.CurrentTrajectory = trajectoryGenerator->ReportDynamicInfo();
 
@@ -246,10 +397,40 @@ void MainWindow::timerEvent(QTimerEvent *)
 
 	//addPoint(*info);
 
-    DataSeries *buffer = (DataSeries *)curvePlot1->data();
-    buffer->setReferenceTime(d_clock.elapsed() / 1000.0);
+	testval+=0.05;
+
+	if (testval > 1)
+		testval = 0;
+
+    testPts.append(testval);
+
+    if (testPts.size() > numOfPoints)
+    	testPts.remove(1,1);
+
+    qDebug() << "Waypt size: " << trajectoryGenerator->listWaypoints.size();
+    qDebug() << "Waypt x: " << trajectoryGenerator->listWaypoints.front().EndPosition(0,0) << "Waypt y: " << trajectoryGenerator->listWaypoints.front().EndPosition(1,0) << "Waypt z: " << trajectoryGenerator->listWaypoints.front().EndPosition(2,0);;
+    qDebug() << "Traj x: " << trajectoryGenerator->Trajectory(0,0) << "Traj y: " << trajectoryGenerator->Trajectory(1,0) << "Traj z: " << trajectoryGenerator->Trajectory(2,0);
+
+    DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+    buffer1->update(500);//poseList.size());
+
+    DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+    buffer2->update(500);//poseList.size());
+
+    DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
+    buffer3->update(500);//poseList.size());
+
+    DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+    buffer4->update(500);//poseList.size());
+
+    DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+    buffer5->update(500);//poseList.size());
+
+    DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+    buffer6->update(500);//poseList.size());
 
     ui->qwtPlot1->replot();
+    ui->qwtPlot2->replot();
 }
 
 boost::int64_t MainWindow::getTimestamp(void)
@@ -258,4 +439,27 @@ boost::int64_t MainWindow::getTimestamp(void)
 	clock_gettime(CLOCK_MONOTONIC, &t);
 
 	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
+}
+
+void MainWindow::on_btnSubmitWaypt_clicked()
+{
+    Waypoint* wp = new Waypoint();
+
+    wp->setX(ui->lineEditWayptX->text().toDouble());
+    wp->setY(ui->lineEditWayptY->text().toDouble());
+    wp->setZ(ui->lineEditWayptZ->text().toDouble());
+    wp->setPitch(M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble());
+    wp->setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
+
+    trajectoryGenerator->SetWaypoint(*wp, true);
+}
+
+void MainWindow::on_btnSubmitStart_clicked()
+{
+
+}
+
+void MainWindow::on_btnCallUpdate_clicked()
+{
+
 }

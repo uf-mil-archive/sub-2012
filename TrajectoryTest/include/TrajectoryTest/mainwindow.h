@@ -14,7 +14,9 @@
 #include "SubMain/Workers/WaypointController/LocalWaypointDriverWorker.h"
 #include <Eigen/Dense>
 #include <time.h>
+#include <cmath>
 
+#define _USE_MATH_DEFINES
 #define NSEC_PER_SEC 1000000000
 
 class QwtPlotCurve;
@@ -56,34 +58,34 @@ namespace subjugator
 
 	private slots:
 		void on_actionRPY_triggered();
-
 		void on_actionPOS_triggered();
-
 		void on_actionError_triggered();
+	    void on_btnSubmitWaypt_clicked();
+	    void on_btnSubmitStart_clicked();
+	    void on_btnCallUpdate_clicked();
 
 	private:
+	    void initGradient(QwtPlot *plot);
+
 		boost::int64_t getTimestamp(void);
 		Ui::MainWindow *ui;
 
-		void initGradient(QwtPlot *plot);
-
 		QwtPlotMarker *d_origin;
+		QwtPlotCurve *curve1_Plot1;
+		QwtPlotCurve *curve2_Plot1;
+		QwtPlotCurve *curve3_Plot1;
+		QwtPlotCurve *curve1_Plot2;
+		QwtPlotCurve *curve2_Plot2;
+		QwtPlotCurve *curve3_Plot2;
 
-		QwtPlotCurve *curvePlot1;
-		QwtPlotCurve *curvePlot2;
+		QwtPlotDirectPainter *d_directPainter;
 		QwtSystemClock d_clock;
-
 		QPen pen;
 
 		int d_paintedPoints;
-
-		QwtPlotDirectPainter *d_directPainter;
-
 		QwtInterval d_interval;
 		int d_timerId;
-
 		double testval;
-
 		int numOfPoints;
 	};
 }

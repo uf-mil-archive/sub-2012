@@ -6,20 +6,133 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
-    <height>686</height>
+    <width>976</width>
+    <height>735</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Trajectory Generation</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="10,2">
     <item>
-     <widget class="QwtPlot" name="qwtPlot1"/>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QwtPlot" name="qwtPlot1"/>
+      </item>
+      <item>
+       <widget class="QwtPlot" name="qwtPlot2"/>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QwtPlot" name="qwtPlot2"/>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEditWayptX"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>WayPt Y</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Waypt Z</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEditWayptY"/>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEditWayptZ"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>WayPt Pitch</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEditWayptPitch"/>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEditWayptYaw"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>WayPt Yaw</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>WayPt X</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="btnSubmitWaypt">
+          <property name="text">
+           <string>Submit Waypt</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnSubmitStart">
+          <property name="text">
+           <string>Submit Start</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnCallUpdate">
+          <property name="text">
+           <string>Call Update</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -28,7 +141,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>679</width>
+     <width>976</width>
      <height>25</height>
     </rect>
    </property>

@@ -49,6 +49,9 @@ namespace subjugator
 		Vector3d StartPosition;
 		Vector3d EndPosition;
 		Vector3d EndVelocity;
+		double StartPitch;
+		double EndPitch;
+		double EndPitchRate;
 		double StartYaw;
 		double EndYaw;
 		double EndYawRate;

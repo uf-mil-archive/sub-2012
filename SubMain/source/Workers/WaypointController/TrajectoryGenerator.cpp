@@ -116,6 +116,8 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	Vector4d pitch = CalculateCurrentTrajectoryValue(twPitch, tPitch); cheaterIndex++;
 	Vector4d yaw = CalculateCurrentTrajectoryValue(twYaw, tYaw);
 
+
+
 	Trajectory(0, 0) = x(0);
 	Trajectory(1, 0) = y(0);
 	Trajectory(2, 0) = z(0);
@@ -259,7 +261,7 @@ void TrajectoryGenerator::SetWaypoint(Waypoint &parWaypoint, bool clearOthers)
 {
 	updateLock.lock();
 
-	vector<Waypoint> waypointsToAdd(5);	// The maximum number of waypoints added when a single waypoint
+	vector<Waypoint> waypointsToAdd;	// The maximum number of waypoints added when a single waypoint
 										// is requested is always less than 5
 	if (clearOthers)
 	{
@@ -324,7 +326,7 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 		// v1 = 0 means arrive at the waypoint with 0 velocity
 		if (listWaypoints.size() == 0)
 		{
-			Vector4d sigmas = GetSigmas(Trajectory.block<3,1>(0,0), waypointsToAdd[i].Position_NED, Trajectory(5, 0), waypointsToAdd[i].RPY(2, 0));
+			Vector5d sigmas = GetSigmas(Trajectory.block<3,1>(0,0), waypointsToAdd[i].Position_NED, Trajectory(4, 0), waypointsToAdd[i].RPY(1, 0), Trajectory(5, 0), waypointsToAdd[i].RPY(2, 0));
 
 			sigma_x = sigmas(0);
 			sigma_y = sigmas(1);
@@ -350,7 +352,7 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 		}
 		else
 		{
-			Vector4d sigmas = GetSigmas(listWaypoints.back().EndPosition, waypointsToAdd[i].Position_NED, listWaypoints.back().EndYaw, waypointsToAdd[i].getYaw());
+			Vector5d sigmas = GetSigmas(listWaypoints.back().EndPosition, waypointsToAdd[i].Position_NED, listWaypoints.back().EndPitch, waypointsToAdd[i].getPitch(), listWaypoints.back().EndYaw, waypointsToAdd[i].getYaw());
 
 			sigma_x = sigmas[0];
 			sigma_y = sigmas[1];
