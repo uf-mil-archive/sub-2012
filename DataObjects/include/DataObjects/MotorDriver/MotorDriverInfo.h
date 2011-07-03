@@ -17,7 +17,7 @@ namespace subjugator {
 			double getReferenceInput() const { return refinput; }
 			double getPresentOutput() const { return presentoutput; }
 			double getRailVoltage() const { return railvoltage; }
-			double getCurrent() const { return presentoutput > 0 ? current : -current; }
+			double getCurrent() const { return refinput < 0 ? current : -current; }
 
 			enum ControlType {
 				CLOSED,
