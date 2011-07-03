@@ -44,9 +44,9 @@ namespace subjugator
 		static const double alpha = 0.4082;
 		static const double beta = 2.0;
 		static const double kappa = 0;
-		static const double bias_var_f = 0.00000004;
+		static const double bias_var_f = 0.000004;
 		static const double bias_var_w = 26.2;
-		static const double T_f = 11; // TODO
+		static const double T_f = 5; // TODO
 		static const double T_w = 100; // TODO
 		static const double depth_sigma = 0.02;
 
