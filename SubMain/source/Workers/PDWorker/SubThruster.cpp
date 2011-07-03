@@ -20,7 +20,7 @@ Thruster::Thruster(int address, int srcAddress, SubHAL &hal, Vector3d lineOfActi
 
 void Thruster::SetEffort(double effort)
 {
-	endpoint->write(SetReference(effort));
+	endpoint->write(SetReference(effort)); // thrusters are wired in reverse
 }
 
 int Thruster::Compare(Thruster &i, Thruster &j)

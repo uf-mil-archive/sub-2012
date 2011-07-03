@@ -233,7 +233,7 @@ void KalmanFilter::Reset()
 {
 	lock.lock();
 
-	x_hat.block<7,1>(0,0) = Vector7d::Zero();
+	x_hat.block<13,1>(0,0) = Vector13d::Zero();
 	P_est_error = Vector3d::Zero();
 
 	datalock.lock();

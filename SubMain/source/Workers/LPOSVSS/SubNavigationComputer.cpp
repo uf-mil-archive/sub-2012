@@ -8,12 +8,12 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 		referenceNorthVector(24136.7,-2264.9,40603.4)/*gainesville*/, referenceGravityVector(0.0,0.0,1.0),
 		initialPosition(0.0,0.0,0.0), initialVelocity(0.0,0.0,0.0),
 		white_noise_sigma_f(0.0005,0.0005,0.0005), white_noise_sigma_w(0.05,0.05,0.05),
-		dvl_sigma(0.02, 0.02, 0.02), att_sigma(1.0,1.0,1.0),
+		dvl_sigma(0.02, 0.02, 0.02), att_sigma(0.5,0.5,0.5),
 		q_SUB_DVL(0.0,0.923879532511287,0.382683432365090,0.0), q_SUB_IMU(0.012621022547474,0.002181321593961,-0.004522523520991,0.999907744947984),
 		q_MagCorrection(1.0,0.0,0.0,0.0), magShift(0.0,0.0,0.0),
 		magScale(1.0,1.0,1.0)
 {
-	covariance = 0.01*Matrix<double, 13, 13>::Identity();
+	covariance = .01*Matrix<double, 13, 13>::Identity();
 	covariance(0,0) *= .01;
 	covariance.block<3,3>(2,2) = 10*covariance.block<3,3>(2,2);
 
@@ -62,7 +62,7 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 	thrusterCurrentCorrectors.push_back(t7);
 	thrusterCurrents.push_back(0.0);
 
-	acceptable_gravity_mag = referenceGravityVector.norm() * 1.02;
+	acceptable_gravity_mag = referenceGravityVector.norm() * 1.04;
 
 	q_MagCorrectionInverse = MILQuaternionOps::QuatInverse(q_MagCorrection);
 
@@ -107,6 +107,8 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 
 	a_prev*=-1.0; // The ins needs the correct right hand coordinate frame acceleration
 
+	initialPosition += MILQuaternionOps::QuatRotate(triad->getQuaternion(), r_ORIGIN_NAV);
+
 	//INS initialization
 	ins = std::auto_ptr<INS>(
 			new INS(
@@ -145,7 +147,7 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 	kalmanCount = 0;
 
 	// Now build up the kalman timer.
-	kTimerMs = 1000 / 100 /*Hz*/;
+	kTimerMs = 1000 / 50 /*Hz*/;
 	kTimer = std::auto_ptr<boost::asio::deadline_timer>(
 		new boost::asio::deadline_timer(io, boost::posix_time::milliseconds(kTimerMs)));
 
@@ -172,33 +174,37 @@ void NavigationComputer::TarePosition(const Vector3d& position)
 {
 	tareLock.lock();
 
-	resetErrors(true, position);
-	depth_tare = depth_zero_offset + position(2);
+	LPOSVSSInfo info(0,0);	// don't have state or timestamp
+	GetNavInfo(info);
+
+	Vector3d pos = position + MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.getQuat_NED_B()), r_ORIGIN_NAV);
+
+	resetErrors(true, pos);
+	depth_tare = depth_zero_offset + pos(2);
 
 	tareLock.unlock();
 }
 
 void NavigationComputer::updateKalman(const boost::system::error_code& e)
 {
-
 	boost::shared_ptr<INSData> insdata = ins->GetData();
 
 	kLock.lock();
 	// Constant error kalman errors
 	if(attRefAvailable)
 	{
-		//attRefAvailable = false;
+		attRefAvailable = false;
 		Vector4d tempQuat = MILQuaternionOps::QuatMultiply(MILQuaternionOps::QuatInverse(attRef), insdata->Quaternion);
 		z.block<3,1>(4,0) = tempQuat.block<3,1>(1,0);
 	}
 	if(depthRefAvailable)
 	{
-		//depthRefAvailable = false;
+		depthRefAvailable = false;
 		z(0) = insdata->Position_NED(2) - depthRef;
 	}
 	if(velRefAvailable)
 	{
-		//velRefAvailable = false;
+		velRefAvailable = false;
 		z.block<3,1>(1,0) = insdata->Velocity_NED - velRef;
 	}
 	kLock.unlock();
@@ -257,7 +263,6 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 	//cout << "INS V\n" << insdata->Velocity_NED << endl;
 	//cout<<"RPY:" << endl;
 	//cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
-
 }
 
 void NavigationComputer::UpdateIMU(const DataObject& dobj)
@@ -285,11 +290,11 @@ void NavigationComputer::UpdateIMU(const DataObject& dobj)
 	magSum += tempMag;
 	accSum += insdata->Acceleration_BODY_RAW;
 
-	count = (count + 1) % 20;
+	count = (count + 1) % 10;
 	if(count)	// Don't have enough samples yet
 		return;
 
-	tempMag = magSum / 20.0;
+	tempMag = magSum / 10.0;
 
 	// Hard and soft correct the data - not dependent on current, so okay to do after average
 	tempMag += magShift;
@@ -309,7 +314,7 @@ void NavigationComputer::UpdateIMU(const DataObject& dobj)
 
 	//cout << "tempmag\n" << tempMag << endl;
 
-	Vector3d bodyg = -1.0*accSum / 20.0;	// The INS data gives -ve gravity. This is so we get the proper direction of gravity
+	Vector3d bodyg = -1.0*accSum / 10.0;	// The INS data gives -ve gravity. This is so we get the proper direction of gravity
 
 	// Reset the sums
 	magSum = Vector3d::Zero();

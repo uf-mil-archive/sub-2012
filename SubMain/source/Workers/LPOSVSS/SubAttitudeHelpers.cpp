@@ -148,6 +148,7 @@ Matrix3d AttitudeHelpers::VectorSkew3(const Vector3d& vec)
 MatrixXd AttitudeHelpers::DiagMatrixFromVector(const VectorXd& v)
 {
 	MatrixXd res(v.rows(), v.rows());
+	res.fill(0.0);
 	for(int i = 0; i < v.rows(); i++)
 		res(i,i) = v(i);
 
