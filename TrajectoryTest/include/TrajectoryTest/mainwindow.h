@@ -12,6 +12,7 @@
 #include "dataseries.h"
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
 #include "SubMain/Workers/WaypointController/LocalWaypointDriverWorker.h"
+#include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include <Eigen/Dense>
 #include <time.h>
 #include <cmath>
@@ -49,9 +50,9 @@ namespace subjugator
 		void setupCurve(QwtPlotCurve *curve, QPen pen);
 
 		//void addPoint(points pos);
-		void addPoint(LocalWaypointDriverDynamicInfo p);
+		void addPoint(const TrajectoryInfo& p);
 
-		TrajectoryGenerator *trajectoryGenerator;
+		TrajectoryGenerator trajectoryGenerator;
 
 	protected:
 		virtual void timerEvent(QTimerEvent *e);

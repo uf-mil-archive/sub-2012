@@ -3,6 +3,7 @@
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/EmbeddedTypeCodes.h"
@@ -10,10 +11,10 @@
 #include <Eigen/Dense>
 #include <queue>
 #include <vector>
+#include <cmath>
+#include <algorithm>
 
 #include <time.h>
-
-#define NSEC_PER_SEC 1000000000
 
 using namespace Eigen;
 
@@ -83,13 +84,13 @@ namespace subjugator
 	public:
     	typedef Matrix<double, 5, 1> Vector5d;
     	typedef Matrix<double, 6, 1> Vector6d;
-    	typedef Matrix<double, 8, 1> Vector8d;
+    	typedef Matrix<double, 11, 1> Vector11d;
 
     	TrajectoryGenerator();
     	TrajectoryGenerator(Vector6d trajectory);
     	bool getTimeInitialized() {return timeInitialized;};
     	void setTimeInitialized(bool t) { timeInitialized = t; };
-		void Update(boost::uint64_t currentTickCount);
+		TrajectoryInfo Update(boost::uint64_t currentTickCount);
 		Vector4d CalculateCurrentTrajectoryValue(const TrajWaypointComponent &comp, double time);
 		Vector4d AccelerationPhaseA(const TrajWaypointComponent &comp, double time);
 		Vector4d AccelerationPhaseB(const TrajWaypointComponent &comp, double time);
@@ -98,7 +99,7 @@ namespace subjugator
 		Vector4d DecelerationPhaseA(const TrajWaypointComponent &comp, double time);
 		Vector4d DecelerationPhaseB(const TrajWaypointComponent &comp, double time);
 		Vector4d DecelerationPhaseC(const TrajWaypointComponent &comp, double time);
-		Vector8d getMaxValues(bool stompOnTheBrakes);
+		Vector11d getMaxValues(bool stompOnTheBrakes);
 		void SetWaypoint(Waypoint &parWaypoint, bool clearOthers);
 		void DoIteration(std::vector<Waypoint> &waypointsToAdd);
 		double CalculateStoppingDistance(double Tj_star, double q0, double v0, double v1, double a_max);
@@ -125,6 +126,8 @@ namespace subjugator
 		std::queue<TrajWaypoint> listWaypoints;
 
 	private:
+		static const double NSECPERSEC = 1e9;
+
 		boost::int64_t getTimestamp(void);
 
 		boost::uint64_t StartTickCountX;

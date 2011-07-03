@@ -9,7 +9,11 @@ using namespace Eigen;
 namespace subjugator {
 	class Waypoint : public DataObject {
 		public:
-			Waypoint();
+			Waypoint()
+			{
+				Position_NED = Vector3d::Zero();
+				RPY = Vector3d::Zero();
+			}
 			Waypoint(const Vector3d& position, const Vector3d& rpy)
 			{
 				Position_NED = position;

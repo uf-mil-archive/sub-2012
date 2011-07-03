@@ -13,9 +13,9 @@ VelocityController::VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, 
 	J_inv = Matrix6d::Zero();
 }
 
-/*// We cheat here and copy the current data to common class level variables so multiple controllers
+// We cheat here and copy the current data to common class level variables so multiple controllers
 // theoretically could be run in parallel.
-void VelocityController::Update(boost::int16_t currentTick, const TrajectoryData& traj, const LPOSVSSInfo& lposInfo)
+void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo)
 {
     // Update dt
     double dt = (currentTick - previousTime)*SECPERNANOSEC;
@@ -30,22 +30,22 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryData
     x.block<3,1>(3,0) = MILQuaternionOps::Quat2Euler(lposInfo.getQuat_NED_B());
 
     // NED Velocity
-    x_dot<3,1>(0,0) = lposInfo.getVelocity_NED();
-    x_dot<3,1>(3,0) = MILQuaternionOps::QuatRotate(lposInfo.getQuat_NED_B(), lposInfo.getAngularRate_BODY());
+    x_dot.block<3,1>(0,0) = lposInfo.getVelocity_NED();
+    x_dot.block<3,1>(3,0) = MILQuaternionOps::QuatRotate(lposInfo.getQuat_NED_B(), lposInfo.getAngularRate_BODY());
 
     // Body Velocity
     vb.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo.getQuat_NED_B()), lposInfo.getVelocity_NED());
     vb.block<3,1>(3,0) = lposInfo.getAngularRate_BODY();
 
     // Save the relevant trajectory data
-    //xd =
-    //xd_dot =
+    xd = traj.getTrajectory();
+    xd_dot = traj.getTrajectory_dot();
 
     UpdateJacobianInverse(x);
 
     currentControl = PDFeedback(dt);
     //currentControl = RiseFeedbackNoAccel(dt);
-}*/
+}
 
 Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 {

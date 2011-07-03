@@ -2,6 +2,9 @@
 #define SUBVELOCITYCONTROLLER_H
 
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "DataObjects/Trajectory/TrajectoryInfo.h"
+#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include <Eigen/Dense>
 #include <cmath>
 
@@ -18,7 +21,7 @@ namespace subjugator
 		VelocityController(Vector6d k, Vector6d ks, Vector6d alpha, Vector6d beta);
 
 		Vector6d GetWrench() const { return currentControl; }
-		//void Update(boost::int16_t currentTick, const TrajectoryData& traj, const LPOSVSSInfo& lposInfo)
+		void Update(boost::int16_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo);
 
 	private:
 		static const double SECPERNANOSEC = 1e-9;

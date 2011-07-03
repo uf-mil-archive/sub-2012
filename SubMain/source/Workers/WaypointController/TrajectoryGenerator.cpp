@@ -1,28 +1,28 @@
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
 
-#include <algorithm>
-#include <cmath>
-
 using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
 typedef Matrix<double, 5, 1> Vector5d;
-typedef Matrix<double, 8, 1> Vector8d;
+typedef Matrix<double, 11, 1> Vector11d;
 
-Vector8d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
+Vector11d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
 {
-	Vector8d max = Vector8d::Zero();
+	Vector11d max = Vector11d::Zero();
 
 	if (!stompOnTheBrakes)
 	{
 		// Normal easy acceleration
 		max <<
 			0.625,      // v_max_xy
-			.1,        // a_max_xy
+			.1,        	// a_max_xy
 			20,         // j_max_xyz
 			0.2,        // v_max_z
 			0.125,      // a_max_z
+			0.5,        // v_max_pitch
+			0.2,        // a_max_pitch
+			10,         // j_max_pitch
 			0.5,        // v_max_yaw
 			0.2,        // a_max_yaw
 			10;         // j_max_yaw
@@ -30,34 +30,38 @@ Vector8d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
 	else
 	{
 		max <<
-			0.625,      // v_max_xy
-			10*0.1,        // a_max_xy
-			10*10,         // j_max_xyz
-			10*0.2,        // v_max_z
-			10*0.125,      // a_max_z
-			0.5,        // v_max_yaw
-			10*0.2,        // a_max_yaw
-			10*10;         // j_max_yaw
+			0.625,      	// v_max_xy
+			10*0.1,        	// a_max_xy
+			10*10,         	// j_max_xyz
+			10*0.2,        	// v_max_z
+			10*0.125,      	// a_max_z
+			0.5,        	// v_max_pitch
+			10*0.2,        	// a_max_pitch
+			10*10,         	// j_max_pitch
+			0.5,        	// v_max_yaw
+			10*0.2,        	// a_max_yaw
+			10*10;         	// j_max_yaw
 	}
 	return max;
 }
 
-
 TrajectoryGenerator::TrajectoryGenerator()
 {
-
+	Trajectory = Vector6d::Zero();
+	Trajectory_dot = Vector6d::Zero();
+	Trajectory_dotdot = Vector6d::Zero();
+	Trajectory_dotdotdot = Vector6d::Zero();
 }
-
 
 TrajectoryGenerator::TrajectoryGenerator(Vector6d trajectory)
 {
 	Trajectory = trajectory;
-	Vector3d Trajectory_dot = Vector3d::Zero();
-	Vector3d Trajectory_dotdot = Vector3d::Zero();
-	Vector3d Trajectory_dotdotdot = Vector3d::Zero();
+	Trajectory_dot = Vector6d::Zero();
+	Trajectory_dotdot = Vector6d::Zero();
+	Trajectory_dotdotdot = Vector6d::Zero();
 }
 
-void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
+TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 {
 	updateLock.lock();
 
@@ -70,15 +74,15 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
     TrajWaypointComponent twYaw = currentWaypoint.trajWaypointsYaw.front();
 
     if(!holdXTime)
-		tX = (currentTickCount - StartTickCountX) / NSEC_PER_SEC;
+		tX = (currentTickCount - StartTickCountX) / NSECPERSEC;
 	if (!holdYTime)
-		tY = (currentTickCount - StartTickCountY) / NSEC_PER_SEC;
+		tY = (currentTickCount - StartTickCountY) / NSECPERSEC;
 	if (!holdZTime)
-		tZ = (currentTickCount - StartTickCountZ) / NSEC_PER_SEC;
+		tZ = (currentTickCount - StartTickCountZ) / NSECPERSEC;
 	if (!holdPitchTime)
-			tPitch = (currentTickCount - StartTickCountPitch) / NSEC_PER_SEC;
+		tPitch = (currentTickCount - StartTickCountPitch) / NSECPERSEC;
 	if (!holdYawTime)
-		tYaw = (currentTickCount - StartTickCountYaw) / NSEC_PER_SEC;
+		tYaw = (currentTickCount - StartTickCountYaw) / NSECPERSEC;
 
 	// Have we reached the end of each trajectory? If so,
 	// hold time at the correct place to give out a constant
@@ -100,8 +104,8 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	}
 	if (twPitch.TotalTime < tPitch)
 	{
-		holdZTime = true;
-		tZ = twZ.TotalTime;
+		holdPitchTime = true;
+		tPitch = twPitch.TotalTime;
 	}
 	if (twYaw.TotalTime < tYaw)
 	{
@@ -116,8 +120,6 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	Vector4d pitch = CalculateCurrentTrajectoryValue(twPitch, tPitch); cheaterIndex++;
 	Vector4d yaw = CalculateCurrentTrajectoryValue(twYaw, tYaw);
 
-
-
 	Trajectory(0, 0) = x(0);
 	Trajectory(1, 0) = y(0);
 	Trajectory(2, 0) = z(0);
@@ -130,21 +132,28 @@ void TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	Trajectory_dot(4, 0) = pitch(1);
 	Trajectory_dot(5, 0) = yaw(1);
 
+	cout << "tX: " << tX << endl;
+	cout << "Held: " << holdXTime << endl;
+	cout << "TotalXTime: " << twX.TotalTime << endl;
+
 	// Rollover to next waypoint if there is one, and we have arrived
 	// at the present one.
 	if (holdXTime && holdYTime && holdZTime && holdPitchTime && holdYawTime)
 	{
+		cout << "Hold times finished " << endl;
+
 		// We're at the waypoint.
 		if (listWaypoints.size() > 1)
 		{
+			cout << "Waypoint size: " << listWaypoints.size() << endl;
 			listWaypoints.pop();
 			InitTimers(getTimestamp());
 		}
 	}
 
-	TrajectoryInfo(currentTickCount, Trajectory, Trajectory_dot);
-
 	updateLock.unlock();
+
+	return TrajectoryInfo(currentTickCount, Trajectory, Trajectory_dot);
 }
 
 Vector4d TrajectoryGenerator::CalculateCurrentTrajectoryValue(const TrajWaypointComponent &comp, double time)
@@ -306,10 +315,11 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 {
 	for (unsigned int i = 0; i < waypointsToAdd.size(); i++)
 	{
-		TrajWaypointComponent* comp_x = new TrajWaypointComponent();
-		TrajWaypointComponent* comp_y = new TrajWaypointComponent();
-		TrajWaypointComponent* comp_z = new TrajWaypointComponent();
-		TrajWaypointComponent* comp_yaw = new TrajWaypointComponent();
+		TrajWaypointComponent comp_x;
+		TrajWaypointComponent comp_y;
+		TrajWaypointComponent comp_z;
+		TrajWaypointComponent comp_pitch;
+		TrajWaypointComponent comp_yaw;
 
 		// Since X and Y are coupled, we take the vector direction and scale each v_max_x and v_max_y correctly.
 		double v_max_x = 0.0, v_max_y = 0.0;
@@ -331,21 +341,25 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 			sigma_x = sigmas(0);
 			sigma_y = sigmas(1);
 			sigma_z = sigmas(2);
-			sigma_yaw = sigmas(3);
+			sigma_pitch = sigmas(3);
+			sigma_yaw = sigmas(4);
 
 			v0_x = sigma_x * Trajectory_dot(0, 0);
 			v0_y = sigma_y * Trajectory_dot(1, 0);
 			v0_z = sigma_z * Trajectory_dot(2, 0);
+			v0_pitch = sigma_pitch * Trajectory_dot(4, 0);
 			v0_yaw = sigma_yaw * Trajectory_dot(5, 0);
 
 			q0_x = sigma_x * Trajectory(0, 0);
 			q0_y = sigma_y * Trajectory(1, 0);
 			q0_z = sigma_z * Trajectory(2, 0);
+			q0_pitch = sigma_pitch * Trajectory(4, 0);
 			q0_yaw = sigma_yaw * Trajectory(5, 0);
 
 			q1_x = sigma_x * waypointsToAdd[i].Position_NED(0, 0);
 			q1_y = sigma_y * waypointsToAdd[i].Position_NED(1, 0);
 			q1_z = sigma_z * waypointsToAdd[i].Position_NED(2, 0);
+			q1_pitch = sigma_pitch * waypointsToAdd[i].RPY(1, 0);
 			q1_yaw = sigma_yaw * waypointsToAdd[i].RPY(2, 0);
 
 			travelVector = waypointsToAdd[i].Position_NED - Trajectory.block<3,1>(0,0);
@@ -354,38 +368,45 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 		{
 			Vector5d sigmas = GetSigmas(listWaypoints.back().EndPosition, waypointsToAdd[i].Position_NED, listWaypoints.back().EndPitch, waypointsToAdd[i].getPitch(), listWaypoints.back().EndYaw, waypointsToAdd[i].getYaw());
 
-			sigma_x = sigmas[0];
-			sigma_y = sigmas[1];
-			sigma_z = sigmas[2];
-			sigma_yaw = sigmas[3];
+			sigma_x = sigmas(0);
+			sigma_y = sigmas(1);
+			sigma_z = sigmas(2);
+			sigma_pitch = sigmas(3);
+			sigma_yaw = sigmas(4);
 
 			v0_x = sigma_x * listWaypoints.back().EndVelocity(0, 0);
 			v0_y = sigma_y * listWaypoints.back().EndVelocity(1, 0);
 			v0_z = sigma_z * listWaypoints.back().EndVelocity(2, 0);
+			v0_pitch = sigma_pitch * listWaypoints.back().EndPitchRate;
 			v0_yaw = sigma_yaw * listWaypoints.back().EndYawRate;
 
 			q0_x = sigma_x * listWaypoints.back().EndPosition(0, 0);
 			q0_y = sigma_y *listWaypoints.back().EndPosition(1, 0);
 			q0_z = sigma_z * listWaypoints.back().EndPosition(2, 0);
+			q0_pitch = sigma_pitch * listWaypoints.back().EndPitch;
 			q0_yaw = sigma_yaw * listWaypoints.back().EndYaw;
 
 			q1_x = sigma_x * waypointsToAdd[i].Position_NED(0, 0);
 			q1_y = sigma_y * waypointsToAdd[i].Position_NED(1, 0);
 			q1_z = sigma_z * waypointsToAdd[i].Position_NED(2, 0);
+			q1_pitch = sigma_pitch * waypointsToAdd[i].RPY(1, 0);
 			q1_yaw = sigma_yaw * waypointsToAdd[i].RPY(2, 0);
 
 			travelVector = waypointsToAdd[i].Position_NED - listWaypoints.back().EndPosition;
 		}
 
-		Vector8d maxes = getMaxValues(false);
-		double v_max_xy = maxes[0];
-		double a_max_xy = maxes[1];
-		double j_max = maxes[2];
-		double v_max_z = maxes[3];
-		double a_max_z = maxes[4];
-		double v_max_yaw = maxes[5];
-		double a_max_yaw = maxes[6];
-		double j_max_yaw = maxes[7];
+		Vector11d maxes = getMaxValues(false);
+		double v_max_xy = maxes(0);
+		double a_max_xy = maxes(1);
+		double j_max = maxes(2);
+		double v_max_z = maxes(3);
+		double a_max_z = maxes(4);
+		double v_max_pitch = maxes(5);
+		double a_max_pitch = maxes(6);
+		double j_max_pitch = maxes(7);
+		double v_max_yaw = maxes(8);
+		double a_max_yaw = maxes(9);
+		double j_max_yaw = maxes(10);
 
 		if (travelVector.norm() == 0)
 		{
@@ -407,48 +428,59 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 		double v_max_x_corr = (sigma_x + 1) / 2.0 * v_max_x + (sigma_x - 1) / 2.0 * -1.0 * v_max_x;
 		double v_max_y_corr = (sigma_y + 1) / 2.0 * v_max_y + (sigma_y - 1) / 2.0 * -1.0 * v_max_y;
 		double v_max_z_corr = (sigma_z + 1) / 2.0 * v_max_z + (sigma_z - 1) / 2.0 * -1.0 * v_max_z;
+		double v_max_pitch_corr = (sigma_pitch + 1) / 2.0 * v_max_pitch + (sigma_pitch - 1) / 2.0 * -1.0 * v_max_pitch;
 		double v_max_yaw_corr = (sigma_yaw + 1) / 2.0 * v_max_yaw + (sigma_yaw - 1) / 2.0 * -1.0 * v_max_yaw;
 
 		double a_max_x_corr = (sigma_x + 1) / 2.0 * a_max_xy + (sigma_x - 1) / 2.0 * -1.0 * a_max_xy;
 		double a_max_y_corr = (sigma_y + 1) / 2.0 * a_max_xy + (sigma_y - 1) / 2.0 * -1.0 * a_max_xy;
 		double a_max_z_corr = (sigma_z + 1) / 2.0 * a_max_z + (sigma_z - 1) / 2.0 * -1.0 * a_max_z;
+		double a_max_pitch_corr = (sigma_pitch + 1) / 2.0 * a_max_pitch + (sigma_pitch - 1) / 2.0 * -1.0 * a_max_pitch;
 		double a_max_yaw_corr = (sigma_yaw + 1) / 2.0 * a_max_yaw + (sigma_yaw - 1) / 2.0 * -1.0 * a_max_yaw;
 
 
 		double j_max_x_corr = (sigma_x + 1) / 2.0 * j_max + (sigma_x - 1) / 2.0 * -1.0 * j_max;
 		double j_max_y_corr = (sigma_y + 1) / 2.0 * j_max + (sigma_y - 1) / 2.0 * -1.0 * j_max;
 		double j_max_z_corr = (sigma_z + 1) / 2.0 * j_max + (sigma_z - 1) / 2.0 * -1.0 * j_max;
+		double j_max_pitch_corr = (sigma_pitch + 1) / 2.0 * j_max_pitch + (sigma_pitch - 1) / 2.0 * -1.0 * j_max_pitch;
 		double j_max_yaw_corr = (sigma_yaw + 1) / 2.0 * j_max_yaw + (sigma_yaw - 1) / 2.0 * -1.0 * j_max_yaw;
 
-		comp_y->q0 = q0_y;
-		comp_z->q0 = q0_z;
-		comp_yaw->q0 = q0_yaw;
+		comp_x.q0 = q0_x;
+		comp_x.q1 = q1_x;
+		comp_x.v1 = v1_x;
 
-		comp_x->q0 = q0_x;
-		comp_x->q1 = q1_x;
-		comp_x->v1 = v1_x;
+		comp_y.q0 = q0_y;
+		comp_y.q1 = q1_y;
+		comp_y.v1 = v1_y;
 
-		comp_y->q1 = q1_y;
-		comp_y->v1 = v1_y;
-		comp_z->q1 = q1_z;
-		comp_z->v1 = v1_z;
-		comp_yaw->q1 = q1_yaw;
-		comp_yaw->v1 = v1_yaw;
+		comp_z.q0 = q0_z;
+		comp_z.q1 = q1_z;
+		comp_z.v1 = v1_z;
 
-		comp_x->sigma = sigma_x;
-		comp_y->sigma = sigma_y;
-		comp_z->sigma = sigma_z;
-		comp_yaw->sigma = sigma_yaw;
+		comp_yaw.q0 = q0_yaw;
+		comp_yaw.q1 = q1_yaw;
+		comp_yaw.v1 = v1_yaw;
 
-		comp_x->v0 = v0_x;
-		comp_y->v0 = v0_y;
-		comp_z->v0 = v0_z;
-		comp_yaw->v0 = v0_yaw;
+		comp_pitch.q0 = q0_pitch;
+		comp_pitch.q1 = q1_pitch;
+		comp_pitch.v1 = v1_pitch;
+
+		comp_x.sigma = sigma_x;
+		comp_y.sigma = sigma_y;
+		comp_z.sigma = sigma_z;
+		comp_pitch.sigma = sigma_pitch;
+		comp_yaw.sigma = sigma_yaw;
+
+		comp_x.v0 = v0_x;
+		comp_y.v0 = v0_y;
+		comp_z.v0 = v0_z;
+		comp_pitch.v0 = v0_pitch;
+		comp_yaw.v0 = v0_yaw;
 
 		// Calculate Tj_star to see if we can perform the trajectory with a simple double jerk impulse
 		double Tj_star_x = min(sqrt(abs(v1_x - v0_x) / j_max_x_corr), a_max_x_corr / j_max_x_corr);
 		double Tj_star_y = min(sqrt(abs(v1_y - v0_y) / j_max_y_corr), a_max_y_corr / j_max_y_corr);
 		double Tj_star_z = min(sqrt(abs(v1_z - v0_z) / j_max_z_corr), a_max_z_corr / j_max_z_corr);
+		double Tj_star_pitch = min(sqrt(abs(v1_pitch - v0_pitch) / j_max_pitch_corr), a_max_pitch_corr / j_max_pitch_corr);
 		double Tj_star_yaw = min(sqrt(abs(v1_yaw - v0_yaw) / j_max_yaw_corr), a_max_yaw_corr / j_max_yaw_corr);
 
 		// Check to see if Tj_star is equal to a_max/jmax. Then check to see if the desired distance
@@ -456,71 +488,84 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 		if (!IsTrajectoryPossible(a_max_x_corr / j_max_x_corr, a_max_x_corr, v0_x, v1_x, q0_x, q1_x, Tj_star_x) ||
 			!IsTrajectoryPossible(a_max_y_corr / j_max_y_corr, a_max_y_corr, v0_y, v1_y, q0_y, q1_y, Tj_star_y) ||
 			!IsTrajectoryPossible(a_max_z_corr / j_max_z_corr, a_max_z_corr, v0_z, v1_z, q0_z, q1_z, Tj_star_z) ||
+			!IsAngleTrajectoryPossible(a_max_pitch_corr / j_max_pitch_corr, a_max_pitch_corr, v0_pitch, v1_pitch, q0_pitch, q1_pitch, Tj_star_pitch) ||
 			!IsAngleTrajectoryPossible(a_max_yaw_corr / j_max_yaw_corr, a_max_yaw_corr, v0_yaw, v1_yaw, q0_yaw, q1_yaw, Tj_star_yaw))
 		{
 			// Mark the bad trajectories
 			if (!IsTrajectoryPossible(a_max_x_corr / j_max_x_corr, a_max_x_corr, v0_x, v1_x, q0_x, q1_x, Tj_star_x))
 			{
-				comp_x->IsBad = true;
+				comp_x.IsBad = true;
 			}
 			if (!IsTrajectoryPossible(a_max_y_corr / j_max_y_corr, a_max_y_corr, v0_y, v1_y, q0_y, q1_y, Tj_star_y))
 			{
-				comp_y->IsBad = true;
+				comp_y.IsBad = true;
 			}
 			if (!IsTrajectoryPossible(a_max_z_corr / j_max_z_corr, a_max_z_corr, v0_z, v1_z, q0_z, q1_z, Tj_star_z))
 			{
-				comp_z->IsBad = true;
+				comp_z.IsBad = true;
+			}
+			if (!IsTrajectoryPossible(a_max_pitch_corr / j_max_pitch_corr, a_max_pitch_corr, v0_pitch, v1_pitch, q0_pitch, q1_pitch, Tj_star_pitch))
+			{
+				comp_pitch.IsBad = true;
 			}
 			if (!IsTrajectoryPossible(a_max_yaw_corr / j_max_yaw_corr, a_max_yaw_corr, v0_yaw, v1_yaw, q0_yaw, q1_yaw, Tj_star_yaw))
 			{
-				comp_yaw->IsBad = true;
+				comp_yaw.IsBad = true;
 			}
 		}
 
 		// Two possible cases now. Case 1: v_lim = v_max is the assumed case until proven different
-		bool xSucceeded = CalculateTimesCase1(j_max_x_corr, a_max_x_corr, v_max_x_corr, v0_x, v1_x, q0_x, q1_x, * comp_x);
-		bool ySucceeded = CalculateTimesCase1(j_max_y_corr, a_max_y_corr, v_max_y_corr, v0_y, v1_y, q0_y, q1_y, * comp_y);
-		bool zSucceeded = CalculateTimesCase1(j_max_z_corr, a_max_z_corr, v_max_z_corr, v0_z, v1_z, q0_z, q1_z, * comp_z);
-		bool yawSucceeded = CalculateAngleTimesCase1(j_max_yaw_corr, a_max_yaw_corr, v_max_yaw_corr, v0_yaw, v1_yaw, q0_yaw, q1_yaw, * comp_yaw);
+		bool xSucceeded = CalculateTimesCase1(j_max_x_corr, a_max_x_corr, v_max_x_corr, v0_x, v1_x, q0_x, q1_x, comp_x);
+		bool ySucceeded = CalculateTimesCase1(j_max_y_corr, a_max_y_corr, v_max_y_corr, v0_y, v1_y, q0_y, q1_y, comp_y);
+		bool zSucceeded = CalculateTimesCase1(j_max_z_corr, a_max_z_corr, v_max_z_corr, v0_z, v1_z, q0_z, q1_z, comp_z);
+		bool pitchSucceeded = CalculateAngleTimesCase1(j_max_pitch_corr, a_max_pitch_corr, v_max_pitch_corr, v0_pitch, v1_pitch, q0_pitch, q1_pitch, comp_pitch);
+		bool yawSucceeded = CalculateAngleTimesCase1(j_max_yaw_corr, a_max_yaw_corr, v_max_yaw_corr, v0_yaw, v1_yaw, q0_yaw, q1_yaw, comp_yaw);
 
 		if(!xSucceeded)
 		{
-			CalculateTimesCase2(j_max_x_corr, a_max_x_corr, v_max_x_corr, v0_x, v1_x, q0_x, q1_x, * comp_x);
+			CalculateTimesCase2(j_max_x_corr, a_max_x_corr, v_max_x_corr, v0_x, v1_x, q0_x, q1_x, comp_x);
 		}
 		if (!ySucceeded)
 		{
-			CalculateTimesCase2(j_max_y_corr, a_max_y_corr, v_max_y_corr, v0_y, v1_y, q0_y, q1_y, * comp_y);
+			CalculateTimesCase2(j_max_y_corr, a_max_y_corr, v_max_y_corr, v0_y, v1_y, q0_y, q1_y, comp_y);
 		}
 		if (!zSucceeded)
 		{
-			CalculateTimesCase2(j_max_z_corr, a_max_z_corr, v_max_z_corr, v0_z, v1_z, q0_z, q1_z, * comp_z);
+			CalculateTimesCase2(j_max_z_corr, a_max_z_corr, v_max_z_corr, v0_z, v1_z, q0_z, q1_z, comp_z);
+		}
+		if (!pitchSucceeded)
+		{
+			CalculateAngleTimesCase2(j_max_pitch_corr, a_max_pitch_corr, v_max_pitch_corr, v0_pitch, v1_pitch, q0_pitch, q1_pitch, comp_pitch);
 		}
 		if (!yawSucceeded)
 		{
-			CalculateAngleTimesCase2(j_max_yaw_corr, a_max_yaw_corr, v_max_yaw_corr, v0_yaw, v1_yaw, q0_yaw, q1_yaw, * comp_yaw);
+			CalculateAngleTimesCase2(j_max_yaw_corr, a_max_yaw_corr, v_max_yaw_corr, v0_yaw, v1_yaw, q0_yaw, q1_yaw, comp_yaw);
 		}
 
-		TrajWaypoint* wp = new TrajWaypoint();
-		wp->EndPosition = Vector3d(
-				sigma_x*comp_x->q1,
-				sigma_y*comp_y->q1,
-				sigma_z*comp_z->q1
+		TrajWaypoint wp;
+		wp.EndPosition = Vector3d(
+				sigma_x*comp_x.q1,
+				sigma_y*comp_y.q1,
+				sigma_z*comp_z.q1
 		);
-		wp->EndYaw = sigma_yaw*comp_yaw->q1;
+		wp.EndPitch= sigma_pitch*comp_pitch.q1;
+		wp.EndYaw = sigma_yaw*comp_yaw.q1;
 
-		wp->EndVelocity = Vector3d(
-			sigma_x*comp_x->v1,
-			sigma_y*comp_y->v1,
-			sigma_z*comp_z->v1
+		wp.EndVelocity = Vector3d(
+			sigma_x*comp_x.v1,
+			sigma_y*comp_y.v1,
+			sigma_z*comp_z.v1
 		);
-		wp->EndYawRate = sigma_yaw * comp_yaw->v1;
+		wp.EndPitchRate = sigma_pitch * comp_pitch.v1;
+		wp.EndYawRate = sigma_yaw * comp_yaw.v1;
 
-		wp->trajWaypointsX.push(*comp_x);
-		wp->trajWaypointsY.push(*comp_y);
-		wp->trajWaypointsZ.push(*comp_z);
-		wp->trajWaypointsYaw.push(*comp_yaw);
+		wp.trajWaypointsX.push(comp_x);
+		wp.trajWaypointsY.push(comp_y);
+		wp.trajWaypointsZ.push(comp_z);
+		wp.trajWaypointsPitch.push(comp_pitch);
+		wp.trajWaypointsYaw.push(comp_yaw);
 
-		listWaypoints.push(*wp);
+		listWaypoints.push(wp);
 	}
 }
 
@@ -684,7 +729,7 @@ void TrajectoryGenerator::CalculateAngleTimesCase2(double j_max, double a_max, d
 			// There is a possibility that Ta or Td goes negative.
 			// Handle that here.
 
-			if (Ta < 0)
+			if (Ta < 0 || component.IsBad)
 			{
 				Ta = 0.0;
 				Td = 2 * AttitudeHelpers::DAngleDiff(q0, q1) / (v1 + v0);
@@ -880,7 +925,7 @@ boost::int64_t TrajectoryGenerator::getTimestamp(void)
 	timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
 
-	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
+	return ((long long int)t.tv_sec * NSECPERSEC) + t.tv_nsec;
 }
 
 

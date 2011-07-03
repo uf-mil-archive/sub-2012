@@ -10,8 +10,8 @@ NavigationComputer::NavigationComputer(boost::asio::io_service& io):
 		white_noise_sigma_f(0.0005,0.0005,0.0005), white_noise_sigma_w(0.05,0.05,0.05),
 		dvl_sigma(0.02, 0.02, 0.02), att_sigma(0.5,0.5,0.5),
 		q_SUB_DVL(0.0,0.923879532511287,0.382683432365090,0.0), q_SUB_IMU(0.012621022547474,0.002181321593961,-0.004522523520991,0.999907744947984),
-		q_MagCorrection(1.0,0.0,0.0,0.0), magShift(0.0,0.0,0.0),
-		magScale(1.0,1.0,1.0)
+		q_MagCorrection(0.328544082069963,-0.206310642679188,-0.588390517937758,0.709430266661243), magShift(0.715608834406960, 0.362664528268071, 0.075686435185285),
+		magScale(1.017630846545619,1.027523037710755,1.040444516232491 )
 {
 	covariance = .01*Matrix<double, 13, 13>::Identity();
 	covariance(0,0) *= .01;
@@ -204,7 +204,7 @@ void NavigationComputer::updateKalman(const boost::system::error_code& e)
 	}
 	if(velRefAvailable)
 	{
-		velRefAvailable = false;
+		//velRefAvailable = false;
 		z.block<3,1>(1,0) = insdata->Velocity_NED - velRef;
 	}
 	kLock.unlock();
