@@ -1,3 +1,3 @@
-sub_library(Vision)
-include_directories(${OpenCV_INCLUDE_DIR})
+sub_executable(Vision FlyCapture OpenCV DDS)
+sub_reference_library(Vision SubMain DataObjects HAL)
 

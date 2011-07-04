@@ -1,22 +1,38 @@
 #include "VisionWorker.h"
+#include "DataObjects/Vision/VisionSetIDs.h"
 #include <opencv/highgui.h>
 
 using namespace cv;
+using namespace boost;
+using namespace boost::asio;
+using namespace subjugator;
 
-VisionWorker::VisionWorker(void)
+VisionWorker::VisionWorker(io_service &io_service, int64_t rateHz, int inputMode, bool showDebugImages)
+: Worker(io_service, rateHz)
 {
-	this->inputMode = 0; // load camera by default
+	this->inputMode = inputMode; // load camera by default
+	this->showDebugImages = showDebugImages;
 	this->ioimages = new IOImages();
+
+	mStateManager.SetStateCallback(SubStates::READY,
+				STATE_READY_STRING,
+				boost::bind(&VisionWorker::readyState, this));
+	mStateManager.SetStateCallback(SubStates::EMERGENCY,
+				STATE_EMERGENCY_STRING,
+				boost::bind(&VisionWorker::emergencyState, this));
+	mStateManager.SetStateCallback(SubStates::FAIL,
+				STATE_FAIL_STRING,
+				boost::bind(&VisionWorker::failState, this));
+
+	setControlToken((int)VisionWorkerCommands::UpdateIDs, boost::bind(&VisionWorker::updateIDs, this, _1));
 }
 
 VisionWorker::~VisionWorker(void)
 {
 }
 
-int VisionWorker::init(int inputMode, bool showDebugImages)
+bool VisionWorker::Startup()
 {
-	this->inputMode = inputMode;
-	this->showDebugImages = showDebugImages;
 	if(showDebugImages)
 	{
 		namedWindow("Processed",1);
@@ -35,17 +51,17 @@ int VisionWorker::init(int inputMode, bool showDebugImages)
 		if(result==-1)
 		{
 			printf("Failed to initialize cameras\n");
-			return -1;
+			return false;
 		}
 	}
 	else if(inputMode == 2)
 	{
 		// Open video stream here
 	}
-	return 1;
+	return true;
 }
 
-void VisionWorker::cleanup()
+void VisionWorker::Shutdown()
 {
 	if(showDebugImages)
 	{
@@ -54,14 +70,14 @@ void VisionWorker::cleanup()
 	}
 }
 
-int VisionWorker::run()
+void VisionWorker::readyState()
 {
 	if(inputMode == 0)
 	{
 		if(!ioimages->setNewSource(imread("images/buoy2.jpg",1)))
 		{
 			printf("Failed to open file!\n");
-			return -1;
+			return;
 		}
 	}
 	else if(inputMode == 1)
@@ -105,11 +121,15 @@ int VisionWorker::run()
 		imshow("Debug",ioimages->dbg);
 		waitKey(10);
 	}
-
-	return 1;
 }
 
-void VisionWorker::updateIDs(vector<int> ids)
+void VisionWorker::updateIDs(const DataObject &dobj)
 {
-	listOfFinders = finderGen.buildFinders(ids);
+	if (const VisionSetIDs *vids = dynamic_cast<const VisionSetIDs *>(&dobj))
+		listOfFinders = finderGen.buildFinders(vids->getIDs());
 }
+
+void VisionWorker::emergencyState() { }
+
+void VisionWorker::failState() { }
+
