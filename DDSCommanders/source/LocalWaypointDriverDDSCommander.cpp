@@ -38,8 +38,6 @@ void LocalWaypointDriverDDSCommander::receivedWaypoint(const LocalWaypointDriver
 }
 
 void LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {
-	std::cout << "Received LPOS INFO" << std::endl;
-
 	int state;
 	boost::int64_t timestamp;
 	Vector3d position_NED;

@@ -31,16 +31,12 @@ LocalWaypointDriverWorker::LocalWaypointDriverWorker(boost::asio::io_service& io
 
 bool LocalWaypointDriverWorker::Startup()
 {
-	cout << "Waypout Startup" << endl;
 	mStateManager.ChangeState(SubStates::INITIALIZE);
 	return true;
-
-	cout << "Waypout Startup End" << endl;
 }
 
 void LocalWaypointDriverWorker::readyState()
 {
-	cout << "Waypout Ready" << endl;
 	boost::int16_t t = getTimestamp();
 
 	// The first ready function call initializes the timers correctly
@@ -70,26 +66,20 @@ void LocalWaypointDriverWorker::readyState()
 
 	// Emit every iteration
 	onEmitting(info);
-
-	cout << "Waypout Ready End" << endl;
 }
 
 void LocalWaypointDriverWorker::initializeState()
 {
-	cout << "Waypout Intialize" << endl;
-
 	inReady = false;
 
 	if(lposInfo.get() == NULL)
 		return;
 
 	mStateManager.ChangeState(SubStates::STANDBY);
-	cout << "Waypout Intialize end" << endl;
 }
 
 void LocalWaypointDriverWorker::standbyState()
 {
-	cout << "Waypout Standby" << endl;
 	inReady = false;
 	if(!hardwareKilled)
 	{
@@ -97,10 +87,13 @@ void LocalWaypointDriverWorker::standbyState()
 		//if !timer running
 		//if timer.haselapsed()
 		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator());
+
+		Vector3d temp = MILQuaternionOps::Quat2Euler(lposInfo->quaternion_NED_B);
+		setWaypoint(Waypoint(lposInfo->position_NED, Vector3d(0,0,temp(2))));
+
 		velocityController = std::auto_ptr<VelocityController>(new VelocityController());
 		mStateManager.ChangeState(SubStates::READY);
 	}
-	cout << "Waypout Standby end" << endl;
 }
 
 void LocalWaypointDriverWorker::emergencyState()
@@ -127,7 +120,6 @@ void LocalWaypointDriverWorker::Shutdown()
 
 void LocalWaypointDriverWorker::setLPOSVSSInfo(const DataObject& dobj)
 {
-	cout << "Set LPOSINFO" << endl;
 	const LPOSVSSInfo *info = dynamic_cast<const LPOSVSSInfo *>(&dobj);
 	if(!info)
 		return;
@@ -151,8 +143,10 @@ void LocalWaypointDriverWorker::setPDInfo(const DataObject& dobj)
 
 	newState = info->getMergeInfo().getESTOP();
 
-	if(hardwareKilled == newState)
+	if(hardwareKilled == newState) {
+		lock.unlock();
 		return;
+	}
 
 	hardwareKilled = newState;
 
