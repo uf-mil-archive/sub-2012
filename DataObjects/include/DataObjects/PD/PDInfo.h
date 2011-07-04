@@ -16,7 +16,7 @@ namespace subjugator {
 			inline const std::vector<double> &getCurrents() const { return currents; }
 			double getCurrent(int num) const { return currents[num]; }
 			inline int getState(){ return state; }
-			inline const MergeInfo &getMergeInfo() { return merge; }
+			inline const MergeInfo &getMergeInfo() const { return merge; }
 
 		private:
 			int state;

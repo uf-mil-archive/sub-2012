@@ -164,6 +164,7 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 
 	if(!useDVL)
 	{
+		cout << "Faking DVL" << endl;
 		// Now build up the kalman timer.
 		dvlTimerMs = 1000 / 5 /*Hz*/;
 		dvlTimer = std::auto_ptr<boost::asio::deadline_timer>(
@@ -269,8 +270,8 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 			MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), referenceGravityVector);
 
 	//cout << "INS V\n" << insdata->Velocity_NED << endl;
-	//cout<<"RPY:" << endl;
-	//cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
+	cout<<"RPY:" << endl;
+	cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
 }
 
 void NavigationComputer::UpdateIMU(const DataObject& dobj)

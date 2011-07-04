@@ -213,6 +213,9 @@ void KalmanFilter::Update(const Vector7d& z, const Vector3d& f_IMU,
     // This was reversed in the sub, but matlab says this way?
     q_hat = MILQuaternionOps::QuatMultiply(q_INS, q_hat_tilde_inverse);
 
+    if(q_hat(0) < 0)
+    	q_hat *= -1.0;
+
     // Lastly, approximate the position (x,y) error by integrating the velocity errors
     P_est_error.block<2,1>(0,0) += dt * x_hat.block<2,1>(1,0);
     P_est_error(2) = x_hat(0);

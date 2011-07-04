@@ -9,6 +9,7 @@
 #include "SubMain/Workers/WaypointController/SubVelocityController.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/PD/PDInfo.h"
+#include "DataObjects/Merge/MergeInfo.h"
 
 #include <Eigen/Dense>
 
