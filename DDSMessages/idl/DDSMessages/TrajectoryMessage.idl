@@ -1,0 +1,5 @@
+struct TrajectoryMessage {
+	double trajectory[6];
+	double trajectory_dot[6];
+};
+

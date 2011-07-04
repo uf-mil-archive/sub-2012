@@ -121,7 +121,7 @@ private:
     points(*d_y)(int, char);
 };
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *partSender, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     d_paintedPoints(0),
@@ -131,21 +131,24 @@ MainWindow::MainWindow(QWidget *parent) :
 	updateInterval(20), // ms
 	updateToggle(true),
 	posPlot(true),
-	rpyPlot(false)
-
+	rpyPlot(false),
+	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::DDSReadCallback, this, _1)),
+	ddssender(partSender, "LocalWaypointDriver")
 {
     testval = 0;
     testPts.resize(numOfPoints);
     testPts.fill(0);
 
     poseList.resize(numOfPoints);
-//    poseList.fill(0);
 
     Waypoint wp;
     trajectoryGenerator.SetWaypoint(wp, true);
     trajectoryGenerator.InitTimers(getTimestamp());
 
     ui->setupUi(this);
+    ui->statusBar->showMessage("Plotting Stopped");
+
+    connect(this, SIGNAL(trajectoryReceived()), this, SLOT(onTrajectoryReceived()));
 
     curve1_Plot1  = new QwtPlotCurve("Pos X");
     curve2_Plot1  = new QwtPlotCurve("Pos Y");
@@ -222,6 +225,17 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::onTrajectoryReceived()
+{
+	qDebug() << " I GOT HERE, YEAH!!!!";
+}
+
+void MainWindow::DDSReadCallback(const TrajectoryMessage &msg)
+{
+	trajectoryinfo = msg;
+	emit trajectoryReceived();
 }
 
 void MainWindow::addPoint(const TrajectoryInfo& p)
@@ -310,6 +324,8 @@ void MainWindow::start()
 // Setup RPY and DesiredAngularVelocity plots
 void MainWindow::on_actionRPY_triggered()
 {
+	ui->statusBar->showMessage("Plotting RPY and Desired Angular Velocity");
+
 	posPlot = false;
 	rpyPlot = true;
 
@@ -349,6 +365,8 @@ void MainWindow::on_actionRPY_triggered()
 // Setup Position and DesiredAngularVelocity plots
 void MainWindow::on_actionPOS_triggered()
 {
+	ui->statusBar->showMessage("Plotting Position and Desired Velocity");
+
 	posPlot = true;
 	rpyPlot = false;
 
@@ -398,6 +416,8 @@ void MainWindow::on_actionPOS_triggered()
 
 void MainWindow::on_actionError_triggered()
 {
+	ui->statusBar->showMessage("Plotting Error");
+
 	curve2_Plot1->setVisible(false);
 	curve3_Plot1->setVisible(false);
 	curve3_Plot2->setVisible(false);
@@ -457,28 +477,29 @@ void MainWindow::timerEvent(QTimerEvent *)
     DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
     buffer6->update(500);//poseList.size());
 
-    double minVal = 0.0, maxVal = 0.0;
+    double minValP1 = 0.0, maxValP1 = 0.0, minValP2 = 0.0, maxValP2 = 0.0;
 
     if (posPlot)
     {
 		for (int j = 0; j < poseList.size(); j ++)
 		{
 			double temp = 0.0;
+
 			temp = (poseList[j].getTrajectory().block<3,1>(0,0)).minCoeff();
-			if (temp < minVal)
-				minVal = temp;
-		}
+			if (temp < minValP1)
+				minValP1 = temp;
 
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
 			temp = (poseList[j].getTrajectory().block<3,1>(0,0)).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
 
-			cout << "Trajectory: " << poseList[j].getTrajectory().block<3,1>(0,0) << endl;
-			qDebug() << "Max: " << maxVal;
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(0,0)).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
 
-			if (temp > maxVal)
-				maxVal = temp;
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(0,0)).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
 		}
     }
     else if (rpyPlot)
@@ -486,33 +507,47 @@ void MainWindow::timerEvent(QTimerEvent *)
 		for (int j = 0; j < poseList.size(); j ++)
 		{
 			double temp = 0.0;
-			temp = poseList[j].getTrajectory().block<3,1>(3,0).minCoeff();
-			if (temp < minVal)
-				minVal = temp;
-		}
 
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
-			temp = poseList[j].getTrajectory().block<3,1>(3,0).maxCoeff();
-			if (temp > maxVal)
-				maxVal = temp;
+			temp = (poseList[j].getTrajectory().block<3,1>(3,0)).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (poseList[j].getTrajectory().block<3,1>(3,0)).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(3,0)).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(3,0)).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
 		}
     }
 
-    if (maxVal == 0)
-    	maxVal = 1;
+    if (minValP1 > -1)
+    	minValP1 = -1;
     else
-    	maxVal *= 1.05;
+    	minValP1 *= 1.05;
 
-    if (minVal == 0)
-    	minVal = -1;
+    if (minValP2 > -1)
+		minValP2 = -1;
+	else
+		minValP2 *= 1.05;
+
+    if (maxValP1 < 1)
+    	maxValP1 = 1;
     else
-    	minVal *= 1.05;
+    	maxValP1 *= 1.05;
 
-    //qDebug() << "Min Val: " << minVal << "Max Val: " << maxVal;
+    if (maxValP2 < 1)
+    	maxValP2 = 1;
+    else
+    	maxValP2 *= 1.05;
 
-    ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minVal, maxVal);
+    ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+    ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
 
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
@@ -528,6 +563,8 @@ boost::int64_t MainWindow::getTimestamp(void)
 
 void MainWindow::on_btnSubmitWaypt_clicked()
 {
+	ui->statusBar->showMessage("Waypoint Submitted");
+
     Waypoint wp;
 
     wp.setX(ui->lineEditWayptX->text().toDouble());
@@ -537,17 +574,33 @@ void MainWindow::on_btnSubmitWaypt_clicked()
     wp.setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
 
     trajectoryGenerator.SetWaypoint(wp, true);
+
+    LocalWaypointDriverMessage *msg = LocalWaypointDriverMessageTypeSupport::create_data();
+    msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
+    msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
+    msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
+    msg->rpy[0] = 0;
+    msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
+    msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
+	ddssender.Send(*msg);
+
+	LocalWaypointDriverMessageTypeSupport::delete_data(msg);
 }
 
 void MainWindow::on_btnSubmitStart_clicked()
 {
 	if (updateToggle)
 	{
+		if (posPlot)
+			ui->statusBar->showMessage("Plotting Position and Desired Velocity");
+		else if (rpyPlot)
+			ui->statusBar->showMessage("Plotting RPY and Desired Angular Velocity");
 		updateToggle = false;
 		d_timerId = startTimer(updateInterval);
 	}
 	else
 	{
+		ui->statusBar->showMessage("Plotting Stopped");
 		updateToggle = true;
 		killTimer(d_timerId);
 	}
@@ -555,25 +608,27 @@ void MainWindow::on_btnSubmitStart_clicked()
 
 void MainWindow::on_btnCallUpdate_clicked()
 {
+	ui->statusBar->showMessage("Update Called");
+
 	addPoint(trajectoryGenerator.Update(getTimestamp()));
 
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
-	buffer1->update(500);//poseList.size());
+	buffer1->update(poseList.size());//poseList.size());
 
 	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
-	buffer2->update(500);//poseList.size());
+	buffer2->update(poseList.size());//poseList.size());
 
 	DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
-	buffer3->update(500);//poseList.size());
+	buffer3->update(poseList.size());//poseList.size());
 
 	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
-	buffer4->update(500);//poseList.size());
+	buffer4->update(poseList.size());//poseList.size());
 
 	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
-	buffer5->update(500);//poseList.size());
+	buffer5->update(poseList.size());//poseList.size());
 
 	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
-	buffer6->update(500);//poseList.size());
+	buffer6->update(poseList.size());//poseList.size());
 
 	ui->qwtPlot1->replot();
 	ui->qwtPlot2->replot();

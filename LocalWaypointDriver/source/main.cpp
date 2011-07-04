@@ -1,5 +1,14 @@
 #include <ndds/ndds_cpp.h>
 #include "SubMain/Workers/WaypointController/LocalWaypointDriverWorker.h"
+#include "DDSCommanders/LocalWaypointDriverDDSCommander.h"
+#include "DDSListeners/LocalWaypointDriverDDSListener.h"
+#include "DDSMessages/LocalWaypointDriverMessage.h"
+#include "DDSMessages/LocalWaypointDriverMessageSupport.h"
+
+#include "DDSCommanders/LPOSVSSDDSCommander.h"
+#include "DDSListeners/LPOSVSSDDSListener.h"
+#include "DDSMessages/LPOSVSSMessage.h"
+#include "DDSMessages/LPOSVSSMessageSupport.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
@@ -29,12 +38,25 @@ int main(int argc, char **argv)
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
 
-	//if (DepthMessageTypeSupport::register_type(participant, DepthMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-	//	throw runtime_error("Failed to register type");
+	if (LocalWaypointDriverMessageTypeSupport::register_type(participant, LocalWaypointDriverMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
 
-	//LPOSVSSDDSCommander commander(worker, participant);
+	if (PDWrenchMessageTypeSupport::register_type(participant, PDWrenchMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+			throw runtime_error("Failed to register type");
 
-	//LPOSVSSDDSListener listener(worker, participant);
+	if (TrajectoryMessageTypeSupport::register_type(participant, TrajectoryMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+				throw runtime_error("Failed to register type");
+
+	if (LPOSVSSMessageTypeSupport::register_type(participant, LPOSVSSMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+					throw runtime_error("Failed to register type");
+
+	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+					throw runtime_error("Failed to register type");
+
+	LocalWaypointDriverDDSCommander commander(worker, participant);
+
+	LocalWaypointDriverDDSListener listener(worker, participant);
+
 
 	// Start the worker
 	io.run();

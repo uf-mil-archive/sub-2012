@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
 #include <qwt_plot.h>
 #include <QWidget>
 #include <qwt_system_clock.h>
@@ -11,8 +10,12 @@
 #include "ui_mainwindow.h"
 #include "dataseries.h"
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
-#include "SubMain/Workers/WaypointController/LocalWaypointDriverWorker.h"
+#include "DDSCommanders/TrajectoryDDSReceiver.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
+#include "DDSMessages/LocalWaypointDriverMessage.h"
+#include "DDSMessages/LocalWaypointDriverMessageSupport.h"
+#include "DDSListeners/DDSSender.h"
+#include <ndds/ndds_cpp.h>
 #include <Eigen/Dense>
 #include <time.h>
 #include <cmath>
@@ -42,7 +45,7 @@ namespace subjugator
 	public:
 		typedef Matrix<double, 6, 1> Vector6d;
 
-		explicit MainWindow(QWidget *parent = 0);
+		explicit MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *partSender, QWidget *parent = 0);
 		~MainWindow();
 
 		void start();
@@ -54,6 +57,7 @@ namespace subjugator
 		void addPoint(const TrajectoryInfo& p);
 
 		TrajectoryGenerator trajectoryGenerator;
+		void DDSReadCallback(const TrajectoryMessage &msg);
 
 	protected:
 		virtual void timerEvent(QTimerEvent *e);
@@ -65,6 +69,10 @@ namespace subjugator
 	    void on_btnSubmitWaypt_clicked();
 	    void on_btnSubmitStart_clicked();
 	    void on_btnCallUpdate_clicked();
+	    void onTrajectoryReceived();
+
+	    signals:
+	    void trajectoryReceived();
 
 	private:
 	    void initGradient(QwtPlot *plot);
@@ -94,6 +102,12 @@ namespace subjugator
 
 		bool posPlot;
 		bool rpyPlot;
+
+		TrajectoryDDSReceiver trajectoryreceiver;
+
+		TrajectoryMessage trajectoryinfo;
+
+		DDSSender<LocalWaypointDriverMessage, LocalWaypointDriverMessageDataWriter, LocalWaypointDriverMessageTypeSupport> ddssender;
 	};
 }
 #endif // MAINWINDOW_H
