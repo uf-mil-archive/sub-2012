@@ -81,7 +81,7 @@ namespace subjugator
 			currents[i] = thrusterManager->getCurrent(i);
 		}
 
-		onEmitting(boost::shared_ptr<DataObject>(new PDInfo(mStateManager.GetCurrentStateCode(), getTimestamp(), currents, mergeManager.getMergeInfo().getESTOP())));
+		onEmitting(boost::shared_ptr<DataObject>(new PDInfo(mStateManager.GetCurrentStateCode(), getTimestamp(), currents, mergeManager.getMergeInfo())));
 	}
 
 	void PDWorker::allState()

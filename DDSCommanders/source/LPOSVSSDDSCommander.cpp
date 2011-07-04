@@ -35,6 +35,6 @@ void LPOSVSSDDSCommander::receivedPDInfo(const PDStatusMessage &status) {
 	for (int i=0;i<8;i++)
 		currents[i] = status.current[0];
 
-	pdtoken.lock()->Operate(PDInfo(0, status.timestamp, currents, status.estop));
+	pdtoken.lock()->Operate(PDInfo(0, status.timestamp, currents, MergeInfo(0, 0, 0, status.current16, status.voltage16, status.current32, status.voltage32)));
 }
 

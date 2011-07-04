@@ -7,6 +7,9 @@
 
 using namespace subjugator;
 using namespace boost;
+using namespace std;
+
+#include <iostream>
 
 MergeManager::MergeManager(SubHAL &hal)
 : endpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21), new Sub7EPacketFormatter())) {
@@ -16,6 +19,7 @@ MergeManager::MergeManager(SubHAL &hal)
 
 void MergeManager::halReceiveCallback(std::auto_ptr<DataObject> &dobj) {
 	if (MergeInfo *info = dynamic_cast<MergeInfo *>(dobj.get())) {
+		cout << "Got merge info" << endl;
 		this->info = *info;
 	}
 }
