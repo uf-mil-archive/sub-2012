@@ -19,6 +19,8 @@ void PDDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 	for(int i=0; i<8; i++)
 		msg->current[i] = status->getCurrent(i);
 	msg->estop = status->getMergeInfo().getESTOP();
+	msg->flags = status->getMergeInfo().getFlags();
+	msg->tickcount = status->getMergeInfo().getTickCount();
 	msg->voltage16 = status->getMergeInfo().getRail16Voltage();
 	msg->current16 = status->getMergeInfo().getRail16Current();
 	msg->voltage32 = status->getMergeInfo().getRail32Voltage();

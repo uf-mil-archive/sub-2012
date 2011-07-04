@@ -3,6 +3,7 @@
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/PD/PDInfo.h"
+#include "DataObjects/Merge/MergeInfo.h"
 #include <boost/bind.hpp>
 #include <iostream>
 
@@ -11,16 +12,18 @@ using namespace boost;
 
 LocalWaypointDriverDDSCommander::LocalWaypointDriverDDSCommander(Worker &worker, DDSDomainParticipant *participant)
 : waypointreceiver(participant, "LocalWaypointDriver", bind(&LocalWaypointDriverDDSCommander::receivedWaypoint, this, _1)),
-  lposvssreceiver(participant, "LPOSVSSInfo", bind(&LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo, this, _1)),
+  lposvssreceiver(participant, "LPOSVSS", bind(&LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo, this, _1)),
   pdstatusreceiver(participant, "PDStatus", bind(&LocalWaypointDriverDDSCommander::receivedPDStatusInfo, this, _1)){
-	waypointcmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetWaypoint, 0);
-	lposvsscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetLPOSVSSInfo, 0);
-	pdstatuscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetPDInfo, 0);
+	waypointcmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetWaypoint, 5);
+	lposvsscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetLPOSVSSInfo, 5);
+	pdstatuscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetPDInfo, 5);
 }
 
 void LocalWaypointDriverDDSCommander::receivedWaypoint(const LocalWaypointDriverMessage &waypoint) {
 	Vector3d position_ned;
 	Vector3d rpy;
+
+	std::cout << "Received Waypoint" << std::endl;
 
 	for (int i=0; i<3; i++)
 		position_ned(i) = waypoint.position_ned[i];
@@ -35,6 +38,8 @@ void LocalWaypointDriverDDSCommander::receivedWaypoint(const LocalWaypointDriver
 }
 
 void LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {
+	std::cout << "Received LPOS INFO" << std::endl;
+
 	int state;
 	boost::int64_t timestamp;
 	Vector3d position_NED;
@@ -65,23 +70,38 @@ void LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &
 }
 
 void LocalWaypointDriverDDSCommander::receivedPDStatusInfo(const PDStatusMessage &pdstatusinfo) {
-	int state;
-	boost::int64_t timestamp;
-	std::vector<double> currents;
+	unsigned long long timestamp;
+	short state;
+	std::vector<double> current(8);
 	bool estop;
+
+	unsigned long tickcount;
+	unsigned long flags;
+
+	double current16;
+	double voltage16;
+	double current32;
+	double voltage32;
 
 	state = pdstatusinfo.state;
 	timestamp = pdstatusinfo.timestamp;
+	tickcount = pdstatusinfo.tickcount;
+	flags = pdstatusinfo.flags;
 
 	for (int i=0; i<8; i++)
-		currents[i] = pdstatusinfo.current[i];
+		current[i] = pdstatusinfo.current[i];
 
 	estop = pdstatusinfo.estop;
+
+	current16 = pdstatusinfo.current16;
+	voltage16 = pdstatusinfo.voltage16;
+	current32 = pdstatusinfo.current32;
+	voltage32 = pdstatusinfo.voltage32;
 
 	shared_ptr<InputToken> ptr = pdstatuscmdtoken.lock();
 	if (ptr)
 	{
-		ptr->Operate(PDInfo(state, timestamp, currents, estop));
+		ptr->Operate(PDInfo(state, timestamp, current, MergeInfo(timestamp, tickcount, flags, current16, voltage16, current32, voltage32)));
 	}
 }
 

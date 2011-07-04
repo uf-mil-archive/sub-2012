@@ -19,6 +19,8 @@ namespace subjugator {
 			int getTickCount() const { return tickcount; }
 			long long int getTimestamp() const { return timestamp; }
 
+			int getFlags() const {return flags;}
+
 			bool getRail32State() const { return (flags & (1 << 3)) != 0; }
 			bool getESTOP() const { return (flags & (1 << 2)) != 0; }
 			bool getONOFF() const { return (flags & (1 << 1)) != 0; }
