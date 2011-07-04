@@ -13,7 +13,6 @@ namespace subjugator {
 			MergeInfo();
 			MergeInfo(boost::uint64_t timestamp, int tickcount, int flags, double current16, double voltage16, double current32, double voltage32);
 			MergeInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
-			MergeInfo(const MergeInfo &info);
 
 			static const int Length = 11;
 

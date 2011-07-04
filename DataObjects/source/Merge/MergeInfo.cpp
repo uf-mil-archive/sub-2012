@@ -18,15 +18,15 @@ MergeInfo::MergeInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end)
 
 	flags = *begin++;
 
-	current16 = convertFixedPoint<6>(begin[0] + (begin[1]<<8));
+	current16 = convertFixedPoint<10>(begin[0] + (begin[1]<<8));
 	begin += 2;
 
-	voltage16 = convertFixedPoint<6>(begin[0] + (begin[1]<<8));
+	voltage16 = convertFixedPoint<10>(begin[0] + (begin[1]<<8));
 	begin += 2;
 
-	current32 = convertFixedPoint<6>(begin[0] + (begin[1]<<8));
+	current32 = convertFixedPoint<10>(begin[0] + (begin[1]<<8));
 	begin += 2;
 
-	voltage32 = convertFixedPoint<6>(begin[0] + (begin[1]<<8));
+	voltage32 = convertFixedPoint<10>(begin[0] + (begin[1]<<8));
 	begin += 2;
 }
