@@ -99,14 +99,18 @@ void LPOSVSSWorker::initializeState()
 		lock.unlock();
 		return;
 	}
+	cout << "In initialize" << endl;
 	if(useDVL)
 	{
+		cout << "Waiting for good DVL" << endl;
 		if(!dvlInfo.get() || !dvlInfo->isGood())
 		{
 			lock.unlock();
 			return;
 		}
 	}
+	else
+		cout << "Faking DVL" << endl;
 
 	// Packets are present - go ahead and init
 	navComputer->Init(imuInfo, dvlInfo, depthInfo, useDVL);

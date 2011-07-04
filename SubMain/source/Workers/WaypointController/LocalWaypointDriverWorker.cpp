@@ -128,16 +128,20 @@ void LocalWaypointDriverWorker::setLPOSVSSInfo(const DataObject& dobj)
 
 void LocalWaypointDriverWorker::setPDInfo(const DataObject& dobj)
 {
+	bool newState;
+
 	const PDInfo *info = dynamic_cast<const PDInfo *>(&dobj);
 	if(!info)
 		return;
 
 	lock.lock();
 
-	if(hardwareKilled == info->getESTOP())
+	newState = info->getMergeInfo().getESTOP();
+
+	if(hardwareKilled == newState)
 		return;
 
-	hardwareKilled = info->getESTOP();
+	hardwareKilled = newState;
 
 	if(hardwareKilled)
 		mStateManager.ChangeState(SubStates::INITIALIZE);

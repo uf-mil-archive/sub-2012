@@ -60,7 +60,7 @@ namespace subjugator
 		static const double r_earth = 6378137;    // Radius of the earth (m)
 		static const double w_ie_e = 7.292115e-5;  // Angular rate of the earth (rad/s
 		static const double MAX_ACC_MAG = 20.0;	// m/s^2
-		static const double MAX_ANG_RATE = 4.0; // rad/s
+		static const double MAX_ANG_RATE = 12; // rad/s
 
 		boost::mutex lock;
 		boost::mutex datalock;
