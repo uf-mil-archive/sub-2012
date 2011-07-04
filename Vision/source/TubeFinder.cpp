@@ -1,5 +1,7 @@
 #include "TubeFinder.h"
 
+using namespace boost;
+
 TubeFinder::TubeFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -14,9 +16,9 @@ TubeFinder::~TubeFinder(void)
 	delete t;
 }
 
-vector<FinderResult*> TubeFinder::find(IOImages* ioimages)
+vector<boost::shared_ptr<FinderResult> > TubeFinder::find(IOImages* ioimages)
 {
-	vector<FinderResult*> resultVector;
+	vector<shared_ptr<FinderResult> > resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -26,10 +28,10 @@ vector<FinderResult*> TubeFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Line* line = new Line(1);	
+		Line* line = new Line(1);
 		result = line->findLines(ioimages);
 		line->drawResult(ioimages,oIDs[i]);
-	
+
 		// Prepare results
 		FinderResult2D *fResult2D = new FinderResult2D();
 		fResult2D->objectID = MIL_OBJECTID_NO_OBJECT;
@@ -40,7 +42,7 @@ vector<FinderResult*> TubeFinder::find(IOImages* ioimages)
 			fResult2D->v = line->avgLines[0].centroid.y;
 			fResult2D->scale = line->avgLines[0].length;
 		}
-		resultVector.push_back(fResult2D);
+		resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		// clean up the line!
 		delete line;
 	}

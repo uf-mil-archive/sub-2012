@@ -1,6 +1,6 @@
 #include <ndds/ndds_cpp.h>
 #include "VisionWorker.h"
-
+#include "DDSListeners/VisionDDSListener.h"
 #include <boost/thread.hpp>
 #include <iostream>
 
@@ -22,6 +22,8 @@ int main(int argc, char **argv)
 	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
+
+	VisionDDSListener listener(worker, participant);
 
 	// Start the worker
 	io.run();

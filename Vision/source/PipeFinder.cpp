@@ -1,5 +1,7 @@
 #include "PipeFinder.h"
 
+using namespace boost;
+
 PipeFinder::PipeFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -14,9 +16,9 @@ PipeFinder::~PipeFinder(void)
 	delete t;
 }
 
-vector<FinderResult*> PipeFinder::find(IOImages* ioimages)
+vector<shared_ptr<FinderResult> > PipeFinder::find(IOImages* ioimages)
 {
-	vector<FinderResult*> resultVector;
+	vector<shared_ptr<FinderResult> > resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -26,12 +28,12 @@ vector<FinderResult*> PipeFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Line* line = new Line(2);	
+		Line* line = new Line(2);
 		result = line->findLines(ioimages);
 		line->drawResult(ioimages,oIDs[i]);
-	
+
 		// Prepare results
-		
+
 		if(result)
 		{
 			for(unsigned int j=0; j<line->avgLines.size(); j++)
@@ -43,9 +45,9 @@ vector<FinderResult*> PipeFinder::find(IOImages* ioimages)
 					fResult2D->u = line->avgLines[j].centroid.x;
 					fResult2D->v = line->avgLines[j].centroid.y;
 					fResult2D->scale = line->avgLines[j].length;
-					resultVector.push_back(fResult2D);
+					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 				}
-				
+
 			}
 		}
 		else
@@ -53,10 +55,10 @@ vector<FinderResult*> PipeFinder::find(IOImages* ioimages)
 			// fail and push back an empty result
 			FinderResult2D *fResult2D = new FinderResult2D();
 			fResult2D->objectID = MIL_OBJECTID_NO_OBJECT;
-			resultVector.push_back(fResult2D);
+			resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		}
 		delete line;
-		
+
 	}
 	return resultVector;
 }

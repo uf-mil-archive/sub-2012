@@ -5,8 +5,8 @@
 #include "SubMain/Workers/SubWorker.h"
 #include "IOImages.h"
 #include "FinderGenerator.h"
-#include "FinderResult2D.h"
-#include "FinderResult3D.h"
+#include "DataObjects/Vision/FinderResult2D.h"
+#include "DataObjects/Vision/FinderResult3D.h"
 #include "MILObjectIDs.h"
 #include "FlyCaptureGrabber.h"
 #include "HAL/format/DataObject.h"
@@ -38,7 +38,7 @@ private:
 	bool showDebugImages;
 	FinderGenerator finderGen;
 	vector<IFinder*> listOfFinders;
-	vector<FinderResult*> fResult;
+	vector<boost::shared_ptr<FinderResult> > fResult;
 	FlyCaptureGrabber flyCapGrab;
 
 	void readyState();

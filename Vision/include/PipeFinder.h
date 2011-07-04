@@ -2,7 +2,7 @@
 #define PIPE_FINDER_H
 
 #include "IFinder.h"
-#include "FinderResult2D.h"
+#include "DataObjects/Vision/FinderResult2D.h"
 #include "Line.h"
 
 class PipeFinder : public IFinder
@@ -10,8 +10,8 @@ class PipeFinder : public IFinder
 	public:
 		PipeFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
 		~PipeFinder(void);
-		vector<FinderResult*> find(IOImages* ioimages);
-	
+		vector<boost::shared_ptr<FinderResult> > find(IOImages* ioimages);
+
 	private:
 		int result;
 };

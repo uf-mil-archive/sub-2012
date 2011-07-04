@@ -1,5 +1,7 @@
 #include "ShooterFinder.h"
 
+using namespace boost;
+
 ShooterFinder::ShooterFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -14,9 +16,9 @@ ShooterFinder::~ShooterFinder(void)
 	delete t;
 }
 
-vector<FinderResult*> ShooterFinder::find(IOImages* ioimages)
+vector<shared_ptr<FinderResult> > ShooterFinder::find(IOImages* ioimages)
 {
-	vector<FinderResult*> resultVector;
+	vector<shared_ptr<FinderResult> > resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -30,7 +32,7 @@ vector<FinderResult*> ShooterFinder::find(IOImages* ioimages)
 		result = contours->findContours(ioimages, true);
 
 		// Prepare results
-		
+
 		if(result)
 		{
 			// Draw result
@@ -41,7 +43,7 @@ vector<FinderResult*> ShooterFinder::find(IOImages* ioimages)
 				fResult2D->objectID = oIDs[i];
 				fResult2D->u = contours->shapes[contours->findSmallestShape()].centroid.x;
 				fResult2D->u = contours->shapes[contours->findSmallestShape()].centroid.y;
-				resultVector.push_back(fResult2D);
+				resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 			}
 			else if(oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE || oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE)
 			{
@@ -49,17 +51,17 @@ vector<FinderResult*> ShooterFinder::find(IOImages* ioimages)
 				fResult2D->objectID = oIDs[i];
 				fResult2D->u = contours->shapes[contours->findLargestShape()].centroid.x;
 				fResult2D->u = contours->shapes[contours->findLargestShape()].centroid.y;
-				resultVector.push_back(fResult2D);
+				resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 			}
-			
+
 		}
 		else
 		{
 			FinderResult2D *fResult2D = new FinderResult2D();
 			fResult2D->objectID = MIL_OBJECTID_NO_OBJECT;
-			resultVector.push_back(fResult2D);
+			resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		}
-		
+
 		delete contours;
 	}
 	return resultVector;

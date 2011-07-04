@@ -1,5 +1,7 @@
 #include "BinsFinder.h"
 
+using namespace boost;
+
 BinsFinder::BinsFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -14,9 +16,9 @@ BinsFinder::~BinsFinder(void)
 	delete t;
 }
 
-vector<FinderResult*> BinsFinder::find(IOImages* ioimages)
+vector<shared_ptr<FinderResult> > BinsFinder::find(IOImages* ioimages)
 {
-	vector<FinderResult*> resultVector;
+	vector<shared_ptr<FinderResult> > resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -30,7 +32,7 @@ vector<FinderResult*> BinsFinder::find(IOImages* ioimages)
 		result = contours->findContours(ioimages, false);
 
 		// Prepare results
-		
+
 		if(result)
 		{
 			// Draw result
@@ -47,18 +49,18 @@ vector<FinderResult*> BinsFinder::find(IOImages* ioimages)
 				// Scale returns the number of boxes that are currently being found.
 				// The idea is to align to centroid until 4 boxes are found.
 				fResult2D->angle = contours->calcAngleOfAllBoxes();
-				resultVector.push_back(fResult2D);
-			}			
+				resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+			}
 		}
 		else // fail and return no object result
 		{
 			FinderResult2D *fResult2D = new FinderResult2D();
 			fResult2D->objectID = MIL_OBJECTID_NO_OBJECT;
-			resultVector.push_back(fResult2D);
+			resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		}
-		
+
 		delete contours;
 	}
-	
+
 	return resultVector;
 }

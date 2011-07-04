@@ -1,5 +1,7 @@
 #include "BuoyFinder.h"
 
+using namespace boost;
+
 BuoyFinder::BuoyFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -14,9 +16,9 @@ BuoyFinder::~BuoyFinder(void)
 	delete t;
 }
 
-vector<FinderResult*> BuoyFinder::find(IOImages* ioimages)
+vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 {
-	vector<FinderResult*> resultVector;
+	vector<shared_ptr<FinderResult> > resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -26,9 +28,9 @@ vector<FinderResult*> BuoyFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Blob* blob = new Blob(100,50000,500);	
+		Blob* blob = new Blob(100,50000,500);
 		result = blob->findBlob(ioimages);
-	
+
 		// Prepare results
 		FinderResult2D *fResult2D = new FinderResult2D();
 		if(result)
@@ -40,7 +42,7 @@ vector<FinderResult*> BuoyFinder::find(IOImages* ioimages)
 			fResult2D->u = blob->centroid.x;
 			fResult2D->v = blob->centroid.y;
 		}
-		resultVector.push_back(fResult2D);
+		resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		delete blob;
 	}
 	return resultVector;

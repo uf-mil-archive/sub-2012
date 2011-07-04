@@ -106,10 +106,11 @@ void VisionWorker::readyState()
 		for(unsigned int j=0; j< fResult.size(); j++)
 		{
 			// This will be up-stream stuff to check whether the rResult is 2d or 3d!
-			if(dynamic_cast<FinderResult2D*> (fResult[j]))
+			if(dynamic_cast<FinderResult2D*> (fResult[j].get()))
 				printf("Found ObjectID: %d - 2d!\n",fResult[j]->objectID);	// callback to 2D message handler
-			if(dynamic_cast<FinderResult3D*> (fResult[j]))
+			if(dynamic_cast<FinderResult3D*> (fResult[j].get()))
 				printf("Found ObjectID: %d - 3d!\n",fResult[j]->objectID);	// callback to 3D message handler
+
 		}
 		fResult.clear(); // clear the result for the next iteration.
 	}
