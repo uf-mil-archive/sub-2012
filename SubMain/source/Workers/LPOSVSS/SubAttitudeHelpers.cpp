@@ -117,10 +117,16 @@ Vector4d AttitudeHelpers::RotationToQuaternion(const Matrix3d& R)
 	}
 
 	// Reorder the eigenvector correctly - this yields the inverse rotation of what we're after
-	Vector4d q_inv(es.eigenvectors().real()(3,maxIndex),
+	Vector4d q_inv;
+	q_inv.block<3,1>(1,0) = es.eigenvectors().real().col(maxIndex).block<3,1>(0,0);
+	q_inv(0) = es.eigenvectors().real().col(maxIndex)(3);
+
+
+
+/*	(es.eigenvectors().real()(3,maxIndex),
 				   es.eigenvectors().real()(0,maxIndex),
 				   es.eigenvectors().real()(1,maxIndex),
-				   es.eigenvectors().real()(2,maxIndex));
+				   es.eigenvectors().real()(2,maxIndex));*/
 
 	// return the inverse of the inverse rotation - Presto - the quaternion we wanted.
 	Vector4d q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatInverse(q_inv));

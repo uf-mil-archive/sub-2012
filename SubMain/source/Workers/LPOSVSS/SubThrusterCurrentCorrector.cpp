@@ -2,13 +2,18 @@
 
 using namespace subjugator;
 
-ThrusterCurrentCorrector::ThrusterCurrentCorrector(int address, const double coeffX[], const double coeffY[], const double coeffZ[])
+ThrusterCurrentCorrector::ThrusterCurrentCorrector(int address, const double fcoeffX[], const double fcoeffY[], const double fcoeffZ[],
+		 const double rcoeffX[], const double rcoeffY[], const double rcoeffZ[])
 {
 	for(int i = 0; i < 4; i++)
 	{
-		this->coeffX[i] = coeffX[i];
-		this->coeffY[i] = coeffY[i];
-		this->coeffZ[i] = coeffZ[i];
+		this->fCoeffX[i] = fcoeffX[i];
+		this->fCoeffY[i] = fcoeffY[i];
+		this->fCoeffZ[i] = fcoeffZ[i];
+
+		this->rCoeffX[i] = rcoeffX[i];
+		this->rCoeffY[i] = rcoeffY[i];
+		this->rCoeffZ[i] = rcoeffZ[i];
 	}
 }
 
@@ -18,9 +23,18 @@ Eigen::Vector3d ThrusterCurrentCorrector::CalculateDynamicMagCorrection(double c
 	double current_squared = current*current;
 	double current_cubed = current*current_squared;
 
-	res(0) = coeffX[1] * current + coeffX[2]*current_squared + coeffX[3]*current_cubed;
-	res(1) = coeffY[1] * current + coeffY[2]*current_squared + coeffY[3]*current_cubed;
-	res(2) = coeffZ[1] * current + coeffZ[2]*current_squared + coeffZ[3]*current_cubed;
+	if(current >= 0)
+	{
+		res(0) = fCoeffX[1] * current + fCoeffX[2]*current_squared + fCoeffX[3]*current_cubed;
+		res(1) = fCoeffY[1] * current + fCoeffY[2]*current_squared + fCoeffY[3]*current_cubed;
+		res(2) = fCoeffZ[1] * current + fCoeffZ[2]*current_squared + fCoeffZ[3]*current_cubed;
+	}
+	else
+	{
+		res(0) = rCoeffX[1] * current + rCoeffX[2]*current_squared + rCoeffX[3]*current_cubed;
+		res(1) = rCoeffY[1] * current + rCoeffY[2]*current_squared + rCoeffY[3]*current_cubed;
+		res(2) = rCoeffZ[1] * current + rCoeffZ[2]*current_squared + rCoeffZ[3]*current_cubed;
+	}
 
 	return res;
 }

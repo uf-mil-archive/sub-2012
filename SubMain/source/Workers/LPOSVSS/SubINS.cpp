@@ -79,8 +79,8 @@ void INS::Update(const IMUInfo& info)
     q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatMultiply(q_prev, r_k));
 
     // This handles sign problems that happen with the attitude helpers - something to do with Subrat its a little fuzzy now
-    if(q[0] < 0)
-    	q *= -1;
+    //if(q[0] < 0)
+    //	q *= -1;
 
     // Integrate body forces
     Vector3d a_dif = (a_body - a_bias);
@@ -123,8 +123,8 @@ void INS::Reset(const KalmanData& kData, bool tare, const Vector3d& tarePosition
 	v_prev -= kData.VelocityError;
 
 	q_prev = MILQuaternionOps::QuatMultiply(q_prev, kData.ErrorQuaternion);
-	a_bias = kData.Acceleration_bias;
-	w_bias = kData.Gyro_bias;
+	//a_bias = kData.Acceleration_bias;
+	//w_bias = kData.Gyro_bias;
 
 	Vector3d g_body = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(q_prev), g);
 	Vector3d a_body_no_gravity = a_body_prev - a_bias;
