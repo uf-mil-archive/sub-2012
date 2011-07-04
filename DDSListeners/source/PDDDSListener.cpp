@@ -18,7 +18,11 @@ void PDDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 
 	for(int i=0; i<8; i++)
 		msg->current[i] = status->getCurrent(i);
-	msg->estop = status->getESTOP();
+	msg->estop = status->getMergeInfo().getESTOP();
+	msg->voltage16 = status->getMergeInfo().getRail16Voltage();
+	msg->current16 = status->getMergeInfo().getRail16Current();
+	msg->voltage32 = status->getMergeInfo().getRail32Voltage();
+	msg->current32 = status->getMergeInfo().getRail32Current();
 
 	ddssender.Send(*msg);
 	PDStatusMessageTypeSupport::delete_data(msg);

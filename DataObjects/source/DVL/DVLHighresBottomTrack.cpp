@@ -24,7 +24,7 @@ DVLHighresBottomTrack *DVLHighresBottomTrack::parse(ByteVec::const_iterator begi
 
 	hrtrack->timestamp = ((boost::int64_t)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 
-	hrtrack->good = !(x == BADVEL && y == BADVEL && z == BADVEL);
+	hrtrack->good = !(x == BADVEL || y == BADVEL || z == BADVEL);
 	hrtrack->bottomvel(0) = x / 100000.0;
 	hrtrack->bottomvel(1) = y / 100000.0;
 	hrtrack->bottomvel(2) = z / 100000.0;

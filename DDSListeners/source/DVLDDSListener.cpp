@@ -19,6 +19,7 @@ void DVLDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 		msg->velocity[i] = dvlinfo->getVelocityI(i);
 	msg->velocityerror = dvlinfo->getVelocityError();
 	msg->height = 0.0;
+	msg->good = dvlinfo->isGood();
 	//msg->beamcorrelation = {0.0,0.0,0.0,0.0};
 
 	ddssender.Send(*msg);

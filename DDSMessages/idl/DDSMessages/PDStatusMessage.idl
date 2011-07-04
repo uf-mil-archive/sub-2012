@@ -3,5 +3,10 @@ struct PDStatusMessage {
 	short state;
 	boolean estop;
 	double current[8];
+
+	double current16;
+	double voltage16;
+	double current32;
+	double voltage32;
 };
 

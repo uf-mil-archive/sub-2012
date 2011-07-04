@@ -4,5 +4,6 @@ struct DVLMessage {
 	double velocityerror;
 	double height;
 	double beamcorrelation[4];
+	boolean good;
 };
 
