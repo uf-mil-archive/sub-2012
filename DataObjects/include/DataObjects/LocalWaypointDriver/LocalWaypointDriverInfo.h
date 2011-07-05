@@ -12,16 +12,19 @@ using namespace Eigen;
 namespace subjugator {
 	class LocalWaypointDriverInfo : public DataObject {
 		public:
+		LocalWaypointDriverInfo(){}
 		LocalWaypointDriverInfo(int state, boost::int64_t timestamp):state(state), timestamp(timestamp){}
-		LocalWaypointDriverInfo(int state, boost::int64_t timestamp, Matrix<double, 6, 1> wrench, Matrix<double, 6, 1> x, Matrix<double, 6, 1> xd)
-			: state(state),timestamp(timestamp), Wrench(wrench), X(x), Xd(xd)
+		LocalWaypointDriverInfo(int state, boost::int64_t timestamp, Matrix<double, 6, 1> wrench, Matrix<double, 6, 1> x, Matrix<double, 6, 1> x_dot, Matrix<double, 6, 1> xd,  Matrix<double, 6, 1> xd_dot)
+			: state(state),timestamp(timestamp), Wrench(wrench), X(x), X_dot(x_dot), Xd(xd), Xd_dot(xd_dot)
 			{}
 
 			int state;
 			boost::int64_t timestamp;
 			Matrix<double, 6, 1> Wrench;
 			Matrix<double, 6, 1> X;
+			Matrix<double, 6, 1> X_dot;
 			Matrix<double, 6, 1> Xd;
+			Matrix<double, 6, 1> Xd_dot;
 	};
 }
 

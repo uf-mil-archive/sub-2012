@@ -12,6 +12,7 @@
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
 #include "DDSCommanders/TrajectoryDDSReceiver.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
+#include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
 #include "DDSMessages/LocalWaypointDriverMessage.h"
 #include "DDSMessages/LocalWaypointDriverMessageSupport.h"
 #include "DDSListeners/DDSSender.h"
@@ -54,7 +55,7 @@ namespace subjugator
 		void setupCurve(QwtPlotCurve *curve, QPen pen);
 
 		//void addPoint(points pos);
-		void addPoint(const TrajectoryInfo& p);
+		void addPoint(const LocalWaypointDriverInfo& p);
 
 		TrajectoryGenerator trajectoryGenerator;
 		void DDSReadCallback(const TrajectoryMessage &msg);
@@ -102,10 +103,11 @@ namespace subjugator
 
 		bool posPlot;
 		bool rpyPlot;
+		bool errPlot;
 
 		TrajectoryDDSReceiver trajectoryreceiver;
 
-		TrajectoryMessage trajectoryinfo;
+		TrajectoryMessage trajectorymsg;
 
 		DDSSender<LocalWaypointDriverMessage, LocalWaypointDriverMessageDataWriter, LocalWaypointDriverMessageTypeSupport> ddssender;
 	};

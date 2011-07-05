@@ -74,9 +74,6 @@ TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
     TrajWaypointComponent twPitch = currentWaypoint.trajWaypointsPitch.front();
     TrajWaypointComponent twYaw = currentWaypoint.trajWaypointsYaw.front();
 
-    cout << "UPDATE WAYPT X" << endl;
-    cout << "q0: " << twX.q0 << " q1: " << twX.q1 << " v0: " << twX.v0 << " v1: " << twX.v1 << endl;
-
     if(!holdXTime)
 		tX = (currentTickCount - StartTickCountX) / NSECPERSEC;
 	if (!holdYTime)
@@ -87,19 +84,6 @@ TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 		tPitch = (currentTickCount - StartTickCountPitch) / NSECPERSEC;
 	if (!holdYawTime)
 		tYaw = (currentTickCount - StartTickCountYaw) / NSECPERSEC;
-
-	cout << "UPDATE TIMES" << endl;
-	cout << "tx: " << tX << " ty: " << tY << " tz: " << tZ << " tPitch: " << tPitch << " tYaw: " << tYaw << endl;
-	cout << "UPDATE START" << endl;
-	cout << "X: " << StartTickCountX << " Y: " << StartTickCountY << " Z: " << StartTickCountZ << " Pitch: " << StartTickCountPitch << " Yaw: " << StartTickCountYaw << endl;
-	cout << "UPDATE TOTAL TIME" << endl;
-	cout << "X: " << twX.TotalTime << " Y: " << twY.TotalTime << " Z: " << twZ.TotalTime << " Pitch: " << twPitch.TotalTime << " Yaw: " << twYaw.TotalTime << endl;
-//	cout << "UPDATE TACC" << endl;
-//	cout << "X: " << twX. << " Y: " << holdYTime << " Z: " << holdZTime << " Pitch: " << holdPitchTime << " Yaw: " << holdYawTime << endl;
-//	cout << "UPDATE T" << endl;
-//	cout << "X: " << holdXTime << " Y: " << holdYTime << " Z: " << holdZTime << " Pitch: " << holdPitchTime << " Yaw: " << holdYawTime << endl;
-	cout << "UPDATE BOOLS" << endl;
-	cout << "X: " << holdXTime << " Y: " << holdYTime << " Z: " << holdZTime << " Pitch: " << holdPitchTime << " Yaw: " << holdYawTime << endl;
 
 	// Have we reached the end of each trajectory? If so,
 	// hold time at the correct place to give out a constant
@@ -136,12 +120,6 @@ TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
 	Vector4d z = CalculateCurrentTrajectoryValue(twZ, tZ); cheaterIndex = 4;
 	Vector4d pitch = CalculateCurrentTrajectoryValue(twPitch, tPitch); cheaterIndex++;
 	Vector4d yaw = CalculateCurrentTrajectoryValue(twYaw, tYaw);
-
-	cout << "UPDATE TRAJECTORIES!!" << endl;
-	cout << "x: " << x(0) << " y: " << y(0) << " z: " << z(0) << " p: " << pitch(0) << " ya: " << yaw(0) << endl;
-	cout << "xd: " << x(1) << " yd: " << y(1) << " zd: " << z(1) << " pd: " << pitch(1) << " yad: " << yaw(1) << endl;
-	cout << "xdd: " << x(2) << " ydd: " << y(2) << " zdd: " << z(2) << " pdd: " << pitch(2) << " yadd: " << yaw(2) << endl;
-	cout << "xddd: " << x(3) << " yddd: " << y(3) << " zddd: " << z(3) << " pddd: " << pitch(3) << " yaddd: " << yaw(3) << endl;
 
 	Trajectory(0, 0) = x(0);
 	Trajectory(1, 0) = y(0);
@@ -302,8 +280,6 @@ void TrajectoryGenerator::SetWaypoint(const Waypoint &parWaypoint, bool clearOth
 	// Point the sub at the destination with one waypoint,then add the final waypoint.
 	if (listWaypoints.size() == 0)
 	{
-		cout << "Strafe Dist: " << (parWaypoint.Position_NED.block<2,1>(0,0) - Trajectory.block<2,1>(0,0)).norm()<< endl;
-
 		if ((parWaypoint.Position_NED.block<2,1>(0,0) - Trajectory.block<2,1>(0,0)).norm() > MAX_STRAFE_DISTANCE)
 		{
 			intYaw = atan2((parWaypoint.Position_NED(1, 0) - Trajectory(1, 0)), (parWaypoint.Position_NED(0, 0) - Trajectory(0, 0)));
@@ -323,15 +299,7 @@ void TrajectoryGenerator::SetWaypoint(const Waypoint &parWaypoint, bool clearOth
 		waypointsToAdd.push_back(wp1);
 	}
 
-	cout << "WAYPOINT IN TRAJ GEN" << endl;
-	cout << "Traj X: " << parWaypoint.Position_NED(0, 0) << "Traj Y: " << parWaypoint.Position_NED(1, 0) << "Traj Z: " << parWaypoint.Position_NED(2, 0) << endl;
-	cout << "Traj Roll: " << parWaypoint.RPY(0, 0) << "Traj Pitch: " << parWaypoint.RPY(1, 0) << "Traj Yaw: " << parWaypoint.RPY(2, 0) << endl;
-
 	waypointsToAdd.push_back(parWaypoint);
-
-	cout << "WAYPOINT IN TRAJ GEN QUEUE" << endl;
-	cout << "Traj X: " << waypointsToAdd.front().Position_NED(0, 0) << "Traj Y: " << waypointsToAdd.front().Position_NED(1, 0) << "Traj Z: " << waypointsToAdd.front().Position_NED(2, 0) << endl;
-	cout << "Traj Roll: " << waypointsToAdd.front().RPY(0, 0) << "Traj Pitch: " << waypointsToAdd.front().RPY(1, 0) << "Traj Yaw: " << waypointsToAdd.front().RPY(2, 0) << endl;
 
 	DoIteration(waypointsToAdd);
 
@@ -569,12 +537,6 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 			CalculateAngleTimesCase2(j_max_yaw_corr, a_max_yaw_corr, v_max_yaw_corr, v0_yaw, v1_yaw, q0_yaw, q1_yaw, comp_yaw);
 		}
 
-		cout << "DO ITERATION!!" << endl;
-		cout << "q0_x: " << q0_x << " q0_y: " << q0_y << " q0_z: " << q0_z << " q0_pitch: " << q0_pitch << " q0_yaw: " << q0_yaw << endl;
-		cout << "q1_x: " << q1_x << " q1_y: " << q1_y << " q1_z: " << q1_z << " q1_pitch: " << q1_pitch << " q1_yaw: " << q1_yaw << endl;
-		cout << "v0_x: " << v0_x << " v0_y: " << v0_y << " v0_z: " << v0_z << " v0_pitch: " << v0_pitch << " v0_yaw: " << v0_yaw << endl;
-		cout << "v1_x: " << v1_x << " v1_y: " << v1_y << " v1_z: " << v1_z << " v1_pitch: " << v1_pitch << " v1_yaw: " << v1_yaw << endl;
-
 		TrajWaypoint wp;
 		wp.EndPosition = Vector3d(
 				sigma_x*comp_x.q1,
@@ -598,15 +560,7 @@ void TrajectoryGenerator::DoIteration(std::vector<Waypoint> &waypointsToAdd)
 		wp.trajWaypointsPitch.push(comp_pitch);
 		wp.trajWaypointsYaw.push(comp_yaw);
 
-		cout << "DO ITERATION COMP!!" << endl;
-		cout << "q0_x: " << comp_x.q0 << " q0_y: " << comp_y.q0 << " q0_z: " << comp_z.q0 << " q0_pitch: " << comp_pitch.q0 << " q0_yaw: " << comp_yaw.q0 << endl;
-		cout << "q1_x: " << comp_x.q1 << " q1_y: " << comp_y.q1 << " q1_z: " << comp_z.q1 << " q1_pitch: " << comp_pitch.q1 << " q1_yaw: " << comp_yaw.q1 << endl;
-		cout << "v0_x: " << comp_x.v0 << " v0_y: " << comp_y.v0 << " v0_z: " << comp_z.v0 << " v0_pitch: " << comp_pitch.v0 << " v0_yaw: " << comp_yaw.v0 << endl;
-		cout << "v1_x: " << comp_x.v1 << " v1_y: " << comp_y.v1 << " v1_z: " << comp_z.v1 << " v1_pitch: " << comp_pitch.v1 << " v1_yaw: " << comp_yaw.v1 << endl;
-
 		listWaypoints.push(wp);
-
-		//cout << "End Yaw: " << listWaypoints.front()->EndYaw;
 	}
 }
 
@@ -725,8 +679,6 @@ bool TrajectoryGenerator::CalculateTimesCase1(double j_max, double a_max, double
 	component.Tj1 = Tacc[0];
 	component.Tj2 = Tdec[0];
 	component.TotalTime = Tacc[1] + Tv + Tdec[1];
-	assert(component.TotalTime == component.TotalTime);
-	assert(component.TotalTime != numeric_limits<double>::infinity());
 	component.j_lim = j_max;
 	component.a_lim_a = limits[0];
 	component.a_lim_d = limits[1];
@@ -888,9 +840,6 @@ void TrajectoryGenerator::CalculateTimesCase2(double j_max, double a_max, double
 	component.Tj1 = Tj1;
 	component.Tj2 = Tj2;
 	component.TotalTime = Ta + Td;
-	cout << "isBad" << component.IsBad << endl;
-	assert(component.TotalTime == component.TotalTime);
-	assert(component.TotalTime != numeric_limits<double>::infinity());
 	component.j_lim = j_max;
 	component.a_lim_a = limits[0];
 	component.a_lim_d = limits[1];

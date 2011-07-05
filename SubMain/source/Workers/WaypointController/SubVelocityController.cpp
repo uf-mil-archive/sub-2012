@@ -214,7 +214,9 @@ void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
 
 	info.Wrench = currentControl;
 	info.X = x;
+	info.X_dot = x_dot;
 	info.Xd = xd;
+	info.Xd_dot = xd_dot;
 
 	lock.unlock();
 
