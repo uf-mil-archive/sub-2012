@@ -13,6 +13,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <cstring>
 
 #include <time.h>
 
@@ -23,6 +24,10 @@ namespace subjugator
 	class TrajWaypointComponent
 	{
 	public:
+		TrajWaypointComponent()
+		{
+			memset(this, 0, sizeof(*this));
+		}
 		double TotalTime;
 		double a_lim_a;
 		double a_lim_d;
