@@ -95,7 +95,7 @@ namespace subjugator
     	TrajectoryGenerator(Vector6d trajectory);
     	bool getTimeInitialized() {return timeInitialized;};
     	void setTimeInitialized(bool t) { timeInitialized = t; };
-		TrajectoryInfo Update(boost::uint64_t currentTickCount);
+		TrajectoryInfo Update(boost::int64_t currentTickCount);
 		Vector4d CalculateCurrentTrajectoryValue(const TrajWaypointComponent &comp, double time);
 		Vector4d AccelerationPhaseA(const TrajWaypointComponent &comp, double time);
 		Vector4d AccelerationPhaseB(const TrajWaypointComponent &comp, double time);
@@ -131,7 +131,7 @@ namespace subjugator
 		std::queue<TrajWaypoint> listWaypoints;
 
 	private:
-		static const double NSECPERSEC = 1e9;
+		static const double NSECPERSEC = 1000000000;
 
 		boost::int64_t getTimestamp(void);
 
