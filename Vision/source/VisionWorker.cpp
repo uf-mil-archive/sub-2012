@@ -58,6 +58,8 @@ bool VisionWorker::Startup()
 	{
 		// Open video stream here
 	}
+
+	mStateManager.ChangeState(SubStates::READY);
 	return true;
 }
 
