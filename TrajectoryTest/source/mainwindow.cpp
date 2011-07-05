@@ -67,7 +67,7 @@ static points PlotRPY(int index, char c)
 	else if(c == 'y')
 		pos.y = (poseList[index].getTrajectory())(5);
 	else
-		pos.y = 0;
+		pos.y = 10;
 
 	return pos;
 }
@@ -213,8 +213,8 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
     curve3_Plot2->attach(ui->qwtPlot2);
 
     //ui->qwtPlot1->setAxisAutoScale(QwtPlot::yLeft);
-    ui->qwtPlot1->setTitle("Position");
-    ui->qwtPlot2->setTitle("Desired Velocity");
+	ui->qwtPlot1->setTitle("Desired Position");
+	ui->qwtPlot2->setTitle("Actual Position");
 
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
@@ -229,7 +229,119 @@ MainWindow::~MainWindow()
 
 void MainWindow::onTrajectoryReceived()
 {
-	qDebug() << " I GOT HERE, YEAH!!!!";
+	Vector6d traj = Vector6d::Zero();
+	Vector6d traj_dot = Vector6d::Zero();
+
+	for (int i=0; i<6; i++)
+		traj(i) = trajectoryinfo.trajectory_dot[i];
+
+	for (int i=0; i<6; i++)
+		traj_dot(i) = trajectoryinfo.trajectory[i];
+
+	addPoint(TrajectoryInfo(getTimestamp(), traj, traj_dot));
+
+	testval+=0.05;
+
+	if (testval > 1)
+		testval = 0;
+
+	testPts.append(testval);
+
+	if (testPts.size() > numOfPoints)
+		testPts.remove(0,1);
+
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->update(500);//poseList.size());
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->update(500);//poseList.size());
+
+	DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
+	buffer3->update(500);//poseList.size());
+
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->update(500);//poseList.size());
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->update(500);//poseList.size());
+
+	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+	buffer6->update(500);//poseList.size());
+
+	double minValP1 = 0.0, maxValP1 = 0.0, minValP2 = 0.0, maxValP2 = 0.0;
+
+	if (posPlot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (poseList[j].getTrajectory().block<3,1>(0,0)).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (poseList[j].getTrajectory().block<3,1>(0,0)).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(0,0)).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(0,0)).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
+	else if (rpyPlot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (poseList[j].getTrajectory().block<3,1>(3,0)).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (poseList[j].getTrajectory().block<3,1>(3,0)).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(3,0)).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (poseList[j].getTrajectory_dot().block<3,1>(3,0)).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
+
+	if (minValP1 > -1)
+		minValP1 = -1;
+	else
+		minValP1 *= 1.05;
+
+	if (minValP2 > -1)
+		minValP2 = -1;
+	else
+		minValP2 *= 1.05;
+
+	if (maxValP1 < 1)
+		maxValP1 = 1;
+	else
+		maxValP1 *= 1.05;
+
+	if (maxValP2 < 1)
+		maxValP2 = 1;
+	else
+		maxValP2 *= 1.05;
+
+	ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+	ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
+
+	ui->qwtPlot1->replot();
+	ui->qwtPlot2->replot();
 }
 
 void MainWindow::DDSReadCallback(const TrajectoryMessage &msg)
@@ -329,8 +441,8 @@ void MainWindow::on_actionRPY_triggered()
 	posPlot = false;
 	rpyPlot = true;
 
-	ui->qwtPlot1->setTitle("RPY");
-	ui->qwtPlot2->setTitle("Desired Angular Velocity");
+	ui->qwtPlot1->setTitle("Desired Pitch Yaw");
+	ui->qwtPlot2->setTitle("Actual Pitch Yaw");
 
 	// Setup Plot 1 for RPY
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
@@ -365,13 +477,13 @@ void MainWindow::on_actionRPY_triggered()
 // Setup Position and DesiredAngularVelocity plots
 void MainWindow::on_actionPOS_triggered()
 {
-	ui->statusBar->showMessage("Plotting Position and Desired Velocity");
+	ui->statusBar->showMessage("Plotting Desired and Actual Position");
 
 	posPlot = true;
 	rpyPlot = false;
 
-	ui->qwtPlot1->setTitle("Position");
-	ui->qwtPlot2->setTitle("Desired Velocity");
+	ui->qwtPlot1->setTitle("Desired Position");
+	ui->qwtPlot2->setTitle("Actual Position");
 
 	curve2_Plot1->setVisible(true);
 	curve3_Plot1->setVisible(true);
@@ -564,6 +676,8 @@ boost::int64_t MainWindow::getTimestamp(void)
 void MainWindow::on_btnSubmitWaypt_clicked()
 {
 	ui->statusBar->showMessage("Waypoint Submitted");
+
+	trajectoryGenerator.InitTimers(getTimestamp());
 
     Waypoint wp;
 

@@ -14,8 +14,6 @@ void LocalWaypointDriverDDSListener::DataObjectEmitted(boost::shared_ptr<DataObj
 	if (!localwaypointdriverinfo)
 		return;
 
-	cout << "Message To Send" << endl;
-
 	PDWrenchMessage *msg1 = PDWrenchMessageTypeSupport::create_data();
 
 	msg1->linear[0] = localwaypointdriverinfo->Wrench[0];
