@@ -1,4 +1,4 @@
-#include "Hydrophone/HydrophoneDataProcessor.h"
+#include "SubMain/Workers/Hydrophone/HydrophoneDataProcessor.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <algorithm>
@@ -10,10 +10,8 @@ using namespace boost::property_tree;
 using namespace boost::property_tree::xml_parser;
 using namespace std;
 
-HydrophoneDataProcessor::HydrophoneDataProcessor(const Data &rawdata, double pingfreq, const Config &config)
-: pingfreq(pingfreq), data(rawdata), template_pos(0), valid(false) {
-	period = (int)round((config.samplingrate * config.scalefact) / pingfreq); // compute period from ping freq
-
+HydrophoneDataProcessor::HydrophoneDataProcessor(const Data &rawdata, const Config &config)
+: data(rawdata), template_pos(0), valid(false) {
 	processRawData(config);
 	checkData(config);
 
@@ -64,9 +62,8 @@ void HydrophoneDataProcessor::checkData(const Config &config) {
 	a.head(datacol.rows()/2).cwiseAbs().maxCoeff(&max_loc);
 
 	// compute the frequency
-	double max_freq = (config.samplingrate/2)/(datacol.rows()/2) * (max_loc+1);
-	if (abs(max_freq - pingfreq) < config.freqthresh) // if its within the threshold
-		valid = true; // data is valid
+	pingfreq = (config.samplingrate/2.0)/(datacol.rows()/2.0) * (max_loc+1);
+	period = (int)round((config.samplingrate * config.scalefact) / pingfreq); // compute period from ping freq
 }
 
 void HydrophoneDataProcessor::makeTemplate(const Config &config) {
@@ -139,12 +136,18 @@ void HydrophoneDataProcessor::computeAngles(const Config &config) {
 	double dist_y = cos_beta*dist;
 	double dist_z;
 	if (dist*dist - (dist_x*dist_x + dist_y*dist_y) < 0)
+	{
+		valid = false;
 		dist_z = 0;
+	}
 	else
+	{
+		valid = true;
 		dist_z = sqrt(dist*dist - (dist_x*dist_x + dist_y*dist_y));
+	}
 
-	ang1 = atan2(dist_y, dist_x);
-	ang2 = atan2(dist_z, sqrt(dist_x*dist_x + dist_y*dist_y));
+	heading = atan2(dist_y, dist_x);
+	declination = atan2(dist_z, sqrt(dist_x*dist_x + dist_y*dist_y));
 	sph_dist = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
 }
 
@@ -209,7 +212,6 @@ void HydrophoneDataProcessor::Config::load(const string &filename) {
 	scalefact = pt.get<int>("scalefact");
 	samplingrate = pt.get<int>("samplingrate");
 	soundvelocity = pt.get<double>("soundvelocity");
-	freqthresh = pt.get<double>("freqthresh");
 	disth = pt.get<double>("disth");
 	disth4 = pt.get<double>("disth4");
 	bandpass_fircoefs = strToVec(pt.get<string>("bandpass"));
