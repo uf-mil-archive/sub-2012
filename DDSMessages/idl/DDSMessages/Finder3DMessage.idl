@@ -1,0 +1,9 @@
+struct Finder3DMessage {
+	double x;
+	double y;
+	double z;
+	double ang1;
+	double ang2;
+	double ang3;
+};
+
