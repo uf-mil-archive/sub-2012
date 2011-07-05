@@ -1,0 +1,7 @@
+struct Finder2DMessage {
+	long u;
+	long v;
+	double scale;
+	double angle;
+};
+

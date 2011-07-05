@@ -11,6 +11,7 @@ namespace subjugator {
 
 		private:
 			void receivedWrench(const PDWrenchMessage &wrench);
+			void writerCountChanged(int count);
 
 			PDWrenchDDSReceiver wrenchreceiver;
 

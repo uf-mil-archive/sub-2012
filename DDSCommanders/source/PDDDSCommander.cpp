@@ -7,7 +7,7 @@ using namespace subjugator;
 using namespace boost;
 
 PDDDSCommander::PDDDSCommander(Worker &worker, DDSDomainParticipant *participant)
-: wrenchreceiver(participant, "PDWrench", bind(&PDDDSCommander::receivedWrench, this, _1)) {
+: wrenchreceiver(participant, "PDWrench", bind(&PDDDSCommander::receivedWrench, this, _1), bind(&PDDDSCommander::writerCountChanged, this, _1)) {
 	screwcmdtoken = worker.ConnectToCommand((int)PDWorkerCommands::SetScrew, 5);
 }
 
@@ -22,4 +22,13 @@ void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
 	if (ptr)
 		ptr->Operate(PDWrench(vec));
 }
+
+void PDDDSCommander::writerCountChanged(int count) {
+	if (count == 0) {
+		shared_ptr<InputToken> ptr = screwcmdtoken.lock();
+		if (ptr)
+			ptr->Operate(PDWrench(PDWrench::Vector6D::Zero()));
+	}
+}
+
 

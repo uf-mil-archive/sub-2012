@@ -69,6 +69,20 @@ function(sub_executable projectname)
 		set(qt TRUE)
 	endif()
 
+	list(FIND ARGN OpenCV cv_pos)
+	if(cv_pos EQUAL -1)
+		set(cv FALSE)
+	else()
+		set(cv TRUE)
+	endif()
+
+	list(FIND ARGN FlyCapture flycapture_pos)
+	if(flycapture_pos EQUAL -1)
+		set(flycapture FALSE)
+	else()
+		set(flycapture TRUE)
+	endif()
+
 	if (qt AND NOT QT_FOUND)
 		message(ERROR "sub_executable called with qt enabled, but QT was not found")
 		return()
@@ -85,7 +99,6 @@ function(sub_executable projectname)
 	else()
 		set(headers "")
 	endif()
-	set(libraries ${libraries} ${Boost_LIBRARIES})
 	if(FFTW_FOUND)
 		set(libraries ${libraries} ${FFTW_LIBRARIES})
 	endif()
@@ -126,6 +139,19 @@ function(sub_executable projectname)
 			set(sources ${sources} ${resources_moc_sources})
 		endif()
 	endif()
+
+	# OpenCV functionality
+	if(cv)
+		set(libraries ${libraries} ${OpenCV_LIBS})
+	endif()
+
+
+	if(flycapture)
+		set(libraries ${libraries} ${FLYCAPTURE_LIBRARIES})
+	endif()
+
+	# Boost comes last, since flycapture depends on it
+	set(libraries ${libraries} ${Boost_LIBRARIES})
 
 	# Define executable
 	add_executable(${exename} ${sources})

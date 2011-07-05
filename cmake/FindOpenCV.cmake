@@ -8,8 +8,8 @@
 #  OpenCV_DIR:            Base directory of OpenCv tree to use.
 #
 ## 2: Variable
-# The following are set after configuration is done: 
-#  
+# The following are set after configuration is done:
+#
 #  OpenCV_FOUND
 #  OpenCV_LIBS
 #  OpenCV_INCLUDE_DIR
@@ -21,7 +21,7 @@
 #  OpenCV_INCLUDE_DIRS
 #  OpenCV_LIBRARIES
 #  OpenCV_LINK_DIRECTORIES
-# 
+#
 ## 3: Version
 #
 # 2010/04/07 Benoit Rat, Correct a bug when OpenCVConfig.cmake is not found.
@@ -44,11 +44,11 @@
 # packaging of this file.  Please review the following information to
 # ensure the GNU Lesser General Public License version 2.1 requirements
 # will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-# 
+#
 #----------------------------------------------------------
 
 
-find_path(OpenCV_DIR "OpenCVConfig.cmake" HINTS "/usr/local/share/opencv/" DOC "Root directory of OpenCV")
+find_path(OpenCV_DIR "OpenCVConfig.cmake" HINTS "/usr/share/opencv/" "/usr/local/share/opencv/" DOC "Root directory of OpenCV")
 
 ##====================================================
 ## Find OpenCV libraries
@@ -80,16 +80,16 @@ if(EXISTS "${OpenCV_DIR}")
                 string(REGEX REPLACE ".*#define CV_SUBMINOR_VERSION[ \t]+([0-9]+).*" "\\1" OpenCV_VERSION_PATCH ${OpenCV_VERSIONS_TMP})
                 set(OpenCV_VERSION ${OpenCV_VERSION_MAJOR}.${OpenCV_VERSION_MINOR}.${OpenCV_VERSION_PATCH} CACHE STRING "" FORCE)
                 set(CVLIB_SUFFIX "${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}")
-                
+
         endif(EXISTS "${OpenCV_DIR}/OpenCVConfig.cmake")
 
-        
-        
+
+
 
         ## Initiate the variable before the loop
         set(OpenCV_LIBS "")
         set(OpenCV_FOUND_TMP true)
-	
+
 
         ## Loop over each components
         foreach(__CVLIB ${OPENCV_LIB_COMPONENTS})
@@ -98,11 +98,11 @@ if(EXISTS "${OpenCV_DIR}")
                 find_library(OpenCV_${__CVLIB}_LIBRARY_RELEASE NAMES "${__CVLIB}${CVLIB_SUFFIX}" "${__CVLIB}" "lib${__CVLIB}${CVLIB_SUFFIX}" PATHS "${OpenCV_LIB_DIR}" NO_DEFAULT_PATH)
 
 		mark_as_advanced(OpenCV_${__CVLIB}_LIBRARY_DEBUG OpenCV_${__CVLIB}_LIBRARY_RELEASE)
-                
+
                 #Remove the cache value
                 set(OpenCV_${__CVLIB}_LIBRARY "" CACHE STRING "" FORCE)
 		mark_as_advanced(OpenCV_${__CVLIB}_LIBRARY)
-        
+
                 #both debug/release
                 if(OpenCV_${__CVLIB}_LIBRARY_DEBUG AND OpenCV_${__CVLIB}_LIBRARY_RELEASE)
                         set(OpenCV_${__CVLIB}_LIBRARY debug ${OpenCV_${__CVLIB}_LIBRARY_DEBUG} optimized ${OpenCV_${__CVLIB}_LIBRARY_RELEASE}  CACHE STRING "" FORCE)
@@ -116,12 +116,12 @@ if(EXISTS "${OpenCV_DIR}")
                 else()
                         set(OpenCV_FOUND_TMP false)
                 endif()
-                
+
                 #Add to the general list
                 if(OpenCV_${__CVLIB}_LIBRARY)
                         set(OpenCV_LIBS ${OpenCV_LIBS} ${OpenCV_${__CVLIB}_LIBRARY})
                 endif(OpenCV_${__CVLIB}_LIBRARY)
-                
+
         endforeach(__CVLIB)
 
 
@@ -158,9 +158,9 @@ if(OpenCV_FOUND)
 option(OpenCV_BACKWARD_COMPA "Add some variable to make this script compatible with the other version of FindOpenCV.cmake" false)
 mark_as_advanced(OpenCV_BACKWARD_COMPA)
 if(OpenCV_BACKWARD_COMPA)
-        find_path(OpenCV_INCLUDE_DIRS "cv.h" PATHS "${OpenCV_DIR}" PATH_SUFFIXES "include" "include/opencv" DOC "Include directory") 
+        find_path(OpenCV_INCLUDE_DIRS "cv.h" PATHS "${OpenCV_DIR}" PATH_SUFFIXES "include" "include/opencv" DOC "Include directory")
         find_path(OpenCV_INCLUDE_DIR "cv.h" PATHS "${OpenCV_DIR}" PATH_SUFFIXES "include" "include/opencv" DOC "Include directory")
-        set(OpenCV_LIBRARIES "${OpenCV_LIBS}" CACHE STRING "" FORCE)	
+        set(OpenCV_LIBRARIES "${OpenCV_LIBS}" CACHE STRING "" FORCE)
 endif(OpenCV_BACKWARD_COMPA)
 endif(OpenCV_FOUND)
 ##====================================================
