@@ -113,6 +113,8 @@ void VisionWorker::readyState()
 			if(dynamic_cast<FinderResult3D*> (fResult[j].get()))
 				printf("Found ObjectID: %d - 3d!\n",fResult[j]->objectID);	// callback to 3D message handler
 
+			boost::shared_ptr<DataObject> dobj = dynamic_pointer_cast<DataObject>(fResult[j]);
+			onEmitting(dobj);
 		}
 		fResult.clear(); // clear the result for the next iteration.
 	}

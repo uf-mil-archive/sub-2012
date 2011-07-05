@@ -3,7 +3,7 @@
 
 #include "HAL/format/DataObject.h"
 
-class FinderResult
+class FinderResult : public subjugator::DataObject
 {
 public:
 	int objectID;
