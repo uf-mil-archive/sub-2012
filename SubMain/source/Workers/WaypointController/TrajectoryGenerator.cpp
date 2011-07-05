@@ -888,6 +888,7 @@ void TrajectoryGenerator::CalculateTimesCase2(double j_max, double a_max, double
 	component.Tj1 = Tj1;
 	component.Tj2 = Tj2;
 	component.TotalTime = Ta + Td;
+	cout << "isBad" << component.IsBad << endl;
 	assert(component.TotalTime == component.TotalTime);
 	assert(component.TotalTime != numeric_limits<double>::infinity());
 	component.j_lim = j_max;
@@ -901,7 +902,7 @@ bool TrajectoryGenerator::IsTrajectoryPossible(double a_max_div_j_max, double a_
 	if (Tj_star == a_max_div_j_max)
 	{
 		double valid = 1.0 / 2.0 * (v0 + v1) * (Tj_star + abs(v1 - v0) / a_max);
-		if (q1 - q0 < valid)
+		if (abs(q1 - q0) < valid)
 		{
 			return false;
 		}
@@ -911,7 +912,7 @@ bool TrajectoryGenerator::IsTrajectoryPossible(double a_max_div_j_max, double a_
 	else
 	{
 		double valid = (v0 + v1) * Tj_star;
-		if (q1 - q0 < valid)
+		if (abs(q1 - q0) < valid)
 		{
 			return false;
 		}
@@ -925,7 +926,7 @@ bool TrajectoryGenerator::IsAngleTrajectoryPossible(double a_max_div_j_max, doub
 	if (Tj_star == a_max_div_j_max)
 	{
 		double valid = 1.0 / 2.0 * (v0 + v1) * (Tj_star + abs(v1 - v0) / a_max);
-		if (AttitudeHelpers::DAngleDiff(q0,q1)< valid)
+		if (abs(AttitudeHelpers::DAngleDiff(q0,q1)) < valid)
 		{
 			return false;
 		}
@@ -935,7 +936,7 @@ bool TrajectoryGenerator::IsAngleTrajectoryPossible(double a_max_div_j_max, doub
 	else
 	{
 		double valid = (v0 + v1) * Tj_star;
-		if (AttitudeHelpers::DAngleDiff(q0, q1) < valid)
+		if (abs(AttitudeHelpers::DAngleDiff(q0, q1)) < valid)
 		{
 			return false;
 		}
