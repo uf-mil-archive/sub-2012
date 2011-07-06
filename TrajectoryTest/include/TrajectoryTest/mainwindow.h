@@ -74,7 +74,7 @@ namespace subjugator
 	    void onTrajectoryReceived();
 	    void on_btnToggleActual_clicked();
 	    void on_tabWidget_currentChanged(int index);
-	    void MainWindow::on_btnSubmitGains_clicked();
+	    void on_btnSubmitGains_clicked();
 
 	    signals:
 	    void trajectoryReceived();

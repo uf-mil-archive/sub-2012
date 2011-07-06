@@ -192,7 +192,7 @@ void LocalWaypointDriverWorker::setWaypoint(const DataObject& dobj)
 		Waypoint wp;
 		Vector3d angles = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
 
-		wp.Position_NED = lposInfo->getPosition_NED() + MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo->getQuat_NED_B()), info->Position_NED);
+		wp.Position_NED = lposInfo->getPosition_NED() + MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(), info->Position_NED);
 		for(int i = 0; i < 3; i++)
 			wp.RPY(i) = AttitudeHelpers::DAngleClamp(angles(i)+ info->RPY(i));
 		trajectoryGenerator->SetWaypoint(wp, true);
