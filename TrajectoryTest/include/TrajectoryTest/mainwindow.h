@@ -12,6 +12,7 @@
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
 #include "DDSCommanders/TrajectoryDDSReceiver.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
+#include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
 #include "DDSMessages/LocalWaypointDriverMessage.h"
 #include "DDSMessages/LocalWaypointDriverMessageSupport.h"
 #include "DDSListeners/DDSSender.h"
@@ -54,7 +55,7 @@ namespace subjugator
 		void setupCurve(QwtPlotCurve *curve, QPen pen);
 
 		//void addPoint(points pos);
-		void addPoint(const TrajectoryInfo& p);
+		void addPoint(const LocalWaypointDriverInfo& p);
 
 		TrajectoryGenerator trajectoryGenerator;
 		void DDSReadCallback(const TrajectoryMessage &msg);
@@ -63,13 +64,16 @@ namespace subjugator
 		virtual void timerEvent(QTimerEvent *e);
 
 	private slots:
-		void on_actionRPY_triggered();
+		void on_actionRPY_Data_triggered();
 		void on_actionPOS_triggered();
-		void on_actionError_triggered();
+		void on_actionPos_Vel_Error_triggered();
+		void on_actionActionErrorRPY_triggered();
 	    void on_btnSubmitWaypt_clicked();
 	    void on_btnSubmitStart_clicked();
 	    void on_btnCallUpdate_clicked();
 	    void onTrajectoryReceived();
+	    void on_btnToggleActual_clicked();
+	    void on_tabWidget_currentChanged(int index);
 
 	    signals:
 	    void trajectoryReceived();
@@ -102,10 +106,13 @@ namespace subjugator
 
 		bool posPlot;
 		bool rpyPlot;
+		bool errposPlot;
+		bool errrpyPlot;
+		bool actualToggle;
 
 		TrajectoryDDSReceiver trajectoryreceiver;
 
-		TrajectoryMessage trajectoryinfo;
+		TrajectoryMessage trajectorymsg;
 
 		DDSSender<LocalWaypointDriverMessage, LocalWaypointDriverMessageDataWriter, LocalWaypointDriverMessageTypeSupport> ddssender;
 	};

@@ -1,4 +1,5 @@
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
+#include <limits>
 
 using namespace subjugator;
 using namespace std;
@@ -16,14 +17,14 @@ Vector11d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
 		// Normal easy acceleration
 		max <<
 			0.625,      // v_max_xy
-			.1,        	// a_max_xy
+			.05,        	// a_max_xy
 			20,         // j_max_xyz
 			0.2,        // v_max_z
 			0.125,      // a_max_z
 			0.5,        // v_max_pitch
 			0.2,        // a_max_pitch
 			10,         // j_max_pitch
-			0.5,        // v_max_yaw
+			0.75,        // v_max_yaw
 			0.2,        // a_max_yaw
 			10;         // j_max_yaw
 	}
@@ -61,7 +62,7 @@ TrajectoryGenerator::TrajectoryGenerator(Vector6d trajectory)
 	Trajectory_dotdotdot = Vector6d::Zero();
 }
 
-TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
+TrajectoryInfo TrajectoryGenerator::Update(boost::int64_t currentTickCount)
 {
 	updateLock.lock();
 
@@ -74,7 +75,12 @@ TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
     TrajWaypointComponent twYaw = currentWaypoint.trajWaypointsYaw.front();
 
     if(!holdXTime)
-		tX = (currentTickCount - StartTickCountX) / NSECPERSEC;
+{
+		
+		tX = (double)(currentTickCount - StartTickCountX) / NSECPERSEC;
+		cout << "CurrentX: " << tX << endl;
+		cout << "Total X: " << twX.TotalTime << endl;
+}
 	if (!holdYTime)
 		tY = (currentTickCount - StartTickCountY) / NSECPERSEC;
 	if (!holdZTime)
@@ -263,11 +269,12 @@ void TrajectoryGenerator::SetWaypoint(const Waypoint &parWaypoint, bool clearOth
 {
 	updateLock.lock();
 
-	vector<Waypoint> waypointsToAdd;	// The maximum number of waypoints added when a single waypoint
-										// is requested is always less than 5
+	vector<Waypoint> waypointsToAdd;
+
 	if (clearOthers)
 	{
-		listWaypoints.empty();
+		while(!listWaypoints.empty())
+			listWaypoints.pop();
 
 		// If clearing the waypoint list to add these new ones,
 		// we must reset the timers so the curves begin correctly.
@@ -849,7 +856,7 @@ bool TrajectoryGenerator::IsTrajectoryPossible(double a_max_div_j_max, double a_
 	if (Tj_star == a_max_div_j_max)
 	{
 		double valid = 1.0 / 2.0 * (v0 + v1) * (Tj_star + abs(v1 - v0) / a_max);
-		if (q1 - q0 < valid)
+		if (abs(q1 - q0) < valid)
 		{
 			return false;
 		}
@@ -859,7 +866,7 @@ bool TrajectoryGenerator::IsTrajectoryPossible(double a_max_div_j_max, double a_
 	else
 	{
 		double valid = (v0 + v1) * Tj_star;
-		if (q1 - q0 < valid)
+		if (abs(q1 - q0) < valid)
 		{
 			return false;
 		}
@@ -873,7 +880,7 @@ bool TrajectoryGenerator::IsAngleTrajectoryPossible(double a_max_div_j_max, doub
 	if (Tj_star == a_max_div_j_max)
 	{
 		double valid = 1.0 / 2.0 * (v0 + v1) * (Tj_star + abs(v1 - v0) / a_max);
-		if (AttitudeHelpers::DAngleDiff(q0,q1)< valid)
+		if (abs(AttitudeHelpers::DAngleDiff(q0,q1)) < valid)
 		{
 			return false;
 		}
@@ -883,7 +890,7 @@ bool TrajectoryGenerator::IsAngleTrajectoryPossible(double a_max_div_j_max, doub
 	else
 	{
 		double valid = (v0 + v1) * Tj_star;
-		if (AttitudeHelpers::DAngleDiff(q0, q1) < valid)
+		if (abs(AttitudeHelpers::DAngleDiff(q0, q1)) < valid)
 		{
 			return false;
 		}
@@ -911,6 +918,8 @@ void TrajectoryGenerator::InitTimers(boost::int64_t currentTickCount)
 	tZ = 0;
 	tPitch = 0;
 	tYaw = 0;
+
+	cout << "Reset Timers" << endl;
 }
 
 boost::int64_t TrajectoryGenerator::getTimestamp(void)

@@ -9,11 +9,11 @@ typedef Matrix<double, 6, 1> Vector6d;
 VelocityController::VelocityController()
 {
 	Vector6d ktemp;
-	ktemp << 5.0,5.0,5.0,5.0,5.0,5.0;
+	ktemp << 100.0,100.0,250.0,25.0,100.0,100.0;
 	k = AttitudeHelpers::DiagMatrixFromVector(ktemp);
 
 	Vector6d kstemp;
-	kstemp << 5.0,5.0,5.0,5.0,5.0,5.0;
+	kstemp << 100.0,100.0,75.0,37.0,25.0,25.0;
 	ks = AttitudeHelpers::DiagMatrixFromVector(kstemp);
 
 	Vector6d alphatemp;
@@ -214,7 +214,9 @@ void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
 
 	info.Wrench = currentControl;
 	info.X = x;
+	info.X_dot = x_dot;
 	info.Xd = xd;
+	info.Xd_dot = xd_dot;
 
 	lock.unlock();
 

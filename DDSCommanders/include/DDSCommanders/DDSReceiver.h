@@ -12,9 +12,11 @@ namespace subjugator {
 	template <class MessageT, class MessageDataReaderT, class MessageTypeSupportT, class MessageSeqT>
 	class DDSReceiver : DDSDataReaderListener {
 		public:
-			typedef boost::function<void (const MessageT &message)> Callback;
+			typedef boost::function<void (const MessageT &message)> MessageCallback;
+			typedef boost::function<void (int count)> WriterCountChangedCallback;
 
-			DDSReceiver(DDSDomainParticipant *participant, const std::string &topicname, const Callback &callback) : participant(participant) {
+			DDSReceiver(DDSDomainParticipant *participant, const std::string &topicname, const MessageCallback &messagecallback, const WriterCountChangedCallback &writercountchangedcallback=WriterCountChangedCallback())
+			: participant(participant), messagecallback(messagecallback), writercountchangedcallback(writercountchangedcallback) {
 				topic = participant->create_topic(topicname.c_str(), MessageTypeSupportT::get_type_name(), DDS_TOPIC_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 				if (!topic)
 					throw std::runtime_error("Failed to create Topic" + topicname);
@@ -27,10 +29,8 @@ namespace subjugator {
 				if (!messagereader)
 					throw std::runtime_error("Failed to narrow to MessageDataReader");
 
-				if (messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS) != DDS_RETCODE_OK)
+				if (messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS | DDS_LIVELINESS_CHANGED_STATUS) != DDS_RETCODE_OK)
 					throw std::runtime_error("Failed to set listener on the MessageDataReader");
-
-				this->callback = callback;
 			}
 
 			~DDSReceiver() {
@@ -43,7 +43,8 @@ namespace subjugator {
 			DDSTopic *topic;
 			MessageDataReaderT *messagereader;
 
-			Callback callback;
+			MessageCallback messagecallback;
+			WriterCountChangedCallback writercountchangedcallback;
 
 			virtual void on_data_available(DDSDataReader *unused) {
 				MessageSeqT messageseq;
@@ -53,13 +54,18 @@ namespace subjugator {
 
 				try {
 					for (int i=0; i<messageseq.length(); ++i)
-						callback(messageseq[i]);
+						messagecallback(messageseq[i]);
 
 					messagereader->return_loan(messageseq, infoseq);
 				} catch (...) {
 					messagereader->return_loan(messageseq, infoseq);
 					throw;
 				}
+			}
+
+			virtual void on_liveliness_changed(DDSDataReader *unused, const DDS_LivelinessChangedStatus &status) {
+				if (writercountchangedcallback)
+					writercountchangedcallback(status.alive_count);
 			}
 	};
 }

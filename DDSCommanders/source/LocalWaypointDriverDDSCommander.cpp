@@ -23,8 +23,6 @@ void LocalWaypointDriverDDSCommander::receivedWaypoint(const LocalWaypointDriver
 	Vector3d position_ned;
 	Vector3d rpy;
 
-	std::cout << "Received Waypoint" << std::endl;
-
 	for (int i=0; i<3; i++)
 		position_ned(i) = waypoint.position_ned[i];
 	for (int i=0; i<3; i++)

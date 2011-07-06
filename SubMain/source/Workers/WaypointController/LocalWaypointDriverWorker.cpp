@@ -37,7 +37,7 @@ bool LocalWaypointDriverWorker::Startup()
 
 void LocalWaypointDriverWorker::readyState()
 {
-	boost::int16_t t = getTimestamp();
+	boost::int64_t t = getTimestamp();
 
 	// The first ready function call initializes the timers correctly
 	if(!inReady)
@@ -81,19 +81,21 @@ void LocalWaypointDriverWorker::initializeState()
 void LocalWaypointDriverWorker::standbyState()
 {
 	inReady = false;
-	if(!hardwareKilled)
-	{
+	//if(!hardwareKilled)
+	//{
 		// delay for 2s after unkilled
 		//if !timer running
 		//if timer.haselapsed()
 		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator());
+		trajectoryGenerator->InitTimers(getTimestamp());
 
 		Vector3d temp = MILQuaternionOps::Quat2Euler(lposInfo->quaternion_NED_B);
+
 		setWaypoint(Waypoint(lposInfo->position_NED, Vector3d(0,0,temp(2))));
 
 		velocityController = std::auto_ptr<VelocityController>(new VelocityController());
 		mStateManager.ChangeState(SubStates::READY);
-	}
+	//}
 }
 
 void LocalWaypointDriverWorker::emergencyState()
@@ -149,9 +151,9 @@ void LocalWaypointDriverWorker::setPDInfo(const DataObject& dobj)
 	}
 
 	hardwareKilled = newState;
-
-	if(hardwareKilled)
-		mStateManager.ChangeState(SubStates::INITIALIZE);
+ 
+	//if(hardwareKilled)
+	//	mStateManager.ChangeState(SubStates::INITIALIZE);
 
 	lock.unlock();
 }
