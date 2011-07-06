@@ -9,7 +9,7 @@ namespace subjugator {
 			HydrophonePacketFormatter();
 
 			virtual std::vector<Packet> parsePackets(const ByteVec &data);
-			virtual ByteVec formatPacket(const Packet &packet);
+			virtual ByteVec formatPacket(const Packet &packet) const;
 
 		private:
 			ByteVec buf;
