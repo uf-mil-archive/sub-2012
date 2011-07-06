@@ -7,8 +7,12 @@
 #include <boost/lexical_cast.hpp>
 #include <unsupported/Eigen/FFT>
 #include <iomanip>
-#include "Hydrophone/HydrophoneDataProcessor.h"
+#include "SubMain/Workers/Hydrophone/HydrophoneDataProcessor.h"
+#include "SubMain/Workers/Hydrophone/SubHydrophoneWorker.h"
 #include "config.h"
+#include "DDSListeners/HydrophoneDDSListener.h"
+#include "DDSCommanders/HydrophoneDDSCommander.h"
+#include <ndds/ndds_cpp.h>
 
 using namespace std;
 using namespace subjugator;
@@ -17,6 +21,39 @@ using namespace Eigen;
 
 static Eigen::Matrix<double, Eigen::Dynamic, 5> parseCSV(const string &filename);
 
+int main(int argc, char **argv)
+{
+	boost::asio::io_service io;
+
+	HydrophoneWorker hydWorker(io, 2, configPath);
+	if(!hydWorker.Startup())
+			throw new runtime_error("Failed to start HYD Worker!");
+
+	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
+	if (!participant)
+		throw runtime_error("Failed to create DDSDomainParticipant");
+
+	DDSDomainParticipant *participant1 = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
+		if (!participant)
+			throw runtime_error("Failed to create DDSDomainParticipant");
+
+	if (HydrophoneMessageTypeSupport::register_type(participant, HydrophoneMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+			throw runtime_error("Failed to register type");
+
+	//if (HydrophoneMessageTypeSupport::register_type(participant1, HydrophoneMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+				//throw runtime_error("Failed to register type");
+
+	//HydrophoneDDSCommander ddsCommander(hydWorker, participant1);
+
+	HydrophoneDDSListener ddsListener(hydWorker, participant);
+
+	io.run();
+
+	hydWorker.Shutdown();
+
+}
+
+/*
 int main(int argc, char **argv) {
 	HydrophoneDataProcessor::Config config;
 	config.load(configPath + string("/hydrophone.config"));
@@ -34,7 +71,7 @@ int main(int argc, char **argv) {
 
 		start = stop;
 	}
-}
+}*/
 /*
 int main(int argc, char **argv) {
 	VectorXd vec(2048);

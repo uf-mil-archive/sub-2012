@@ -12,8 +12,10 @@ namespace subjugator {
 			const Eigen::MatrixXd &getMatrix() const { return mat; }
 
 			static HydrophoneSamples *parse(ByteVec::const_iterator begin, ByteVec::const_iterator end);
+			boost::uint64_t getTimestamp() const { return timestamp; }
 		private:
 			Eigen::MatrixXd mat;
+			boost::uint64_t timestamp;
 	};
 }
 

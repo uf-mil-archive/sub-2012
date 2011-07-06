@@ -10,19 +10,17 @@ VelocityController::VelocityController()
 {
 	Vector6d ktemp;
 	ktemp << 100.0,100.0,250.0,25.0,100.0,100.0;
-	k = AttitudeHelpers::DiagMatrixFromVector(ktemp);
 
 	Vector6d kstemp;
 	kstemp << 100.0,100.0,75.0,37.0,25.0,25.0;
-	ks = AttitudeHelpers::DiagMatrixFromVector(kstemp);
 
 	Vector6d alphatemp;
 	alphatemp << 1.0,1.0,1.0,1.0,1.0,1.0;
-	alpha = AttitudeHelpers::DiagMatrixFromVector(alphatemp);
 
 	Vector6d betatemp;
 	betatemp << 1.0,1.0,1.0,1.0,1.0,1.0;
-	beta = AttitudeHelpers::DiagMatrixFromVector(betatemp);
+
+	SetGains(ktemp, kstemp, alphatemp, betatemp);
 
 	x = Vector6d::Zero();
 	x_dot = Vector6d::Zero();
@@ -220,4 +218,12 @@ void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
 
 	lock.unlock();
 
+}
+
+void VelocityController::SetGains(const Vector6d& kV, const Vector6d& ksV, const Vector6d& alphaV, const Vector6d& betaV)
+{
+	k = AttitudeHelpers::DiagMatrixFromVector(kV);
+	ks = AttitudeHelpers::DiagMatrixFromVector(ksV);
+	alpha = AttitudeHelpers::DiagMatrixFromVector(alphaV);
+	beta = AttitudeHelpers::DiagMatrixFromVector(betaV);
 }

@@ -32,7 +32,7 @@ vector<Packet> HydrophonePacketFormatter::parsePackets(const ByteVec &data) {
 	return packets;
 }
 
-ByteVec HydrophonePacketFormatter::formatPacket(const Packet &packet) {
+ByteVec HydrophonePacketFormatter::formatPacket(const Packet &packet) const {
 	return packet; // no real format to outgoing packets
 }
 

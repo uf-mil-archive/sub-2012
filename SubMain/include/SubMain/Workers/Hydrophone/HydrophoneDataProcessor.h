@@ -15,7 +15,6 @@ namespace subjugator {
 				int scalefact; // the factor by which the raw data is scaled up for processing
 				int samplingrate; // the rate at which the raw data was collected
 				double soundvelocity;
-				double freqthresh;
 				double disth;
 				double disth4;
 
@@ -29,15 +28,16 @@ namespace subjugator {
 					static Eigen::VectorXd strToVec(const std::string &str);
 			};
 
-			HydrophoneDataProcessor(const Data &rawdata, double pingfreq, const Config &config);
+			HydrophoneDataProcessor(const Data &rawdata, const Config &config);
 
 			struct Error : public std::runtime_error {
 				inline Error(const std::string &what) : runtime_error(what) { }
 			};
 
-			inline double getAngle1() const { return ang1; }
-			inline double getAngle2() const { return ang2; }
+			inline double getHeading() const { return heading; }
+			inline double getDeclination() const { return declination; }
 			inline double getDist() const { return sph_dist; }
+			inline double getPingfreq() const { return pingfreq; }
 			inline bool isValid() const { return valid; }
 
 		private:
@@ -59,7 +59,7 @@ namespace subjugator {
 			double deltas[3];
 			bool valid;
 
-			double ang1, ang2;
+			double heading, declination;
 			double sph_dist;
 
 			Eigen::FFT<double> fft;
