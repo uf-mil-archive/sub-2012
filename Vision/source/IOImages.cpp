@@ -4,15 +4,15 @@ using namespace cv;
 
 IOImages::IOImages(Size size)
 {
-	src.create(size,CV_8U);
-	prcd.create(size,CV_8U);
+	src.create(size,CV_8UC3);
+	prcd.create(size,CV_8UC3);
 	dbg.create(size,CV_8U);
 }
 
 IOImages::IOImages(void)
 {
-	src.create(Size(640,480),CV_8U);
-	prcd.create(Size(640,480),CV_8U);
+	src.create(Size(640,480),CV_8UC3);
+	prcd.create(Size(640,480),CV_8UC3);
 	dbg.create(Size(640,480),CV_8U);
 }
 

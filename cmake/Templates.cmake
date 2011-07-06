@@ -69,6 +69,11 @@ function(sub_executable projectname)
 		set(qt TRUE)
 	endif()
 
+	if (qt AND NOT QT_FOUND)
+		message(ERROR "sub_executable called with qt enabled, but QT was not found")
+		return()
+	endif()
+
 	list(FIND ARGN OpenCV cv_pos)
 	if(cv_pos EQUAL -1)
 		set(cv FALSE)
@@ -83,9 +88,11 @@ function(sub_executable projectname)
 		set(flycapture TRUE)
 	endif()
 
-	if (qt AND NOT QT_FOUND)
-		message(ERROR "sub_executable called with qt enabled, but QT was not found")
-		return()
+	list(FIND ARGN GSL gsl_pos)
+	if(gsl_pos EQUAL -1)
+		set(gsl FALSE)
+	else()
+		set(gsl TRUE)
 	endif()
 
 	project(${projectname})
@@ -99,10 +106,11 @@ function(sub_executable projectname)
 	else()
 		set(headers "")
 	endif()
+	string(TOLOWER ${projectname} exename)
+
 	if(FFTW_FOUND)
 		set(libraries ${libraries} ${FFTW_LIBRARIES})
 	endif()
-	string(TOLOWER ${projectname} exename)
 
 	# Optionally process the config header
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
@@ -143,11 +151,19 @@ function(sub_executable projectname)
 	# OpenCV functionality
 	if(cv)
 		set(libraries ${libraries} ${OpenCV_LIBS})
+		include_directories(${OpenCV_INCLUDE_DIRS})
 	endif()
 
-
+	# FlyCapture
 	if(flycapture)
 		set(libraries ${libraries} ${FLYCAPTURE_LIBRARIES})
+		include_directories(${FLYCAPTURE_INCLUDES})
+	endif()
+
+	# GSL
+	if(gsl)
+		set(libraries ${GSL_LIBRARIES})
+		include_directories(${GSL_INCLUDE_DIRS})
 	endif()
 
 	# Boost comes last, since flycapture depends on it

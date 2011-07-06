@@ -51,6 +51,11 @@ if(NOT FLYCAPTURE_FOUND)
 	message("FlyCapture not found! No projects depending on FlyCapture will be built")
 endif()
 
+find_package(GSL)
+if(NOT GSL_FOUND)
+	message("GSL not found! Vision cannot be built!")
+endif()
+
 # Turn on warnings
 add_definitions(-Wall)
 
@@ -82,7 +87,7 @@ endif()
 
 if(BUILD_SUB)
 add_subdirectory(Hydrophone)
-	if(OpenCV_FOUND AND FLYCAPTURE_FOUND)
+	if(OpenCV_FOUND AND FLYCAPTURE_FOUND AND GSL_FOUND)
 	add_subdirectory(Vision)
 	endif()
 	if(QT_FOUND)

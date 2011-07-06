@@ -23,6 +23,9 @@ int main(int argc, char *argv[])
 	if (SetWaypointMessageTypeSupport::register_type(partSender, SetWaypointMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 			throw runtime_error("Failed to register type");
 
+	if (ControllerGainsMessageTypeSupport::register_type(partSender, ControllerGainsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+			throw runtime_error("Failed to register type");
+
     MainWindow w(participant, partSender);
     w.show();
 

@@ -53,6 +53,9 @@ int main(int argc, char **argv)
 	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 					throw runtime_error("Failed to register type");
 
+	if (ControllerGainsMessageTypeSupport::register_type(participant, ControllerGainsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+						throw runtime_error("Failed to register type");
+
 	LocalWaypointDriverDDSCommander commander(worker, participant);
 
 	LocalWaypointDriverDDSListener listener(worker, participant);

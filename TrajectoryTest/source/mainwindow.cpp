@@ -263,23 +263,26 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
     d_timerId(-1),
 	numOfPoints(500),
 	updateInterval(20), // ms
-	updateToggle(true),
+	updateToggle(false),
 	posPlot(true),
 	rpyPlot(false),
 	errposPlot(false),
 	errrpyPlot(false),
+	compare1Plot(false),
+	compare2Plot(false),
 	actualToggle(false),
+	testToggle(false),
 	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::DDSReadCallback, this, _1)),
-	ddssender(partSender, "SetWaypoint")
+	waypointddssender(partSender, "SetWaypoint"),
+	gainsddssender(partSender, "ControllerGains")
 {
     poseList.resize(numOfPoints);
 
-    Waypoint wp;
-    //trajectoryGenerator.SetWaypoint(wp, true);
-    //trajectoryGenerator.InitTimers(getTimestamp());
-
     ui->setupUi(this);
     ui->statusBar->showMessage("Plotting Stopped");
+
+    ui->btnSubmitStart->setVisible(false);
+    ui->btnCallUpdate->setVisible(false);
 
     connect(this, SIGNAL(trajectoryReceived()), this, SLOT(onTrajectoryReceived()));
 
@@ -493,6 +496,52 @@ void MainWindow::onTrajectoryReceived()
 				maxValP2 = temp;
 		}
 	}
+	else if (compare1Plot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (Vector2d(poseList[j].X(0), poseList[j].Xd(0))).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(0), poseList[j].Xd(0))).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(1), poseList[j].Xd(1))).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (Vector2d(poseList[j].X(1), poseList[j].Xd(1))).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
+	else if (compare2Plot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (Vector2d(poseList[j].X(2), poseList[j].Xd(2))).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(2), poseList[j].Xd(2))).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(5), poseList[j].Xd(5))).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (Vector2d(poseList[j].X(5), poseList[j].Xd(5))).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
 
 	if (minValP1 > -1)
 		minValP1 = -1;
@@ -534,6 +583,16 @@ void MainWindow::onTrajectoryReceived()
 		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
 		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
 	}
+    else if (compare1Plot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
+	}
+    else if (compare2Plot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
+	}
 
 	ui->qwtPlot1->replot();
 	ui->qwtPlot2->replot();
@@ -541,6 +600,9 @@ void MainWindow::onTrajectoryReceived()
 
 void MainWindow::DDSReadCallback(const TrajectoryMessage &msg)
 {
+	if (testToggle)
+		return;
+
 	trajectorymsg = msg;
 	emit trajectoryReceived();
 }
@@ -637,6 +699,8 @@ void MainWindow::on_actionRPY_Data_triggered()
 	rpyPlot = true;
 	errposPlot = false;
 	errrpyPlot = false;
+	compare1Plot = false;
+	compare2Plot = false;
 
 	ui->qwtPlot1->setTitle("Desired Pitch and Yaw");
 	ui->qwtPlot2->setTitle("Desired Angular Velocity");
@@ -680,6 +744,8 @@ void MainWindow::on_actionPOS_triggered()
 	rpyPlot = false;
 	errposPlot = false;
 	errrpyPlot = false;
+	compare1Plot = false;
+	compare2Plot = false;
 
 	ui->qwtPlot1->setTitle("Desired Position");
 	ui->qwtPlot2->setTitle("Desired Velocity");
@@ -735,6 +801,8 @@ void MainWindow::on_actionPos_Vel_Error_triggered()
 	rpyPlot = false;
 	errposPlot = true;
 	errrpyPlot = false;
+	compare1Plot = false;
+	compare2Plot = false;
 
 	ui->qwtPlot1->setTitle("Error in Position");
 	ui->qwtPlot2->setTitle("Error in Velocity");
@@ -789,6 +857,8 @@ void MainWindow::on_actionActionErrorRPY_triggered()
 	rpyPlot = false;
 	errposPlot = false;
 	errrpyPlot = true;
+	compare1Plot = false;
+	compare2Plot = false;
 
 	ui->qwtPlot1->setTitle("Error in Pitch and Yaw");
 	ui->qwtPlot2->setTitle("Error in Angular Velocity");
@@ -943,6 +1013,52 @@ void MainWindow::timerEvent(QTimerEvent *)
 				maxValP2 = temp;
 		}
 	}
+	else if (compare1Plot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (Vector2d(poseList[j].X(0), poseList[j].Xd(0))).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(0), poseList[j].Xd(0))).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(1), poseList[j].Xd(1))).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (Vector2d(poseList[j].X(1), poseList[j].Xd(1))).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
+	else if (compare2Plot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (Vector2d(poseList[j].X(2), poseList[j].Xd(2))).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(2), poseList[j].Xd(2))).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (Vector2d(poseList[j].X(5), poseList[j].Xd(5))).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (Vector2d(poseList[j].X(5), poseList[j].Xd(5))).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
 
     if (minValP1 > -1)
     	minValP1 = -1;
@@ -984,6 +1100,16 @@ void MainWindow::timerEvent(QTimerEvent *)
 		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
 		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
 	}
+    else if (compare1Plot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
+	}
+    else if (compare2Plot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
+	}
 
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
@@ -1001,47 +1127,60 @@ void MainWindow::on_btnSubmitWaypt_clicked()
 {
 	ui->statusBar->showMessage("Waypoint Submitted");
 
-	//trajectoryGenerator.InitTimers(getTimestamp());
+	if (testToggle)
+	{
+		trajectoryGenerator.InitTimers(getTimestamp());
 
-//    Waypoint wp;
+		Waypoint wp;
 
-//    wp.setX(ui->lineEditWayptX->text().toDouble());
-//   wp.setY(ui->lineEditWayptY->text().toDouble());
-//    wp.setZ(ui->lineEditWayptZ->text().toDouble());
-//    wp.setPitch(M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble());
-//    wp.setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
+		wp.setX(ui->lineEditWayptX->text().toDouble());
+		wp.setY(ui->lineEditWayptY->text().toDouble());
+		wp.setZ(ui->lineEditWayptZ->text().toDouble());
+		wp.setPitch(M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble());
+		wp.setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
 
-//    trajectoryGenerator.SetWaypoint(wp, true);
+		trajectoryGenerator.SetWaypoint(wp, true);
+	}
+	else
+	{
+		SetWaypointMessage *msg = SetWaypointMessageTypeSupport::create_data();
+		msg->isRelative = true;
+		msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
+		msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
+		msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
+		msg->rpy[0] = 0;
+		msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
+		msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
+		waypointddssender.Send(*msg);
 
-    SetWaypointMessage *msg = SetWaypointMessageTypeSupport::create_data();
-    msg->isRelative = true;
-    msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
-    msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
-    msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
-    msg->rpy[0] = 0;
-    msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
-    msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
-	ddssender.Send(*msg);
-
-	SetWaypointMessageTypeSupport::delete_data(msg);
+		SetWaypointMessageTypeSupport::delete_data(msg);
+	}
 }
 
 void MainWindow::on_btnSubmitStart_clicked()
 {
 	if (updateToggle)
 	{
+		updateToggle = false;
+
+		ui->btnSubmitStart->setText("Submit Start");
+
+		ui->statusBar->showMessage("Plotting Stopped");
+
+		killTimer(d_timerId);
+	}
+	else
+	{
+		updateToggle = true;
+
+		ui->btnSubmitStart->setText("Submit Stop");
+
 		if (posPlot)
 			ui->statusBar->showMessage("Plotting Position and Desired Velocity");
 		else if (rpyPlot)
 			ui->statusBar->showMessage("Plotting RPY and Desired Angular Velocity");
-		updateToggle = false;
+
 		d_timerId = startTimer(updateInterval);
-	}
-	else
-	{
-		ui->statusBar->showMessage("Plotting Stopped");
-		updateToggle = true;
-		killTimer(d_timerId);
 	}
 }
 
@@ -1088,7 +1227,150 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
 void MainWindow::on_btnSubmitGains_clicked()
 {
-	Vector6d k, ks, alpha, beta;
+	ControllerGainsMessage *msg = ControllerGainsMessageTypeSupport::create_data();
 
+	msg->k[0] = ui->spinBoxkx->value();
+	msg->k[1] = ui->spinBoxky->value();
+	msg->k[2] = ui->spinBoxkz->value();
+	msg->k[3] = ui->spinBoxkroll->value();
+	msg->k[4] = ui->spinBoxkpitch->value();
+	msg->k[5] = ui->spinBoxkyaw->value();
 
+	msg->ks[0] = ui->spinBoxksx->value();
+	msg->ks[1] = ui->spinBoxksy->value();
+	msg->ks[2] = ui->spinBoxksz->value();
+	msg->ks[3] = ui->spinBoxksroll->value();
+	msg->ks[4] = ui->spinBoxkspitch->value();
+	msg->ks[5] = ui->spinBoxksyaw->value();
+
+	msg->alpha[0] = ui->spinBoxax->value();
+	msg->alpha[1] = ui->spinBoxay->value();
+	msg->alpha[2] = ui->spinBoxaz->value();
+	msg->alpha[3] = ui->spinBoxaroll->value();
+	msg->alpha[4] = ui->spinBoxapitch->value();
+	msg->alpha[5] = ui->spinBoxayaw->value();
+
+	msg->beta[0] = ui->spinBoxbx->value();
+	msg->beta[1] = ui->spinBoxby->value();
+	msg->beta[2] = ui->spinBoxbz->value();
+	msg->beta[3] = ui->spinBoxbroll->value();
+	msg->beta[4] = ui->spinBoxbpitch->value();
+	msg->beta[5] = ui->spinBoxbyaw->value();
+
+	cout << "Test Send Gains" << endl;
+	gainsddssender.Send(*msg);
+
+	ControllerGainsMessageTypeSupport::delete_data(msg);
+}
+
+// Plot Desired vs Actual x and y values
+void MainWindow::on_actionDesired_vs_Actual_x_and_y_triggered()
+{
+	ui->statusBar->showMessage("Plotting Desired vs Actual X and Y Values");
+
+	posPlot = false;
+	rpyPlot = false;
+	errposPlot = false;
+	errrpyPlot = false;
+	compare1Plot = true;
+	compare2Plot = false;
+
+	ui->qwtPlot1->setTitle("Desired vs Actual X");
+	ui->qwtPlot2->setTitle("Desired vs Actual Y");
+
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(PlotDesiredPosition);
+	buffer1->setComponent('x');
+	buffer1->fill(20.0, numOfPoints);
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->setFunction(PlotActualPosition);
+	buffer2->setComponent('x');
+	buffer2->fill(20.0, numOfPoints);
+
+	curve3_Plot1->setVisible(false);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(PlotDesiredPosition);
+	buffer4->setComponent('y');
+	buffer4->fill(20.0, numOfPoints);
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->setFunction(PlotActualPosition);
+	buffer5->setComponent('y');
+	buffer5->fill(20.0, numOfPoints);
+
+	curve3_Plot2->setVisible(false);
+
+    ui->qwtPlot1->replot();
+    ui->qwtPlot2->replot();
+}
+
+// Plot Desired vs Actual Z and Yaw Values
+void MainWindow::on_actionDesired_vs_Actual_z_and_yaw_triggered()
+{
+	ui->statusBar->showMessage("Plotting Desired vs Actual Z and Yaw Values");
+
+	posPlot = false;
+	rpyPlot = false;
+	errposPlot = false;
+	errrpyPlot = false;
+	compare1Plot = false;
+	compare2Plot = true;
+
+	ui->qwtPlot1->setTitle("Desired vs Actual Z");
+	ui->qwtPlot2->setTitle("Desired vs Actual Yaw");
+
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(PlotDesiredPosition);
+	buffer1->setComponent('z');
+	buffer1->fill(20.0, numOfPoints);
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->setFunction(PlotActualPosition);
+	buffer2->setComponent('z');
+	buffer2->fill(20.0, numOfPoints);
+
+	curve3_Plot1->setVisible(false);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(PlotDesiredRPY);
+	buffer4->setComponent('y');
+	buffer4->fill(20.0, numOfPoints);
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->setFunction(PlotActualRPY);
+	buffer5->setComponent('y');
+	buffer5->fill(20.0, numOfPoints);
+
+	curve3_Plot2->setVisible(false);
+
+    ui->qwtPlot1->replot();
+    ui->qwtPlot2->replot();
+}
+
+void MainWindow::on_btnTestToggle_clicked()
+{
+	if (testToggle)
+	{
+		testToggle = false;
+
+		ui->btnSubmitStart->setVisible(false);
+		ui->btnCallUpdate->setVisible(false);
+	}
+	else
+	{
+		testToggle = true;
+
+		ui->btnSubmitStart->setVisible(true);
+		ui->btnCallUpdate->setVisible(true);
+
+	    Waypoint wp;
+	    trajectoryGenerator.SetWaypoint(wp, true);
+	    trajectoryGenerator.InitTimers(getTimestamp());
+	}
 }

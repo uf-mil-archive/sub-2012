@@ -32,12 +32,14 @@ LocalWaypointDriverWorker::LocalWaypointDriverWorker(boost::asio::io_service& io
 
 bool LocalWaypointDriverWorker::Startup()
 {
+	//cout << "Startup State" << endl;
 	mStateManager.ChangeState(SubStates::INITIALIZE);
 	return true;
 }
 
 void LocalWaypointDriverWorker::readyState()
 {
+	//cout << "Ready State" << endl;
 	boost::int64_t t = getTimestamp();
 
 	// The first ready function call initializes the timers correctly
@@ -71,6 +73,7 @@ void LocalWaypointDriverWorker::readyState()
 
 void LocalWaypointDriverWorker::initializeState()
 {
+	//cout << "Init State" << endl;
 	inReady = false;
 
 	if(lposInfo.get() == NULL)
@@ -81,6 +84,8 @@ void LocalWaypointDriverWorker::initializeState()
 
 void LocalWaypointDriverWorker::standbyState()
 {
+//	cout << "Standby State" << endl;
+
 	inReady = false;
 	//if(!hardwareKilled)
 	//{
@@ -209,6 +214,7 @@ void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
 {
 	lock.lock();
 
+	cout << "Driver Received Gains" << endl;
 	if(velocityController.get() == NULL)
 	{
 		lock.unlock();
@@ -222,6 +228,7 @@ void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
 		return;
 	}
 
+	cout << "Time to Set Gains" << endl;
 	velocityController->SetGains(info->k, info->ks, info->alpha, info->beta);
 
 	lock.unlock();
