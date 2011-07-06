@@ -10,6 +10,7 @@
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Merge/MergeInfo.h"
+#include "DataObjects/LocalWaypointDriver/ControllerGains.h"
 
 #include <Eigen/Dense>
 
@@ -27,6 +28,7 @@ namespace subjugator
 			SetLPOSVSSInfo = 0,
 			SetPDInfo = 1,
 			SetWaypoint = 2,
+			SetControllerGains = 3,
 		};
 	};
 
@@ -62,6 +64,7 @@ namespace subjugator
 		void setLPOSVSSInfo(const DataObject& dobj);
 		void setPDInfo(const DataObject& dobj);
 		void setWaypoint(const DataObject& dobj);
+		void setControllerGains(const DataObject& dobj);
 	};
 }
 

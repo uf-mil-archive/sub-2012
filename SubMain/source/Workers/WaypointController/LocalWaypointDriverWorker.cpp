@@ -27,6 +27,7 @@ LocalWaypointDriverWorker::LocalWaypointDriverWorker(boost::asio::io_service& io
 	setControlToken((int)LocalWaypointDriverWorkerCommands::SetLPOSVSSInfo, boost::bind(&LocalWaypointDriverWorker::setLPOSVSSInfo, this, _1));
 	setControlToken((int)LocalWaypointDriverWorkerCommands::SetPDInfo, boost::bind(&LocalWaypointDriverWorker::setPDInfo, this, _1));
 	setControlToken((int)LocalWaypointDriverWorkerCommands::SetWaypoint, boost::bind(&LocalWaypointDriverWorker::setWaypoint, this, _1));
+	setControlToken((int)LocalWaypointDriverWorkerCommands::SetControllerGains, boost::bind(&LocalWaypointDriverWorker::setControllerGains, this, _1));
 }
 
 bool LocalWaypointDriverWorker::Startup()
@@ -185,6 +186,28 @@ void LocalWaypointDriverWorker::setWaypoint(const DataObject& dobj)
 	}
 
 	trajectoryGenerator->SetWaypoint(*info, true);
+
+	lock.unlock();
+}
+
+void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
+{
+	lock.lock();
+
+	if(velocityController.get() == NULL)
+	{
+		lock.unlock();
+		return;
+	}
+
+	const ControllerGains *info = dynamic_cast<const ControllerGains *>(&dobj);
+	if(!info)
+	{
+		lock.unlock();
+		return;
+	}
+
+	velocityController->SetGains(info->k, info->ks, info->alpha, info->beta);
 
 	lock.unlock();
 }

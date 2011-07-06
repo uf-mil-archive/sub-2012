@@ -6,6 +6,7 @@
 class FinderResult : public subjugator::DataObject
 {
 public:
+	int cameraID;
 	int objectID;
 	double timestamp;
 };
