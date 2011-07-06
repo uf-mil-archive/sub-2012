@@ -26,7 +26,7 @@ void HydrophoneDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj
 	msg->timestamp = Hydrophoneinfo->getTimestamp();
 	msg->declination = Hydrophoneinfo->getDeclination();
 	msg->heading = Hydrophoneinfo->getHeading();
-	msg->distance = Hydrophoneinfo->getHeading();
+	msg->distance = Hydrophoneinfo->getDistance();
 	msg->frequency = Hydrophoneinfo->getPingfrequency();
 	msg->valid = Hydrophoneinfo->isValid();
 

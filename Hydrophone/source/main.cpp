@@ -40,10 +40,10 @@ int main(int argc, char **argv)
 	if (HydrophoneMessageTypeSupport::register_type(participant, HydrophoneMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 			throw runtime_error("Failed to register type");
 
-	if (HydrophoneMessageTypeSupport::register_type(participant1, HydrophoneMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-				throw runtime_error("Failed to register type");
+	//if (HydrophoneMessageTypeSupport::register_type(participant1, HydrophoneMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+				//throw runtime_error("Failed to register type");
 
-	HydrophoneDDSCommander ddsCommander(hydWorker, participant1);
+	//HydrophoneDDSCommander ddsCommander(hydWorker, participant1);
 
 	HydrophoneDDSListener ddsListener(hydWorker, participant);
 

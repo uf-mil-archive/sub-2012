@@ -10,6 +10,8 @@
 #include "DataObjects/EmbeddedAddresses.h"
 #include "DataObjects/Hydrophone/HydrophoneSamples.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
+#include "DataObjects/Hydrophone/HydrophoneStart.h"
+#include <fstream>
 
 using namespace std;
 
@@ -40,10 +42,24 @@ namespace subjugator
 	void HydrophoneWorker::emergencyState(){}
 	void HydrophoneWorker::failState(){}
 
+	//to log samples for debugging uncomment next 2 lines
+	//ofstream out("logData.csv");
+	//int packetNo = 0;
+
 	void HydrophoneWorker::halReceiveCallback(std::auto_ptr<DataObject> &dobj)
 	{
 		HydrophoneSamples *samples = dynamic_cast<HydrophoneSamples *>(dobj.get());
 		//cout << samples->getMatrix();
+		//to log samples for debugging uncomment lower block
+		/*packetNo++;
+		for(int rows = 0; rows < samples->getMatrix().rows(); rows++)
+		{
+			out << packetNo << ",";
+			for(int cols = 0; cols < samples->getMatrix().cols(); cols++)
+				out << samples->getMatrix()(rows, cols) << ", ";
+			out << endl;
+		}*/
+
 
 		HydrophoneDataProcessor proc(samples->getMatrix(), config);
 		//cout << fixed << setprecision(16);
@@ -51,14 +67,14 @@ namespace subjugator
 
 		double heading = 0;
 		// rotate heading and handle wraparound
-		if (proc.getHeading() >= -90.0 && proc.getHeading() <= 180.0)
-			heading = -proc.getHeading() + 90;
-		else if (proc.getHeading() >= -180.0 && proc.getHeading() < -90.0)
-			heading = -proc.getHeading() - 270;
+		if ((proc.getHeading()/M_PI*180 >= -180.0) && (proc.getHeading()/M_PI*180 <= 90.0))
+			heading = -proc.getHeading()/M_PI*180 - 90;
+		else if ((proc.getHeading()/M_PI*180 > 90.0) && (proc.getHeading()/M_PI*180 <= 180.0))
+			heading = -proc.getHeading()/M_PI*180 + 270;
 		else
 			heading = 360.0;
 
-		HydrophoneInfo* hydInfo = new HydrophoneInfo(samples->getTimestamp(), proc.getDist(), heading, proc.getDeclination(), proc.getPingfreq(), proc.isValid());
+		HydrophoneInfo* hydInfo = new HydrophoneInfo(samples->getTimestamp(), proc.getDist(), heading*M_PI/180, proc.getDeclination(), proc.getPingfreq(), proc.isValid());
 
 		// Dispatch to the listeners
 		onEmitting(boost::shared_ptr<DataObject>(hydInfo));
@@ -78,6 +94,8 @@ namespace subjugator
 		{
 			return false;
 		}
+
+		pEndpoint->write(HydrophoneStart());
 
 		hal.startIOThread();
 		mStateManager.ChangeState(SubStates::READY);
