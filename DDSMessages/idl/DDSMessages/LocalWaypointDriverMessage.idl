@@ -1,5 +1,0 @@
-struct LocalWaypointDriverMessage {
-	double position_ned[3];
-	double rpy[3];
-};
-

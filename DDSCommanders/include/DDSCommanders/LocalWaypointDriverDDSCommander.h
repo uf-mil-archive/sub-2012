@@ -1,7 +1,7 @@
 #ifndef DDSCOMMANDERS_LOCALWAYPOINTDRIVERDDSCOMMANDER_H
 #define DDSCOMMANDERS_LOCALWAYPOINTDRIVERDDSCOMMANDER_H
 
-#include "DDSCommanders/LocalWaypointDriverDDSReceiver.h"
+#include "DDSCommanders/SetWaypointDDSReceiver.h"
 #include "DDSCommanders/LPOSVSSDDSReceiver.h"
 #include "DDSCommanders/PDStatusDDSReceiver.h"
 #include "SubMain/Workers/SubWorker.h"
@@ -12,11 +12,11 @@ namespace subjugator {
 			LocalWaypointDriverDDSCommander(Worker &worker, DDSDomainParticipant *participant);
 
 		private:
-			void receivedWaypoint(const LocalWaypointDriverMessage &waypoint);
+			void receivedWaypoint(const SetWaypointMessage &waypoint);
 			void receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo);
 			void receivedPDStatusInfo(const PDStatusMessage &pdstatusinfo);
 
-			LocalWaypointDriverDDSReceiver waypointreceiver;
+			SetWaypointDDSReceiver waypointreceiver;
 			LPOSVSSDDSReceiver lposvssreceiver;
 			PDStatusDDSReceiver pdstatusreceiver;
 

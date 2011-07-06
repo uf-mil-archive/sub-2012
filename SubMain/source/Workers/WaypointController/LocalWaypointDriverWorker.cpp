@@ -86,12 +86,14 @@ void LocalWaypointDriverWorker::standbyState()
 		// delay for 2s after unkilled
 		//if !timer running
 		//if timer.haselapsed()
-		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator());
-		trajectoryGenerator->InitTimers(getTimestamp());
-
 		Vector3d temp = MILQuaternionOps::Quat2Euler(lposInfo->quaternion_NED_B);
 
-		setWaypoint(Waypoint(lposInfo->position_NED, Vector3d(0,0,temp(2))));
+		Vector6d tempTraj;
+		tempTraj.block<3,1>(0,0) = lposInfo->position_NED;
+		tempTraj.block<3,1>(3,0) = Vector3d(0,0,temp(2));
+
+		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator(tempTraj));
+		setWaypoint(Waypoint(false, lposInfo->position_NED, Vector3d(0,0,temp(2))));
 
 		velocityController = std::auto_ptr<VelocityController>(new VelocityController());
 		mStateManager.ChangeState(SubStates::READY);
@@ -184,7 +186,20 @@ void LocalWaypointDriverWorker::setWaypoint(const DataObject& dobj)
 		return;
 	}
 
-	trajectoryGenerator->SetWaypoint(*info, true);
+	if (info->isRelative)
+	{
+		Waypoint wp;
+		Vector3d angles = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
+
+		wp.Position_NED = lposInfo->getPosition_NED() + MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo->getQuat_NED_B()), info->Position_NED);
+		for(int i = 0; i < 3; i++)
+			wp.RPY(i) = AttitudeHelpers::DAngleClamp(angles(i)+ info->RPY(i));
+		trajectoryGenerator->SetWaypoint(wp, true);
+
+	}
+	else
+		trajectoryGenerator->SetWaypoint(*info, true);
+
 
 	lock.unlock();
 }

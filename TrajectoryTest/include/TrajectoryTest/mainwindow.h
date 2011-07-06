@@ -13,8 +13,8 @@
 #include "DDSCommanders/TrajectoryDDSReceiver.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
-#include "DDSMessages/LocalWaypointDriverMessage.h"
-#include "DDSMessages/LocalWaypointDriverMessageSupport.h"
+#include "DDSMessages/SetWaypointMessage.h"
+#include "DDSMessages/SetWaypointMessageSupport.h"
 #include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
 #include <Eigen/Dense>
@@ -74,6 +74,7 @@ namespace subjugator
 	    void onTrajectoryReceived();
 	    void on_btnToggleActual_clicked();
 	    void on_tabWidget_currentChanged(int index);
+	    void MainWindow::on_btnSubmitGains_clicked();
 
 	    signals:
 	    void trajectoryReceived();
@@ -114,7 +115,7 @@ namespace subjugator
 
 		TrajectoryMessage trajectorymsg;
 
-		DDSSender<LocalWaypointDriverMessage, LocalWaypointDriverMessageDataWriter, LocalWaypointDriverMessageTypeSupport> ddssender;
+		DDSSender<SetWaypointMessage, SetWaypointMessageDataWriter, SetWaypointMessageTypeSupport> ddssender;
 	};
 }
 #endif // MAINWINDOW_H

@@ -11,7 +11,7 @@ using namespace subjugator;
 using namespace boost;
 
 LocalWaypointDriverDDSCommander::LocalWaypointDriverDDSCommander(Worker &worker, DDSDomainParticipant *participant)
-: waypointreceiver(participant, "LocalWaypointDriver", bind(&LocalWaypointDriverDDSCommander::receivedWaypoint, this, _1)),
+: waypointreceiver(participant, "SetWaypoint", bind(&LocalWaypointDriverDDSCommander::receivedWaypoint, this, _1)),
   lposvssreceiver(participant, "LPOSVSS", bind(&LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo, this, _1)),
   pdstatusreceiver(participant, "PDStatus", bind(&LocalWaypointDriverDDSCommander::receivedPDStatusInfo, this, _1)){
 	waypointcmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetWaypoint, 5);
@@ -19,9 +19,12 @@ LocalWaypointDriverDDSCommander::LocalWaypointDriverDDSCommander(Worker &worker,
 	pdstatuscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetPDInfo, 5);
 }
 
-void LocalWaypointDriverDDSCommander::receivedWaypoint(const LocalWaypointDriverMessage &waypoint) {
+void LocalWaypointDriverDDSCommander::receivedWaypoint(const SetWaypointMessage &waypoint) {
+	bool isrelative;
 	Vector3d position_ned;
 	Vector3d rpy;
+
+	isrelative = waypoint.isRelative;
 
 	for (int i=0; i<3; i++)
 		position_ned(i) = waypoint.position_ned[i];
@@ -31,7 +34,7 @@ void LocalWaypointDriverDDSCommander::receivedWaypoint(const LocalWaypointDriver
 	shared_ptr<InputToken> ptr = waypointcmdtoken.lock();
 	if (ptr)
 	{
-		ptr->Operate(Waypoint(position_ned,rpy));
+		ptr->Operate(Waypoint(isrelative, position_ned,rpy));
 	}
 }
 

@@ -270,7 +270,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 	errrpyPlot(false),
 	actualToggle(false),
 	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::DDSReadCallback, this, _1)),
-	ddssender(partSender, "LocalWaypointDriver")
+	ddssender(partSender, "SetWaypoint")
 {
     poseList.resize(numOfPoints);
 
@@ -1013,7 +1013,8 @@ void MainWindow::on_btnSubmitWaypt_clicked()
 
 //    trajectoryGenerator.SetWaypoint(wp, true);
 
-    LocalWaypointDriverMessage *msg = LocalWaypointDriverMessageTypeSupport::create_data();
+    SetWaypointMessage *msg = SetWaypointMessageTypeSupport::create_data();
+    msg->isRelative = true;
     msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
     msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
     msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
@@ -1022,7 +1023,7 @@ void MainWindow::on_btnSubmitWaypt_clicked()
     msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
 	ddssender.Send(*msg);
 
-	LocalWaypointDriverMessageTypeSupport::delete_data(msg);
+	SetWaypointMessageTypeSupport::delete_data(msg);
 }
 
 void MainWindow::on_btnSubmitStart_clicked()
@@ -1082,5 +1083,12 @@ void MainWindow::on_btnToggleActual_clicked()
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
+
+}
+
+void MainWindow::on_btnSubmitGains_clicked()
+{
+	Vector6d k, ks, alpha, beta;
+
 
 }

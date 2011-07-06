@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 		if (!partSender)
 			throw runtime_error("Failed to create DDSDomainParticipant for Trajectory Test");
 
-	if (LocalWaypointDriverMessageTypeSupport::register_type(partSender, LocalWaypointDriverMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+	if (SetWaypointMessageTypeSupport::register_type(partSender, SetWaypointMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 			throw runtime_error("Failed to register type");
 
     MainWindow w(participant, partSender);

@@ -290,7 +290,8 @@ void TrajectoryGenerator::SetWaypoint(const Waypoint &parWaypoint, bool clearOth
 			intYaw = atan2((parWaypoint.Position_NED(1, 0) - Trajectory(1, 0)), (parWaypoint.Position_NED(0, 0) - Trajectory(0, 0)));
 			intYaw = AttitudeHelpers::DAngleClamp(AttitudeHelpers::DAngleDiff(Trajectory(5, 0), intYaw) + Trajectory(5, 0));
 
-			Waypoint wp1(parWaypoint.Position_NED, Vector3d(0.0, 0.0, intYaw));
+			// Relative is unused here
+			Waypoint wp1(false, parWaypoint.Position_NED, Vector3d(0.0, 0.0, intYaw));
 
 			waypointsToAdd.push_back(wp1);
 		}
@@ -300,7 +301,8 @@ void TrajectoryGenerator::SetWaypoint(const Waypoint &parWaypoint, bool clearOth
 		intYaw = atan2((parWaypoint.Position_NED(1, 0) - listWaypoints.back().EndPosition(1, 0)), (parWaypoint.Position_NED(0, 0) - listWaypoints.back().EndPosition(0, 0)));
 		intYaw = AttitudeHelpers::DAngleClamp(AttitudeHelpers::DAngleDiff(listWaypoints.back().EndYaw, intYaw) + listWaypoints.back().EndYaw);
 
-		Waypoint wp1(parWaypoint.Position_NED, Vector3d(0.0, 0.0, intYaw));
+		// Relative is unused here
+		Waypoint wp1(false, parWaypoint.Position_NED, Vector3d(0.0, 0.0, intYaw));
 		waypointsToAdd.push_back(wp1);
 	}
 

@@ -2,8 +2,8 @@
 #include "SubMain/Workers/WaypointController/LocalWaypointDriverWorker.h"
 #include "DDSCommanders/LocalWaypointDriverDDSCommander.h"
 #include "DDSListeners/LocalWaypointDriverDDSListener.h"
-#include "DDSMessages/LocalWaypointDriverMessage.h"
-#include "DDSMessages/LocalWaypointDriverMessageSupport.h"
+#include "DDSMessages/SetWaypointMessage.h"
+#include "DDSMessages/SetWaypointMessageSupport.h"
 
 #include "DDSCommanders/LPOSVSSDDSCommander.h"
 #include "DDSListeners/LPOSVSSDDSListener.h"
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
 
-	if (LocalWaypointDriverMessageTypeSupport::register_type(participant, LocalWaypointDriverMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+	if (SetWaypointMessageTypeSupport::register_type(participant, SetWaypointMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
 	if (PDWrenchMessageTypeSupport::register_type(participant, PDWrenchMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
