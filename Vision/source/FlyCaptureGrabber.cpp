@@ -43,7 +43,7 @@ int FlyCaptureGrabber::FlyCapInitializeCameras()
 			PrintError( error );
 			return -1;
 		}
-		error = cameras[i].cam.SetVideoModeAndFrameRate(VIDEOMODE_640x480RGB,FRAMERATE_30);
+		error = cameras[i].cam.SetVideoModeAndFrameRate(VIDEOMODE_640x480Y8,FRAMERATE_30);
 		if (error != PGRERROR_OK)
 		{
 			PrintError( error );
@@ -80,12 +80,13 @@ int FlyCaptureGrabber::FlyCapGrabImage(int camID)
 	}
     printf( "Grabbed image...\n");
      // Convert the raw image
-	error = cameras[camID].rawImage.Convert( PIXEL_FORMAT_RGB8, &cameras[camID].convertedImage );
+	error = cameras[camID].rawImage.Convert( PIXEL_FORMAT_RGB, &cameras[camID].convertedImage );
     if (error != PGRERROR_OK)
 	{
 		PrintError( error );
 		return -1;
 	}
+
 	// Copy data to OpenCV image structure (may be slow)
 	memcpy(cameras[camID].cvImage.data, cameras[camID].convertedImage.GetData(), cameras[camID].convertedImage.GetDataSize());
 	cvtColor(cameras[camID].cvImage,cameras[camID].cvImage,CV_RGB2BGR);

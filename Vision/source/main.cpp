@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 	boost::asio::io_service io;
 
 	// We need a worker
-	VisionWorker worker(io, 30 /*hz*/, 1, false);
+	VisionWorker worker(io, 30 /*hz*/, 1, true);
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start Vision Worker!");
 

@@ -6,7 +6,7 @@ FinderGenerator::FinderGenerator(void)
 
 FinderGenerator::~FinderGenerator(void)
 {
-	// HOW TO MAKE SURE THAT listOfFinders is emptied and the thresholders and normalizer memory locations get cleared?
+	clearFinders();
 }
 
 vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
@@ -27,7 +27,7 @@ vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
 			hedgeIDs.push_back(oIDs[i]);
 		else if( oIDs[i]==MIL_OBJECTID_TUBE || oIDs[i]==MIL_OBJECTID_GATE_VALIDATION )
 			tubeIDs.push_back(oIDs[i]);
-		else if( oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE || oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL || 
+		else if( oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE || oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL ||
 				 oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE || oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
 			shooterIDs.push_back(oIDs[i]);
 		else if( oIDs[i]==MIL_OBJECTID_BIN_ALL )
@@ -51,6 +51,8 @@ vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
 
 void FinderGenerator::clearFinders()
 {
+	for (unsigned int i=0; i<listOfFinders.size(); i++)
+		delete listOfFinders[i];
 	// clear the finder list
 	listOfFinders.clear();
 }

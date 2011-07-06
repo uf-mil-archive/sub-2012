@@ -25,7 +25,7 @@ private:
 
 		FlyCaptureCamera(void)
 		{
-			cvImage.create(Size(640,480),CV_8U);
+			cvImage.create(Size(640,480),CV_8UC3);
 		}
 	};
 

@@ -4,7 +4,7 @@
 #include "IOImages.h"
 #include "INormalizer.h"
 #include "IThresholder.h"
-#include "FinderResult.h"
+#include "DataObjects/Vision/FinderResult.h"
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
