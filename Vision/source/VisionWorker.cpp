@@ -1,5 +1,8 @@
 #include "VisionWorker.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
+#include "DataObjects/Vision/FinderResult.h"
+#include "DataObjects/Vision/FinderResult2D.h"
+#include "HAL/format/DataObject.h"
 #include <opencv/highgui.h>
 
 using namespace cv;
@@ -112,8 +115,8 @@ void VisionWorker::readyState()
 				printf("Found ObjectID: %d - 2d!\n",fResult[j]->objectID);	// callback to 2D message handler
 			if(dynamic_cast<FinderResult3D*> (fResult[j].get()))
 				printf("Found ObjectID: %d - 3d!\n",fResult[j]->objectID);	// callback to 3D message handler
-
-			boost::shared_ptr<DataObject> dobj = dynamic_pointer_cast<DataObject>(fResult[j]);
+				
+			boost::shared_ptr<DataObject> dobj = static_pointer_cast<DataObject>(fResult[j]);
 			onEmitting(dobj);
 		}
 		fResult.clear(); // clear the result for the next iteration.
