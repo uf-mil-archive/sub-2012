@@ -17,7 +17,8 @@ namespace subjugator
 	public:
 		WaypointGenerator(std::vector<MissionCamera>& cams);
 
-		std::auto_ptr<Waypoint> GenerateFrom2D(const FinderResult2D& object2d, const Vector2d& k, double hoverDistance, bool servo);
+		boost::shared_ptr<Waypoint> GenerateFrom2D(const FinderResult2D& object2d, const Vector2d& k, double hoverDistance, bool servo);
+		boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const FinderResult3D& object3d, double hoverDistance);
 
 	private:
 		std::vector<MissionCamera> cameras;

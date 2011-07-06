@@ -1,5 +1,8 @@
 #include "VisionWorker.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
+#include "DataObjects/Vision/FinderResult.h"
+#include "DataObjects/Vision/FinderResult2D.h"
+#include "HAL/format/DataObject.h"
 #include <opencv/highgui.h>
 
 using namespace cv;
@@ -76,7 +79,7 @@ void VisionWorker::readyState()
 {
 	if(inputMode == 0)
 	{
-		if(!ioimages->setNewSource(imread("images/buoy2.jpg",1)))
+		if(!ioimages->setNewSource(imread("buoy2.jpg",1)))
 		{
 			printf("Failed to open file!\n");
 			return;
@@ -85,8 +88,8 @@ void VisionWorker::readyState()
 	else if(inputMode == 1)
 	{
 		// Grab a frame the 0th camera (TODO this needs to be passed in somehow), copy into ioimages object
-		flyCapGrab.FlyCapGrabImage(0);
-		flyCapGrab.getCvImage(0).copyTo(ioimages->src); // TODO can we just change the pointer instead of copying here?
+		flyCapGrab.FlyCapGrabImage(1);
+		flyCapGrab.getCvImage(1).copyTo(ioimages->src); // TODO can we just change the pointer instead of copying here?
 	}
 	else if(inputMode == 2)
 	{
@@ -112,8 +115,8 @@ void VisionWorker::readyState()
 				printf("Found ObjectID: %d - 2d!\n",fResult[j]->objectID);	// callback to 2D message handler
 			if(dynamic_cast<FinderResult3D*> (fResult[j].get()))
 				printf("Found ObjectID: %d - 3d!\n",fResult[j]->objectID);	// callback to 3D message handler
-
-			boost::shared_ptr<DataObject> dobj = dynamic_pointer_cast<DataObject>(fResult[j]);
+				
+			boost::shared_ptr<DataObject> dobj = static_pointer_cast<DataObject>(fResult[j]);
 			onEmitting(dobj);
 		}
 		fResult.clear(); // clear the result for the next iteration.

@@ -17,11 +17,11 @@ WaypointGenerator::WaypointGenerator(std::vector<MissionCamera>& cams)
 	}
 }
 
-std::auto_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const FinderResult2D& object2d, const Vector2d& k, double hoverDistance, bool servo)
+boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const FinderResult2D& object2d, const Vector2d& k, double hoverDistance, bool servo)
 {
 	// TODO object enumeration
 	if(object2d.objectID == 0 || object2d.scale == 0.0)
-		return std::auto_ptr<Waypoint>();
+		return boost::shared_ptr<Waypoint>();
 
 	Vector3d err = Vector3d::Zero();
 	double yaw = 0.0;
@@ -66,13 +66,43 @@ std::auto_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const FinderResult2D& 
 		}
 	}
 
+	boost::shared_ptr<Waypoint> resWP = boost::shared_ptr<Waypoint>(new Waypoint());
+
 	// The eventual output is in the NED frame. The intermediate calculations are done in the
 	// BODY frame. First rotate the camera into body
-	//resWP->Position_NED = MILQuaternionOps::QuatRotate(cameras[object2d.cameraID].Quaternion, err);
-	//resWP->RPY = Vector3d(0.0, 0.0, yaw);
+	resWP->Position_NED = MILQuaternionOps::QuatRotate(cameras[object2d.cameraID].Quaternion, err);
+	resWP->RPY = Vector3d(0.0, 0.0, yaw);
+
+	// Tag this waypoint as a relative waypoint so the waypoint driver operates correctly
+	resWP->isRelative = true;
 
 	// Calculate the waypoint with the desired hover distance. We need a unit vector from the current
-	// position to the desired postion
+	// position to the desired postion. The output of the camera gains is a relative vector from the sub.
+	Vector3d unitdir = resWP->Position_NED;
+	unitdir.normalize();
+	resWP->Position_NED -= hoverDistance*unitdir;
 
-	return std::auto_ptr<Waypoint>();
+	return resWP;
 }
+
+boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const FinderResult3D& object3d, double hoverDistance)
+{
+	// TODO object enumeration
+	if(object3d.objectID == 0 )
+		return boost::shared_ptr<Waypoint>();
+
+	Vector3d errPOS(object3d.x, object3d.y, object3d.z-hoverdistance);
+
+	boost::shared_ptr<Waypoint> resWP = boost::shared_ptr<Waypoint>(new Waypoint());
+
+	// The eventual output is in the NED frame. The intermediate calculations are done in the
+	// BODY frame. First rotate the camera into body
+	resWP->Position_NED = MILQuaternionOps::QuatRotate(cameras[object3d.cameraID].Quaternion, errPOS);
+	resWP->RPY = Vector3d(0.0, 0.0, yaw);
+
+	// Tag this waypoint as a relative waypoint so the waypoint driver operates correctly
+	resWP->isRelative = true;
+
+	return resWP;
+}
+

@@ -28,5 +28,7 @@ void VisionDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 		msg->ang1 = result3d->ang1;
 		msg->ang2 = result3d->ang2;
 		msg->ang3 = result3d->ang3;
+		finder3dsender.Send(*msg);
+		Finder3DMessageTypeSupport::delete_data(msg);
 	}
 }
