@@ -17,14 +17,14 @@ Vector11d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
 		// Normal easy acceleration
 		max <<
 			0.625,      // v_max_xy
-			.1,        	// a_max_xy
+			.05,        	// a_max_xy
 			20,         // j_max_xyz
 			0.2,        // v_max_z
 			0.125,      // a_max_z
 			0.5,        // v_max_pitch
 			0.2,        // a_max_pitch
 			10,         // j_max_pitch
-			0.5,        // v_max_yaw
+			0.75,        // v_max_yaw
 			0.2,        // a_max_yaw
 			10;         // j_max_yaw
 	}
@@ -62,7 +62,7 @@ TrajectoryGenerator::TrajectoryGenerator(Vector6d trajectory)
 	Trajectory_dotdotdot = Vector6d::Zero();
 }
 
-TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
+TrajectoryInfo TrajectoryGenerator::Update(boost::int64_t currentTickCount)
 {
 	updateLock.lock();
 
@@ -75,7 +75,12 @@ TrajectoryInfo TrajectoryGenerator::Update(boost::uint64_t currentTickCount)
     TrajWaypointComponent twYaw = currentWaypoint.trajWaypointsYaw.front();
 
     if(!holdXTime)
-		tX = (currentTickCount - StartTickCountX) / NSECPERSEC;
+{
+		
+		tX = (double)(currentTickCount - StartTickCountX) / NSECPERSEC;
+		cout << "CurrentX: " << tX << endl;
+		cout << "Total X: " << twX.TotalTime << endl;
+}
 	if (!holdYTime)
 		tY = (currentTickCount - StartTickCountY) / NSECPERSEC;
 	if (!holdZTime)
@@ -913,6 +918,8 @@ void TrajectoryGenerator::InitTimers(boost::int64_t currentTickCount)
 	tZ = 0;
 	tPitch = 0;
 	tYaw = 0;
+
+	cout << "Reset Timers" << endl;
 }
 
 boost::int64_t TrajectoryGenerator::getTimestamp(void)

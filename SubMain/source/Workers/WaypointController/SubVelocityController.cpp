@@ -9,11 +9,11 @@ typedef Matrix<double, 6, 1> Vector6d;
 VelocityController::VelocityController()
 {
 	Vector6d ktemp;
-	ktemp << 200.0,200.0,250.0,25.0,100.0,100.0;
+	ktemp << 100.0,100.0,250.0,25.0,100.0,100.0;
 	k = AttitudeHelpers::DiagMatrixFromVector(ktemp);
 
 	Vector6d kstemp;
-	kstemp << 1.0,1.0,45.0,30.0,25.0,18.0;
+	kstemp << 100.0,100.0,75.0,37.0,25.0,25.0;
 	ks = AttitudeHelpers::DiagMatrixFromVector(kstemp);
 
 	Vector6d alphatemp;

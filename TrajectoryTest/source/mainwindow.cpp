@@ -275,8 +275,8 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
     poseList.resize(numOfPoints);
 
     Waypoint wp;
-    trajectoryGenerator.SetWaypoint(wp, true);
-    trajectoryGenerator.InitTimers(getTimestamp());
+    //trajectoryGenerator.SetWaypoint(wp, true);
+    //trajectoryGenerator.InitTimers(getTimestamp());
 
     ui->setupUi(this);
     ui->statusBar->showMessage("Plotting Stopped");
@@ -1001,28 +1001,28 @@ void MainWindow::on_btnSubmitWaypt_clicked()
 {
 	ui->statusBar->showMessage("Waypoint Submitted");
 
-	trajectoryGenerator.InitTimers(getTimestamp());
+	//trajectoryGenerator.InitTimers(getTimestamp());
 
-    Waypoint wp;
+//    Waypoint wp;
 
-    wp.setX(ui->lineEditWayptX->text().toDouble());
-    wp.setY(ui->lineEditWayptY->text().toDouble());
-    wp.setZ(ui->lineEditWayptZ->text().toDouble());
-    wp.setPitch(M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble());
-    wp.setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
+//    wp.setX(ui->lineEditWayptX->text().toDouble());
+//   wp.setY(ui->lineEditWayptY->text().toDouble());
+//    wp.setZ(ui->lineEditWayptZ->text().toDouble());
+//    wp.setPitch(M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble());
+//    wp.setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
 
-    trajectoryGenerator.SetWaypoint(wp, true);
-//
-//    LocalWaypointDriverMessage *msg = LocalWaypointDriverMessageTypeSupport::create_data();
-//    msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
-//    msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
-//    msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
-//    msg->rpy[0] = 0;
-//    msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
-//    msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
-//	ddssender.Send(*msg);
-//
-//	LocalWaypointDriverMessageTypeSupport::delete_data(msg);
+//    trajectoryGenerator.SetWaypoint(wp, true);
+
+    LocalWaypointDriverMessage *msg = LocalWaypointDriverMessageTypeSupport::create_data();
+    msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
+    msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
+    msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
+    msg->rpy[0] = 0;
+    msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
+    msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
+	ddssender.Send(*msg);
+
+	LocalWaypointDriverMessageTypeSupport::delete_data(msg);
 }
 
 void MainWindow::on_btnSubmitStart_clicked()
