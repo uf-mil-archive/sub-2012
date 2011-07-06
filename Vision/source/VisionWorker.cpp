@@ -76,7 +76,7 @@ void VisionWorker::readyState()
 {
 	if(inputMode == 0)
 	{
-		if(!ioimages->setNewSource(imread("images/buoy2.jpg",1)))
+		if(!ioimages->setNewSource(imread("buoy2.jpg",1)))
 		{
 			printf("Failed to open file!\n");
 			return;
@@ -85,8 +85,8 @@ void VisionWorker::readyState()
 	else if(inputMode == 1)
 	{
 		// Grab a frame the 0th camera (TODO this needs to be passed in somehow), copy into ioimages object
-		flyCapGrab.FlyCapGrabImage(0);
-		flyCapGrab.getCvImage(0).copyTo(ioimages->src); // TODO can we just change the pointer instead of copying here?
+		flyCapGrab.FlyCapGrabImage(1);
+		flyCapGrab.getCvImage(1).copyTo(ioimages->src); // TODO can we just change the pointer instead of copying here?
 	}
 	else if(inputMode == 2)
 	{
