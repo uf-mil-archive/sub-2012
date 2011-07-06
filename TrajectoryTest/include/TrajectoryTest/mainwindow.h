@@ -64,13 +64,16 @@ namespace subjugator
 		virtual void timerEvent(QTimerEvent *e);
 
 	private slots:
-		void on_actionRPY_triggered();
+		void on_actionRPY_Data_triggered();
 		void on_actionPOS_triggered();
-		void on_actionError_triggered();
+		void on_actionPos_Vel_Error_triggered();
+		void on_actionActionErrorRPY_triggered();
 	    void on_btnSubmitWaypt_clicked();
 	    void on_btnSubmitStart_clicked();
 	    void on_btnCallUpdate_clicked();
 	    void onTrajectoryReceived();
+	    void on_btnToggleActual_clicked();
+	    void on_tabWidget_currentChanged(int index);
 
 	    signals:
 	    void trajectoryReceived();
@@ -103,7 +106,9 @@ namespace subjugator
 
 		bool posPlot;
 		bool rpyPlot;
-		bool errPlot;
+		bool errposPlot;
+		bool errrpyPlot;
+		bool actualToggle;
 
 		TrajectoryDDSReceiver trajectoryreceiver;
 

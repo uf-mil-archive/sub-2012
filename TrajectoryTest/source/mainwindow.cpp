@@ -266,7 +266,9 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 	updateToggle(true),
 	posPlot(true),
 	rpyPlot(false),
-	errPlot(false),
+	errposPlot(false),
+	errrpyPlot(false),
+	actualToggle(false),
 	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::DDSReadCallback, this, _1)),
 	ddssender(partSender, "LocalWaypointDriver")
 {
@@ -445,7 +447,7 @@ void MainWindow::onTrajectoryReceived()
 				maxValP2 = temp;
 		}
 	}
-	else if (errPlot)
+	else if (errposPlot)
 	{
 		for (int j = 0; j < poseList.size(); j ++)
 		{
@@ -459,11 +461,34 @@ void MainWindow::onTrajectoryReceived()
 			if (temp > maxValP1)
 				maxValP1 = temp;
 
-			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).minCoeff();
+			temp = (poseList[j].X_dot.block<3,1>(0,0)-poseList[j].Xd_dot.block<3,1>(0,0)).minCoeff();
 			if (temp < minValP2)
 				minValP2 = temp;
 
+			temp = (poseList[j].X_dot.block<3,1>(0,0)-poseList[j].Xd_dot.block<3,1>(0,0)).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
+	else if (errrpyPlot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
 			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (poseList[j].X_dot.block<3,1>(3,0)-poseList[j].Xd_dot.block<3,1>(3,0)).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (poseList[j].X_dot.block<3,1>(3,0)-poseList[j].Xd_dot.block<3,1>(3,0)).maxCoeff();
 			if (temp > maxValP2)
 				maxValP2 = temp;
 		}
@@ -499,9 +524,14 @@ void MainWindow::onTrajectoryReceived()
     	ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
     	ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
     }
-    else if (errPlot)
+    else if (errposPlot)
 	{
 		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
+	}
+    else if (errrpyPlot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
 		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
 	}
 
@@ -541,7 +571,7 @@ void MainWindow::setupPlot(QwtPlot *plot)
 
     // Setup Legend
     QwtLegend *plotLegend = new QwtLegend();
-    plotLegend->setFrameShape(QFrame::Box);
+    //plotLegend->setFrameShape(QFrame::Box);
     plotLegend->setFrameShadow(QFrame::Plain);
     plot->insertLegend(plotLegend, QwtPlot::RightLegend);
 
@@ -599,13 +629,14 @@ void MainWindow::start()
 }
 
 // Setup DESIRED RPY and AngularVelocity plots
-void MainWindow::on_actionRPY_triggered()
+void MainWindow::on_actionRPY_Data_triggered()
 {
 	ui->statusBar->showMessage("Plotting Desired PY and Desired Angular Velocity");
 
 	posPlot = false;
 	rpyPlot = true;
-	errPlot = false;
+	errposPlot = false;
+	errrpyPlot = false;
 
 	ui->qwtPlot1->setTitle("Desired Pitch and Yaw");
 	ui->qwtPlot2->setTitle("Desired Angular Velocity");
@@ -647,7 +678,8 @@ void MainWindow::on_actionPOS_triggered()
 
 	posPlot = true;
 	rpyPlot = false;
-	errPlot = false;
+	errposPlot = false;
+	errrpyPlot = false;
 
 	ui->qwtPlot1->setTitle("Desired Position");
 	ui->qwtPlot2->setTitle("Desired Velocity");
@@ -693,22 +725,24 @@ void MainWindow::on_actionPOS_triggered()
     ui->qwtPlot2->replot();
 }
 
-// Plot Position and RPY Error
-void MainWindow::on_actionError_triggered()
+
+// Plot Position and Velocity Error
+void MainWindow::on_actionPos_Vel_Error_triggered()
 {
-	ui->statusBar->showMessage("Plotting Error in Position and PY");
+	ui->statusBar->showMessage("Plotting Error in Position and Velocity");
 
 	posPlot = false;
 	rpyPlot = false;
-	errPlot = true;
+	errposPlot = true;
+	errrpyPlot = false;
 
 	ui->qwtPlot1->setTitle("Error in Position");
-	ui->qwtPlot2->setTitle("Error in Pitch and Yaw");
+	ui->qwtPlot2->setTitle("Error in Velocity");
 
 	curve2_Plot1->setVisible(true);
 	curve3_Plot1->setVisible(true);
 	curve2_Plot2->setVisible(true);
-	curve3_Plot2->setVisible(false);
+	curve3_Plot2->setVisible(true);
 
 	// Setup Plot 1 for RPY
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
@@ -728,12 +762,61 @@ void MainWindow::on_actionError_triggered()
 
 	// Setup Plot 2 for Desired Angular Velocity
 	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
-	buffer4->setFunction(PlotRPYError);
+	buffer4->setFunction(PlotVelocityError);
+	buffer4->setComponent('x');
+	buffer4->fill(20.0, numOfPoints);
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->setFunction(PlotVelocityError);
+	buffer5->setComponent('y');
+	buffer5->fill(20.0, numOfPoints);
+
+	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+	buffer6->setFunction(PlotVelocityError);
+	buffer6->setComponent('z');
+	buffer6->fill(20.0, numOfPoints);
+
+    ui->qwtPlot1->replot();
+    ui->qwtPlot2->replot();
+}
+
+// Plot RPY and Angular Velocity Error
+void MainWindow::on_actionActionErrorRPY_triggered()
+{
+	ui->statusBar->showMessage("Plotting Error in PY and Angular Velocity");
+
+	posPlot = false;
+	rpyPlot = false;
+	errposPlot = false;
+	errrpyPlot = true;
+
+	ui->qwtPlot1->setTitle("Error in Pitch and Yaw");
+	ui->qwtPlot2->setTitle("Error in Angular Velocity");
+
+	curve2_Plot1->setVisible(true);
+	curve3_Plot1->setVisible(false);
+	curve2_Plot2->setVisible(true);
+	curve3_Plot2->setVisible(false);
+
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(PlotRPYError);
+	buffer1->setComponent('p');
+	buffer1->fill(20.0, numOfPoints);
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->setFunction(PlotRPYError);
+	buffer2->setComponent('y');
+	buffer2->fill(20.0, numOfPoints);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(PlotAngularVelocityError);
 	buffer4->setComponent('p');
 	buffer4->fill(20.0, numOfPoints);
 
 	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
-	buffer5->setFunction(PlotRPYError);
+	buffer5->setFunction(PlotAngularVelocityError);
 	buffer5->setComponent('y');
 	buffer5->fill(20.0, numOfPoints);
 
@@ -749,22 +832,22 @@ void MainWindow::timerEvent(QTimerEvent *)
 	addPoint(LocalWaypointDriverInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), traj.getTrajectory(), traj.getTrajectory_dot()));
 
     DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
-    buffer1->update(500);//poseList.size());
+    buffer1->update(poseList.size());//poseList.size());
 
     DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
-    buffer2->update(500);//poseList.size());
+    buffer2->update(poseList.size());//poseList.size());
 
     DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
-    buffer3->update(500);//poseList.size());
+    buffer3->update(poseList.size());//poseList.size());
 
     DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
-    buffer4->update(500);//poseList.size());
+    buffer4->update(poseList.size());//poseList.size());
 
     DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
-    buffer5->update(500);//poseList.size());
+    buffer5->update(poseList.size());//poseList.size());
 
     DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
-    buffer6->update(500);//poseList.size());
+    buffer6->update(poseList.size());//poseList.size());
 
     double minValP1 = 0.0, maxValP1 = 0.0, minValP2 = 0.0, maxValP2 = 0.0;
 
@@ -814,7 +897,7 @@ void MainWindow::timerEvent(QTimerEvent *)
 				maxValP2 = temp;
 		}
 	}
-	else if (errPlot)
+	else if (errposPlot)
 	{
 		for (int j = 0; j < poseList.size(); j ++)
 		{
@@ -828,11 +911,34 @@ void MainWindow::timerEvent(QTimerEvent *)
 			if (temp > maxValP1)
 				maxValP1 = temp;
 
-			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).minCoeff();
+			temp = (poseList[j].X_dot.block<3,1>(0,0)-poseList[j].Xd_dot.block<3,1>(0,0)).minCoeff();
 			if (temp < minValP2)
 				minValP2 = temp;
 
+			temp = (poseList[j].X_dot.block<3,1>(0,0)-poseList[j].Xd_dot.block<3,1>(0,0)).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
+	else if (errrpyPlot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
 			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (poseList[j].X_dot.block<3,1>(3,0)-poseList[j].Xd_dot.block<3,1>(3,0)).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (poseList[j].X_dot.block<3,1>(3,0)-poseList[j].Xd_dot.block<3,1>(3,0)).maxCoeff();
 			if (temp > maxValP2)
 				maxValP2 = temp;
 		}
@@ -868,9 +974,14 @@ void MainWindow::timerEvent(QTimerEvent *)
     	ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
     	ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
     }
-    else if (errPlot)
+    else if (errposPlot)
 	{
 		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
+	}
+    else if (errrpyPlot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
 		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
 	}
 
@@ -901,17 +1012,17 @@ void MainWindow::on_btnSubmitWaypt_clicked()
     wp.setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
 
     trajectoryGenerator.SetWaypoint(wp, true);
-
-    LocalWaypointDriverMessage *msg = LocalWaypointDriverMessageTypeSupport::create_data();
-    msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
-    msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
-    msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
-    msg->rpy[0] = 0;
-    msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
-    msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
-	ddssender.Send(*msg);
-
-	LocalWaypointDriverMessageTypeSupport::delete_data(msg);
+//
+//    LocalWaypointDriverMessage *msg = LocalWaypointDriverMessageTypeSupport::create_data();
+//    msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
+//    msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
+//    msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
+//    msg->rpy[0] = 0;
+//    msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
+//    msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
+//	ddssender.Send(*msg);
+//
+//	LocalWaypointDriverMessageTypeSupport::delete_data(msg);
 }
 
 void MainWindow::on_btnSubmitStart_clicked()
@@ -959,4 +1070,17 @@ void MainWindow::on_btnCallUpdate_clicked()
 
 	ui->qwtPlot1->replot();
 	ui->qwtPlot2->replot();
+}
+
+void MainWindow::on_btnToggleActual_clicked()
+{
+	if (actualToggle)
+		actualToggle = false;
+	else
+		actualToggle = true;
+}
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+
 }

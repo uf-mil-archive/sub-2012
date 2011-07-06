@@ -80,7 +80,6 @@ void LocalWaypointDriverWorker::initializeState()
 
 void LocalWaypointDriverWorker::standbyState()
 {
-	cout << "IN Standby" << endl;
 	inReady = false;
 	if(!hardwareKilled)
 	{
@@ -90,9 +89,6 @@ void LocalWaypointDriverWorker::standbyState()
 		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator());
 
 		Vector3d temp = MILQuaternionOps::Quat2Euler(lposInfo->quaternion_NED_B);
-
-		cout << "WAYPOINT IN LOCAL WAYPOINT" << endl;
-		std::cout << "Traj X: " << lposInfo->position_NED(0) << "Traj Y: " << lposInfo->position_NED(1) << "Traj Z: " << lposInfo->position_NED(2) << "Yaw: " << temp(2);
 
 		setWaypoint(Waypoint(lposInfo->position_NED, Vector3d(0,0,temp(2))));
 
