@@ -4,6 +4,7 @@
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Merge/MergeInfo.h"
+#include "DataObjects/LocalWaypointDriver/ControllerGains.h"
 #include <boost/bind.hpp>
 #include <iostream>
 
@@ -13,10 +14,12 @@ using namespace boost;
 LocalWaypointDriverDDSCommander::LocalWaypointDriverDDSCommander(Worker &worker, DDSDomainParticipant *participant)
 : waypointreceiver(participant, "SetWaypoint", bind(&LocalWaypointDriverDDSCommander::receivedWaypoint, this, _1)),
   lposvssreceiver(participant, "LPOSVSS", bind(&LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo, this, _1)),
-  pdstatusreceiver(participant, "PDStatus", bind(&LocalWaypointDriverDDSCommander::receivedPDStatusInfo, this, _1)){
+  pdstatusreceiver(participant, "PDStatus", bind(&LocalWaypointDriverDDSCommander::receivedPDStatusInfo, this, _1)),
+  gainsreceiver(participant, "ControllerGains", bind(&LocalWaypointDriverDDSCommander::receivedGains, this, _1)) {
 	waypointcmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetWaypoint, 5);
 	lposvsscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetLPOSVSSInfo, 5);
 	pdstatuscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetPDInfo, 5);
+	gainscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetControllerGains, 5);
 }
 
 void LocalWaypointDriverDDSCommander::receivedWaypoint(const SetWaypointMessage &waypoint) {
@@ -103,5 +106,31 @@ void LocalWaypointDriverDDSCommander::receivedPDStatusInfo(const PDStatusMessage
 		ptr->Operate(PDInfo(state, timestamp, current, MergeInfo(timestamp, tickcount, flags, current16, voltage16, current32, voltage32)));
 	}
 }
+
+void LocalWaypointDriverDDSCommander::receivedGains(const ControllerGainsMessage &gains) {
+	Matrix<double, 6, 1> k;
+	Matrix<double, 6, 1> ks;
+	Matrix<double, 6, 1> alpha;
+	Matrix<double, 6, 1> beta;
+
+	for (int i=0; i<6; i++)
+		k(i) = gains.k[i];
+
+	for (int i=0; i<6; i++)
+		ks(i) = gains.ks[i];
+
+	for (int i=0; i<6; i++)
+		alpha(i) = gains.alpha[i];
+
+	for (int i=0; i<6; i++)
+		beta(i) = gains.beta[i];
+
+	shared_ptr<InputToken> ptr = gainscmdtoken.lock();
+	if (ptr)
+	{
+		ptr->Operate(ControllerGains(k, ks, alpha, beta));
+	}
+}
+
 
 

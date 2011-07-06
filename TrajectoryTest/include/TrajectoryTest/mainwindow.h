@@ -15,6 +15,8 @@
 #include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
+#include "DDSMessages/ControllerGainsMessage.h"
+#include "DDSMessages/ControllerGainsMessageSupport.h"
 #include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
 #include <Eigen/Dense>
@@ -74,7 +76,10 @@ namespace subjugator
 	    void onTrajectoryReceived();
 	    void on_btnToggleActual_clicked();
 	    void on_tabWidget_currentChanged(int index);
-	    void MainWindow::on_btnSubmitGains_clicked();
+	    void on_btnSubmitGains_clicked();
+	    void on_actionDesired_vs_Actual_x_and_y_triggered();
+	    void on_actionDesired_vs_Actual_z_and_yaw_triggered();
+	    void on_btnTestToggle_clicked();
 
 	    signals:
 	    void trajectoryReceived();
@@ -109,13 +114,17 @@ namespace subjugator
 		bool rpyPlot;
 		bool errposPlot;
 		bool errrpyPlot;
+		bool compare1Plot;
+		bool compare2Plot;
 		bool actualToggle;
+		bool testToggle;
 
 		TrajectoryDDSReceiver trajectoryreceiver;
 
 		TrajectoryMessage trajectorymsg;
 
-		DDSSender<SetWaypointMessage, SetWaypointMessageDataWriter, SetWaypointMessageTypeSupport> ddssender;
+		DDSSender<SetWaypointMessage, SetWaypointMessageDataWriter, SetWaypointMessageTypeSupport> waypointddssender;
+		DDSSender<ControllerGainsMessage, ControllerGainsMessageDataWriter, ControllerGainsMessageTypeSupport> gainsddssender;
 	};
 }
 #endif // MAINWINDOW_H
