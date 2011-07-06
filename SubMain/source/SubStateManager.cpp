@@ -9,7 +9,7 @@ namespace subjugator
 		mCallbackList.resize(10);
 	}
 
-	void StateManager::SetStateCallback(SubStates::StateCode state, std::string name, boost::function<void(void)> callback)
+	void StateManager::SetStateCallback(int state, std::string name, boost::function<void(void)> callback)
 	{
 		if((size_t)state >= mCallbackList.size())
 			mCallbackList.resize(state + 1);
@@ -17,7 +17,7 @@ namespace subjugator
 		mCallbackList[state] = boost::shared_ptr<StateObject>(new StateObject(name, callback));
 	}
 
-	void StateManager::ChangeState(SubStates::StateCode newState)
+	void StateManager::ChangeState(int newState)
 	{
 		assert(mCallbackList[newState]);
 
@@ -40,7 +40,7 @@ namespace subjugator
 			mCallbackList[SubStates::ALL]->Execute();
 	}
 
-	std::string StateManager::GetStateName(SubStates::StateCode state)
+	std::string StateManager::GetStateName(int state)
 	{
 		return mCallbackList[state]->Name;
 	}

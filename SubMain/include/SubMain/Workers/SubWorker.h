@@ -44,7 +44,7 @@ namespace subjugator
 	  virtual bool Startup()=0;
 	  virtual void Shutdown(){}
 
-	  SubStates::StateCode getState(){return mStateManager.GetCurrentStateCode();}
+	  int getState(){return mStateManager.GetCurrentStateCode();}
 
 	  boost::signals2::connection ConnectToEmitting(boost::function<void (boost::shared_ptr<DataObject> obj)> callback)
 	  {

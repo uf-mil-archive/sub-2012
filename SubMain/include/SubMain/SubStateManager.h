@@ -26,17 +26,17 @@ namespace subjugator
 	{
 	public:
 		StateManager();
-		void SetStateCallback(SubStates::StateCode state, std::string name, const boost::function<void(void)> callback);
-		void ChangeState(SubStates::StateCode newState);
-		const SubStates::StateCode GetCurrentStateCode() { return mCurrentState; }
-		const SubStates::StateCode GetPreviousStateCode() { return mPreviousState; }
-		std::string GetStateName(SubStates::StateCode state);
+		void SetStateCallback(int state, std::string name, const boost::function<void(void)> callback);
+		void ChangeState(int newState);
+		int GetCurrentStateCode() { return mCurrentState; }
+		int GetPreviousStateCode() { return mPreviousState; }
+		std::string GetStateName(int state);
 
 		void Execute();
 
 	private:
-		SubStates::StateCode mCurrentState;
-		SubStates::StateCode mPreviousState;
+		int mCurrentState;
+		int mPreviousState;
 		std::vector<boost::shared_ptr<StateObject> > mCallbackList;
 	};
 }
