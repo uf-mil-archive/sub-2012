@@ -7,7 +7,7 @@
 class FinderResult3DVec : public FinderResult
 {
 public:
-	FinderResult3DVec();
+	FinderResult3DVec() { }
 	FinderResult3DVec(const std::vector<FinderResult3D> &vec) : vec(vec) { }
 
 	std::vector<FinderResult3D> vec;

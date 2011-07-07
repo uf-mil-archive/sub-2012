@@ -1,6 +1,14 @@
 #include <ndds/ndds_cpp.h>
 
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "DDSListeners/MissionPlannerDDSListener.h"
+#include "DDSCommanders/MissionPlannerDDSCommander.h"
+
+#include "DDSMessages/FinderMessageListSupport.h"
+#include "DDSMessages/SetWaypointMessageSupport.h"
+#include "DDSMessages/VisionSetIDsMessageSupport.h"
+#include "DDSMessages/LPOSVSSMessageSupport.h"
+#include "DDSMessages/PDStatusMessage.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -24,15 +32,23 @@ int main(int argc, char **argv)
 	if (!participant)
 		throw runtime_error("Failed to create DDSDomainParticipant");
 
-	/*if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+	if (FinderMessageListTypeSupport::register_type(participant, FinderMessageListTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
-	if (PDWrenchMessageTypeSupport::register_type(participant, PDWrenchMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+	if (SetWaypointMessageTypeSupport::register_type(participant, SetWaypointMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
+	if (VisionSetIDsMessageTypeSupport::register_type(participant, VisionSetIDsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+	
+	if (LPOSVSSMessageTypeSupport::register_type(participant, LPOSVSSMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+		
+	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
 
-	PDDDSListener ddsListener(worker, participant);
-	PDDDSCommander ddsCommander(worker, participant);*/
+	MissionPlannerDDSListener ddsListener(worker, participant);
+	MissionPlannerDDSCommander ddsCommander(worker, participant);
 
 	// Start the worker
 	io.run();
