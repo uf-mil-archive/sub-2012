@@ -35,41 +35,31 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
 	stateManager.SetStateCallback(FindBuoyMiniBehaviors::PanForBuoy,
 			"PanForBuoy",
 			boost::bind(&FindBuoyBehavior::PanForBuoy, this));
-
-	stateManager.ChangeState(FindBuoyMiniBehaviors::ApproachBuoy);
 }
 
-void FindBuoyBehavior::Startup(MissionPlannerWorker& mpWorker, int wayNum)
+void FindBuoyBehavior::Startup()
 {
-	// Connect to the worker's 2d object signal
-	connection2D = mpWorker.on2DCameraReceived.connect(boost::bind(&FindBuoyBehavior::Update2DCameraObjects, this, _1));
+/*	// Connect to the worker's 2d object signal
+	//connection2D = mpWorker.on2DCameraReceived.connect(boost::bind(&FindBuoyBehavior::Update2DCameraObjects, this, _1));
 	// And become the controlling device of the camera
-	mPlannerChangeCamObject = mpWorker.ConnectToCommand((int)MissionPlannerWorkerCommands::SendVisionID, 1);
-	mPlannerSendWaypoint = mpWorker.ConnectToCommand((int)MissionPlannerWorkerCommands::SendWaypoint, 1);
+	mPlannerChangeCamObject = connectToCommand((int)MissionPlannerWorkerCommands::SendVisionID, 1);
 
-	wayGen = mpWorker.getWaypointGenerator();
-	waypointNumber = wayNum;
+	// Save our pipe id
+	pipeHeading = lposRPY(2);
+
+	// Push to approach buoy
+	stateManager.ChangeState(FindBuoyMiniBehaviors::ApproachBuoy);*/
 }
 
-int FindBuoyBehavior::Shutdown(MissionPlannerWorker& mpWorker)
+void FindBuoyBehavior::Shutdown()
 {
 	connection2D.disconnect();	// Play nicely and disconnect from the 2d camera signal
 
 	// And disconnect from the camera command
-	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
+	/*if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
 		r->Disconnect();
-	}
-
-	// And disconnect from the waypoint command
-	if(boost::shared_ptr<InputToken> r = mPlannerSendWaypoint.lock())
-	{
-		r->Disconnect();
-	}
-
-	wayGen.reset();
-
-	return waypointNumber;
+	}*/
 }
 
 void FindBuoyBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects)
@@ -81,10 +71,10 @@ void FindBuoyBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& 
 	lock.unlock();
 }
 
-bool FindBuoyBehavior::DoBehavior(const boost::shared_ptr<LPOSVSSInfo>& lposInfo)
+void FindBuoyBehavior::DoBehavior()
 {
-	// Copy in the latest LPOS information. This also sets LPOSRPY
-	updateLPOS(lposInfo);
+	// LPOS info is updated by the algorithm
+
 	currentObjectID = buoysToFind.front();
 
 	// Tell the down camera to not look for anything here
@@ -92,18 +82,13 @@ bool FindBuoyBehavior::DoBehavior(const boost::shared_ptr<LPOSVSSInfo>& lposInfo
 	// And let the front camera know of the current target
 	VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(currentObjectID, 1));
 
-	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
+/*	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
 	    r->Operate(todown);
 	    r->Operate(tofront);
-	}
+	}*/
 
-	// This updates the class level waypoint variable
-	stateManager.Execute();
-
-	sendWaypoint();	// This sends the current desired waypoint
-
-	return behDone;
+	// The mini functions are called in the algorithm
 }
 
 void FindBuoyBehavior::ApproachBuoy()

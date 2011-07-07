@@ -2,23 +2,22 @@
 #define SUBMISSIONPLANNERWORKER_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/SubWorker.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/FinderResult3D.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
 #include "DataObjects/PD/PDInfo.h"
+#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "SubMain/SubStateManager.h"
+#include "SubMain/Workers/SubWorker.h"
 
 #include <queue>
 
 namespace subjugator
 {
-	class MissionBehavior;
-
 	class MissionPlannerWorkerCommands
 	{
 	public:
@@ -63,8 +62,10 @@ namespace subjugator
 		static const double MIN_DEPTH = 0.5; // m
 		boost::mutex lock;
 
-		double wayNum;
+		int wayNum;
 		bool estop;
+
+		StateManager mStateManager;
 
 		// Senders - this is for internal use in the class e.g. behaviors to the worker
 		void sendWaypoint(const DataObject &obj);

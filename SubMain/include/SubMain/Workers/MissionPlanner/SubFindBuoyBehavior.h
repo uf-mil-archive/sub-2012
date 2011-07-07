@@ -5,7 +5,6 @@
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
-#include "SubMain/Workers/SubInputToken.h"
 
 #include <Eigen/Dense>
 #include <queue>
@@ -57,11 +56,10 @@ namespace subjugator
 		std::vector<FinderResult2D> objects2d;
 
 		boost::signals2::connection connection2D;
-		boost::weak_ptr<InputToken> mPlannerChangeCamObject;
 
-		virtual void Startup(MissionPlannerWorker& mpWorker, int wayNum);
-		virtual int Shutdown(MissionPlannerWorker& mpWorker);
-		virtual bool DoBehavior(const boost::shared_ptr<LPOSVSSInfo>& lposInfo);
+		virtual void Startup();
+		virtual void Shutdown();
+		virtual void DoBehavior();
 
 		void ApproachBuoy();
 		void BumpBuoy();

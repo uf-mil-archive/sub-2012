@@ -9,17 +9,12 @@
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
-
 
 #include <Eigen/Dense>
 #include <cmath>
 
 namespace subjugator
 {
-
-	class MissionPlannerWorker;	// Get around circular dependency
-
 	class MissionBehavior
 	{
 	public:
@@ -30,20 +25,58 @@ namespace subjugator
 		{
 			return desiredWaypoint;
 		}
+/*
+		void Start(boost::function< boost::weak_ptr<InputToken> (int cmd, int priority) > connectToCommand, boost::shared_ptr<WaypointGenerator> waygen, int wayNum)
+		{
+			// Connect to the set waypoint command
+			mPlannerSendWaypoint = connectToCommand((int)MissionPlannerWorkerCommands::SendWaypoint, 1);
 
-		virtual void Startup(MissionPlannerWorker& mpWorker, int wayNum) = 0;
-		virtual int Shutdown(MissionPlannerWorker& mpWorker) = 0;
-		virtual bool DoBehavior(const boost::shared_ptr<LPOSVSSInfo>& lposInfo) = 0;
+			// Get a reference to the waypoint generator
+			wayGen = waygen;
+			waypointNumber = wayNum;
+
+			// Call startup on the concrete class
+			Startup(connectToCommand);
+		}*/
+
+/*		int Stop()
+		{
+			// Call shutdown on the concrete class
+			Shutdown();
+
+			//Disconnect from the waypoint command
+			if(boost::shared_ptr<InputToken> r = mPlannerSendWaypoint.lock())
+			{
+				r->Disconnect();
+			}
+
+			// reset the waypoint generator
+			wayGen.reset();
+
+			return waypointNumber;
+		}*/
+
+		bool Execute(const boost::shared_ptr<LPOSVSSInfo>& lposInfo)
+		{
+			// Copy in the latest LPOS information. This also sets LPOSRPY
+			updateLPOS(lposInfo);
+
+			DoBehavior();	// Call any concrete specific needs
+
+			// This updates the class level waypoint variable
+			stateManager.Execute();
+
+			sendWaypoint();	// This sends the current desired waypoint
+
+			return behDone;
+		}
+
 
 	protected:
 		static const double xyzErrorRadius = 0.1;
 		// Pi is written out here since boost constant is a function? It doesn't matter anyways,
 		// this is an error ball definition.
 		static const double yawpitchErrorRadius = 2.0*3.141592654/180.0;
-
-		// TODO camera id numbers
-		static const int fCam = 117;
-		static const int rCam = 118;
 
 		boost::mutex lock;
 
@@ -58,7 +91,7 @@ namespace subjugator
 		boost::shared_ptr<WaypointGenerator> wayGen;
 		Vector3d lposRPY;
 
-		boost::weak_ptr<InputToken> mPlannerSendWaypoint;
+		//boost::weak_ptr<InputToken> mPlannerSendWaypoint;
 
 		std::string behName;
 		double depthCeiling;
@@ -66,6 +99,10 @@ namespace subjugator
 		bool behDone;
 		int waypointNumber;
 		StateManager stateManager;
+
+		virtual void DoBehavior() = 0;
+		virtual void Startup() = 0;
+		virtual void Shutdown() = 0;
 
 		void updateLPOS(const boost::shared_ptr<LPOSVSSInfo>& lpos)
 		{
@@ -94,16 +131,24 @@ namespace subjugator
 		int getNextWaypointNum() { return waypointNumber + 1; }
 		void sendWaypoint()
 		{
-			// Nothing to send
+/*			// Nothing to send
 			if(desiredWaypoint)
 				return;
+
+			// Not a new waypoint. don't send it
+			if(desiredWaypoint->number == waypointNumber)
+				return;
+
+			// Make sure min depth is not violated
+			if(desiredWaypoint->Position_NED(2) > depthCeiling)
+				desiredWaypoint->Position_NED(2) = depthCeiling;
 
 			// Send the waypoint if its new
 			if(boost::shared_ptr<InputToken> r = mPlannerSendWaypoint.lock())
 			{
 			    r->Operate(*desiredWaypoint);
 			    waypointNumber = getNextWaypointNum();
-			}
+			}*/
 		}
 
 	private:

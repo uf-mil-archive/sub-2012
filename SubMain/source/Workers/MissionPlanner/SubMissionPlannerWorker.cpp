@@ -7,7 +7,7 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	: Worker(io, rate), wayNum(0), estop(true)
 {
 	// TODO Enqueue mission tasks here
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
+	//missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
 
 
 	// Cameras and waypoint generator
@@ -123,15 +123,20 @@ void MissionPlannerWorker::readyState()
 		{
 			currentBehavior = missionList.front();
 			missionList.pop();
+
+			// Call Start on the current behavior
+		//	currentBehavior->Start(*this, wayNum);
 		}
 		else
 			return;
 	}
 
-	bool done = currentBehavior->DoBehavior(lposInfo);
+	bool done = currentBehavior->Execute(lposInfo);
 
 	if(done) // current behavior finished
 	{
+		// Call stop on the current behavior to remove hooks
+		//currentBehavior->Stop(*this);
 		currentBehavior.reset();
 	}
 }
