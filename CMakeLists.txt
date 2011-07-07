@@ -87,6 +87,7 @@ endif()
 
 if(BUILD_SUB)
 add_subdirectory(Hydrophone)
+add_subdirectory(MissionPlanner)
 	if(OpenCV_FOUND AND FLYCAPTURE_FOUND AND GSL_FOUND)
 	add_subdirectory(Vision)
 	endif()

@@ -10,6 +10,8 @@
 #include "DataObjects/Vision/FinderResult3D.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 
+#include <Eigen/Dense>
+
 #include <cmath>
 
 namespace subjugator

@@ -17,16 +17,28 @@ Vector11d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
 		// Normal easy acceleration
 		max <<
 			0.625,      // v_max_xy
-			.05,        	// a_max_xy
+			.1,        	// a_max_xy
 			20,         // j_max_xyz
-			0.2,        // v_max_z
-			0.125,      // a_max_z
+			0.3,        // v_max_z
+			0.1,      // a_max_z
 			0.5,        // v_max_pitch
 			0.2,        // a_max_pitch
 			10,         // j_max_pitch
 			0.75,        // v_max_yaw
 			0.2,        // a_max_yaw
 			10;         // j_max_yaw
+
+//		0.625,      // v_max_xy
+//		.05,        	// a_max_xy
+//		20,         // j_max_xyz
+//		0.2,        // v_max_z
+//		0.125,      // a_max_z
+//		0.5,        // v_max_pitch
+//		0.2,        // a_max_pitch
+//		10,         // j_max_pitch
+//		0.75,        // v_max_yaw
+//		0.2,        // a_max_yaw
+//		10;         // j_max_yaw
 	}
 	else
 	{

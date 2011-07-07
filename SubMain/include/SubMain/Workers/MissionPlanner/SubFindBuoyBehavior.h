@@ -4,6 +4,10 @@
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "DataObjects/Vision/FinderResult2D.h"
+#include "DataObjects/Vision/VisionSetIDs.h"
+#include "SubMain/Workers/SubInputToken.h"
+
+#include <Eigen/Dense>
 #include <queue>
 
 #include <cmath>
@@ -34,18 +38,30 @@ namespace subjugator
 		static const double approachThreshold = 35000;
 		static const double desiredBumpDistance = 2.0;
 		static const double bumpTravelDistance = 0.5;
+		static const double backupTravelDistance = 2.0;
+		static const double clearBuoysDepth = 1.0;
+		static const double driveTowardsPipeDistance = 1.0;
+		static const double yawSearchAngle = 45.0;
+		static const double yawMaxSearchAngle = 45.0;
+
+		bool canContinue;
+		bool bumpSet;
+		bool backupSet;
+		bool clearBuoysSet;
+		bool pipeSet;
 
 		double pipeHeading;
-
+		double yawChange;
+		double alignDepth;
 		std::queue<ObjectIDs::ObjectIDCode> buoysToFind;
-		boost::shared_ptr<Waypoint> bumpWaypoint;
-		boost::shared_ptr<Waypoint> backupWaypoint;
-		boost::shared_ptr<Waypoint> clearBuoysWaypoint;
 		std::vector<FinderResult2D> objects2d;
 
-		void Startup(const MissionPlannerWorker& mpWorker);
-		void Shutdown(const MissionPlannerWorker& mpWorker);
-		bool DoBehavior(const boost::shared_ptr<LPOSVSSInfo>& lposInfo);
+		boost::signals2::connection connection2D;
+		boost::weak_ptr<InputToken> mPlannerChangeCamObject;
+
+		virtual void Startup(MissionPlannerWorker& mpWorker, int wayNum);
+		virtual int Shutdown(MissionPlannerWorker& mpWorker);
+		virtual bool DoBehavior(const boost::shared_ptr<LPOSVSSInfo>& lposInfo);
 
 		void ApproachBuoy();
 		void BumpBuoy();
@@ -53,6 +69,7 @@ namespace subjugator
 		void ClearBuoys();
 		void DriveTowardsPipe();
 		void PanForBuoy();
+		void Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects);
 	};
 }
 
