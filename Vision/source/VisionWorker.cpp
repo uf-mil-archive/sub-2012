@@ -51,7 +51,7 @@ bool VisionWorker::Startup()
 	else if(inputMode == 1)
 	{
 		// Initialize the cameras
-		int result = flyCapGrab.FlyCapInitializeCameras();
+		int result = flyCapGrab.FlyCapInitializeCameras(cameraNumber);
 		// If initialization fails, exit!
 		if(result==-1)
 		{
