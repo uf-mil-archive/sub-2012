@@ -1,0 +1,8 @@
+#include "Finder2DMessage.idl"
+#include "Finder3DMessage.idl"
+
+struct FinderMessageList {
+	sequence<Finder2DMessage> messages2d;
+	sequence<Finder3DMessage> messages3d;
+};
+
