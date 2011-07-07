@@ -22,6 +22,11 @@ VelocityController::VelocityController()
 
 	SetGains(ktemp, kstemp, alphatemp, betatemp);
 
+	rise_term_prev = Vector6d::Zero();
+	rise_term = Vector6d::Zero();
+	rise_term_int_prev = Vector6d::Zero();
+	rise_term_int = Vector6d::Zero();
+
 	x = Vector6d::Zero();
 	x_dot = Vector6d::Zero();
 	xd = Vector6d::Zero();
@@ -67,8 +72,8 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
 
     lock.lock();
 
-    currentControl = PDFeedback(dt);
-    //currentControl = RiseFeedbackNoAccel(dt);
+    //currentControl = PDFeedback(dt);
+    currentControl = RiseFeedbackNoAccel(dt);
 
     lock.unlock();
 }
@@ -101,11 +106,11 @@ Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 
 Vector6d VelocityController::PDFeedback(double dt)
 {
-	cout << "GAINS" << endl;
-	cout << "K x: " << k(0) << " y: " << k(1) << " z: " << k(2) << " roll: " << k(3) << " pitch: " << k(4) << " yaw: " << k(5);
-	cout << "Ks x: " << ks(0) << " y: " << ks(1) << " z: " << ks(2) << " roll: " << ks(3) << " pitch: " << ks(4) << " yaw: " << ks(5);
-	cout << "A x: " << alpha(0) << " y: " << alpha(1) << " z: " << alpha(2) << " roll: " << alpha(3) << " pitch: " << alpha(4) << " yaw: " << alpha(5);
-	cout << "B x: " << beta(0) << " y: " << beta(1) << " z: " << beta(2) << " roll: " << beta(3) << " pitch: " << beta(4) << " yaw: " << beta(5);
+//	cout << "GAINS" << endl;
+//	cout << "K x: " << k(0) << " y: " << k(1) << " z: " << k(2) << " roll: " << k(3) << " pitch: " << k(4) << " yaw: " << k(5);
+//	cout << "Ks x: " << ks(0) << " y: " << ks(1) << " z: " << ks(2) << " roll: " << ks(3) << " pitch: " << ks(4) << " yaw: " << ks(5);
+//	cout << "A x: " << alpha(0) << " y: " << alpha(1) << " z: " << alpha(2) << " roll: " << alpha(3) << " pitch: " << alpha(4) << " yaw: " << alpha(5);
+//	cout << "B x: " << beta(0) << " y: " << beta(1) << " z: " << beta(2) << " roll: " << beta(3) << " pitch: " << beta(4) << " yaw: " << beta(5);
 
 	e = Vector6d::Zero();
 	e.block<3,1>(0,0) = xd.block<3,1>(0,0) - x.block<3,1>(0,0);
@@ -232,4 +237,5 @@ void VelocityController::SetGains(const Vector6d& kV, const Vector6d& ksV, const
 	ks = AttitudeHelpers::DiagMatrixFromVector(ksV);
 	alpha = AttitudeHelpers::DiagMatrixFromVector(alphaV);
 	beta = AttitudeHelpers::DiagMatrixFromVector(betaV);
+	ksPlus1 = ks + Matrix<double,6,6>::Identity();
 }
