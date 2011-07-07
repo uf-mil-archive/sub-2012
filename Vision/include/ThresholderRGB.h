@@ -11,7 +11,8 @@ public:
 	void thresh(IOImages* ioimages, int objectID);
 
 private:
-	void threshOrange(IOImages* ioimages);
+	void threshOrange(IOImages* ioimages, bool erodeDilateFlag);
+	void threshRed(IOImages* ioimages, bool erodeDilateFlag);
 	void threshGreen(IOImages* ioimages);
 	void threshYellow(IOImages* ioimages);
 	void threshBlack(IOImages* ioimages);

@@ -23,8 +23,8 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 
 	for( size_t i = 0; i < contours.size(); i++ )
 	{
-		//Scalar color(255,255,255);
-		//drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
+		Scalar color(255,255,255);
+		drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
 
 		area_holder = (float)fabs(contourArea(Mat(contours[i])));
 		perimeter_holder = (float)arcLength(Mat(contours[i]),true);
@@ -127,7 +127,12 @@ void Contours::drawResult(IOImages* ioimages, int objectID)
 		color = CV_RGB(127,255,133);
 		position = Point(10,15);
 		break;
+	case MIL_OBJECTID_BIN_SHAPE:
+		color = CV_RGB(127,255,133);
+		position = Point(10,15);
+		break;
 	}
+
 	for(size_t i=0; i<boxes.size(); i++)
 	{
 		circle(ioimages->prcd,boxes[i].centroid,2,color,2,8,0);
@@ -140,7 +145,7 @@ void Contours::drawResult(IOImages* ioimages, int objectID)
 	{
 		circle(ioimages->prcd,shapes[i].centroid,5,CV_RGB(255,255,255),2,8,0);
 		circle(ioimages->prcd,shapes[i].centroid,(int)shapes[i].radius,CV_RGB(255,255,255),1,8);
-		drawContours( ioimages->prcd, shapes[i].contour, 0, CV_RGB(255,255,255), 2, 8, hierarchy, 0);
+		drawContours( ioimages->prcd, shapes[i].contour, 0, CV_RGB(0,0,i*50), 2, 8, hierarchy, 0);
 	}
 }
 
@@ -232,4 +237,79 @@ void Contours::populateAngleOfOuterBox(OuterBox* outerBox)
 	outerBox->orientation = shortLineMidPoint;
 	// calculate angle
 	outerBox->angle = atan2((float)outerBox->orientation.y-(float)outerBox->centroid.y,(float)outerBox->orientation.x-(float)outerBox->centroid.x) + (float)CV_PI/2;
+}
+
+void Contours::sortBoxes()
+{
+	float swp_ang, angles[4]; // TODO make angles into vector incase there are more than 4 points
+	int swpx, swpy;
+
+	for (unsigned int k=0; k<boxes.size(); k++)
+	{
+		for (unsigned int z = 0; z<boxes[k].corners.size(); z++)
+		{
+			angles[z] = atan2((float)(boxes[k].corners[z].x-boxes[k].centroid.x),-1*(float)(boxes[k].corners[z].y-boxes[k].centroid.y) );
+			//printf("%f %f %f %f\n",angles[0],angles[1],angles[2],angles[3]);
+		}
+		for (unsigned int i=0; i<boxes.size()-1; i++)
+		{
+			for(unsigned int j=i+1; j<boxes[k].corners.size(); j++)
+			{
+				if (angles[j]<angles[i])
+				{
+					swp_ang = angles[i]; angles[i]=angles[j];  angles[j]=swp_ang;
+					swpx = boxes[k].corners[i].x; boxes[k].corners[i].x=boxes[k].corners[j].x; boxes[k].corners[j].x=swpx;
+					swpy = boxes[k].corners[i].y; boxes[k].corners[i].y=boxes[k].corners[j].y; boxes[k].corners[j].y=swpy;
+				}
+			}
+		}
+	}
+}
+
+int Contours::identifyShape(IOImages* ioimages)
+{
+	vector<vector<Point> > contours;
+	vector<Point> approx;
+	Mat dbg_temp = ioimages->dbg.clone();
+	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
+
+	for( size_t i = 0; i < contours.size(); i++ )
+	{
+		Scalar color(255,255,255);
+		drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
+
+		area_holder = (float)fabs(contourArea(Mat(contours[i])));
+		perimeter_holder = (float)arcLength(Mat(contours[i]),true);
+		if(area_holder > smallestContourSize && area_holder < largestContourSize
+			&& perimeter_holder < largestContourPerimeter )
+		{
+			//approxPolyDP(Mat(contours[i]), approx, 20, true);
+			//printf("Points of approx: %d\n", approx.size());
+			Moments m = moments(Mat(contours[i]),true);
+			double h[7];
+			HuMoments(m,h);
+			InnerContour innerContour;
+			minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
+			if(center_holder.x != 0 && center_holder.y != 0)
+			{
+				circle(ioimages->prcd,center_holder,2,CV_RGB(0,255,255),-1,8,0);
+				innerContour.perimeter = (float)perimeter_holder;
+				innerContour.area = area_holder;
+				innerContour.centroid.x = (int)center_holder.x;
+				innerContour.centroid.y = (int)center_holder.y;
+				innerContour.radius = radius_holder;
+				innerContour.contour.push_back(contours[i]);
+				if(h[0] > 0.2)
+					innerContour.shape_x = true;
+				else
+					innerContour.shape_x = false;
+				shapes.push_back(innerContour);
+			}
+		}
+
+	}
+	if(shapes.size() > 0)
+		return 1;
+	else
+		return 0;
 }

@@ -13,6 +13,7 @@
 #include "TubeFinder.h"
 #include "ShooterFinder.h"
 #include "BinsFinder.h"
+#include "ShapeFinder.h"
 
 class FinderGenerator
 {
