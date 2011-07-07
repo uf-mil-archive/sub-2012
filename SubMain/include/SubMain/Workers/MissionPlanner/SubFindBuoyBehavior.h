@@ -56,9 +56,10 @@ namespace subjugator
 		std::vector<FinderResult2D> objects2d;
 
 		boost::signals2::connection connection2D;
+		boost::weak_ptr<InputToken> mPlannerChangeCamObject;
 
-		virtual void Startup();
-		virtual void Shutdown();
+		virtual void Startup(MissionPlannerWorker& mpWorker);
+		virtual void Shutdown(MissionPlannerWorker& mpWorker);
 		virtual void DoBehavior();
 
 		void ApproachBuoy();
@@ -72,4 +73,4 @@ namespace subjugator
 }
 
 
-#endif /* FINDBUOYBEHAVIOR_H */
+#endif  // FINDBUOYBEHAVIOR_H

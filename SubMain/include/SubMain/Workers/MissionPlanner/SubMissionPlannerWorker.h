@@ -2,15 +2,14 @@
 #define SUBMISSIONPLANNERWORKER_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "DataObjects/Vision/FinderResult2D.h"
-#include "DataObjects/Vision/FinderResult3D.h"
+#include "DataObjects/Vision/FinderResult2DVec.h"
+#include "DataObjects/Vision/FinderResult3DVec.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
 #include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
 #include "DataObjects/PD/PDInfo.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "SubMain/SubStateManager.h"
 #include "SubMain/Workers/SubWorker.h"
 
@@ -18,6 +17,8 @@
 
 namespace subjugator
 {
+	class MissionBehavior;
+
 	class MissionPlannerWorkerCommands
 	{
 	public:
