@@ -2,6 +2,7 @@
 #include "DataObjects/Merge/MergeDataObjectFormatter.h"
 #include "DataObjects/Embedded/StartPublishing.h"
 #include "DataObjects/HeartBeat.h"
+#include "DataObjects/Merge/MergeActuator.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include <boost/bind.hpp>
 
@@ -29,5 +30,9 @@ void MergeManager::halStateChangeCallback() {
 		endpoint->write(HeartBeat());
 		endpoint->write(StartPublishing(10));
 	}
+}
+
+void MergeManager::setActuators(int flags) {
+	endpoint->write(MergeActuator(flags));
 }
 

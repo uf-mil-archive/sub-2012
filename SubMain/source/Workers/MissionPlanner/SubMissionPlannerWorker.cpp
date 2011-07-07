@@ -1,4 +1,7 @@
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
 
 using namespace subjugator;
 using namespace std;
@@ -7,9 +10,11 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	: Worker(io, rate), wayNum(0), estop(true)
 {
 	// TODO Enqueue mission tasks here
-	//missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH)));
 
 
+	// TODO correct camera vectors
 	// Cameras and waypoint generator
 	MissionCamera fCam(MissionCameraIDs::Front,
 			Vector3d(1.0,0.0,0.0),	// X vector
@@ -125,7 +130,7 @@ void MissionPlannerWorker::readyState()
 			missionList.pop();
 
 			// Call Start on the current behavior
-		//	currentBehavior->Start(*this, wayNum);
+			currentBehavior->Start(*this, wayNum);
 		}
 		else
 			return;
@@ -136,7 +141,7 @@ void MissionPlannerWorker::readyState()
 	if(done) // current behavior finished
 	{
 		// Call stop on the current behavior to remove hooks
-		//currentBehavior->Stop(*this);
+		currentBehavior->Stop(*this);
 		currentBehavior.reset();
 	}
 }
@@ -167,6 +172,8 @@ void MissionPlannerWorker::sendWaypoint(const DataObject &obj)
 
 void MissionPlannerWorker::sendActuator(const DataObject &obj)
 {
+
+	// TODO Hook actuator controls
 /*	const Waypoint *info = dynamic_cast<const Waypoint *>(&obj);
 	if(!info)
 		return;
@@ -198,22 +205,20 @@ void MissionPlannerWorker::setLPOSVSSInfo(const DataObject& obj)
 
 void MissionPlannerWorker::setCam2DInfo(const DataObject& obj)
 {
-	const FinderResult2D *info = dynamic_cast<const FinderResult2D *>(&obj);
+	const FinderResult2DVec *info = dynamic_cast<const FinderResult2DVec *>(&obj);
 	if(!info)
 		return;
 
-	// TODO Emit the signal to the behavior that new objects arrived
-	//on2DCameraReceived(*info);
+	on2DCameraReceived(info->vec);
 }
 
 void MissionPlannerWorker::setCam3DInfo(const DataObject& obj)
 {
-	const FinderResult3D *info = dynamic_cast<const FinderResult3D *>(&obj);
+	const FinderResult3DVec *info = dynamic_cast<const FinderResult3DVec *>(&obj);
 	if(!info)
 		return;
 
-	// TODO Emit the signal to the behavior that new objects arrived
-	//on3DCameraReceived(*info);
+	on3DCameraReceived(info->vec);
 }
 
 void MissionPlannerWorker::setHydInfo(const DataObject& obj)

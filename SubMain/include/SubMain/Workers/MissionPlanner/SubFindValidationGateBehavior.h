@@ -1,5 +1,5 @@
-#ifndef SUBFINDBUOYBEHAVIOR_H
-#define SUBFINDBUOYBEHAVIOR_H
+#ifndef SUBFINDVALIDATIONGATE_H_
+#define SUBFINDVALIDATIONGATE_H_
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
@@ -13,46 +13,37 @@
 
 namespace subjugator
 {
-	class FindBuoyMiniBehaviors
+	class FindValidationGateMiniBehaviors
 	{
 	public:
-		enum FindBuoyMiniBehaviorCode
+		enum FindValidationGateMiniBehaviorCode
 		{
-			ApproachBuoy = 0,
-			BumpBuoy = 1,
-			BackupMofoYouRanHerOver = 2,
-			ClearBuoys = 3,
-			DriveTowardsPipe = 4,
-			PanForBuoy = 5,
+			ApproachGate,
+			DriveThroughGate,
+			PanForGate,
+			MoveToDepth,
 		};
 	};
 
-	class FindBuoyBehavior : public MissionBehavior
+	class FindValidationGateBehavior : public MissionBehavior
 	{
 	public:
-		FindBuoyBehavior(double minDepth);
+		FindValidationGateBehavior(double minDepth);
 	private:
 		static const double approachDepth = 1.0; // m
 		static const double approachTravelDistance = 0.2; // m
 		static const double approachThreshold = 35000;
-		static const double desiredBumpDistance = 2.0;
-		static const double bumpTravelDistance = 0.5;
-		static const double backupTravelDistance = 2.0;
-		static const double clearBuoysDepth = 1.0;
-		static const double driveTowardsPipeDistance = 1.0;
-		static const double yawSearchAngle = 45.0;
+		static const double driveThroughGateDistance = 2.0;
+		static const double yawSearchAngle = 0.5;
 		static const double yawMaxSearchAngle = 45.0;
 
 		bool canContinue;
-		bool bumpSet;
-		bool backupSet;
-		bool clearBuoysSet;
-		bool pipeSet;
+		bool driveThroughSet;
+		bool moveDepthSet;
 
 		double pipeHeading;
 		double yawChange;
-		double alignDepth;
-		std::queue<ObjectIDs::ObjectIDCode> buoysToFind;
+
 		std::vector<FinderResult2D> objects2d;
 
 		boost::signals2::connection connection2D;
@@ -62,15 +53,12 @@ namespace subjugator
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);
 		virtual void DoBehavior();
 
-		void ApproachBuoy();
-		void BumpBuoy();
-		void BackupMofoYouRanHerOver();
-		void ClearBuoys();
-		void DriveTowardsPipe();
-		void PanForBuoy();
+		void ApproachGate();
+		void DriveThroughGate();
+		void PanForGate();
+		void MoveToDepth();
 		void Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects);
 	};
 }
 
-
-#endif  // FINDBUOYBEHAVIOR_H
+#endif /* SUBFINDVALIDATIONGATE_H_ */

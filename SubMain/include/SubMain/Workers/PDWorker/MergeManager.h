@@ -12,6 +12,8 @@ namespace subjugator {
 			MergeManager(SubHAL &hal);
 
 			inline const MergeInfo &getMergeInfo() const { return info; }
+			
+			void setActuators(int flags);
 
 		private:
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;

@@ -1,4 +1,5 @@
 #include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
 
 using namespace subjugator;
 using namespace std;
@@ -37,29 +38,29 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
 			boost::bind(&FindBuoyBehavior::PanForBuoy, this));
 }
 
-void FindBuoyBehavior::Startup()
+void FindBuoyBehavior::Startup(MissionPlannerWorker& mpWorker)
 {
-/*	// Connect to the worker's 2d object signal
-	//connection2D = mpWorker.on2DCameraReceived.connect(boost::bind(&FindBuoyBehavior::Update2DCameraObjects, this, _1));
+	// Connect to the worker's 2d object signal
+	connection2D = mpWorker.on2DCameraReceived.connect(boost::bind(&FindBuoyBehavior::Update2DCameraObjects, this, _1));
 	// And become the controlling device of the camera
-	mPlannerChangeCamObject = connectToCommand((int)MissionPlannerWorkerCommands::SendVisionID, 1);
+	mPlannerChangeCamObject = mpWorker.ConnectToCommand((int)MissionPlannerWorkerCommands::SendVisionID, 1);
 
-	// Save our pipe id
+	// Save our pipe heading
 	pipeHeading = lposRPY(2);
 
 	// Push to approach buoy
-	stateManager.ChangeState(FindBuoyMiniBehaviors::ApproachBuoy);*/
+	stateManager.ChangeState(FindBuoyMiniBehaviors::ApproachBuoy);
 }
 
-void FindBuoyBehavior::Shutdown()
+void FindBuoyBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 {
 	connection2D.disconnect();	// Play nicely and disconnect from the 2d camera signal
 
 	// And disconnect from the camera command
-	/*if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
+	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
 		r->Disconnect();
-	}*/
+	}
 }
 
 void FindBuoyBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects)
@@ -82,11 +83,11 @@ void FindBuoyBehavior::DoBehavior()
 	// And let the front camera know of the current target
 	VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(currentObjectID, 1));
 
-/*	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
+	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
 	    r->Operate(todown);
 	    r->Operate(tofront);
-	}*/
+	}
 
 	// The mini functions are called in the algorithm
 }
@@ -311,4 +312,5 @@ void FindBuoyBehavior::PanForBuoy()
 
 	// TODO what if we can't pan and find the buoy?
 }
+
 

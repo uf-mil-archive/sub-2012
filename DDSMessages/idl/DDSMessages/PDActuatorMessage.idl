@@ -1,0 +1,4 @@
+struct PDActuatorMessage {
+	long flags;
+};
+
