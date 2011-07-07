@@ -11,7 +11,7 @@ using namespace boost;
 using namespace boost::asio;
 using namespace subjugator;
 
-VisionWorker::VisionWorker(io_service &io_service, int64_t rateHz, int inputMode, bool showDebugImages)
+VisionWorker::VisionWorker(io_service &io_service, int64_t rateHz, int inputMode, bool showDebugImages, int cameraNumber)
 : Worker(io_service, rateHz)
 {
 	this->inputMode = inputMode; // load camera by default
@@ -29,6 +29,7 @@ VisionWorker::VisionWorker(io_service &io_service, int64_t rateHz, int inputMode
 				boost::bind(&VisionWorker::failState, this));
 
 	setControlToken((int)VisionWorkerCommands::UpdateIDs, boost::bind(&VisionWorker::updateIDs, this, _1));
+	this->cameraNumber = cameraNumber;
 }
 
 VisionWorker::~VisionWorker(void)
@@ -89,8 +90,8 @@ void VisionWorker::readyState()
 	else if(inputMode == 1)
 	{
 		// Grab a frame the 0th camera (TODO this needs to be passed in somehow), copy into ioimages object
-		flyCapGrab.FlyCapGrabImage(1);
-		flyCapGrab.getCvImage(1).copyTo(ioimages->src); // TODO can we just change the pointer instead of copying here?
+		flyCapGrab.FlyCapGrabImage(cameraNumber);
+		flyCapGrab.getCvImage(cameraNumber).copyTo(ioimages->src); // TODO can we just change the pointer instead of copying here?
 	}
 	else if(inputMode == 2)
 	{
@@ -136,8 +137,12 @@ void VisionWorker::readyState()
 
 void VisionWorker::updateIDs(const DataObject &dobj)
 {
-	if (const VisionSetIDs *vids = dynamic_cast<const VisionSetIDs *>(&dobj))
+	if (const VisionSetIDs *vids = dynamic_cast<const VisionSetIDs *>(&dobj)) {
+		if (vids->getCameraID() != cameraNumber)
+			return;
+			
 		listOfFinders = finderGen.buildFinders(vids->getIDs());
+	}
 }
 
 void VisionWorker::emergencyState() { }

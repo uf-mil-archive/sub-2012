@@ -4,5 +4,6 @@
 struct FinderMessageList {
 	sequence<Finder2DMessage> messages2d;
 	sequence<Finder3DMessage> messages3d;
+	long cameraid;
 };
 
