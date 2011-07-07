@@ -27,6 +27,7 @@ namespace subjugator
 
 	private:
 		static const double SECPERNSEC = 1e-9;
+		static const double NSECPERSEC = 1e9;
 
 		boost::int64_t startTickCount;
 		double duration;
@@ -36,7 +37,7 @@ namespace subjugator
 			timespec t;
 			clock_gettime(CLOCK_MONOTONIC, &t);
 
-			return ((boost::int64_t)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
+			return ((boost::int64_t)t.tv_sec * NSECPERSEC) + t.tv_nsec;
 		}
 	};
 }
