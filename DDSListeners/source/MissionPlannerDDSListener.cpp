@@ -1,0 +1,41 @@
+#include "DDSListeners/MissionPlannerDDSListener.h"
+#include "DDSMessages/SetWaypointMessage.h"
+#include "DataObjects/Waypoint/Waypoint.h"
+#include "DDSMessages/VisionSetIDsMessage.h"
+#include "DataObjects/Vision/VisionSetIDs.h"
+
+using namespace subjugator;
+
+MissionPlannerDDSListener::MissionPlannerDDSListener(Worker &worker, DDSDomainParticipant *part)
+: waypointddssender(part, "MissionPlanner"),
+  visionidsddssender(part, "VisionSetIDs") { 
+	connectWorker(worker);
+}
+
+void MissionPlannerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
+{
+	if (Waypoint *waypoint = dynamic_cast<Waypoint *>(dobj.get())) {
+		SetWaypointMessage *msg = SetWaypointMessageTypeSupport::create_data();
+		msg->isRelative = waypoint->isRelative;
+		//msg->number = waypoint->number;
+		
+		for (int i=0; i<3; i++)
+			msg->position_ned[i] = waypoint->Position_NED(i);
+			
+		for (int i=0; i<3; i++)
+			msg->rpy[i] = waypoint->RPY(i);
+		
+		waypointddssender.Send(*msg);
+		SetWaypointMessageTypeSupport::delete_data(msg);
+	} else if (VisionSetIDs *setids = dynamic_cast<VisionSetIDs *>(dobj.get())) {
+		VisionSetIDsMessage *msg = VisionSetIDsMessageTypeSupport::create_data();
+		
+		int ids = setids->getIDs().size();
+		msg->visionids.ensure_length(ids, ids);
+		for (int i=0; i<ids; i++)
+			msg->visionids[i] = setids->getIDs()[i];
+			
+		visionidsddssender.Send(*msg);
+		VisionSetIDsMessageTypeSupport::delete_data(msg);
+	}
+}
