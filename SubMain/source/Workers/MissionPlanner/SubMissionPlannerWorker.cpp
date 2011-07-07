@@ -2,6 +2,7 @@
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubFindPingerBehavior.h"
 
 using namespace subjugator;
 using namespace std;
@@ -12,30 +13,30 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	// TODO Enqueue mission tasks here
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH)));
-
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH)));
 
 	// TODO correct camera vectors
 	// Cameras and waypoint generator
-	MissionCamera fCam(MissionCameraIDs::Front,
-			Vector3d(1.0,0.0,0.0),	// X vector
-			Vector3d(0.0,1.0,0.0),	// Y vector
+	MissionCamera dCam(MissionCameraIDs::Down,
+			Vector3d(0.0,-1.0,0.0),	// X vector
+			Vector3d(1.0,0.0,0.0),	// Y vector
 			Vector3d(0.0,0.0,1.0),	// Z vector
 			Vector4d(1.0,0.0,0.0,0.0),	// Quat - populated later by waypoint generator
-			Vector2d(320.0,240.0),		// cc
-			Vector2d(320.0,240.0)		//fc
+			Vector2d(325.49416, 222.07906),		// cc
+			Vector2d(959.00928, 958.34753)		//fc
 			);
-	MissionCamera rCam(MissionCameraIDs::Front,
-			Vector3d(1.0,0.0,0.0),	// X vector
-			Vector3d(0.0,1.0,0.0),	// Y vector
-			Vector3d(0.0,0.0,1.0),	// Z vector
+	MissionCamera fCam(MissionCameraIDs::Front,
+			Vector3d(0.0,0.0,1.0),	// X vector
+			Vector3d(0.0,-1.0,0.0),	// Y vector
+			Vector3d(1.0,0.0,0.0),	// Z vector
 			Vector4d(1.0,0.0,0.0,0.0),	// Quat - populated later by waypoint generator
-			Vector2d(320.0,240.0),		// cc
-			Vector2d(320.0,240.0)		//fc
+			Vector2d(319.54324, 208.29877),		// cc
+			Vector2d(967.16810, 965.86543)		//fc
 			);
 
 	std::vector<MissionCamera> cams;
+	cams.push_back(dCam);
 	cams.push_back(fCam);
-	cams.push_back(rCam);
 
 	wayGen = boost::shared_ptr<WaypointGenerator>(new WaypointGenerator(cams));
 
@@ -148,7 +149,7 @@ void MissionPlannerWorker::readyState()
 
 void MissionPlannerWorker::allState()
 {
-
+	onEmitting(currentBehavior->getBehaviorInfo());
 }
 
 void MissionPlannerWorker::emergencyState()

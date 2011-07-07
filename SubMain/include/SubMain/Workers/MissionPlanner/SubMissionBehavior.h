@@ -4,6 +4,7 @@
 #include "SubMain/SubPrerequisites.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
+#include "DataObjects/MissionPlanner/BehaviorInfo.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionEnums.h"
 #include "SubMain/SubStateManager.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
@@ -28,6 +29,7 @@ namespace subjugator
 		int Stop(MissionPlannerWorker& mpWorker);
 		bool Execute(const boost::shared_ptr<LPOSVSSInfo>& lposInfo);
 
+		boost::shared_ptr<BehaviorInfo> getBehaviorInfo();
 
 	protected:
 		static const double xyzErrorRadius = 0.1;
@@ -66,7 +68,6 @@ namespace subjugator
 
 		int getNextWaypointNum() { return waypointNumber + 1; }
 		void sendWaypoint();
-
 
 	private:
 
