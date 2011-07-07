@@ -92,7 +92,7 @@ void MissionPlannerDDSCommander::receivedFinderMessageListResult(const FinderMes
 	FinderResult2DVec vec2d;
 	for (int i=0;i<findermessages.messages2d.length(); i++) {
 		const Finder2DMessage &msg = findermessages.messages2d[i];
-		vec2d.vec.push_back(FinderResult2D(msg.u, msg.v, msg.scale, msg.angle));
+		vec2d.vec.push_back(FinderResult2D(findermessages.cameraid, msg.objectid, msg.u, msg.v, msg.scale, msg.angle));
 	}
 	ptr->Operate(vec2d);
 	
@@ -100,7 +100,7 @@ void MissionPlannerDDSCommander::receivedFinderMessageListResult(const FinderMes
 	FinderResult3DVec vec3d;
 	for (int i=0;i<findermessages.messages3d.length(); i++) {
 		const Finder3DMessage &msg = findermessages.messages3d[i];
-		vec3d.vec.push_back(FinderResult3D(msg.x, msg.y, msg.z, msg.ang1, msg.ang2, msg.ang3));
+		vec3d.vec.push_back(FinderResult3D(findermessages.cameraid, msg.objectid, msg.x, msg.y, msg.z, msg.ang1, msg.ang2, msg.ang3));
 	}
 	ptr->Operate(vec3d);
 }

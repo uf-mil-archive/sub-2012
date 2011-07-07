@@ -1,9 +1,11 @@
 #include <ndds/ndds_cpp.h>
 #include "VisionWorker.h"
 #include "DDSListeners/VisionDDSListener.h"
+#include "DDSCommanders/VisionDDSCommander.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "DDSMessages/Finder2DMessageSupport.h"
 #include "DDSMessages/Finder3DMessageSupport.h"
+#include "DDSMessages/VisionSetIDsMessageSupport.h"
 #include <boost/thread.hpp>
 #include <iostream>
 
@@ -15,9 +17,16 @@ using namespace std;
 int main(int argc, char **argv)
 {
 	boost::asio::io_service io;
+	
+	if (argc == 1) {
+		cerr << "Missing camera number to vision" << endl;
+		return 1;
+	}
+	
+	int camnum = lexical_cast<int>(argv[1]);
 
 	// We need a worker
-	VisionWorker worker(io, 30 /*hz*/, 1, true);
+	VisionWorker worker(io, 30 /*hz*/, 1, true, camnum);
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start Vision Worker!");
 
@@ -34,17 +43,21 @@ int main(int argc, char **argv)
 		
 	if (FinderMessageListTypeSupport::register_type(participant, FinderMessageListTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
+		
+	if (VisionSetIDsMessageTypeSupport::register_type(participant, VisionSetIDsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
 
-	if (argc > 1) {
+	if (argc > 2) {
 		vector<int> ids;
-		for (int arg=1; arg<argc; arg++)
+		for (int arg=2; arg<argc; arg++)
 		 	ids.push_back(lexical_cast<int>(argv[arg]));
 
 		boost::weak_ptr<InputToken> token = worker.ConnectToCommand(VisionWorkerCommands::UpdateIDs, 2);
-		token.lock()->Operate(VisionSetIDs(0, ids));
+		token.lock()->Operate(VisionSetIDs(camnum, ids));
 	}
 
-	VisionDDSListener listener(worker, participant);
+	VisionDDSListener listener(worker, participant, camnum);
+	VisionDDSCommander commander(worker, participant);
 
 	// Start the worker
 	io.run();

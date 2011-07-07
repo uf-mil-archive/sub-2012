@@ -6,7 +6,7 @@ FinderGenerator::FinderGenerator(void)
 
 FinderGenerator::~FinderGenerator(void)
 {
-	clearFinders();
+	// HOW TO MAKE SURE THAT listOfFinders is emptied and the thresholders and normalizer memory locations get cleared?
 }
 
 vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
@@ -17,6 +17,8 @@ vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
 	vector<int> tubeIDs;
 	vector<int> shooterIDs;
 	vector<int> binsIDs;
+	vector<int> shapeIDs;
+
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
 		if( oIDs[i]==MIL_OBJECTID_BUOY_GREEN || oIDs[i]==MIL_OBJECTID_BUOY_RED || oIDs[i]==MIL_OBJECTID_BUOY_YELLOW )
@@ -32,6 +34,8 @@ vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
 			shooterIDs.push_back(oIDs[i]);
 		else if( oIDs[i]==MIL_OBJECTID_BIN_ALL )
 			binsIDs.push_back(oIDs[i]);
+		else if( oIDs[i]==MIL_OBJECTID_BIN_SHAPE)
+			shapeIDs.push_back(oIDs[i]);
 	}
 	if(buoyIDs.size() > 0)
 		listOfFinders.push_back( new BuoyFinder( buoyIDs,new NormalizerRGB(), new ThresholderRGB() ) );
@@ -45,14 +49,14 @@ vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
 		listOfFinders.push_back( new ShooterFinder( shooterIDs, new NormalizerRGB(), new ThresholderRGB() ) );
 	if(binsIDs.size() > 0)
 		listOfFinders.push_back( new BinsFinder( binsIDs, new NormalizerRGB(), new ThresholderRGB() ) );
+	if(shapeIDs.size() > 0)
+		listOfFinders.push_back( new ShapeFinder (shapeIDs, new NormalizerRGB(), new ThresholderRGB() ) );
 
 	return listOfFinders;
 }
 
 void FinderGenerator::clearFinders()
 {
-	for (unsigned int i=0; i<listOfFinders.size(); i++)
-		delete listOfFinders[i];
 	// clear the finder list
 	listOfFinders.clear();
 }

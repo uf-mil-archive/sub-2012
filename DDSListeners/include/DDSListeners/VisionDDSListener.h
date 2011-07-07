@@ -14,13 +14,14 @@ namespace subjugator
 	class VisionDDSListener : public Listener
 	{
 	public:
-		VisionDDSListener(Worker &worker, DDSDomainParticipant *part);
+		VisionDDSListener(Worker &worker, DDSDomainParticipant *part, int cameraid);
 
 	protected:
 		virtual void DataObjectEmitted(boost::shared_ptr<DataObject> dobj);
 
 	private:
 		DDSSender<FinderMessageList, FinderMessageListDataWriter, FinderMessageListTypeSupport> finderlistsender;
+		int cameraid;
 	};
 }
 

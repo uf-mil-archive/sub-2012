@@ -11,30 +11,32 @@ ThresholderRGB::~ThresholderRGB(void)
 void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
 {
 	if(objectID == MIL_OBJECTID_BUOY_RED)
-		threshOrange(ioimages);
+		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_BUOY_YELLOW)
 		threshYellow(ioimages);
 	else if(objectID == MIL_OBJECTID_BUOY_GREEN)
 		threshGreen(ioimages);	
 	else if(objectID == MIL_OBJECTID_PIPE)
-		threshOrange(ioimages);
+		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_GATE_HEDGE)
 		threshGreen(ioimages);
 	else if(objectID == MIL_OBJECTID_TUBE)
-		threshOrange(ioimages);
+		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
-		threshOrange(ioimages);
+		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL)
-		threshOrange(ioimages);
+		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE)
-		threshOrange(ioimages);
+		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE)
-		threshOrange(ioimages);
+		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_BIN_ALL)
 		threshBlack(ioimages);
+	else if(objectID == MIL_OBJECTID_BIN_SHAPE)
+		threshRed(ioimages, false);
 }
 
-void ThresholderRGB::threshOrange(IOImages *ioimages)
+void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 {
 	// create two vectors to hold rgb and hsv colors
 	std::vector<Mat> channelsRGB(ioimages->src.channels());
@@ -49,19 +51,56 @@ void ThresholderRGB::threshOrange(IOImages *ioimages)
 	split(srcLAB,channelsLAB);
 	split(srcHSV,channelsHSV);
 
-	//imshow("0",channelsLAB[0]);
-	//imshow("1",channelsLAB[1]);
-	//imshow("2",channelsLAB[2]);
+	//imshow("0",channelsHSV[0]);
+	//imshow("1",channelsHSV[1]);
+	//imshow("2",channelsHSV[2]);
 
 	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,51,15); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
-	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(90,0,0,0),channelsHSV[2]); // filter out blacks
+	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(40,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
 	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-40);
-	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
-	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	if(erodeDilateFlag)
+	{
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	}
+}
+
+void ThresholderRGB::threshRed(IOImages *ioimages, bool erodeDilateFlag)
+{
+	// create two vectors to hold rgb and hsv colors
+	std::vector<Mat> channelsRGB(ioimages->src.channels());
+	std::vector<Mat> channelsLAB(ioimages->src.channels());
+	std::vector<Mat> channelsHSV(ioimages->src.channels());
+	Mat srcLAB, srcHSV;
+	// split original image into rgb color channels
+	split(ioimages->prcd,channelsRGB);
+	// convert to lab color space
+	cvtColor(ioimages->prcd,srcLAB,CV_RGB2Lab);
+	cvtColor(ioimages->prcd,srcHSV,CV_BGR2HSV);
+	split(srcLAB,channelsLAB);
+	split(srcHSV,channelsHSV);
+
+	//imshow("0",channelsHSV[0]);
+	//imshow("1",channelsHSV[1]);
+	//imshow("2",channelsHSV[2]);
+
+	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,51,5); // use lab channel hack
+	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
+	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(30,0,0,0),channelsHSV[2]); // filter out blacks
+	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
+	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
+	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
+	//adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-40);
+	threshold(ioimages->dbg,ioimages->dbg,150,255,THRESH_BINARY);
+	if(erodeDilateFlag)
+	{
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	}
 }
 
 void ThresholderRGB::threshYellow(IOImages *ioimages)
@@ -133,7 +172,7 @@ void ThresholderRGB::threshBlack(IOImages *ioimages)
 
 	threshold(channelsRGB[0], channelsRGB[0], 60, 255, THRESH_BINARY_INV);
 	threshold(channelsRGB[1], channelsRGB[1], 60, 255, THRESH_BINARY_INV);
-	threshold(channelsRGB[2], channelsRGB[2], 60, 255, THRESH_BINARY_INV);
+	//threshold(channelsRGB[2], channelsRGB[2], 60, 255, THRESH_BINARY_INV);
 	bitwise_and(channelsRGB[0], channelsRGB[1], ioimages->dbg);
 
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));

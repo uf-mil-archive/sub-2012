@@ -47,6 +47,9 @@ int main(int argc, char **argv)
 	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
+	if (PDActuatorMessageTypeSupport::register_type(participant, PDActuatorMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
 	MissionPlannerDDSListener ddsListener(worker, participant);
 	MissionPlannerDDSCommander ddsCommander(worker, participant);
 

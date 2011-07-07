@@ -11,6 +11,7 @@ namespace subjugator {
 		public:
 			VisionSetIDs(int cameraID, const std::vector<int> &ids) : cameraID(cameraID), ids(ids) { }
 
+			int getCameraID() const { return cameraID; }
 			const std::vector<int> &getIDs() const { return ids; }
 
 		private:

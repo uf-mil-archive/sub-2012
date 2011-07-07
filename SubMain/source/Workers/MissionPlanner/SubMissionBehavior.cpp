@@ -96,3 +96,14 @@ void MissionBehavior::sendWaypoint()
 	}
 }
 
+boost::shared_ptr<BehaviorInfo> MissionBehavior::getBehaviorInfo()
+{
+	boost::shared_ptr<BehaviorInfo> info = boost::shared_ptr<BehaviorInfo>(new BehaviorInfo());
+
+	info->behaviorName = behName;
+	info->currentObjectID = currentObjectID;
+	info->miniBehavior = stateManager.GetStateName(stateManager.GetCurrentStateCode());
+	info->currentWaypoint = *desiredWaypoint;
+
+	return info;
+}

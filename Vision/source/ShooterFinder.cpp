@@ -1,4 +1,5 @@
 #include "ShooterFinder.h"
+#include <boost/shared_ptr.hpp>
 
 using namespace boost;
 
@@ -30,11 +31,13 @@ vector<shared_ptr<FinderResult> > ShooterFinder::find(IOImages* ioimages)
 		// call to specific member function here
 		Contours* contours = new Contours(100,50000,1500);
 		result = contours->findContours(ioimages, true);
+		contours->sortBoxes();
 
 		// Prepare results
-
 		if(result)
 		{
+
+
 			// Draw result
 			contours->drawResult(ioimages,oIDs[i]);
 			if(oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL || oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
@@ -53,7 +56,6 @@ vector<shared_ptr<FinderResult> > ShooterFinder::find(IOImages* ioimages)
 				fResult2D->u = contours->shapes[contours->findLargestShape()].centroid.y;
 				resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 			}
-
 		}
 		else
 		{

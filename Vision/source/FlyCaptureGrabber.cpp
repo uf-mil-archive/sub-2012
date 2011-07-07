@@ -10,7 +10,7 @@ FlyCaptureGrabber::~FlyCaptureGrabber(void)
 {
 }
 
-int FlyCaptureGrabber::FlyCapInitializeCameras()
+int FlyCaptureGrabber::FlyCapInitializeCameras(int camID)
 {
 	// Print build information
 	PrintBuildInfo();
@@ -27,44 +27,41 @@ int FlyCaptureGrabber::FlyCapInitializeCameras()
 		return -1;
 
 	// If cameras exist, connect to cameras
-	for (unsigned int i=0; i < numCameras; i++)
-    {
-		// Generate a guid for the camera
-		error = busMgr.GetCameraFromIndex(i, &cameras[i].guid);
-        if (error != PGRERROR_OK)
-		{
-			PrintError( error );
-			return -1;
-		}
-		// Connect to the camera
-		error = cameras[i].cam.Connect(&cameras[i].guid);
-		if (error != PGRERROR_OK)
-		{
-			PrintError( error );
-			return -1;
-		}
-		error = cameras[i].cam.SetVideoModeAndFrameRate(VIDEOMODE_640x480Y8,FRAMERATE_30);
-		if (error != PGRERROR_OK)
-		{
-			PrintError( error );
-			return -1;
-		}
-		// CAN ADD CUSTOM NAME TO CAMERA ID INFORMATION DURING INITIALIZATIONS
-		error = cameras[i].cam.GetCameraInfo(&cameras[i].camInfo);
-		if (error != PGRERROR_OK)
-		{
-			PrintError( error );
-			return -1;
-		}
-		PrintCameraInfo(&cameras[i].camInfo, i);
-		printf("Connected to camera %d!\n",i);
-		// Start capturing images
-		error = cameras[i].cam.StartCapture();
-		if (error != PGRERROR_OK)
-		{
-			PrintError( error );
-			return -1;
-		}
+	// Generate a guid for the camera
+	error = busMgr.GetCameraFromIndex(camID, &cameras[camID].guid);
+    if (error != PGRERROR_OK)
+	{
+		PrintError( error );
+		return -1;
+	}
+	// Connect to the camera
+	error = cameras[camID].cam.Connect(&cameras[camID].guid);
+	if (error != PGRERROR_OK)
+	{
+		PrintError( error );
+		return -1;
+	}
+	error = cameras[camID].cam.SetVideoModeAndFrameRate(VIDEOMODE_640x480Y8,FRAMERATE_30);
+	if (error != PGRERROR_OK)
+	{
+		PrintError( error );
+		return -1;
+	}
+	// CAN ADD CUSTOM NAME TO CAMERA ID INFORMATION DURING INITIALIZATIONS
+	error = cameras[camID].cam.GetCameraInfo(&cameras[camID].camInfo);
+	if (error != PGRERROR_OK)
+	{
+		PrintError( error );
+		return -1;
+	}
+	PrintCameraInfo(&cameras[camID].camInfo, camID);
+	printf("Connected to camera %d!\n",camID);
+	// Start capturing images
+	error = cameras[camID].cam.StartCapture();
+	if (error != PGRERROR_OK)
+	{
+		PrintError( error );
+		return -1;
 	}
 	return 1;
 }

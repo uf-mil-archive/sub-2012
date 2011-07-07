@@ -162,7 +162,7 @@ function(sub_executable projectname)
 
 	# GSL
 	if(gsl)
-		set(libraries ${GSL_LIBRARIES})
+		set(libraries ${libraries} ${GSL_LIBRARIES})
 		include_directories(${GSL_INCLUDE_DIRS})
 	endif()
 

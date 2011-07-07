@@ -15,6 +15,7 @@ class Contours
 			float radius;
 			vector<vector<Point> > contour;
 			int objectID;
+			bool shape_x;
 		};
 
 		struct OuterBox {
@@ -38,6 +39,8 @@ class Contours
 		int findSmallestShape();
 		Point calcCentroidOfAllBoxes();
 		float calcAngleOfAllBoxes();
+		void sortBoxes();
+		int identifyShape(IOImages* ioimages);
 
 	private:
 		vector<Vec4i> hierarchy; // heirarchy holder for the contour tree
