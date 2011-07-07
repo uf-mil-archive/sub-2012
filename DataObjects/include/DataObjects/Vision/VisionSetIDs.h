@@ -9,11 +9,12 @@
 namespace subjugator {
 	class VisionSetIDs : public DataObject {
 		public:
-			VisionSetIDs(const std::vector<int> &ids) : ids(ids) { }
+			VisionSetIDs(int cameraID, const std::vector<int> &ids) : cameraID(cameraID), ids(ids) { }
 
 			const std::vector<int> &getIDs() const { return ids; }
 
 		private:
+			int cameraID;
 			std::vector<int> ids;
 	};
 }

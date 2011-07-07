@@ -14,15 +14,18 @@ namespace subjugator {
 				isRelative = false;
 				Position_NED = Vector3d::Zero();
 				RPY = Vector3d::Zero();
+				number = 0;
 			}
 			Waypoint(bool relative, const Vector3d& position, const Vector3d& rpy)
 			{
 				isRelative = relative;
 				Position_NED = position;
 				RPY = rpy;
+				number = 0;
 			}
 
 			bool isRelative;
+			int number;
 			Vector3d Position_NED;
 			Vector3d RPY;
 

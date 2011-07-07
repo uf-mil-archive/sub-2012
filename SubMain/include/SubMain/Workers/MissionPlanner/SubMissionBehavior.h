@@ -8,28 +8,32 @@
 #include "SubMain/SubStateManager.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
 #include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
+#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+
 
 #include <Eigen/Dense>
 #include <cmath>
 
 namespace subjugator
 {
+
+	class MissionPlannerWorker;	// Get around circular dependency
+
 	class MissionBehavior
 	{
 	public:
 		MissionBehavior(MissionBehaviors::MissionBehaviorCode behCode, std::string behName, double mindepth) :
-			behaviorType(behCode), behName(behName), depthCeiling(mindepth), canContinue(false), behDone(false) {}
+			behaviorType(behCode), behName(behName), depthCeiling(mindepth), behDone(false) {}
 
 		boost::shared_ptr<Waypoint> getWaypoint()
 		{
 			return desiredWaypoint;
 		}
 
-		virtual void Startup(const MissionPlannerWorker& mpWorker) = 0;
-		virtual void Shutdown(const MissionPlannerWorker& mpWorker) = 0;
-		virtual bool DoBehavior(boost::shared_ptr<LPOSVSSInfo> lposInfo) = 0;
+		virtual void Startup(MissionPlannerWorker& mpWorker, int wayNum) = 0;
+		virtual int Shutdown(MissionPlannerWorker& mpWorker) = 0;
+		virtual bool DoBehavior(const boost::shared_ptr<LPOSVSSInfo>& lposInfo) = 0;
 
 	protected:
 		static const double xyzErrorRadius = 0.1;
@@ -54,12 +58,13 @@ namespace subjugator
 		boost::shared_ptr<WaypointGenerator> wayGen;
 		Vector3d lposRPY;
 
+		boost::weak_ptr<InputToken> mPlannerSendWaypoint;
+
 		std::string behName;
 		double depthCeiling;
 
-		bool canContinue;
 		bool behDone;
-
+		int waypointNumber;
 		StateManager stateManager;
 
 		void updateLPOS(const boost::shared_ptr<LPOSVSSInfo>& lpos)
@@ -70,16 +75,35 @@ namespace subjugator
 			lposRPY = MILQuaternionOps::Quat2Euler(lpos->getQuat_NED_B());
 		}
 
-		bool atWaypointNED(const Waypoint& wp)
+		bool atDesiredWaypoint()
 		{
 			if(!lposInfo)
 				return false;
 
-			if((wp.Position_NED - lposInfo->position_NED).norm() < xyzErrorRadius &&
-				std::abs(AttitudeHelpers::DAngleDiff(lposRPY(2), wp.RPY(2))) < yawpitchErrorRadius)
+			if(!desiredWaypoint)
+				return false;
+
+			if((desiredWaypoint->Position_NED - lposInfo->position_NED).norm() < xyzErrorRadius &&
+				std::abs(AttitudeHelpers::DAngleDiff(lposRPY(1), desiredWaypoint->RPY(1))) < yawpitchErrorRadius &&
+				std::abs(AttitudeHelpers::DAngleDiff(lposRPY(2), desiredWaypoint->RPY(2))) < yawpitchErrorRadius)
 				return true;
 
 			return false;
+		}
+
+		int getNextWaypointNum() { return waypointNumber + 1; }
+		void sendWaypoint()
+		{
+			// Nothing to send
+			if(desiredWaypoint)
+				return;
+
+			// Send the waypoint if its new
+			if(boost::shared_ptr<InputToken> r = mPlannerSendWaypoint.lock())
+			{
+			    r->Operate(*desiredWaypoint);
+			    waypointNumber = getNextWaypointNum();
+			}
 		}
 
 	private:
