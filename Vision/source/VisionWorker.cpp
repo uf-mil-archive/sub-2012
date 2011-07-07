@@ -109,7 +109,7 @@ void VisionWorker::readyState()
 		fResult = listOfFinders[i]->find(ioimages);
 
 		// PROCESS THE SWEET SWEET RESULTS
-		shared_ptr<DataObjectVec> dobjvec = shared_ptr<DataObjectVec>(new DataObjectVec());
+		boost::shared_ptr<DataObjectVec> dobjvec = boost::shared_ptr<DataObjectVec>(new DataObjectVec());
 		for(unsigned int j=0; j< fResult.size(); j++)
 		{
 			// This will be up-stream stuff to check whether the rResult is 2d or 3d!
