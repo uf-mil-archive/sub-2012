@@ -17,13 +17,13 @@ namespace subjugator {
 				SHOOTER_TWO = (1 << 3),
 				BALL_DROPPER = (1 << 4)
 			};
-		
-			PDActuator(int flags);
-			
+
+			PDActuator(int flags) { }
+
 			bool checkFlag(int flag) const { return (flags & flag) != 0; }
-			
+
 			int flags;
-			
+
 	};
 }
 
