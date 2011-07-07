@@ -1,6 +1,7 @@
 #include <ndds/ndds_cpp.h>
 #include "DDSMessages/PDStatusMessage.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
+#include "DDSMessages/PDActuatorMessageSupport.h"
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 #include "DDSListeners/PDDDSListener.h"
 #include "DDSCommanders/PDDDSCommander.h"
@@ -33,6 +34,8 @@ int main(int argc, char **argv)
 	if (PDWrenchMessageTypeSupport::register_type(participant, PDWrenchMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
+	if (PDActuatorMessageTypeSupport::register_type(participant, PDActuatorMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("failed to register type");
 
 	PDDDSListener ddsListener(worker, participant);
 	PDDDSCommander ddsCommander(worker, participant);
