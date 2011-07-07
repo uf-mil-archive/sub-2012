@@ -2,6 +2,7 @@
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "DataObjects/Vision/FinderResult.h"
 #include "DataObjects/Vision/FinderResult2D.h"
+#include "DataObjects/DataObjectVec.h"
 #include "HAL/format/DataObject.h"
 #include <opencv/highgui.h>
 
@@ -108,6 +109,7 @@ void VisionWorker::readyState()
 		fResult = listOfFinders[i]->find(ioimages);
 
 		// PROCESS THE SWEET SWEET RESULTS
+		boost::shared_ptr<DataObjectVec> dobjvec = boost::shared_ptr<DataObjectVec>(new DataObjectVec());
 		for(unsigned int j=0; j< fResult.size(); j++)
 		{
 			// This will be up-stream stuff to check whether the rResult is 2d or 3d!
@@ -115,11 +117,12 @@ void VisionWorker::readyState()
 				printf("Found ObjectID: %d - 2d!\n",fResult[j]->objectID);	// callback to 2D message handler
 			if(dynamic_cast<FinderResult3D*> (fResult[j].get()))
 				printf("Found ObjectID: %d - 3d!\n",fResult[j]->objectID);	// callback to 3D message handler
-				
-			boost::shared_ptr<DataObject> dobj = static_pointer_cast<DataObject>(fResult[j]);
-			onEmitting(dobj);
+
+			dobjvec->vec.push_back(fResult[j]);
 		}
 		fResult.clear(); // clear the result for the next iteration.
+
+		onEmitting(dobjvec);
 	}
 
 	//imshow("Source",ioimages->src);

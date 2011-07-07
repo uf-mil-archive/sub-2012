@@ -42,7 +42,9 @@ if(NDDS_RTIDDSGEN)
 			get_filename_component(SOURCEFILE_DIR ${SOURCENAME} PATH)
 			make_directory(${SOURCEFILE_DIR})
 
-			add_custom_command(OUTPUT ${SOURCEFILES} DEPENDS "${IDLFILE}" COMMAND ${NDDS_RTIDDSGEN} -language C++ -inputIDL ${IDLFILE} -replace -d "${SOURCEFILE_DIR}")
+			get_filename_component(IDLDIR ${IDLFILE} PATH)
+
+			add_custom_command(OUTPUT ${SOURCEFILES} DEPENDS "${IDLFILE}" COMMAND ${NDDS_RTIDDSGEN} -language C++ -inputIDL ${IDLFILE} -replace -d "${SOURCEFILE_DIR}" -I "${IDLDIR}")
 
 			set(OUTPUT_SOURCES ${OUTPUT_SOURCES} ${SOURCEFILES})
 		endforeach()
