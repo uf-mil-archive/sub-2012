@@ -1,6 +1,7 @@
 #include <ndds/ndds_cpp.h>
 #include "VisionWorker.h"
 #include "DDSListeners/VisionDDSListener.h"
+#include "DDSCommanders/VisionDDSCommander.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "DDSMessages/Finder2DMessageSupport.h"
 #include "DDSMessages/Finder3DMessageSupport.h"
@@ -52,6 +53,7 @@ int main(int argc, char **argv)
 	}
 
 	VisionDDSListener listener(worker, participant, camnum);
+	VisionDDSCommander commander(worker, participant);
 
 	// Start the worker
 	io.run();
