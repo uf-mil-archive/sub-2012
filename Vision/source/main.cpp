@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 		 	ids.push_back(lexical_cast<int>(argv[arg]));
 
 		boost::weak_ptr<InputToken> token = worker.ConnectToCommand(VisionWorkerCommands::UpdateIDs, 2);
-		token.lock()->Operate(VisionSetIDs(VisionSetIDs(ids)));
+		token.lock()->Operate(VisionSetIDs(0, ids));
 	}
 
 	VisionDDSListener listener(worker, participant);
