@@ -87,7 +87,7 @@ void MissionPlannerDDSCommander::receivedPDStatusInfo(const PDStatusMessage &pds
 }
 
 void MissionPlannerDDSCommander::receivedFinderMessageListResult(const FinderMessageList &findermessages) {
-	shared_ptr<InputToken> ptr = pdstatuscmdtoken.lock();
+	shared_ptr<InputToken> ptr = vision2dcmdtoken.lock();
 	
 	FinderResult2DVec vec2d;
 	for (int i=0;i<findermessages.messages2d.length(); i++) {
@@ -96,6 +96,7 @@ void MissionPlannerDDSCommander::receivedFinderMessageListResult(const FinderMes
 	}
 	ptr->Operate(vec2d);
 	
+	ptr = vision3dcmdtoken.lock();
 	FinderResult3DVec vec3d;
 	for (int i=0;i<findermessages.messages3d.length(); i++) {
 		const Finder3DMessage &msg = findermessages.messages3d[i];
