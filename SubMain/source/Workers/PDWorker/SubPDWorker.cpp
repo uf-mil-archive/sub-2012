@@ -1,6 +1,7 @@
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 #include "DataObjects/PD/PDWrench.h"
 #include "DataObjects/PD/PDInfo.h"
+#include "DataObjects/PD/PDActuator.h"
 #include <boost/bind.hpp>
 
 using namespace boost;
@@ -49,7 +50,10 @@ namespace subjugator
 
 	void PDWorker::setActuator(const DataObject &obj)
 	{
-		std::cout << "Setting actuator!" << std::endl;
+		if (const PDActuator *actuator = dynamic_cast<const PDActuator *>(&obj)) 
+		{
+			mergeManager.setActuators(actuator->flags);
+		}
 	}
 
 	bool PDWorker::Startup()

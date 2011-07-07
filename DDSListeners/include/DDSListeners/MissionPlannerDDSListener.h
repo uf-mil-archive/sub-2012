@@ -7,6 +7,8 @@
 #include "DDSMessages/SetWaypointMessageSupport.h"
 #include "DDSMessages/VisionSetIDsMessage.h"
 #include "DDSMessages/VisionSetIDsMessageSupport.h"
+#include "DDSMessages/PDActuatorMessage.h"
+#include "DDSMessages/PDActuatorMessageSupport.h"
 
 #include "DDSListeners/DDSSender.h"
 
@@ -22,6 +24,7 @@ namespace subjugator {
 	private:
 		DDSSender<SetWaypointMessage, SetWaypointMessageDataWriter, SetWaypointMessageTypeSupport> waypointddssender;
 		DDSSender<VisionSetIDsMessage, VisionSetIDsMessageDataWriter, VisionSetIDsMessageTypeSupport> visionidsddssender;
+		DDSSender<PDActuatorMessage, PDActuatorMessageDataWriter, PDActuatorMessageTypeSupport> pdactuatorddssender;
 	};
 }
 

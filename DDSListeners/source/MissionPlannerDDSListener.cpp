@@ -3,12 +3,16 @@
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DDSMessages/VisionSetIDsMessage.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
+#include "DDSMessages/PDActuatorMessage.h"
+#include "DDSMessages/PDActuatorMessageSupport.h"
+#include "DataObjects/PD/PDActuator.h"
 
 using namespace subjugator;
 
 MissionPlannerDDSListener::MissionPlannerDDSListener(Worker &worker, DDSDomainParticipant *part)
 : waypointddssender(part, "MissionPlanner"),
-  visionidsddssender(part, "VisionSetIDs") { 
+  visionidsddssender(part, "VisionSetIDs"),
+  pdactuatorddssender(part, "PDActuator") { 
 	connectWorker(worker);
 }
 
@@ -37,5 +41,12 @@ void MissionPlannerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> 
 			
 		visionidsddssender.Send(*msg);
 		VisionSetIDsMessageTypeSupport::delete_data(msg);
+	} else if (PDActuator *pdact = dynamic_cast<PDActuator *>(dobj.get())) {
+		PDActuatorMessage *actuator = PDActuatorMessageTypeSupport::create_data();
+		
+		actuator->flags = pdact->flags;
+		
+		pdactuatorddssender.Send(*actuator);
+		PDActuatorMessageTypeSupport::delete_data(actuator);
 	}
 }
