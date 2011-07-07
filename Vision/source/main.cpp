@@ -5,6 +5,7 @@
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "DDSMessages/Finder2DMessageSupport.h"
 #include "DDSMessages/Finder3DMessageSupport.h"
+#include "DDSMessages/VisionSetIDsMessageSupport.h"
 #include <boost/thread.hpp>
 #include <iostream>
 
@@ -41,6 +42,9 @@ int main(int argc, char **argv)
 		throw runtime_error("Failed to register type");
 		
 	if (FinderMessageListTypeSupport::register_type(participant, FinderMessageListTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+		
+	if (VisionSetIDsMessageTypeSupport::register_type(participant, VisionSetIDsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
 	if (argc > 2) {
