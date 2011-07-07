@@ -8,7 +8,6 @@
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
-#include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "SubMain/SubStateManager.h"
 #include "SubMain/Workers/SubWorker.h"

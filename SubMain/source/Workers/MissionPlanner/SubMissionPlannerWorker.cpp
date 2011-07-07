@@ -1,6 +1,7 @@
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
 
 using namespace subjugator;
 using namespace std;
@@ -10,6 +11,7 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 {
 	// TODO Enqueue mission tasks here
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH)));
 
 
 	// TODO correct camera vectors
