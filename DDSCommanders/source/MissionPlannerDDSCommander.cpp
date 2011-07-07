@@ -4,6 +4,7 @@
 #include "DataObjects/Merge/MergeInfo.h"
 #include "DataObjects/Vision/FinderResult2DVec.h"
 #include "DataObjects/Vision/FinderResult3DVec.h"
+#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
 
 using namespace subjugator;
 using namespace boost;
@@ -13,7 +14,10 @@ MissionPlannerDDSCommander::MissionPlannerDDSCommander(Worker &worker, DDSDomain
 : lposvssreceiver(participant, "LPOSVSS", bind(&MissionPlannerDDSCommander::receivedLPOSVSSInfo, this, _1)),
   pdstatusreceiver(participant, "PDStatus", bind(&MissionPlannerDDSCommander::receivedPDStatusInfo, this, _1)),
   finderlistreceiver(participant, "Vision", bind(&MissionPlannerDDSCommander::receivedFinderMessageListResult, this, _1)) {
-	
+	lposvsscmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetLPOSVSSInfo, 5);
+	pdstatuscmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetPDInfo, 5);
+	vision2dcmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetCam2DInfo, 5);
+	vision3dcmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetCam3DInfo, 5);
 }
 
 void MissionPlannerDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {

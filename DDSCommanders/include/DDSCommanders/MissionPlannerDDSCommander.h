@@ -23,7 +23,7 @@ namespace subjugator {
 			boost::weak_ptr<InputToken> lposvsscmdtoken;
 			boost::weak_ptr<InputToken> pdstatuscmdtoken;
 			boost::weak_ptr<InputToken> vision2dcmdtoken;
-			boost::weak_ptr<InputToken> vision3dcomdtoken;
+			boost::weak_ptr<InputToken> vision3dcmdtoken;
 	};
 }
 
