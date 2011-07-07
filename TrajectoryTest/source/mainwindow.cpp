@@ -1154,6 +1154,12 @@ void MainWindow::on_btnSubmitWaypt_clicked()
 		waypointddssender.Send(*msg);
 
 		SetWaypointMessageTypeSupport::delete_data(msg);
+
+		ui->lineEditWayptX->setText(QString("0.0"));
+		ui->lineEditWayptY->setText(QString("0.0"));
+		ui->lineEditWayptZ->setText(QString("0.0"));
+		ui->lineEditWayptPitch->setText(QString("0.0"));
+		ui->lineEditWayptYaw->setText(QString("0.0"));
 	}
 }
 
@@ -1257,7 +1263,6 @@ void MainWindow::on_btnSubmitGains_clicked()
 	msg->beta[4] = ui->spinBoxbpitch->value();
 	msg->beta[5] = ui->spinBoxbyaw->value();
 
-	cout << "Test Send Gains" << endl;
 	gainsddssender.Send(*msg);
 
 	ControllerGainsMessageTypeSupport::delete_data(msg);
