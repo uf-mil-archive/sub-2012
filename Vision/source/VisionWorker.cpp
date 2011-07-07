@@ -141,6 +141,10 @@ void VisionWorker::updateIDs(const DataObject &dobj)
 		if (vids->getCameraID() != cameraNumber)
 			return;
 			
+		if (vids->getIDs() == finderIDs)
+			return;
+			
+		finderIDs = vids->getIDs();
 		listOfFinders = finderGen.buildFinders(vids->getIDs());
 	}
 }

@@ -31,6 +31,7 @@ void VisionDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 				f2dmsg->v = fres2d->v;
 				f2dmsg->scale = fres2d->scale;
 				f2dmsg->angle = fres2d->angle;
+				f2dmsg->objectid = fres2d->objectID;
 				
 				fml->messages2d[newpos] = *f2dmsg;
 				Finder2DMessageTypeSupport::delete_data(f2dmsg);
@@ -45,6 +46,7 @@ void VisionDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 				f3dmsg->ang1 = fres3d->ang1;
 				f3dmsg->ang2 = fres3d->ang2;
 				f3dmsg->ang3 = fres3d->ang3;
+				f3dmsg->objectid = fres3d->objectID;
 				
 				fml->messages3d[newpos] = *f3dmsg;	
 				Finder3DMessageTypeSupport::delete_data(f3dmsg);

@@ -1,4 +1,5 @@
 struct Finder2DMessage {
+	long objectid;
 	long u;
 	long v;
 	double scale;

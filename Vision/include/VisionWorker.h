@@ -39,6 +39,7 @@ private:
 	int cameraNumber;
 	FinderGenerator finderGen;
 	vector<IFinder*> listOfFinders;
+	vector<int> finderIDs;
 	vector<boost::shared_ptr<FinderResult> > fResult;
 	FlyCaptureGrabber flyCapGrab;
 

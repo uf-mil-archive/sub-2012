@@ -1,4 +1,5 @@
 struct Finder3DMessage {
+	long objectid;
 	double x;
 	double y;
 	double z;
