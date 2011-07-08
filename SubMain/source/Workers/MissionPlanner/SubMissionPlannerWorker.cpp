@@ -3,6 +3,7 @@
 #include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindPingerBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
 
 #include <iostream>
 
@@ -13,6 +14,7 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	: Worker(io, rate), wayNum(0), estop(true)
 {
 	// TODO Enqueue mission tasks here
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0,0.0)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateHedge)));

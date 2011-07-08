@@ -30,10 +30,11 @@ namespace subjugator
 	class FindPipeBehavior : public MissionBehavior
 	{
 	public:
-		FindPipeBehavior(double minDepth, double aligntopipe, double movetraveldistance = 0.0);
+		FindPipeBehavior(double minDepth, double aligntopipe, bool turnright, double movetraveldistance = 0.0);
 	private:
 		static const double alignDepth = 1;
 		static const double alignTimeout = 8;
+		static const int desiredAttempts = 4;
 
 		double alignToPipe;
 		double moveTravelDistance;
@@ -41,6 +42,10 @@ namespace subjugator
 		bool nextTask;
 		double startHeading;
 		double creepDistance;
+		bool timerStarted;
+		int count;
+		bool newFrame;
+		bool turnRight;
 
 		std::vector<FinderResult2D> objects2d;
 
