@@ -29,6 +29,15 @@ int main(int argc, char *argv[])
 	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 						throw runtime_error("Failed to register type");
 
+	if (HydrophoneMessageTypeSupport::register_type(participant, HydrophoneMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+							throw runtime_error("Failed to register type");
+
+	if (FinderMessageListTypeSupport::register_type(participant, FinderMessageListTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+							throw runtime_error("Failed to register type");
+
+	if (TrajectoryMessageTypeSupport::register_type(participant, TrajectoryMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+								throw runtime_error("Failed to register type");
+
     MainWindow w(participant);
     w.show();
 

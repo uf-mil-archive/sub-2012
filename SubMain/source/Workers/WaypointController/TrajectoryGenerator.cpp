@@ -17,7 +17,7 @@ Vector11d TrajectoryGenerator::getMaxValues(bool stompOnTheBrakes)
 		// Normal easy acceleration
 		max <<
 			0.625,      // v_max_xy
-			.1,        	// a_max_xy
+			.05,        	// a_max_xy
 			20,         // j_max_xyz
 			0.3,        // v_max_z
 			0.1,      // a_max_z

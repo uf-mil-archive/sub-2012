@@ -37,6 +37,20 @@
 #include "DDSMessages/PDStatusMessage.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
 
+#include "DDSCommanders/HydrophoneDDSReceiver.h"
+#include "DDSMessages/HydrophoneMessage.h"
+#include "DDSMessages/HydrophoneMessageSupport.h"
+
+#include "DDSCommanders/FinderMessageListReceiver.h"
+#include "DDSMessages/FinderMessageList.h"
+#include "DDSMessages/FinderMessageListSupport.h"
+#include "DDSMessages/Finder2DMessage.h"
+#include "DDSMessages/Finder2DMessageSupport.h"
+#include "DDSMessages/Finder3DMessage.h"
+#include "DDSMessages/Finder3DMessageSupport.h"
+
+#include "DDSCommanders/TrajectoryDDSReceiver.h"
+
 namespace Ui {
     class MainWindow;
 }
@@ -59,6 +73,9 @@ namespace subjugator
 		void IMUDDSReadCallback(const IMUMessage &msg);
 		void DVLDDSReadCallback(const DVLMessage &msg);
 		void PDStatusDDSReadCallback(const PDStatusMessage &msg);
+		void HydrophoneDDSReadCallback(const HydrophoneMessage &msg);
+		void FinderMessageListDDSReadCallback(const FinderMessageList &msg);
+		void TrajectoryDDSReadCallback(const TrajectoryMessage &msg);
 
 	private slots:
 		void onLPOSVSSInfoReceived();
@@ -67,6 +84,9 @@ namespace subjugator
 		void onIMUInfoReceived();
 		void onDVLInfoReceived();
 		void onPDStatusInfoReceived();
+		void onHydrophoneInfoReceived();
+		void onFinderMessageListInfoReceived();
+		void onTrajectoryInfoReceived();
 
 
 		signals:
@@ -76,6 +96,9 @@ namespace subjugator
 		void imuInfoReceived();
 		void dvlInfoReceived();
 		void pdstatusInfoReceived();
+		void hydrophoneInfoReceived();
+		void findermessagelistInfoReceived();
+		void trajectoryInfoReceived();
 
 	private:
 		Ui::MainWindow *ui;
@@ -92,6 +115,12 @@ namespace subjugator
 		DVLMessage dvlmsg;
 		PDStatusDDSReceiver pdstatusreceiver;
 		PDStatusMessage pdstatusmsg;
+		HydrophoneDDSReceiver hydrophonereceiver;
+		HydrophoneMessage hydrophonemsg;
+		FinderMessageListReceiver findermessagelistreceiver;
+		FinderMessageList findermessagelistmsg;
+		TrajectoryDDSReceiver trajectoryreceiver;
+		TrajectoryMessage trajectorymsg;
 
 		bool lposvssData;
 		bool setwaypointData;
@@ -99,6 +128,9 @@ namespace subjugator
 		bool imuData;
 		bool dvlData;
 		bool pdstatusData;
+		bool hydrophoneData;
+		bool findermessagelistData;
+		bool trajectoryData;
 	};
 }
 #endif // MAINWINDOW_H
