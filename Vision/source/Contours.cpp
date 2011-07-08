@@ -23,8 +23,8 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 
 	for( size_t i = 0; i < contours.size(); i++ )
 	{
-		Scalar color(255,255,255);
-		drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
+		//Scalar color(255,255,255);
+		//drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
 
 		area_holder = (float)fabs(contourArea(Mat(contours[i])));
 		perimeter_holder = (float)arcLength(Mat(contours[i]),true);
@@ -127,6 +127,10 @@ void Contours::drawResult(IOImages* ioimages, int objectID)
 		color = CV_RGB(127,255,133);
 		position = Point(10,15);
 		break;
+	case MIL_OBJECTID_BIN_SINGLE:
+		color = CV_RGB(0,255,0);
+		position = Point(10,15);
+		break;
 	case MIL_OBJECTID_BIN_SHAPE:
 		color = CV_RGB(127,255,133);
 		position = Point(10,15);
@@ -138,7 +142,7 @@ void Contours::drawResult(IOImages* ioimages, int objectID)
 		circle(ioimages->prcd,boxes[i].centroid,2,color,2,8,0);
 		drawContours( ioimages->prcd, boxes[i].contour, 0, color, 2, 8, hierarchy, 0);
 		for(size_t j=0; j < boxes[i].corners.size(); j++)
-			circle(ioimages->prcd,boxes[i].corners[j],2,CV_RGB(255,255,0),-1,8);
+			circle(ioimages->prcd,boxes[i].corners[j],3,CV_RGB(255,255,0),-1,8);
 		line(ioimages->prcd,boxes[i].centroid,boxes[i].orientation,CV_RGB(255,0,0),2,8);
 	}
 	for(size_t i=0; i<shapes.size(); i++)

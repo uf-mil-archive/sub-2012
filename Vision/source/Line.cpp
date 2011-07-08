@@ -21,7 +21,7 @@ Line::~Line(void)
 int Line::findLines(IOImages* ioimages)
 {
 	Canny(ioimages->dbg, edgeImage, 50, 200, 3 );
-	HoughLinesP(edgeImage, lines, 1, CV_PI/360, 40, 30, 100 );
+	HoughLinesP(edgeImage, lines, 1, CV_PI/360, 60, 30, 50 );
 
     for( size_t i = 0; i < lines.size(); i++ )
     {
@@ -29,6 +29,7 @@ int Line::findLines(IOImages* ioimages)
 		tmpAngle = atan2((double)lines[i][1]-(double)lines[i][3],(double)lines[i][0]-(double)lines[i][2]); // (y1-y2)/(x1-x2)
 		if(tmpAngle != 0) tmpAngle += 3.1415/2.0;  // offset to vertical
 		if(tmpAngle > 0) tmpAngle -= 3.1415;
+		//printf("%f\n",tmpAngle);
 
 		// case when looking for a single line (i.e. tube)
 		if(numberOfLinesToFind == 1)
@@ -39,8 +40,9 @@ int Line::findLines(IOImages* ioimages)
 		// case when looking for two lines (i.e. pipes)
 		if(numberOfLinesToFind == 2)
 		{
+			printf("difference: %.3f | %.3f\n",abs(tmpAngle - avgLines[0].angle), abs(tmpAngle - avgLines[1].angle));
 			// if a new angle comes in and the first average is unpopulated, save it as the first average
-			if(abs(tmpAngle - avgLines[0].angle) > 10*3.1415/180 && !avgLines[0].populated)
+			if(abs(tmpAngle - avgLines[0].angle) > 10*3.14159/180.0 && !avgLines[0].populated)
 			{
 				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 				avgLines[0].populated = true;
@@ -48,16 +50,16 @@ int Line::findLines(IOImages* ioimages)
 			// if a new angle comes in and the first average is populated and the second average is open
 			// and the new angle is not close to the first average, save it as the second average
 			else if(avgLines[0].populated == true && avgLines[1].populated == false &&
-				abs(tmpAngle - avgLines[0].angle) > 10*3.1415/180)
+				abs(tmpAngle - avgLines[0].angle) > 10*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 				avgLines[1].populated = true;
 			}
 			// if a new angle comes in and both averages are populated, find which average it is closest to,
 			// then call the update average helper
-			else if(abs(tmpAngle - avgLines[0].angle) < 10*3.1415/180)
+			else if(abs(tmpAngle - avgLines[0].angle) < 10*3.14159/180.0)
 				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
-			else if(abs(tmpAngle - avgLines[1].angle) < 10*3.1415/180)
+			else if(abs(tmpAngle - avgLines[1].angle) < 10*3.14159/180.0)
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 
 
