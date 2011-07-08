@@ -69,11 +69,14 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
     xd_dot = traj.getTrajectory_dot();
 
     UpdateJacobianInverse(x);
+	//UpdateJacobian(x);
 
     lock.lock();
 
     //currentControl = PDFeedback(dt);
     currentControl = RiseFeedbackNoAccel(dt);
+
+	//currentControl = J*currentControl;
 
     lock.unlock();
 }
