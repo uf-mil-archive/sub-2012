@@ -20,8 +20,10 @@ namespace subjugator
 	public:
 		enum FindPipeMiniBehaviorCode
 		{
-			AlignToPipes = 0,
-			MoveTowardsNextTask = 1,
+			None,
+			All,
+			AlignToPipes,
+			MoveTowardsNextTask,
 		};
 	};
 

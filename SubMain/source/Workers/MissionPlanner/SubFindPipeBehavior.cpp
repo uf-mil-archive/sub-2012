@@ -76,6 +76,7 @@ void FindPipeBehavior::AlignToPipes()
 {
 	bool timertimer = false;
 	int count = 0;
+	bool sawPipe = false;
 
 	if(!canContinue)  // CHECK ON THIS
 	{
@@ -83,55 +84,55 @@ void FindPipeBehavior::AlignToPipes()
 		if (!timertimer)
 		{
 			timer.Start(alignTimeout);
-			canContinue = false;
 			timertimer = true;
 		}
 
 		if (timer.HasExpired())
 		{
 			canContinue = true;
-			//timer.StopTimer();  // CHECK ON THIS TOO
 		}
 		else
 		{
 			// The list of 2d objects the class is holding is the current found images in the frame
 			for(size_t i = 0; i < objects2d.size(); i++)
 			{
-				if(objects2d[i].objectID == currentObjectID)
+				if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
 				{
 					count = 0;
 
 					// It's in view
 					// UPDATE X AND Y FROM CAMERA DATA TO CENTER THE PIPE(S), AND KEEP DEPTH AT OUR VARIABLE ALIGNDEPTH.
 					// UPDATE YAW TO THE ERROR PROVIDED BY THE CAMERA DATA
-					desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, objects2d[i], servoGains2d, 0.0, true);
+					desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
+
 					if (!desiredWaypoint)
 						continue;
 
 					desiredWaypoint->Position_NED(2) = alignDepth;
 					desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(alignToPipe + desiredWaypoint->RPY(2));
 
+					sawPipe = true;
 					break;
 				}
-				else
+			}
+			if(!sawPipe)
+			{
+				count++;
+
+				// It's lost, drive forward. Assuming were pointed the right way
+				if (count > 4)
 				{
-					count++;
+					desiredWaypoint = boost::shared_ptr<Waypoint>();
+					desiredWaypoint->isRelative = false;
 
-					// It's lost, drive forward. Assuming were pointed the right way
-					if (count > 4)
-					{
-						desiredWaypoint = boost::shared_ptr<Waypoint>();
-						desiredWaypoint->isRelative = false;
+					// Project the distance in the XY NED Plane.
+					desiredWaypoint->Position_NED(0) = creepDistance*cos(desiredWaypoint->RPY(2));
+					desiredWaypoint->Position_NED(1) = creepDistance*sin(desiredWaypoint->RPY(2));
+					desiredWaypoint->Position_NED += lposInfo->getPosition_NED();
+					desiredWaypoint->Position_NED(2) = alignDepth;
+					desiredWaypoint->RPY = Vector3d(0.0, 0.0, startHeading);
 
-						// Project the distance in the XY NED Plane.
-						desiredWaypoint->Position_NED(0) = creepDistance*cos(desiredWaypoint->RPY(2));
-						desiredWaypoint->Position_NED(1) = creepDistance*sin(desiredWaypoint->RPY(2));
-						desiredWaypoint->Position_NED += lposInfo->getPosition_NED();
-						desiredWaypoint->Position_NED(2) = alignDepth;
-						desiredWaypoint->RPY = Vector3d(0.0, 0.0, startHeading);
-
-						desiredWaypoint->number = getNextWaypointNum();
-					}
+					desiredWaypoint->number = getNextWaypointNum();
 				}
 			}
 		}
