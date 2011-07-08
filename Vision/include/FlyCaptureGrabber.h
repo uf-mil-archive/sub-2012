@@ -42,7 +42,7 @@ public:
 	FlyCaptureGrabber(void);
 	~FlyCaptureGrabber(void);
 
-	int FlyCapInitializeCameras(int cameraNumber);
+	int FlyCapInitializeCameras(int cameraNumber, float gainVal);
 	int FlyCapGrabImage(int camID);
 	int FlyCapShutdownCameras();
 	Mat getCvImage(int camID);
