@@ -10,10 +10,10 @@ namespace subjugator
 		{
 			None = 0,
 			 // Shooters
-			ShooterWindowYellow = 1,
-			ShooterWindowRed = 2,
-			ShooterWindowGreen = 3,
-			ShooterWindowBlue = 4,
+			ShooterWindowRedLarge = 1,
+			ShooterWindowRedSmall  = 2,
+			ShooterWindowBlueLarge = 3,
+			ShooterWindowBlueSmall  = 4,
 
 			// Buoys
 			BuoyYellow = 5,
@@ -22,18 +22,15 @@ namespace subjugator
 
 			// Pipe
 			Pipe = 8,
-			Pipes = 9,
 
 			// Bins
 			BinAll = 10,
-			BinSingle = 11,
-			BinAxe = 12,
-			BinHammer = 13,
-			BinScissors = 14,
-			BinMachete = 15,
+			BinShape = 11,
+			BinX = 12,
+			BinO = 13,
 
 			// Man
-			Counselor = 16,
+			Tube = 16,
 
 			// Gates
 			GateValidation = 17,
@@ -44,9 +41,6 @@ namespace subjugator
 
 			// Color Calibration
 			ColorCalibration = 20,
-
-			//
-			ShooterWindowAll = 21
 		};
 	};
 

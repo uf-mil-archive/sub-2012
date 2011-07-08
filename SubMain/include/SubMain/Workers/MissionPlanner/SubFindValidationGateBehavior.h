@@ -18,6 +18,8 @@ namespace subjugator
 	public:
 		enum FindValidationGateMiniBehaviorCode
 		{
+			None,
+			All,
 			ApproachGate,
 			DriveThroughGate,
 			PanForGate,
@@ -28,7 +30,7 @@ namespace subjugator
 	class FindValidationGateBehavior : public MissionBehavior
 	{
 	public:
-		FindValidationGateBehavior(double minDepth);
+		FindValidationGateBehavior(double minDepth, ObjectIDs::ObjectIDCode objId);
 	private:
 		static const double approachDepth = 1.0; // m
 		static const double approachTravelDistance = 0.2; // m

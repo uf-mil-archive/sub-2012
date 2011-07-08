@@ -65,8 +65,6 @@ namespace subjugator
 		int wayNum;
 		bool estop;
 
-		StateManager mStateManager;
-
 		// Senders - this is for internal use in the class e.g. behaviors to the worker
 		void sendWaypoint(const DataObject &obj);
 		void sendActuator(const DataObject &obj);

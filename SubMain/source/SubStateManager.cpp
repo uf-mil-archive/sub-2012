@@ -1,11 +1,13 @@
 #include "SubMain/SubStateManager.h"
 
+#include <iostream>
+
 namespace subjugator
 {
 	StateManager::StateManager()
 	{
-		mCurrentState = SubStates::UNKNOWN;
-		mPreviousState = SubStates::UNKNOWN;
+		mCurrentState = (int)SubStates::UNKNOWN;
+		mPreviousState = (int)SubStates::UNKNOWN;
 		mCallbackList.resize(10);
 	}
 
@@ -28,7 +30,7 @@ namespace subjugator
 	void StateManager::Execute()
 	{
 		// If we're in an unknown state, quietly exit
-		if(mCurrentState == SubStates::UNKNOWN)
+		if(mCurrentState == (int)SubStates::UNKNOWN)
 			return;
 
 		// Call the current callback, if it exists
@@ -36,8 +38,8 @@ namespace subjugator
 			mCallbackList[mCurrentState]->Execute();
 
 		// Call the all callback, if it exists
-		if(mCallbackList[SubStates::ALL])
-			mCallbackList[SubStates::ALL]->Execute();
+		if(mCallbackList[(int)SubStates::ALL])
+			mCallbackList[(int)SubStates::ALL]->Execute();
 	}
 
 	std::string StateManager::GetStateName(int state)

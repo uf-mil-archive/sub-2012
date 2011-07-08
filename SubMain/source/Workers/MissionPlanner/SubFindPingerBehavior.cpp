@@ -5,10 +5,13 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
-FindPingerBehavior::FindPingerBehavior(double minDepth) :
+FindPingerBehavior::FindPingerBehavior(double minDepth, double freqMin, double freqMax) :
 	MissionBehavior(MissionBehaviors::FindPinger, "FindPinger", minDepth),
-	canContinue(false), hydInfoNew(false), maxDecAngle(3.141592654/180.0 * decAngle)
+	canContinue(false), hydInfoNew(false), maxDecAngle(3.141592654/180.0 * decAngle),
+	maxPingFrequency(freqMax), minPingFrequency(freqMin)
 {
+	currentObjectID = ObjectIDs::Pinger;
+
 	// Setup the callbacks
 	stateManager.SetStateCallback(FindPingerMiniBehaviors::TravelToPinger,
 			"TravelToPinger",
@@ -46,7 +49,7 @@ void FindPingerBehavior::DoBehavior()
 {
 	// LPOS info is updated by the algorithm
 
-	currentObjectID = ObjectIDs::Pinger;
+	// ObjectID is fixed, and set in the constructor
 
 	// The mini functions are called in the algorithm
 }
@@ -61,6 +64,12 @@ void FindPingerBehavior::TravelToPinger()
 		lock.lock();
 
 		hydInfoNew = false;
+
+		if(!((hydInfo->getPingfrequency() > minPingFrequency) && (hydInfo->getPingfrequency() < maxPingFrequency)))
+		{
+			lock.unlock();
+			return;
+		}
 
 		double distance = getTravelDistance();
 

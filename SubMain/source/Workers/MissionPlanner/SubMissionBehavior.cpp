@@ -5,8 +5,16 @@
 using namespace subjugator;
 using namespace std;
 
-void MissionBehavior::Start(MissionPlannerWorker& mpWorker, int wayNum)
+void MissionBehavior::Start(MissionPlannerWorker& mpWorker, int wayNum, const boost::shared_ptr<LPOSVSSInfo>& lpos)
 {
+	updateLPOS(lpos);
+
+	desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+	desiredWaypoint->number = waypointNumber++;
+	desiredWaypoint->Position_NED = lpos->getPosition_NED();
+	desiredWaypoint->RPY = lposRPY;
+	desiredWaypoint->isRelative = false;
+
 	// Connect to the set waypoint command
 	mPlannerSendWaypoint = mpWorker.ConnectToCommand((int)MissionPlannerWorkerCommands::SendWaypoint, 1);
 
@@ -66,6 +74,8 @@ bool MissionBehavior::atDesiredWaypoint()
 	if(!desiredWaypoint)
 		return false;
 
+	return true; // TODO For lab testing
+
 	if((desiredWaypoint->Position_NED - lposInfo->position_NED).norm() < xyzErrorRadius &&
 		std::abs(AttitudeHelpers::DAngleDiff(lposRPY(1), desiredWaypoint->RPY(1))) < yawpitchErrorRadius &&
 		std::abs(AttitudeHelpers::DAngleDiff(lposRPY(2), desiredWaypoint->RPY(2))) < yawpitchErrorRadius)
@@ -77,7 +87,7 @@ bool MissionBehavior::atDesiredWaypoint()
 void MissionBehavior::sendWaypoint()
 {
 	// Nothing to send
-	if(desiredWaypoint)
+	if(!desiredWaypoint)
 		return;
 
 	// Not a new waypoint. don't send it
@@ -103,7 +113,8 @@ boost::shared_ptr<BehaviorInfo> MissionBehavior::getBehaviorInfo()
 	info->behaviorName = behName;
 	info->currentObjectID = currentObjectID;
 	info->miniBehavior = stateManager.GetStateName(stateManager.GetCurrentStateCode());
-	info->currentWaypoint = *desiredWaypoint;
+	if(desiredWaypoint)
+		info->currentWaypoint = *desiredWaypoint;
 
 	return info;
 }

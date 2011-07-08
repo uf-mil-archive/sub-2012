@@ -4,6 +4,8 @@
 #include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindPingerBehavior.h"
 
+#include <iostream>
+
 using namespace subjugator;
 using namespace std;
 
@@ -12,8 +14,9 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 {
 	// TODO Enqueue mission tasks here
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateHedge)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 26000, 29000))); // For 27kHz pinger
 
 	// TODO correct camera vectors
 	// Cameras and waypoint generator
@@ -61,7 +64,7 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 			boost::bind(&MissionPlannerWorker::allState, this));
 
 	// Set the command vector
-	mInputTokenList.resize(5);
+	mInputTokenList.resize(10);
 
 	setControlToken((int)MissionPlannerWorkerCommands::SendWaypoint, boost::bind(&MissionPlannerWorker::sendWaypoint, this, _1));
 	setControlToken((int)MissionPlannerWorkerCommands::SendActuator, boost::bind(&MissionPlannerWorker::sendActuator, this, _1));
@@ -105,6 +108,8 @@ void MissionPlannerWorker::standbyState()
 	if(!lposInfo)
 		return;
 
+	cout << "Standby!" << endl;
+
 	// Set waypoint at our position here
 	Waypoint wp;
 	wp.Position_NED = lposInfo->getPosition_NED();
@@ -131,7 +136,7 @@ void MissionPlannerWorker::readyState()
 			missionList.pop();
 
 			// Call Start on the current behavior
-			currentBehavior->Start(*this, wayNum);
+			currentBehavior->Start(*this, wayNum, lposInfo);
 		}
 		else
 			return;
@@ -149,7 +154,25 @@ void MissionPlannerWorker::readyState()
 
 void MissionPlannerWorker::allState()
 {
-	onEmitting(currentBehavior->getBehaviorInfo());
+	if(currentBehavior)
+	{
+		boost::shared_ptr<BehaviorInfo> info = currentBehavior->getBehaviorInfo();
+		onEmitting(info);
+
+		// Get the relative waypoint distance to print out
+		Vector3d relP = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo->getQuat_NED_B()), info->currentWaypoint.Position_NED - lposInfo->getPosition_NED());
+		Vector3d relRPY = Vector3d::Zero();
+		Vector3d currentRPY = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
+
+		relRPY(1) = AttitudeHelpers::DAngleDiff(currentRPY(1), info->currentWaypoint.RPY(1));
+		relRPY(2) = AttitudeHelpers::DAngleDiff(currentRPY(2), info->currentWaypoint.RPY(2));
+
+		cout << "Name: " << info->behaviorName << endl;
+		cout << "Mini-Name: " << info->miniBehavior << endl;
+		cout << "ObjectID: " << info->currentObjectID << endl;
+		cout << "Waypoint POS:\n" << relP << endl;
+		cout << "Waypoint RPY:\n" << relRPY*180.0 / boost::math::constants::pi<double>() << endl;
+	}
 }
 
 void MissionPlannerWorker::emergencyState()
@@ -167,6 +190,8 @@ void MissionPlannerWorker::sendWaypoint(const DataObject &obj)
 	const Waypoint *info = dynamic_cast<const Waypoint *>(&obj);
 	if(!info)
 		return;
+
+	cout << "Waypoint sent" << endl;
 
 	onEmitting(boost::shared_ptr<Waypoint>(new Waypoint(*info)));
 }

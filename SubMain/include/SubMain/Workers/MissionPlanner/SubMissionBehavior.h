@@ -25,7 +25,7 @@ namespace subjugator
 		MissionBehavior(MissionBehaviors::MissionBehaviorCode behCode, std::string behName, double mindepth) :
 			behaviorType(behCode), behName(behName), depthCeiling(mindepth), behDone(false) {}
 
-		void Start(MissionPlannerWorker& mpWorker, int wayNum);
+		void Start(MissionPlannerWorker& mpWorker, int wayNum, const boost::shared_ptr<LPOSVSSInfo>& lpos);
 		int Stop(MissionPlannerWorker& mpWorker);
 		bool Execute(const boost::shared_ptr<LPOSVSSInfo>& lposInfo);
 

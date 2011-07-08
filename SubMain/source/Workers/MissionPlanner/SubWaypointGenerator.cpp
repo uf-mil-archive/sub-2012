@@ -17,7 +17,7 @@ WaypointGenerator::WaypointGenerator(std::vector<MissionCamera>& cams)
 	}
 }
 
-boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const LPOSVSSInfo& lposInfo, const FinderResult2D& object2d, const Vector2d& k, double hoverDistance, bool servo)
+boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const LPOSVSSInfo& lposInfo, const Vector3d& lposRPY, const FinderResult2D& object2d, const Vector2d& k, double hoverDistance, bool servo)
 {
 	// TODO object enumeration
 	if(object2d.objectID == 0 || object2d.scale == 0.0)
@@ -41,17 +41,19 @@ boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const LPOSVSSInfo&
 	}
 	else
 	{
-		// TODO forward camera is in this check
-		if(object2d.cameraID == 0)
+		if(object2d.cameraID == MissionCameraIDs::Front)
 		{
-			double yawError = object2d.u - cameras[object2d.cameraID].cc(0);
-			double yd = object2d.v - cameras[object2d.cameraID].cc(1);
+			Vector3d camRot = MILQuaternionOps::Quat2Euler(cameras[object2d.cameraID].Quaternion);
+			cout << "CamRot:\n" << camRot << endl;
 
-			err(0) = 0.0;
-			err(1) = k(1) * yd;
+			double yawError = -1*(object2d.v - cameras[object2d.cameraID].cc(1));
+			double yd = object2d.u - cameras[object2d.cameraID].cc(0);
+
+			err(0) = k(0) * yd;
+			err(1) = 0.0;
 			err(2) = 0.0;
 
-			yaw = k(0)*yawError;
+			yaw = k(1)*yawError;
 		}
 		else
 		{
@@ -71,7 +73,7 @@ boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const LPOSVSSInfo&
 	// The eventual output is in the NED frame. The intermediate calculations are done in the
 	// BODY frame. First rotate the camera into body
 	resWP->Position_NED = MILQuaternionOps::QuatRotate(cameras[object2d.cameraID].Quaternion, err);
-	resWP->RPY = Vector3d(0.0, 0.0, yaw);
+	resWP->RPY = Vector3d(0.0, 0.0, AttitudeHelpers::DAngleClamp(yaw + lposRPY(2)));
 	resWP->isRelative = false;
 
 	// Calculate the waypoint with the desired hover distance. We need a unit vector from the current
@@ -79,6 +81,8 @@ boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const LPOSVSSInfo&
 	Vector3d unitdir = resWP->Position_NED;
 	unitdir.normalize();
 	resWP->Position_NED -= hoverDistance*unitdir;
+
+	resWP->Position_NED = MILQuaternionOps::QuatRotate(lposInfo.getQuat_NED_B(), resWP->Position_NED) + lposInfo.getPosition_NED();
 
 	return resWP;
 }

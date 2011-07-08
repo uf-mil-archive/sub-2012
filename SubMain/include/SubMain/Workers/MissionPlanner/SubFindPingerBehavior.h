@@ -24,7 +24,7 @@ namespace subjugator
 	class FindPingerBehavior : public MissionBehavior
 	{
 	public:
-		FindPingerBehavior(double minDepth);
+		FindPingerBehavior(double minDepth, double freqMax, double freqMin);
 	private:
 		static const double travelDepth = 1.0;
 		static const double angleBall = 0.1;
@@ -37,6 +37,9 @@ namespace subjugator
 		double pipeHeading;
 		double yawChange;
 		double alignDepth;
+
+		double maxPingFrequency;
+		double minPingFrequency;
 
 		boost::shared_ptr<HydrophoneInfo> hydInfo;
 		boost::signals2::connection connectionHyd;

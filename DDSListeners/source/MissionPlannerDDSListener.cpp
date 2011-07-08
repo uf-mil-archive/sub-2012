@@ -36,9 +36,11 @@ void MissionPlannerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> 
 		
 		int ids = setids->getIDs().size();
 		msg->visionids.ensure_length(ids, ids);
-		for (int i=0; i<ids; i++)
+		for (int i=0; i<ids; i++) {
 			msg->visionids[i] = setids->getIDs()[i];
-			
+		}
+		msg->cameraid = setids->getCameraID();
+
 		visionidsddssender.Send(*msg);
 		VisionSetIDsMessageTypeSupport::delete_data(msg);
 	} else if (PDActuator *pdact = dynamic_cast<PDActuator *>(dobj.get())) {

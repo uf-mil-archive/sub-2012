@@ -1,6 +1,8 @@
 #include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
 
+#include <iostream>
+
 using namespace subjugator;
 using namespace std;
 using namespace Eigen;
@@ -10,12 +12,12 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
 	canContinue(false),	bumpSet(false), backupSet(false), clearBuoysSet(false),
 	pipeSet(false)
 {
-	servoGains2d = Vector2d(0.035*boost::math::constants::pi<double>() / 180.0, 0.0025);
+	servoGains2d = Vector2d(0.0025, .0035*boost::math::constants::pi<double>() / 180.0);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO enqueue which buoys we are looking for
-	buoysToFind.push(ObjectIDs::BuoyGreen);
 	buoysToFind.push(ObjectIDs::BuoyRed);
+	//buoysToFind.push(ObjectIDs::BuoyGreen);
 
 	// Setup the callbacks
 	stateManager.SetStateCallback(FindBuoyMiniBehaviors::ApproachBuoy,
@@ -56,9 +58,16 @@ void FindBuoyBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 {
 	connection2D.disconnect();	// Play nicely and disconnect from the 2d camera signal
 
-	// And disconnect from the camera command
 	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
+		// Tell the cameras to not look for anything
+		VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, ObjectIDs::None));
+		VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(1, ObjectIDs::None));
+
+		r->Operate(todown);
+		r->Operate(tofront);
+
+		// And disconnect from the camera command
 		r->Disconnect();
 	}
 }
@@ -69,6 +78,8 @@ void FindBuoyBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& 
 
 	objects2d = camObjects;
 
+	newFrame = true;
+
 	lock.unlock();
 }
 
@@ -76,19 +87,21 @@ void FindBuoyBehavior::DoBehavior()
 {
 	// LPOS info is updated by the algorithm
 
-	currentObjectID = buoysToFind.front();
-
-	// Tell the down camera to not look for anything here
-	VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(ObjectIDs::None, 1));
-	// And let the front camera know of the current target
-	VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(currentObjectID, 1));
-
-	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
+	if(buoysToFind.size() > 0)
 	{
-	    r->Operate(todown);
-	    r->Operate(tofront);
-	}
+		currentObjectID = buoysToFind.front();
 
+		// Tell the down camera to not look for anything here
+		VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, ObjectIDs::None));
+		// And let the front camera know of the current target
+		VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(1, currentObjectID));
+
+		if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
+		{
+			r->Operate(todown);
+			r->Operate(tofront);
+		}
+	}
 	// The mini functions are called in the algorithm
 }
 
@@ -97,13 +110,20 @@ void FindBuoyBehavior::ApproachBuoy()
 	bool sawBuoy = false;
 	if(!canContinue)
 	{
+		if(!newFrame)
+			return;
+
+		newFrame = false;
 		// The list of 2d objects the class is holding is the current found images in the frame
 		for(size_t i = 0; i < objects2d.size(); i++)
 		{
-			if(objects2d[i].objectID == currentObjectID)
+			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Front)
 			{
 				// The buoy we want is in view. Get the NED waypoint from the generator
-				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, objects2d[i], servoGains2d, 0.0, true);
+				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
+
+				if(!desiredWaypoint)	// Bad find, waygen says no good
+					continue;
 
 				double distance = 0.0;
 				if(objects2d[i].scale >= approachThreshold)
@@ -129,7 +149,7 @@ void FindBuoyBehavior::ApproachBuoy()
 		if(!sawBuoy)
 		{
 			double serioslycpp = approachTravelDistance;
-			desiredWaypoint = boost::shared_ptr<Waypoint>();
+			desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 			desiredWaypoint->isRelative = false;
 			desiredWaypoint->Position_NED = MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
 					Vector3d(serioslycpp, 0.0, 0.0)) + lposInfo->getPosition_NED();
@@ -176,6 +196,7 @@ void FindBuoyBehavior::BumpBuoy()
 		backupSet = false;
 
 		// Done bumping the current buoy, remove it from the list
+		cout <<"Size before pop: " << buoysToFind.size() << endl;
 		buoysToFind.pop();
 
 		if(buoysToFind.size() > 0)
@@ -292,7 +313,7 @@ void FindBuoyBehavior::PanForBuoy()
 		if(alignDepth == 0.0)
 			alignDepth = lposInfo->position_NED(2);
 
-		desiredWaypoint = boost::shared_ptr<Waypoint>();
+		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
 		desiredWaypoint->Position_NED(2) = alignDepth;
@@ -308,6 +329,8 @@ void FindBuoyBehavior::PanForBuoy()
 			yawChange -= yawSearchAngle;
 		}
 		desiredWaypoint->number = getNextWaypointNum();
+
+		lock.unlock();
 	}
 
 	// TODO what if we can't pan and find the buoy?

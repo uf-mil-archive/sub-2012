@@ -18,12 +18,14 @@ namespace subjugator
 	public:
 		enum FindBuoyMiniBehaviorCode
 		{
-			ApproachBuoy = 0,
-			BumpBuoy = 1,
-			BackupMofoYouRanHerOver = 2,
-			ClearBuoys = 3,
-			DriveTowardsPipe = 4,
-			PanForBuoy = 5,
+			None,
+			All,
+			ApproachBuoy,
+			BumpBuoy,
+			BackupMofoYouRanHerOver,
+			ClearBuoys,
+			DriveTowardsPipe,
+			PanForBuoy,
 		};
 	};
 
@@ -34,7 +36,7 @@ namespace subjugator
 	private:
 		static const double approachDepth = 1.0; // m
 		static const double approachTravelDistance = 0.2; // m
-		static const double approachThreshold = 35000;
+		static const double approachThreshold = 8000;
 		static const double desiredBumpDistance = 2.0;
 		static const double bumpTravelDistance = 0.5;
 		static const double backupTravelDistance = 2.0;
@@ -48,6 +50,7 @@ namespace subjugator
 		bool backupSet;
 		bool clearBuoysSet;
 		bool pipeSet;
+		bool newFrame;
 
 		double pipeHeading;
 		double yawChange;

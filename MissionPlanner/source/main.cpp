@@ -22,7 +22,6 @@ int main(int argc, char **argv)
 {
 	boost::asio::io_service io;
 
-	// We need a worker
 	MissionPlannerWorker worker(io, 50 /*hz*/);
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start MissionPlanner Worker!");

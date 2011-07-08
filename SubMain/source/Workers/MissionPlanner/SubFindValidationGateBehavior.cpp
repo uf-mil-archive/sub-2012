@@ -5,10 +5,12 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
-FindValidationGateBehavior::FindValidationGateBehavior(double minDepth) :
+FindValidationGateBehavior::FindValidationGateBehavior(double minDepth, ObjectIDs::ObjectIDCode objId) :
 	MissionBehavior(MissionBehaviors::FindValidationGate, "FindValidation", minDepth),
 	canContinue(false), driveThroughSet(false), moveDepthSet(false)
 {
+	currentObjectID = objId;
+
 	servoGains2d = Vector2d(0.035*boost::math::constants::pi<double>() / 180.0, 0.0025);
 	gains2d = Vector2d(1.0, 1.0);
 
@@ -45,9 +47,16 @@ void FindValidationGateBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 {
 	connection2D.disconnect();	// Play nicely and disconnect from the 2d camera signal
 
-	// And disconnect from the camera command
 	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
+		// Tell the cameras to not look for anything
+		VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, ObjectIDs::None));
+		VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(1, ObjectIDs::None));
+
+		r->Operate(todown);
+		r->Operate(tofront);
+
+		// And disconnect from the camera command
 		r->Disconnect();
 	}
 }
@@ -65,12 +74,10 @@ void FindValidationGateBehavior::DoBehavior()
 {
 	// LPOS info is updated by the algorithm
 
-	currentObjectID = ObjectIDs::GateValidation;
-
 	// Tell the down camera to not look for anything here
-	VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(ObjectIDs::None, 1));
-	// And let the front camera know of the current target
-	VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(currentObjectID, 1));
+	VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, ObjectIDs::None));
+	// And let the front camera know of the current target - could be validation gate or hedge
+	VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(1, currentObjectID));
 
 	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
@@ -92,7 +99,10 @@ void FindValidationGateBehavior::ApproachGate()
 			if(objects2d[i].objectID == currentObjectID)
 			{
 				// The buoy we want is in view. Get the NED waypoint from the generator
-				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, objects2d[i], servoGains2d, 0.0, true);
+				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
+
+				if(!desiredWaypoint)	// Bad find, waygen says no good
+					continue;
 
 				double distance = 0.0;
 				if(objects2d[i].scale >= approachThreshold)
@@ -204,6 +214,8 @@ void FindValidationGateBehavior::PanForGate()
 			yawChange -= yawSearchAngle;
 		}
 		desiredWaypoint->number = getNextWaypointNum();
+
+		lock.unlock();
 	}
 
 	// TODO what if we can't pan and find the gate?
