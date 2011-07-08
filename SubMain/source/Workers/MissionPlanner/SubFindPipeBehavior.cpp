@@ -10,6 +10,8 @@ FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, double m
 	alignToPipe(aligntopipe), moveTravelDistance(movetraveldistance),
 	canContinue(false),	nextTask(false), creepDistance(0.1)
 {
+	currentObjectID = ObjectIDs::Pipe;
+
 	servoGains2d = Vector2d(0.0005, 0.0005);
 	gains2d = Vector2d(1.0, 1.0);
 
@@ -40,9 +42,16 @@ void FindPipeBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 {
 	connection2D.disconnect();	// Play nicely and disconnect from the 2d camera signal
 
-	// And disconnect from the camera command
 	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
+		// Tell the cameras to not look for anything
+		VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, ObjectIDs::None));
+		VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(1, ObjectIDs::None));
+
+		r->Operate(todown);
+		r->Operate(tofront);
+
+		// And disconnect from the camera command
 		r->Disconnect();
 	}
 }
