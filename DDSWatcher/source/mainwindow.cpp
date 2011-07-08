@@ -31,18 +31,8 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     connect(this, SIGNAL(imuInfoReceived()), this, SLOT(onIMUInfoReceived()));
     connect(this, SIGNAL(dvlInfoReceived()), this, SLOT(onDVLInfoReceived()));
     connect(this, SIGNAL(pdstatusInfoReceived()), this, SLOT(onPDStatusInfoReceived()));
-
-    ui->treeDDS->setColumnCount(2);
-
-    QStringList headers;
-    headers << tr("Topic/Variables") << tr("Value");
-    ui->treeDDS->setHeaderLabels(headers);
 }
 
-void MainWindow::remove(QTreeWidgetItem &parent, QTreeWidgetItem *child)
-{
-    parent.removeChild(child);
-}
 
 MainWindow::~MainWindow()
 {
@@ -54,203 +44,97 @@ MainWindow::~MainWindow()
 //***************************************************************************
 void MainWindow::onLPOSVSSInfoReceived()
 {
-	// Edit LPOSVSS data
-	QList<QTreeWidgetItem *> found = ui->treeDDS->findItems(
-		QString("LPOSVSS"), Qt::MatchWildcard);
-
-	QTreeWidgetItem *lposvss = found.first();
-
-	lposvss->child(0)->setText(0,tr("Timestamp"));
-	lposvss->child(0)->setText(1,QString::number(lposvssmsg.timestamp));
-
-	lposvss->child(1)->setText(0,tr("State"));
-	lposvss->child(1)->setText(1,QString::number(lposvssmsg.state));
-
-	lposvss->child(2)->setText(0,tr("Position_NED"));
-	lposvss->child(2)->setText(1,QString::number(lposvssmsg.position_NED[0]));
-	lposvss->child(3)->setText(1,QString::number(lposvssmsg.position_NED[1]));
-	lposvss->child(4)->setText(1,QString::number(lposvssmsg.position_NED[2]));
-
-	lposvss->child(2)->setText(0,tr("Quaternion_NED_B"));
-	lposvss->child(2)->setText(1,QString::number(lposvssmsg.quaternion_NED_B[0]));
-	lposvss->child(3)->setText(1,QString::number(lposvssmsg.quaternion_NED_B[1]));
-	lposvss->child(4)->setText(1,QString::number(lposvssmsg.quaternion_NED_B[2]));
-	lposvss->child(5)->setText(1,QString::number(lposvssmsg.quaternion_NED_B[3]));
-
-	lposvss->child(6)->setText(0,tr("Velocity_NED"));
-	lposvss->child(6)->setText(1,QString::number(lposvssmsg.velocity_NED[0]));
-	lposvss->child(7)->setText(1,QString::number(lposvssmsg.velocity_NED[1]));
-	lposvss->child(8)->setText(1,QString::number(lposvssmsg.velocity_NED[2]));
-
-	lposvss->child(9)->setText(0,tr("AngularRate_Body"));
-	lposvss->child(9)->setText(1,QString::number(lposvssmsg.angularRate_BODY[0]));
-	lposvss->child(10)->setText(1,QString::number(lposvssmsg.angularRate_BODY[1]));
-	lposvss->child(10)->setText(1,QString::number(lposvssmsg.angularRate_BODY[2]));
-
-	lposvss->child(11)->setText(0,tr("Acceleration_BODY"));
-	lposvss->child(11)->setText(1,QString::number(lposvssmsg.acceleration_BODY[0]));
-	lposvss->child(12)->setText(1,QString::number(lposvssmsg.acceleration_BODY[1]));
-	lposvss->child(13)->setText(1,QString::number(lposvssmsg.acceleration_BODY[2]));
+    ui->lblLPOSTimestamp->setText(QString::number(lposvssmsg.timestamp));
+    ui->lblLPOSState->setText(QString::number(lposvssmsg.state));
+    ui->lblLPOSPosition0->setText(QString::number(lposvssmsg.position_NED[0]));
+    ui->lblLPOSPosition1->setText(QString::number(lposvssmsg.position_NED[1]));
+    ui->lblLPOSPosition2->setText(QString::number(lposvssmsg.position_NED[2]));
+    ui->lblLPOSQuaternion0->setText(QString::number(lposvssmsg.quaternion_NED_B[0]));
+    ui->lblLPOSQuaternion1->setText(QString::number(lposvssmsg.quaternion_NED_B[1]));
+    ui->lblLPOSQuaternion2->setText(QString::number(lposvssmsg.quaternion_NED_B[2]));
+    ui->lblLPOSQuaternion3->setText(QString::number(lposvssmsg.quaternion_NED_B[3]));
+    ui->lblLPOSVelocity0->setText(QString::number(lposvssmsg.velocity_NED[0]));
+    ui->lblLPOSVelocity1->setText(QString::number(lposvssmsg.velocity_NED[1]));
+    ui->lblLPOSVelocity2->setText(QString::number(lposvssmsg.velocity_NED[2]));
+    ui->lblLPOSAngular0->setText(QString::number(lposvssmsg.angularRate_BODY[0]));
+    ui->lblLPOSAngular1->setText(QString::number(lposvssmsg.angularRate_BODY[1]));
+    ui->lblLPOSAngular2->setText(QString::number(lposvssmsg.angularRate_BODY[2]));
+    ui->lblLPOSAcceleration0->setText(QString::number(lposvssmsg.acceleration_BODY[0]));
+    ui->lblLPOSAcceleration1->setText(QString::number(lposvssmsg.acceleration_BODY[1]));
+    ui->lblLPOSAcceleration2->setText(QString::number(lposvssmsg.acceleration_BODY[2]));
 }
 
 void MainWindow::onSetWaypointInfoReceived()
 {
-	// Edit SetWaypoint data
-	QList<QTreeWidgetItem *> found = ui->treeDDS->findItems(
-		QString("SetWaypoint"), Qt::MatchWildcard);
-
-	QTreeWidgetItem *setwaypoint = found.first();
-
-	setwaypoint->child(0)->setText(0,tr("isRelative"));
-	setwaypoint->child(0)->setText(1,QString::number(setwaypointmsg.isRelative));
-
-	setwaypoint->child(1)->setText(0,tr("Position_NED"));
-	setwaypoint->child(1)->setText(1,QString::number(setwaypointmsg.position_ned[0]));
-	setwaypoint->child(2)->setText(1,QString::number(setwaypointmsg.position_ned[1]));
-	setwaypoint->child(3)->setText(1,QString::number(setwaypointmsg.position_ned[2]));
-
-	setwaypoint->child(4)->setText(0,tr("RPY"));
-	setwaypoint->child(4)->setText(1,QString::number(setwaypointmsg.rpy[0]));
-	setwaypoint->child(5)->setText(1,QString::number(setwaypointmsg.rpy[1]));
-	setwaypoint->child(6)->setText(1,QString::number(setwaypointmsg.rpy[2]));
+	ui->lblSetWayptisRelative->setText(QString::number(setwaypointmsg.isRelative));
+	ui->lblSetWayptPosition0->setText(QString::number(setwaypointmsg.position_ned[0]));
+	ui->lblSetWayptPosition1->setText(QString::number(setwaypointmsg.position_ned[1]));
+	ui->lblSetWayptPosition2->setText(QString::number(setwaypointmsg.position_ned[2]));
+	ui->lblSetWayptRPY0->setText(QString::number(setwaypointmsg.rpy[0]));
+	ui->lblSetWayptRPY1->setText(QString::number(setwaypointmsg.rpy[1]));
+	ui->lblSetWayptRPY2->setText(QString::number(setwaypointmsg.rpy[2]));
 }
 
 void MainWindow::onDepthInfoReceived()
 {
-	// Edit SetWaypoint data
-	QList<QTreeWidgetItem *> found = ui->treeDDS->findItems(
-		QString("Depth"), Qt::MatchWildcard);
-
-	QTreeWidgetItem *depth = found.first();
-
-	depth->child(0)->setText(0,tr("Timestamp"));
-	depth->child(0)->setText(1,QString::number(depthmsg.timestamp));
-
-	depth->child(1)->setText(0,tr("Depth"));
-	depth->child(1)->setText(1,QString::number(depthmsg.depth));
-
-	depth->child(2)->setText(0,tr("humidity"));
-	depth->child(2)->setText(1,QString::number(depthmsg.humidity));
-
-	depth->child(3)->setText(0,tr("ThermisterTemp"));
-	depth->child(3)->setText(1,QString::number(depthmsg.thermistertemp));
-
-	depth->child(4)->setText(0,tr("HumidityTemp"));
-	depth->child(4)->setText(1,QString::number(depthmsg.humiditytemp));
+	ui->lblDepthTimestamp->setText(QString::number(depthmsg.timestamp));
+	ui->lblDepthDepth->setText(QString::number(depthmsg.depth));
+	ui->lblDepthHumidity->setText(QString::number(depthmsg.humidity));
+	ui->lblDepthThermisterTemp->setText(QString::number(depthmsg.thermistertemp));
+	ui->lbDepthHumidTemp->setText(QString::number(depthmsg.humiditytemp));
 }
 
 void MainWindow::onIMUInfoReceived()
 {
-	// Edit SetWaypoint data
-	QList<QTreeWidgetItem *> found = ui->treeDDS->findItems(
-		QString("IMU"), Qt::MatchWildcard);
-
-	QTreeWidgetItem *imu = found.first();
-
-	imu->child(0)->setText(0,tr("Timestamp"));
-	imu->child(0)->setText(1,QString::number(imumsg.timestamp));
-
-	imu->child(1)->setText(0,tr("Flags"));
-	imu->child(1)->setText(1,QString::number(imumsg.flags));
-
-	imu->child(2)->setText(0,tr("Temp"));
-	imu->child(2)->setText(1,QString::number(imumsg.temp));
-
-	imu->child(3)->setText(0,tr("Supply"));
-	imu->child(3)->setText(1,QString::number(imumsg.supply));
-
-	imu->child(4)->setText(0,tr("Acceleration"));
-	imu->child(4)->setText(1,QString::number(imumsg.acceleration[0]));
-	imu->child(5)->setText(1,QString::number(imumsg.acceleration[1]));
-	imu->child(6)->setText(1,QString::number(imumsg.acceleration[2]));
-
-	imu->child(7)->setText(0,tr("Angular_Rate"));
-	imu->child(7)->setText(1,QString::number(imumsg.angular_rate[0]));
-	imu->child(8)->setText(1,QString::number(imumsg.angular_rate[1]));
-	imu->child(8)->setText(1,QString::number(imumsg.angular_rate[2]));
-
-	imu->child(9)->setText(0,tr("Mag_Field"));
-	imu->child(9)->setText(1,QString::number(imumsg.mag_field[0]));
-	imu->child(10)->setText(1,QString::number(imumsg.mag_field[1]));
-	imu->child(11)->setText(1,QString::number(imumsg.mag_field[2]));
+	ui->lblIMUTimestamp->setText(QString::number(imumsg.timestamp));
+	ui->lblIMUFlags->setText(QString::number(imumsg.flags));
+	ui->lblIMUtemp->setText(QString::number(imumsg.temp));
+	ui->lblIMUSupply->setText(QString::number(imumsg.supply));
+	ui->lblIMUAcceleration0->setText(QString::number(imumsg.acceleration[0]));
+	ui->lblIMUAcceleration1->setText(QString::number(imumsg.acceleration[1]));
+	ui->lblIMUAcceleration2->setText(QString::number(imumsg.acceleration[2]));
+	ui->lblIMUAngular0->setText(QString::number(imumsg.angular_rate[0]));
+	ui->lblIMUAngular1->setText(QString::number(imumsg.angular_rate[1]));
+	ui->lblIMUAngular2->setText(QString::number(imumsg.angular_rate[2]));
+	ui->lblIMUMagField0->setText(QString::number(imumsg.mag_field[0]));
+	ui->lblIMUMagField1->setText(QString::number(imumsg.mag_field[1]));
+	ui->lblIMUMagField2->setText(QString::number(imumsg.mag_field[2]));
 }
 
 void MainWindow::onDVLInfoReceived()
 {
-	// Edit SetWaypoint data
-	QList<QTreeWidgetItem *> found = ui->treeDDS->findItems(
-		QString("DVL"), Qt::MatchWildcard);
-
-	QTreeWidgetItem *dvl = found.first();
-
-	dvl->child(0)->setText(0,tr("Timestamp"));
-	dvl->child(0)->setText(1,QString::number(dvlmsg.timestamp));
-
-	dvl->child(1)->setText(0,tr("Velocity"));
-	dvl->child(1)->setText(1,QString::number(dvlmsg.velocity[0]));
-	dvl->child(2)->setText(1,QString::number(dvlmsg.velocity[1]));
-	dvl->child(3)->setText(1,QString::number(dvlmsg.velocity[2]));
-
-	dvl->child(4)->setText(0,tr("VelocityError"));
-	dvl->child(4)->setText(1,QString::number(dvlmsg.velocityerror));
-
-	dvl->child(5)->setText(0,tr("Height"));
-	dvl->child(5)->setText(1,QString::number(dvlmsg.height));
-
-	dvl->child(6)->setText(0,tr("BeamCorrelation"));
-	dvl->child(6)->setText(1,QString::number(dvlmsg.beamcorrelation[0]));
-	dvl->child(7)->setText(1,QString::number(dvlmsg.beamcorrelation[1]));
-	dvl->child(8)->setText(1,QString::number(dvlmsg.beamcorrelation[2]));
-	dvl->child(9)->setText(1,QString::number(dvlmsg.beamcorrelation[3]));
-
-	dvl->child(10)->setText(0,tr("Good"));
-	dvl->child(10)->setText(1,QString::number(dvlmsg.good));
+	ui->lblDVLTimestamp->setText(QString::number(dvlmsg.timestamp));
+	ui->lblDVLVelocity0->setText(QString::number(dvlmsg.velocity[0]));
+	ui->lblDVLVelocity1->setText(QString::number(dvlmsg.velocity[1]));
+	ui->lblDVLVelocity2->setText(QString::number(dvlmsg.velocity[2]));
+	ui->lblDVLVelocityError->setText(QString::number(dvlmsg.velocityerror));
+	ui->lblDVLHeight->setText(QString::number(dvlmsg.height));
+	ui->lblDVLBeamCorrelation0->setText(QString::number(dvlmsg.beamcorrelation[0]));
+	ui->lblDVLBeamCorrelation1->setText(QString::number(dvlmsg.beamcorrelation[1]));
+	ui->lblDVLBeamCorrelation2->setText(QString::number(dvlmsg.beamcorrelation[2]));
+	ui->lblDVLBeamCorrelation3->setText(QString::number(dvlmsg.beamcorrelation[3]));
+	ui->lblDVLGood->setText(QString::number(dvlmsg.good));
 }
 
 void MainWindow::onPDStatusInfoReceived()
 {
-	// Edit SetWaypoint data
-	QList<QTreeWidgetItem *> found = ui->treeDDS->findItems(
-		QString("PDStatus"), Qt::MatchWildcard);
-
-	QTreeWidgetItem *pdstatus = found.first();
-
-	pdstatus->child(0)->setText(0,tr("Timestamp"));
-	pdstatus->child(0)->setText(1,QString::number(pdstatusmsg.timestamp));
-
-	pdstatus->child(1)->setText(0,tr("State"));
-	pdstatus->child(1)->setText(1,QString::number(pdstatusmsg.state));
-
-	pdstatus->child(2)->setText(0,tr("EStop"));
-	pdstatus->child(2)->setText(1,QString::number(pdstatusmsg.estop));
-
-	pdstatus->child(3)->setText(0,tr("Current"));
-	pdstatus->child(3)->setText(1,QString::number(pdstatusmsg.current[0]));
-	pdstatus->child(4)->setText(1,QString::number(pdstatusmsg.current[1]));
-	pdstatus->child(5)->setText(1,QString::number(pdstatusmsg.current[2]));
-	pdstatus->child(6)->setText(1,QString::number(pdstatusmsg.current[3]));
-	pdstatus->child(7)->setText(1,QString::number(pdstatusmsg.current[4]));
-	pdstatus->child(8)->setText(1,QString::number(pdstatusmsg.current[5]));
-	pdstatus->child(9)->setText(1,QString::number(pdstatusmsg.current[6]));
-	pdstatus->child(10)->setText(1,QString::number(pdstatusmsg.current[7]));
-
-	pdstatus->child(11)->setText(0,tr("TickCount"));
-	pdstatus->child(11)->setText(1,QString::number(pdstatusmsg.tickcount));
-
-	pdstatus->child(12)->setText(0,tr("Flags"));
-	pdstatus->child(12)->setText(1,QString::number(pdstatusmsg.flags));
-
-	pdstatus->child(13)->setText(0,tr("Current16"));
-	pdstatus->child(13)->setText(1,QString::number(pdstatusmsg.current16));
-
-	pdstatus->child(14)->setText(0,tr("Voltage16"));
-	pdstatus->child(14)->setText(1,QString::number(pdstatusmsg.voltage16));
-
-	pdstatus->child(15)->setText(0,tr("Current32"));
-	pdstatus->child(15)->setText(1,QString::number(pdstatusmsg.current32));
-
-	pdstatus->child(16)->setText(0,tr("Voltage32"));
-	pdstatus->child(16)->setText(1,QString::number(pdstatusmsg.voltage32));
+	ui->lblPDStatusTimestamp->setText(QString::number(pdstatusmsg.timestamp));
+	ui->lblPDStatusState->setText(QString::number(pdstatusmsg.state));
+	ui->lblPDStatusEstop->setText(QString::number(pdstatusmsg.estop));
+	ui->lblPDStatusCurrent0->setText(QString::number(pdstatusmsg.current[0]));
+	ui->lblPDStatusCurrent1->setText(QString::number(pdstatusmsg.current[1]));
+	ui->lblPDStatusCurrent2->setText(QString::number(pdstatusmsg.current[2]));
+	ui->lblPDStatusCurrent3->setText(QString::number(pdstatusmsg.current[3]));
+	ui->lblPDStatusCurrent4->setText(QString::number(pdstatusmsg.current[4]));
+	ui->lblPDStatusCurrent5->setText(QString::number(pdstatusmsg.current[5]));
+	ui->lblPDStatusCurrent6->setText(QString::number(pdstatusmsg.current[6]));
+	ui->lblPDStatusCurrent7->setText(QString::number(pdstatusmsg.current[7]));
+	ui->lblPDStatusTickcount->setText(QString::number(pdstatusmsg.tickcount));
+	ui->lblPDStatusFlags->setText(QString::number(pdstatusmsg.flags));
+	ui->lblPDStatusCurrent16->setText(QString::number(pdstatusmsg.current16));
+	ui->lblPDStatusVoltage16->setText(QString::number(pdstatusmsg.voltage16));
+	ui->lblPDStatusCurrent32->setText(QString::number(pdstatusmsg.current32));
+	ui->lblPDStatusVoltage32->setText(QString::number(pdstatusmsg.voltage32));
 }
 
 //***************************************************************************
@@ -258,126 +142,36 @@ void MainWindow::onPDStatusInfoReceived()
 //***************************************************************************
 void MainWindow::LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg)
 {
-	if (!lposvssData)
-	{
-		// Create Top Category
-		QTreeWidgetItem *lposvss = new QTreeWidgetItem(ui->treeDDS);
-		// Handle LPOSVSS
-		lposvss->setText(0, tr("LPOSVSS"));
-
-		int numOfMessages = 18;
-
-		for (int i = 0; i< numOfMessages; i++)
-			new QTreeWidgetItem(lposvss);
-
-		lposvssData = true;
-	}
-
 	lposvssmsg = msg;
 	emit lposvssInfoReceived();
 }
 
 void MainWindow::SetWaypointDDSReadCallback(const SetWaypointMessage &msg)
 {
-	if (!setwaypointData)
-	{
-		// Create Top Category
-		QTreeWidgetItem *setwaypoint = new QTreeWidgetItem(ui->treeDDS);
-		// Handle LPOSVSS
-		setwaypoint->setText(0, tr("SetWaypoint"));
-
-		int numOfMessages = 7;
-
-		for (int i = 0; i< numOfMessages; i++)
-			new QTreeWidgetItem(setwaypoint);
-
-		setwaypointData = true;
-	}
-
 	setwaypointmsg = msg;
 	emit setWaypointInfoReceived();
 }
 
 void MainWindow::DepthDDSReadCallback(const DepthMessage &msg)
 {
-	if (!depthData)
-	{
-		// Create Top Category
-		QTreeWidgetItem *setwaypoint = new QTreeWidgetItem(ui->treeDDS);
-		// Handle Depth
-		setwaypoint->setText(0, tr("Depth"));
-
-		int numOfMessages = 5;
-
-		for (int i = 0; i< numOfMessages; i++)
-			new QTreeWidgetItem(setwaypoint);
-
-		depthData = true;
-	}
-
 	depthmsg = msg;
 	emit depthInfoReceived();
 }
 
 void MainWindow::IMUDDSReadCallback(const IMUMessage &msg)
 {
-	if (!imuData)
-	{
-		// Create Top Category
-		QTreeWidgetItem *imu = new QTreeWidgetItem(ui->treeDDS);
-		// Handle IMU
-		imu->setText(0, tr("IMU"));
-
-		int numOfMessages = 13;
-
-		for (int i = 0; i< numOfMessages; i++)
-			new QTreeWidgetItem(imu);
-
-		imuData = true;
-	}
-
 	imumsg = msg;
 	emit imuInfoReceived();
 }
 
 void MainWindow::DVLDDSReadCallback(const DVLMessage &msg)
 {
-	if (!dvlData)
-	{
-		// Create Top Category
-		QTreeWidgetItem *dvl = new QTreeWidgetItem(ui->treeDDS);
-		// Handle DVL
-		dvl->setText(0, tr("DVL"));
-
-		int numOfMessages = 11;
-
-		for (int i = 0; i< numOfMessages; i++)
-			new QTreeWidgetItem(dvl);
-
-		dvlData = true;
-	}
-
 	dvlmsg = msg;
 	emit dvlInfoReceived();
 }
 
 void MainWindow::PDStatusDDSReadCallback(const PDStatusMessage &msg)
 {
-	if (!pdstatusData)
-	{
-		// Create Top Category
-		QTreeWidgetItem *pdstatus = new QTreeWidgetItem(ui->treeDDS);
-		// Handle PDStatus
-		pdstatus->setText(0, tr("PDStatus"));
-
-		int numOfMessages = 17;
-
-		for (int i = 0; i< numOfMessages; i++)
-			new QTreeWidgetItem(pdstatus);
-
-		pdstatusData = true;
-	}
-
 	pdstatusmsg = msg;
 	emit pdstatusInfoReceived();
 }
