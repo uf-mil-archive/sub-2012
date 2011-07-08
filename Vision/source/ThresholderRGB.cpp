@@ -23,14 +23,16 @@ void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
 	else if(objectID == MIL_OBJECTID_TUBE)
 		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
-		threshOrange(ioimages, true);
-	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL)
-		threshOrange(ioimages, true);
+		threshRed(ioimages, true);
+	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL) {}
+		//threshBlue(ioimages, true); // TODO Implement blue thresholding!
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE)
-		threshOrange(ioimages, true);
-	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE)
-		threshOrange(ioimages, true);
+		threshRed(ioimages, true);
+	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE) {}
+		//threshBlue(ioimages, true); // TODO Implement blue thresholding!
 	else if(objectID == MIL_OBJECTID_BIN_ALL)
+		threshBlack(ioimages);
+	else if(objectID == MIL_OBJECTID_BIN_SINGLE)
 		threshBlack(ioimages);
 	else if(objectID == MIL_OBJECTID_BIN_SHAPE)
 		threshRed(ioimages, false);
@@ -88,14 +90,14 @@ void ThresholderRGB::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 	//imshow("1",channelsHSV[1]);
 	//imshow("2",channelsHSV[2]);
 
-	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,51,5); // use lab channel hack
+	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,101,5); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
 	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(30,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
 	//adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-40);
-	threshold(ioimages->dbg,ioimages->dbg,150,255,THRESH_BINARY);
+	threshold(ioimages->dbg,ioimages->dbg,100,255,THRESH_BINARY);
 	if(erodeDilateFlag)
 	{
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));

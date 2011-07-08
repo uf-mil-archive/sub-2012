@@ -25,19 +25,20 @@ vector<shared_ptr<FinderResult> > ShooterFinder::find(IOImages* ioimages)
 
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
+		// blur the image to remove noise
+		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(11,11),10,15,BORDER_DEFAULT);
+
 		// call to thresholder here
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Contours* contours = new Contours(100,50000,1500);
+		Contours* contours = new Contours(100,70000,1500);
 		result = contours->findContours(ioimages, true);
-		contours->sortBoxes();
+		//contours->sortBoxes();
 
 		// Prepare results
 		if(result)
 		{
-
-
 			// Draw result
 			contours->drawResult(ioimages,oIDs[i]);
 			if(oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL || oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)

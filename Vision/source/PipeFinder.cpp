@@ -44,6 +44,7 @@ vector<shared_ptr<FinderResult> > PipeFinder::find(IOImages* ioimages)
 					fResult2D->objectID = oIDs[i];
 					fResult2D->u = line->avgLines[j].centroid.x;
 					fResult2D->v = line->avgLines[j].centroid.y;
+					fResult2D->angle = line->avgLines[j].angle;
 					fResult2D->scale = line->avgLines[j].length;
 					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 				}

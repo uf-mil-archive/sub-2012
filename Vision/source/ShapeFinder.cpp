@@ -52,6 +52,8 @@ vector<shared_ptr<FinderResult> > ShapeFinder::find(IOImages* ioimages)
 			else
 				fResult2D->objectID = MIL_OBJECTID_BIN_O;
 			fResult2D->scale = contours->shapes[index].area;
+			fResult2D->u = contours->shapes[index].centroid.x;
+			fResult2D->v = contours->shapes[index].centroid.y;
 		}
 		resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		delete contours;

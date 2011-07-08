@@ -62,7 +62,8 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float gainVal)
 	//-------
 
 	Property white_balance(WHITE_BALANCE);
-	white_balance.autoManualMode = true;
+	//white_balance.autoManualMode = true;
+	white_balance.absValue = 5.0;
 	cameras[camID].cam.SetProperty(&white_balance, false);
 	printf("Set auto white balance.\n");
 

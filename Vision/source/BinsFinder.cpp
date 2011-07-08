@@ -44,12 +44,25 @@ vector<shared_ptr<FinderResult> > BinsFinder::find(IOImages* ioimages)
 				FinderResult2D *fResult2D = new FinderResult2D();
 				fResult2D->objectID = oIDs[i];
 				fResult2D->u = centroidOfBoxes.x;
-				fResult2D->u = centroidOfBoxes.y;
+				fResult2D->v = centroidOfBoxes.y;
 				fResult2D->scale = contours->boxes.size();
 				// Scale returns the number of boxes that are currently being found.
 				// The idea is to align to centroid until 4 boxes are found.
 				fResult2D->angle = contours->calcAngleOfAllBoxes();
 				resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+			}
+			else if(oIDs[i] == MIL_OBJECTID_BIN_SINGLE)
+			{
+				for(unsigned int j=0; j<contours->boxes.size(); j++)
+				{
+					FinderResult2D *fResult2D = new FinderResult2D();
+					fResult2D->objectID = oIDs[i];
+					fResult2D->u = contours->boxes[j].centroid.x;
+					fResult2D->v = contours->boxes[j].centroid.y;
+					fResult2D->angle = contours->boxes[j].angle;
+					fResult2D->scale = contours->boxes[j].area;
+					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+				}
 			}
 		}
 		else // fail and return no object result

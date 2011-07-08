@@ -32,7 +32,7 @@ vector<IFinder*> FinderGenerator::buildFinders(vector<int> oIDs)
 		else if( oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE || oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL ||
 				 oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE || oIDs[i]==MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
 			shooterIDs.push_back(oIDs[i]);
-		else if( oIDs[i]==MIL_OBJECTID_BIN_ALL )
+		else if( oIDs[i]==MIL_OBJECTID_BIN_ALL || oIDs[i]==MIL_OBJECTID_BIN_SINGLE )
 			binsIDs.push_back(oIDs[i]);
 		else if( oIDs[i]==MIL_OBJECTID_BIN_SHAPE)
 			shapeIDs.push_back(oIDs[i]);
