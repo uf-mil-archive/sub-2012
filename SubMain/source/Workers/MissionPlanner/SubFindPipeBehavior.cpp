@@ -8,7 +8,8 @@ using namespace Eigen;
 FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, double movetraveldistance) :
 	MissionBehavior(MissionBehaviors::FindPipe, "FindPipe", minDepth),
 	alignToPipe(aligntopipe), moveTravelDistance(movetraveldistance),
-	canContinue(false),	nextTask(false), creepDistance(0.1)
+	canContinue(false),	nextTask(false), creepDistance(0.1),
+	timerStarted(false), count(0), newFrame(false)
 {
 	servoGains2d = Vector2d(0.0005, 0.0005);
 	gains2d = Vector2d(1.0, 1.0);
@@ -53,6 +54,8 @@ void FindPipeBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& 
 
 	objects2d = camObjects;
 
+	newFrame = true;
+
 	lock.unlock();
 }
 
@@ -74,17 +77,20 @@ void FindPipeBehavior::DoBehavior()
 
 void FindPipeBehavior::AlignToPipes()
 {
-	bool timertimer = false;
-	int count = 0;
 	bool sawPipe = false;
 
-	if(!canContinue)  // CHECK ON THIS
+	if(!canContinue)
 	{
+		if(!newFrame)
+			return;
+
+		newFrame = false;
+
 		// Start Alignment Timer
-		if (!timertimer)
+		if (!timerStarted)
 		{
 			timer.Start(alignTimeout);
-			timertimer = true;
+			timerStarted = true;
 		}
 
 		if (timer.HasExpired())
@@ -120,7 +126,7 @@ void FindPipeBehavior::AlignToPipes()
 				count++;
 
 				// It's lost, drive forward. Assuming were pointed the right way
-				if (count > 4)
+				if (count > desiredAttempts)
 				{
 					desiredWaypoint = boost::shared_ptr<Waypoint>();
 					desiredWaypoint->isRelative = false;
