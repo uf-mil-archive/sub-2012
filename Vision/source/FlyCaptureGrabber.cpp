@@ -10,7 +10,7 @@ FlyCaptureGrabber::~FlyCaptureGrabber(void)
 {
 }
 
-int FlyCaptureGrabber::FlyCapInitializeCameras(int camID)
+int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float gainVal)
 {
 	// Print build information
 	PrintBuildInfo();
@@ -56,6 +56,29 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID)
 	}
 	PrintCameraInfo(&cameras[camID].camInfo, camID);
 	printf("Connected to camera %d!\n",camID);
+
+	//-------
+	printf("Setting configuration settings:\n");
+	//-------
+
+	Property white_balance(WHITE_BALANCE);
+	white_balance.autoManualMode = true;
+	cameras[camID].cam.SetProperty(&white_balance, false);
+	printf("Set auto white balance.\n");
+
+	Property auto_exposure(AUTO_EXPOSURE);
+	white_balance.autoManualMode = true;
+	cameras[camID].cam.SetProperty(&auto_exposure, false);
+	printf("Set auto exposure.\n");
+
+	Property gain(GAIN);
+	gain.absValue = gainVal;
+	cameras[camID].cam.SetProperty(&gain, false);
+	printf("Set gain to %.1f.\n",gainVal);
+
+	printf("\n");
+
+
 	// Start capturing images
 	error = cameras[camID].cam.StartCapture();
 	if (error != PGRERROR_OK)
