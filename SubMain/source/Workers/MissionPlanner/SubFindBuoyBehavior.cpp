@@ -10,13 +10,13 @@ using namespace Eigen;
 FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
 	MissionBehavior(MissionBehaviors::FindBuoy, "FindBuoy", minDepth),
 	canContinue(false),	bumpSet(false), backupSet(false), clearBuoysSet(false),
-	pipeSet(false)
+	pipeSet(false), hasSeenBuoy(0)
 {
-	servoGains2d = Vector2d(0.0025, .0035*boost::math::constants::pi<double>() / 180.0);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO enqueue which buoys we are looking for
 	buoysToFind.push(ObjectIDs::BuoyRed);
+	buoysToFind.push(ObjectIDs::BuoyYellow);
 	//buoysToFind.push(ObjectIDs::BuoyGreen);
 
 	// Setup the callbacks
@@ -113,6 +113,8 @@ void FindBuoyBehavior::ApproachBuoy()
 		if(!newFrame)
 			return;
 
+		getGains();
+
 		newFrame = false;
 		// The list of 2d objects the class is holding is the current found images in the frame
 		for(size_t i = 0; i < objects2d.size(); i++)
@@ -126,6 +128,7 @@ void FindBuoyBehavior::ApproachBuoy()
 					continue;
 
 				double distance = 0.0;
+				lastScale = objects2d[i].scale;
 				if(objects2d[i].scale >= approachThreshold)
 					canContinue = true;
 				else
@@ -139,6 +142,7 @@ void FindBuoyBehavior::ApproachBuoy()
 				desiredWaypoint->Position_NED += distanceToTravel;
 				desiredWaypoint->number = getNextWaypointNum();
 
+				hasSeenBuoy = 0;
 				sawBuoy = true;
 
 				break;
@@ -148,14 +152,19 @@ void FindBuoyBehavior::ApproachBuoy()
 		// We either never saw the buoy or we lost it. Keep searching forward at pipe heading
 		if(!sawBuoy)
 		{
-			double serioslycpp = approachTravelDistance;
-			desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
-			desiredWaypoint->isRelative = false;
-			desiredWaypoint->Position_NED = MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
-					Vector3d(serioslycpp, 0.0, 0.0)) + lposInfo->getPosition_NED();
-			desiredWaypoint->Position_NED(2) = approachDepth;
-			desiredWaypoint->RPY = Vector3d(0.0, 0.0, pipeHeading);
-			desiredWaypoint->number = getNextWaypointNum();
+			if((hasSeenBuoy++) > 10)
+				stateManager.ChangeState(FindBuoyMiniBehaviors::PanForBuoy);
+			else
+			{
+				double serioslycpp = approachTravelDistance;
+				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+				desiredWaypoint->isRelative = false;
+				desiredWaypoint->Position_NED = MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
+						Vector3d(serioslycpp, 0.0, 0.0)) + lposInfo->getPosition_NED();
+				desiredWaypoint->Position_NED(2) = approachDepth;
+				desiredWaypoint->RPY = Vector3d(0.0, 0.0, pipeHeading);
+				desiredWaypoint->number = getNextWaypointNum();
+			}
 		}
 	}
 	// Just waiting to arrive at the final waypoint for the mini behavior
@@ -293,6 +302,7 @@ void FindBuoyBehavior::DriveTowardsPipe()
 void FindBuoyBehavior::PanForBuoy()
 {
 	bool sawBuoy = false;
+	hasSeenBuoy = 0;
 
 	// The list of 2d objects the class is holding is the current found images in the frame
 	for(size_t i = 0; i < objects2d.size(); i++)
@@ -318,15 +328,15 @@ void FindBuoyBehavior::PanForBuoy()
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
 		desiredWaypoint->Position_NED(2) = alignDepth;
 
-		if(yawChange < boost::math::constants::pi<double>() / 180.0 * yawMaxSearchAngle)
+		if(yawChange < yawMaxSearchAngle)
 		{
-			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle);
+			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle * boost::math::constants::pi<double>() / 180.0);
 			yawChange += yawSearchAngle;
 		}
 		else
 		{
-			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle);
-			yawChange -= yawSearchAngle;
+			//desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle);
+			//yawChange -= yawSearchAngle;
 		}
 		desiredWaypoint->number = getNextWaypointNum();
 
@@ -336,4 +346,18 @@ void FindBuoyBehavior::PanForBuoy()
 	// TODO what if we can't pan and find the buoy?
 }
 
+// TODO Set travel distances
+void FindBuoyBehavior::getGains()
+{
 
+	if (lastScale > 5000)
+	{
+		servoGains2d = Vector2d(0.0025, .025*boost::math::constants::pi<double>() / 180.0);
+		approachTravelDistance = 0.2; // m
+	}
+	else
+	{
+		servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
+		approachTravelDistance = 0.5; // m
+	}
+}

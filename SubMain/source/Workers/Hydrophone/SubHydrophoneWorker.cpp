@@ -43,41 +43,44 @@ namespace subjugator
 	void HydrophoneWorker::failState(){}
 
 	//to log samples for debugging uncomment next 2 lines
-	//ofstream out("logData.csv");
-	//int packetNo = 0;
+	ofstream out("logData.csv");
+	int packetNo = 0;
 
 	void HydrophoneWorker::halReceiveCallback(std::auto_ptr<DataObject> &dobj)
 	{
 		HydrophoneSamples *samples = dynamic_cast<HydrophoneSamples *>(dobj.get());
 		//cout << samples->getMatrix();
 		//to log samples for debugging uncomment lower block
-		/*packetNo++;
+		packetNo++;
 		for(int rows = 0; rows < samples->getMatrix().rows(); rows++)
 		{
 			out << packetNo << ",";
 			for(int cols = 0; cols < samples->getMatrix().cols(); cols++)
 				out << samples->getMatrix()(rows, cols) << ", ";
 			out << endl;
-		}*/
+		}
 
+		try {
+			HydrophoneDataProcessor proc(samples->getMatrix(), config);
+			//cout << fixed << setprecision(16);
+			//cout << proc.getDist() << ", " << proc.getHeading()/M_PI*180 << ", " << proc.getDeclination()/M_PI*180 << ", " << proc.getPingfreq() << endl;
 
-		HydrophoneDataProcessor proc(samples->getMatrix(), config);
-		//cout << fixed << setprecision(16);
-		//cout << proc.getDist() << ", " << proc.getHeading()/M_PI*180 << ", " << proc.getDeclination()/M_PI*180 << ", " << proc.getPingfreq() << endl;
+			double heading = 0;
+			// rotate heading and handle wraparound
+			if ((proc.getHeading()/M_PI*180 >= -180.0) && (proc.getHeading()/M_PI*180 <= 90.0))
+				heading = -proc.getHeading()/M_PI*180 - 90;
+			else if ((proc.getHeading()/M_PI*180 > 90.0) && (proc.getHeading()/M_PI*180 <= 180.0))
+				heading = -proc.getHeading()/M_PI*180 + 270;
+			else
+				heading = 360.0;
 
-		double heading = 0;
-		// rotate heading and handle wraparound
-		if ((proc.getHeading()/M_PI*180 >= -180.0) && (proc.getHeading()/M_PI*180 <= 90.0))
-			heading = -proc.getHeading()/M_PI*180 - 90;
-		else if ((proc.getHeading()/M_PI*180 > 90.0) && (proc.getHeading()/M_PI*180 <= 180.0))
-			heading = -proc.getHeading()/M_PI*180 + 270;
-		else
-			heading = 360.0;
+			HydrophoneInfo* hydInfo = new HydrophoneInfo(samples->getTimestamp(), proc.getDist(), heading*M_PI/180, proc.getDeclination(), proc.getPingfreq(), proc.isValid());
 
-		HydrophoneInfo* hydInfo = new HydrophoneInfo(samples->getTimestamp(), proc.getDist(), heading*M_PI/180, proc.getDeclination(), proc.getPingfreq(), proc.isValid());
-
-		// Dispatch to the listeners
-		onEmitting(boost::shared_ptr<DataObject>(hydInfo));
+			// Dispatch to the listeners
+			onEmitting(boost::shared_ptr<DataObject>(hydInfo));
+		} catch (HydrophoneDataProcessor::Error &err) {
+			cout << "Got hydrophone error: " << err.what() << endl;
+		}
 	}
 
 	void HydrophoneWorker::halStateChangeCallback(){}

@@ -10,9 +10,9 @@
 using namespace subjugator;
 
 MissionPlannerDDSListener::MissionPlannerDDSListener(Worker &worker, DDSDomainParticipant *part)
-: waypointddssender(part, "MissionPlanner"),
+: waypointddssender(part, "SetWaypoint"),
   visionidsddssender(part, "VisionSetIDs"),
-  pdactuatorddssender(part, "PDActuator") { 
+  pdactuatorddssender(part, "PDActuator") {
 	connectWorker(worker);
 }
 
@@ -22,18 +22,18 @@ void MissionPlannerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> 
 		SetWaypointMessage *msg = SetWaypointMessageTypeSupport::create_data();
 		msg->isRelative = waypoint->isRelative;
 		//msg->number = waypoint->number;
-		
+
 		for (int i=0; i<3; i++)
 			msg->position_ned[i] = waypoint->Position_NED(i);
-			
+
 		for (int i=0; i<3; i++)
 			msg->rpy[i] = waypoint->RPY(i);
-		
+
 		waypointddssender.Send(*msg);
 		SetWaypointMessageTypeSupport::delete_data(msg);
 	} else if (VisionSetIDs *setids = dynamic_cast<VisionSetIDs *>(dobj.get())) {
 		VisionSetIDsMessage *msg = VisionSetIDsMessageTypeSupport::create_data();
-		
+
 		int ids = setids->getIDs().size();
 		msg->visionids.ensure_length(ids, ids);
 		for (int i=0; i<ids; i++) {
@@ -45,9 +45,9 @@ void MissionPlannerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> 
 		VisionSetIDsMessageTypeSupport::delete_data(msg);
 	} else if (PDActuator *pdact = dynamic_cast<PDActuator *>(dobj.get())) {
 		PDActuatorMessage *actuator = PDActuatorMessageTypeSupport::create_data();
-		
+
 		actuator->flags = pdact->flags;
-		
+
 		pdactuatorddssender.Send(*actuator);
 		PDActuatorMessageTypeSupport::delete_data(actuator);
 	}

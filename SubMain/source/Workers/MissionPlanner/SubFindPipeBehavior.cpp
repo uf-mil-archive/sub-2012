@@ -13,7 +13,7 @@ FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, bool tur
 {
 	currentObjectID = ObjectIDs::Pipe;
 
-	servoGains2d = Vector2d(0.0005, 0.0005);
+	servoGains2d = Vector2d(0.001, 0.001);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// Setup the callbacks
@@ -151,6 +151,7 @@ void FindPipeBehavior::AlignToPipes()
 
 				desiredWaypoint->Position_NED(2) = alignDepth;
 				desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(alignToPipe + desiredWaypoint->RPY(2));
+				desiredWaypoint->number = getNextWaypointNum();
 			}
 			else
 			{
@@ -159,15 +160,15 @@ void FindPipeBehavior::AlignToPipes()
 				// It's lost, drive forward. Assuming were pointed the right way
 				if (count > desiredAttempts)
 				{
-					desiredWaypoint = boost::shared_ptr<Waypoint>();
+					desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 					desiredWaypoint->isRelative = false;
 
 					// Project the distance in the XY NED Plane.
-					desiredWaypoint->Position_NED(0) = creepDistance*cos(desiredWaypoint->RPY(2));
-					desiredWaypoint->Position_NED(1) = creepDistance*sin(desiredWaypoint->RPY(2));
+					desiredWaypoint->Position_NED(0) = creepDistance*cos(lposRPY(2));
+					desiredWaypoint->Position_NED(1) = creepDistance*sin(lposRPY(2));
 					desiredWaypoint->Position_NED += lposInfo->getPosition_NED();
 					desiredWaypoint->Position_NED(2) = alignDepth;
-					desiredWaypoint->RPY = Vector3d(0.0, 0.0, startHeading);
+					desiredWaypoint->RPY = Vector3d(0.0, 0.0, lposRPY(2));
 
 					desiredWaypoint->number = getNextWaypointNum();
 				}
@@ -193,7 +194,7 @@ void FindPipeBehavior::MoveTowardsNextTask()
 		double serioslycpp = moveTravelDistance;
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
-		desiredWaypoint->RPY(2) = startHeading;
+		desiredWaypoint->RPY(2) = lposRPY(2);
 
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
 				+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),

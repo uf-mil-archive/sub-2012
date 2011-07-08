@@ -28,7 +28,7 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Blob* blob = new Blob(100,50000,500);
+		Blob* blob = new Blob(100,80000,1000);
 		result = blob->findBlob(ioimages);
 
 		// Prepare results

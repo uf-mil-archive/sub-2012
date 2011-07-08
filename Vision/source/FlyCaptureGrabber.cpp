@@ -68,14 +68,16 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float gainVal)
 	printf("Set auto white balance.\n");
 
 	Property auto_exposure(AUTO_EXPOSURE);
-	white_balance.autoManualMode = true;
+	auto_exposure.autoManualMode = true;
+	auto_exposure.onOff = true;
 	cameras[camID].cam.SetProperty(&auto_exposure, false);
 	printf("Set auto exposure.\n");
 
 	Property gain(GAIN);
-	gain.absValue = gainVal;
+//	gain.absValue = gainVal;
+	gain.autoManualMode = true;
 	cameras[camID].cam.SetProperty(&gain, false);
-	printf("Set gain to %.1f.\n",gainVal);
+//	printf("Set gain to %.1f.\n",gainVal);
 
 	printf("\n");
 

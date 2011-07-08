@@ -13,11 +13,14 @@ using namespace Eigen;
 MissionPlannerDDSCommander::MissionPlannerDDSCommander(Worker &worker, DDSDomainParticipant *participant)
 : lposvssreceiver(participant, "LPOSVSS", bind(&MissionPlannerDDSCommander::receivedLPOSVSSInfo, this, _1)),
   pdstatusreceiver(participant, "PDStatus", bind(&MissionPlannerDDSCommander::receivedPDStatusInfo, this, _1)),
-  finderlistreceiver(participant, "Vision", bind(&MissionPlannerDDSCommander::receivedFinderMessageListResult, this, _1)) {
+  finderlistreceiver(participant, "Vision", bind(&MissionPlannerDDSCommander::receivedFinderMessageListResult, this, _1)),
+  hydrophonereceiver(participant, "Hydrophone", bind(&MissionPlannerDDSCommander::receivedHydrophone, this, _1))
+   {
 	lposvsscmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetLPOSVSSInfo, 5);
 	pdstatuscmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetPDInfo, 5);
 	vision2dcmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetCam2DInfo, 5);
 	vision3dcmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetCam3DInfo, 5);
+	hydrophonecmdtoken = worker.ConnectToCommand(MissionPlannerWorkerCommands::SetHydrophoneInfo, 5);
 }
 
 void MissionPlannerDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {
@@ -88,14 +91,14 @@ void MissionPlannerDDSCommander::receivedPDStatusInfo(const PDStatusMessage &pds
 
 void MissionPlannerDDSCommander::receivedFinderMessageListResult(const FinderMessageList &findermessages) {
 	shared_ptr<InputToken> ptr = vision2dcmdtoken.lock();
-	
+
 	FinderResult2DVec vec2d;
 	for (int i=0;i<findermessages.messages2d.length(); i++) {
 		const Finder2DMessage &msg = findermessages.messages2d[i];
 		vec2d.vec.push_back(FinderResult2D(findermessages.cameraid, msg.objectid, msg.u, msg.v, msg.scale, msg.angle));
 	}
 	ptr->Operate(vec2d);
-	
+
 	ptr = vision3dcmdtoken.lock();
 	FinderResult3DVec vec3d;
 	for (int i=0;i<findermessages.messages3d.length(); i++) {
@@ -105,4 +108,11 @@ void MissionPlannerDDSCommander::receivedFinderMessageListResult(const FinderMes
 	ptr->Operate(vec3d);
 }
 
+void MissionPlannerDDSCommander::receivedHydrophone(const HydrophoneMessage &msg) {
+	shared_ptr<InputToken> ptr = hydrophonecmdtoken.lock();
+	if (ptr)
+	{
+		ptr->Operate(HydrophoneInfo(msg.timestamp, msg.distance, msg.heading, msg.declination, msg.frequency, msg.valid));
+	}
+}
 

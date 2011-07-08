@@ -1,8 +1,10 @@
 #include "SubMain/Workers/Hydrophone/HydrophoneDataProcessor.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <sstream>
+#include <iostream>
 
 using namespace subjugator;
 using namespace Eigen;
@@ -35,7 +37,7 @@ void HydrophoneDataProcessor::processRawData(const Config &config) {
 	}
 
 	// prepare upsamp extra large since we want to have zeros at the beginning
-	int zerorows = 100*config.scalefact;
+	int zerorows = 150*config.scalefact;
 	data_upsamp = Data::Zero(data.rows()*config.scalefact + zerorows, 4);
 
 	// upsample
@@ -63,6 +65,11 @@ void HydrophoneDataProcessor::checkData(const Config &config) {
 
 	// compute the frequency
 	pingfreq = (config.samplingrate/2.0)/(datacol.rows()/2.0) * (max_loc+1);
+	if (pingfreq < 20000)
+		pingfreq = 20000;
+	else if (pingfreq > 30000)
+		pingfreq = 30000;
+	
 	period = (int)round((config.samplingrate * config.scalefact) / pingfreq); // compute period from ping freq
 }
 
@@ -82,6 +89,9 @@ void HydrophoneDataProcessor::computeDeltas(const Config &config) {
 	int arr_dist = (int)floor((dist_h/config.soundvelocity)*config.samplingrate*config.scalefact*.95); // range to look for a match
 	int matchstart = template_pos + 3*period - arr_dist; // start position for match searching
 	int matchstop = template_pos + 3*period + arr_dist; // stop position for match searching
+
+	if (matchstart < 0 || matchstop >= data_upsamp.rows())
+		throw Error("matchstart or matchstop outside of data");
 
 	for (int i=0; i<3; i++) { // for the three other signals
 		double matchpos = matchTemplate(i+1, matchstart, matchstop, config); // find a match
@@ -108,6 +118,8 @@ double HydrophoneDataProcessor::matchTemplate(int channel, int start, int stop, 
 
 	int aprox_min_pt;
 	mad.minCoeff(&aprox_min_pt); // find the approximate minimum position
+	if (aprox_min_pt < 2)
+		throw Error("Aprox_min_pt was less than two (" + boost::lexical_cast<string>(aprox_min_pt) + ") template_pos: " + boost::lexical_cast<string>(template_pos));
 
 	VectorXd d_mad = filter(Vector3d(.5, 0, -.5), mad); // then take the derivative of mad
 	double min_pt = findZeros(d_mad, aprox_min_pt - 2); // and use it to find an interpolated minimum position
@@ -161,7 +173,7 @@ static int sgn(double x) {
 }
 
 double HydrophoneDataProcessor::findZeros(const Eigen::VectorXd &data, int start) {
-	for (int i=start; i<data.rows()-1; i++) {
+	for (int i=start; i<data.rows()-2; i++) {
 		if (sgn(data[i]) != sgn(data[i+1])) {
 			double y2 = data(i+1);
 			double y1 = data(i);
@@ -171,7 +183,7 @@ double HydrophoneDataProcessor::findZeros(const Eigen::VectorXd &data, int start
 		}
 	}
 
-	return 0;
+	throw Error("findZeros failed to find a zero");
 }
 
 VectorXd HydrophoneDataProcessor::filter(const VectorXd &coefs, const VectorXd &data) {

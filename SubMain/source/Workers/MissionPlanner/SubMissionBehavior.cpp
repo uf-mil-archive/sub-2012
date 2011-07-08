@@ -74,7 +74,7 @@ bool MissionBehavior::atDesiredWaypoint()
 	if(!desiredWaypoint)
 		return false;
 
-	return true; // TODO For lab testing
+	//return true; // TODO For lab testing
 
 	if((desiredWaypoint->Position_NED - lposInfo->position_NED).norm() < xyzErrorRadius &&
 		std::abs(AttitudeHelpers::DAngleDiff(lposRPY(1), desiredWaypoint->RPY(1))) < yawpitchErrorRadius &&
@@ -95,7 +95,7 @@ void MissionBehavior::sendWaypoint()
 		return;
 
 	// Make sure min depth is not violated
-	if(desiredWaypoint->Position_NED(2) > depthCeiling)
+	if(desiredWaypoint->Position_NED(2) < depthCeiling)
 		desiredWaypoint->Position_NED(2) = depthCeiling;
 
 	// Send the waypoint if its new

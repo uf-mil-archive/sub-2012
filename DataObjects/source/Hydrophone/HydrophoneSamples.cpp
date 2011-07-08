@@ -1,5 +1,6 @@
 #include "DataObjects/Hydrophone/HydrophoneSamples.h"
 #include <memory>
+#include <iostream>
 
 using namespace subjugator;
 using namespace Eigen;
