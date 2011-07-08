@@ -68,9 +68,9 @@ void FindPipeBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& 
 void FindPipeBehavior::DoBehavior()
 {
 	// Let the down camera know of the current target
-	VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(currentObjectID, 1));
+	VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, currentObjectID));
 	// And Tell the front camera to not look for anything here
-	VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(ObjectIDs::None, 1));
+	VisionSetIDs tofront(MissionCameraIDs::Front, std::vector<int>(1, ObjectIDs::None));
 
 	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 	{
