@@ -41,6 +41,7 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 			fResult2D->objectID = oIDs[i];
 			fResult2D->u = blob->centroid.x;
 			fResult2D->v = blob->centroid.y;
+			fResult2D->scale = blob->area;
 		}
 		resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		delete blob;
