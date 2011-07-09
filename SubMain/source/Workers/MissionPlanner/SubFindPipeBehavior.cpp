@@ -13,7 +13,7 @@ FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, bool tur
 {
 	currentObjectID = ObjectIDs::Pipe;
 
-	servoGains2d = Vector2d(0.0005, 0.0005);
+	servoGains2d = Vector2d(0.001, 0.001);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// Setup the callbacks

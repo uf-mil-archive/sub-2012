@@ -44,7 +44,6 @@ boost::shared_ptr<Waypoint> WaypointGenerator::GenerateFrom2D(const LPOSVSSInfo&
 		if(object2d.cameraID == MissionCameraIDs::Front)
 		{
 			Vector3d camRot = MILQuaternionOps::Quat2Euler(cameras[object2d.cameraID].Quaternion);
-			cout << "CamRot:\n" << camRot << endl;
 
 			double yawError = -1*(object2d.v - cameras[object2d.cameraID].cc(1));
 			double yd = object2d.u - cameras[object2d.cameraID].cc(0);

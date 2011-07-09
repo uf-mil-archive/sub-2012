@@ -1,5 +1,6 @@
-#ifndef SUBFINDBUOYBEHAVIOR_H
-#define SUBFINDBUOYBEHAVIOR_H
+/*
+#ifndef SUBFINDBINSBEHAVIOR_H
+#define SUBFINDBINSBEHAVIOR_H
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
@@ -7,40 +8,39 @@
 #include "DataObjects/Vision/VisionSetIDs.h"
 
 #include <Eigen/Dense>
-#include <queue>
+#include <list>
 
 #include <cmath>
 
 namespace subjugator
 {
-	class FindBuoyMiniBehaviors
+	class FindBinsMiniBehaviors
 	{
 	public:
 		enum FindBuoyMiniBehaviorCode
 		{
 			None,
 			All,
-			ApproachBuoy,
-			BumpBuoy,
-			BackupMofoYouRanHerOver,
-			ClearBuoys,
+			ApproachBins,
+			ClearBins,
 			DriveTowardsPipe,
-			PanForBuoy,
 		};
 	};
 
-	class FindBuoyBehavior : public MissionBehavior
+	class FindBinsBehavior : public MissionBehavior
 	{
 	public:
-		FindBuoyBehavior(double minDepth);
+		FindBinsBehavior(double minDepth);
 	private:
-		static const double approachDepth = 0.1; // m
-		static const double approachThreshold = 11000;
-		static const double bumpTravelDistance = 1.25;
+		static const double approachDepth = 1.0; // m
+		static const double approachTravelDistance = 0.2; // m
+		static const double approachThreshold = 8000;
+		static const double desiredBumpDistance = 2.0;
+		static const double bumpTravelDistance = 0.5;
 		static const double backupTravelDistance = 2.0;
-		static const double clearBuoysDepth = 0.1;
+		static const double clearBuoysDepth = 1.0;
 		static const double driveTowardsPipeDistance = 1.0;
-		static const double yawSearchAngle = 5.0;
+		static const double yawSearchAngle = 45.0;
 		static const double yawMaxSearchAngle = 45.0;
 
 		bool canContinue;
@@ -49,16 +49,10 @@ namespace subjugator
 		bool clearBuoysSet;
 		bool pipeSet;
 		bool newFrame;
-		int hasSeenBuoy;
 
 		double pipeHeading;
-		double yawChange;
-		double alignDepth;
-		double lastScale;
 
-		double approachTravelDistance;
-
-		std::queue<ObjectIDs::ObjectIDCode> buoysToFind;
+		std::list<ObjectIDs::ObjectIDCode> binsToMark;
 		std::vector<FinderResult2D> objects2d;
 
 		boost::signals2::connection connection2D;
@@ -69,15 +63,11 @@ namespace subjugator
 		virtual void DoBehavior();
 
 		void ApproachBuoy();
-		void BumpBuoy();
-		void BackupMofoYouRanHerOver();
-		void ClearBuoys();
-		void DriveTowardsPipe();
-		void PanForBuoy();
+
 		void Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects);
-		void getGains();
 	};
 }
 
 
-#endif  // FINDBUOYBEHAVIOR_H
+#endif  // SUBFINDBINSBEHAVIOR_H
+*/
