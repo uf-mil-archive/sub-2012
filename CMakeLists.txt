@@ -105,6 +105,7 @@ add_subdirectory(MissionPlanner)
 	if(QT_FOUND AND NDDS_FOUND)
 	add_subdirectory(PDTest)
 	endif()
+	add_subdirectory(PrimitiveDriver)
 endif()
 
 if(BUILD_GUMSTIX)
