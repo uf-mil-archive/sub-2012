@@ -1,4 +1,4 @@
-#include "SubMain/Workers/Hydrophone/HydrophoneDataProcessor.h"
+#include "Hydrophone/HydrophoneDataProcessor.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
@@ -69,7 +69,7 @@ void HydrophoneDataProcessor::checkData(const Config &config) {
 		pingfreq = 20000;
 	else if (pingfreq > 30000)
 		pingfreq = 30000;
-	
+
 	period = (int)round((config.samplingrate * config.scalefact) / pingfreq); // compute period from ping freq
 }
 

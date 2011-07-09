@@ -7,8 +7,8 @@
 #include <boost/lexical_cast.hpp>
 #include <unsupported/Eigen/FFT>
 #include <iomanip>
-#include "SubMain/Workers/Hydrophone/HydrophoneDataProcessor.h"
-#include "SubMain/Workers/Hydrophone/SubHydrophoneWorker.h"
+#include "Hydrophone/HydrophoneDataProcessor.h"
+#include "Hydrophone/SubHydrophoneWorker.h"
 #include "config.h"
 #include "DDSListeners/HydrophoneDDSListener.h"
 #include "DDSCommanders/HydrophoneDDSCommander.h"
