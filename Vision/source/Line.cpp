@@ -40,7 +40,7 @@ int Line::findLines(IOImages* ioimages)
 		// case when looking for two lines (i.e. pipes)
 		if(numberOfLinesToFind == 2)
 		{
-			printf("difference: %.3f | %.3f\n",abs(tmpAngle - avgLines[0].angle), abs(tmpAngle - avgLines[1].angle));
+			//printf("difference: %.3f | %.3f\n",abs(tmpAngle - avgLines[0].angle), abs(tmpAngle - avgLines[1].angle));
 			// if a new angle comes in and the first average is unpopulated, save it as the first average
 			if(abs(tmpAngle - avgLines[0].angle) > 10*3.14159/180.0 && !avgLines[0].populated)
 			{

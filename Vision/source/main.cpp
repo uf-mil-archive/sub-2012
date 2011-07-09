@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	int camnum = lexical_cast<int>(argv[1]);
 
 	// We need a worker
-	VisionWorker worker(io, 30 /*hz*/, 1, true, camnum);
+	VisionWorker worker(io, 30 /*hz*/, 1, false, camnum);
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start Vision Worker!");
 

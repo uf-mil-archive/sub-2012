@@ -19,8 +19,12 @@ PipeFinder::~PipeFinder(void)
 vector<shared_ptr<FinderResult> > PipeFinder::find(IOImages* ioimages)
 {
 	vector<shared_ptr<FinderResult> > resultVector;
+
 	// call to normalizer here
 	n->norm(ioimages);
+
+	// blur the image to remove noise
+	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{

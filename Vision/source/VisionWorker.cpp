@@ -41,7 +41,8 @@ bool VisionWorker::Startup()
 	if(showDebugImages)
 	{
 		namedWindow("Processed",1);
-		namedWindow("Debug",1);
+		//moveWindow("Processed",500,500);
+		//namedWindow("Debug",1);
 	}
 
 	if(inputMode == 0)
@@ -51,7 +52,7 @@ bool VisionWorker::Startup()
 	else if(inputMode == 1)
 	{
 		// Initialize the cameras
-		int result = flyCapGrab.FlyCapInitializeCameras(cameraNumber, 10.0);
+		int result = flyCapGrab.FlyCapInitializeCameras(cameraNumber, 4.0);
 		// If initialization fails, exit!
 		if(result==-1)
 		{
@@ -73,7 +74,7 @@ void VisionWorker::Shutdown()
 	if(showDebugImages)
 	{
 		cvDestroyWindow("Processed");
-		cvDestroyWindow("Debug");
+		//cvDestroyWindow("Debug");
 	}
 }
 
@@ -130,7 +131,7 @@ void VisionWorker::readyState()
 	if(showDebugImages)
 	{
 		imshow("Processed",ioimages->prcd);
-		imshow("Debug",ioimages->dbg);
+		//imshow("Debug",ioimages->dbg);
 		waitKey(10);
 	}
 }
