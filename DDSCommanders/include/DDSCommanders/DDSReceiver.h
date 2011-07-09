@@ -21,7 +21,11 @@ namespace subjugator {
 				if (!topic)
 					throw std::runtime_error("Failed to create Topic" + topicname);
 
-				DDSDataReader *reader = participant->create_datareader(topic, DDS_DATAREADER_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
+				DDS_DataReaderQos qos = DDS_DATAREADER_QOS_DEFAULT;
+				qos.liveliness.kind = DDS_AUTOMATIC_LIVELINESS_QOS;
+				qos.liveliness.lease_duration.sec = 0;
+				qos.liveliness.lease_duration.nanosec = (DDS_UnsignedLong)(.5 * 1E9);
+				DDSDataReader *reader = participant->create_datareader(topic, qos, NULL, DDS_STATUS_MASK_NONE);
 				if (!reader)
 					throw std::runtime_error("Failed to create DataReader");
 

@@ -3,7 +3,9 @@
 #include "DataObjects/PD/PDWrench.h"
 #include "DataObjects/PD/PDActuator.h"
 #include <boost/bind.hpp>
+#include <iostream>
 
+using namespace std;
 using namespace subjugator;
 using namespace boost;
 
@@ -28,6 +30,7 @@ void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
 
 void PDDDSCommander::writerCountChanged(int count) {
 	if (count == 0) {
+		cout << "Lost all DataWriters, setting a zero screw" << endl;
 		shared_ptr<InputToken> ptr = screwcmdtoken.lock();
 		if (ptr)
 			ptr->Operate(PDWrench(PDWrench::Vector6D::Zero()));
@@ -39,5 +42,4 @@ void PDDDSCommander::receivedActuator(const PDActuatorMessage &actuator) {
 	if (ptr)
 		ptr->Operate(PDActuator(actuator.flags));
 }
-
 
