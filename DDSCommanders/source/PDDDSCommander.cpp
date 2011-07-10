@@ -1,7 +1,7 @@
 #include "DDSCommanders/PDDDSCommander.h"
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 #include "DataObjects/PD/PDWrench.h"
-#include "DataObjects/PD/PDActuator.h"
+#include "DataObjects/Merge/SetActuator.h"
 #include <boost/bind.hpp>
 #include <iostream>
 
@@ -40,6 +40,6 @@ void PDDDSCommander::writerCountChanged(int count) {
 void PDDDSCommander::receivedActuator(const PDActuatorMessage &actuator) {
 	boost::shared_ptr<InputToken> ptr = actuatorcmdtoken.lock();
 	if (ptr)
-		ptr->Operate(PDActuator(actuator.flags));
+		ptr->Operate(SetActuator(actuator.flags));
 }
 

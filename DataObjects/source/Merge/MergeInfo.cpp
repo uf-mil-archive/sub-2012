@@ -16,7 +16,8 @@ MergeInfo::MergeInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end)
 	tickcount = begin[0] + (begin[1]<<8);
 	begin += 2;
 
-	flags = *begin++;
+	flags = begin[0] + (begin[1]<<8);
+	begin += 2;
 
 	current16 = convertFixedPoint<10>(begin[0] + (begin[1]<<8));
 	begin += 2;
