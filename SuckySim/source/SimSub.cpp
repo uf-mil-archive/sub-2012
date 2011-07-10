@@ -5,8 +5,8 @@ using namespace Eigen;
 using namespace std;
 
 SimSub::SimSub(std::string name, int objectID, QColor color)
-	: SimObject(name, objectID, color), length(.6223),
-	  width(0.1778), podLength(0.5163), podWidth(0.115),
+	: SimObject(name, objectID, color), length(1.27),
+	  width(0.4572), podLength(0.8175), podWidth(0.1143),
 	  velocity_NED(0.0,0.0,0.0)
 {
 	Matrix3d fcamCal;
@@ -44,4 +44,106 @@ SimSub::SimSub(std::string name, int objectID, QColor color)
 	downCamera->setRPY(rpy);
 }
 
+void SimSub::Draw(QPainter* painter,  double pPerM)
+{
+	// Positions for sub
 
+	// The center point of the sub rectangle
+	int cX = (int)(position_NED(0) * pPerM);
+	int cY = (int)(position_NED(1) * pPerM);
+
+	// Positions for Left pod
+	// Calculate the left pod back point connected to the hull
+	QPointF *lPod1 = new QPointF
+	(
+		0 + (((length-podLength)/2)*pPerM),
+		0
+	);
+
+	// Calculate the left pod back point not connected to hull
+	QPointF *lPod2 = new QPointF
+	(
+		lPod1->x(),
+		lPod1->y() - ((podWidth) * pPerM)
+	);
+
+	// Calculate the left pod front point not connected to hull
+	QPointF *lPod3 = new QPointF
+	(
+		((podLength) * pPerM),
+		lPod2->y()
+	);
+
+	// Calculate the left pod front point connected to hull
+	QPointF *lPod4 = new QPointF
+	(
+		lPod3->x(),
+		lPod1->y()
+	);
+
+
+
+	// Positions for right pod
+	// Calculate the right pod back point connected to the hull
+	QPointF *rPod1 = new QPointF
+	(
+		0 + (((length-podLength)/2)*pPerM),
+		(width * pPerM)
+	);
+
+	// Calculate the right pod back point not connected to hull
+	QPointF *rPod2 = new QPointF
+	(
+		rPod1->x(),
+		rPod1->y() + ((podWidth) * pPerM)
+	);
+
+	// Calculate the right pod front point not connected to hull
+	QPointF *rPod3 = new QPointF
+	(
+		(podLength * pPerM),
+		rPod2->y()
+	);
+
+	// Calculate the right pod front point connected to hull
+	QPointF *rPod4 = new QPointF
+	(
+		rPod3->x(),
+		rPod1->y()
+	);
+
+	double rotDeg = rpy(2) * 180.0 / boost::math::constants::pi<double>();
+
+	painter->setPen(drawColor);
+	painter->setBrush(QBrush(drawColor));
+
+	painter->save();
+
+	painter->translate(QPoint(cX,cY));
+	painter->rotate(rotDeg);
+	painter->translate(-1.0*(length / 2.0)*pPerM, -1.0*(width / 2.0)*pPerM);	// This translates to the upper left corner
+
+	// Draw Body
+	painter->drawRect(QRect(0,0,length*pPerM, width*pPerM));
+
+	// Draw the left pod
+	painter->drawRect(QRect(((length-podLength)/2)*pPerM,-podWidth*pPerM,podLength*pPerM, podWidth*pPerM));
+//	painter->drawLine(QLineF(*lPod1, *lPod2));
+//	painter->drawLine(QLineF(*lPod2, *lPod3));
+//	painter->drawLine(QLineF(*lPod3, *lPod4));
+
+	// Draw the right pod
+	painter->drawRect(QRect(((length-podLength)/2)*pPerM,width*pPerM,podLength*pPerM, podWidth*pPerM));
+//	painter->drawLine(QLineF(*rPod1, *rPod2));
+//	painter->drawLine(QLineF(*rPod2, *rPod3));
+//	painter->drawLine(QLineF(*rPod3, *rPod4));
+
+	painter->restore();
+}
+
+bool SimSub::PointIsInside(Vector2d p, double mPerPix)
+{
+	Vector2d clickPos = mPerPix*p;
+
+	return SimHelpers::PointInRectangle(position_NED.block<2,1>(0,0), length, width, rpy(2), clickPos);
+}
