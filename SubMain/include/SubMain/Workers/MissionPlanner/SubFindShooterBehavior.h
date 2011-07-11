@@ -53,6 +53,7 @@ namespace subjugator
 
 		double pipeHeading;
 		double windowHeading;
+		Vector3d windowPos;
 
 		std::vector<int> visionids;
 		std::vector<FinderResult2D> objects2d;

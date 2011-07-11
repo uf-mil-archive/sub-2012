@@ -169,6 +169,7 @@ void FindShooterBehavior::MoveToShootFirst() {
 	if(atDesiredWaypoint())
 	{
 		windowHeading = lposRPY(2);
+		windowPos = lposInfo->getPosition_NED();
 		moveToShootSet = false;
 		stateManager.ChangeState(FindShooterMiniBehaviors::ShootFirst);
 	}
@@ -190,10 +191,10 @@ void FindShooterBehavior::ShootFirst() {
 
 void FindShooterBehavior::TravelAroundWindow() {
 	if (waypointlist.size() == 0) {
-		waypointlist.push_back(Waypoint(true, Vector3d(-shootTravelDistance, 0, 0), Vector3d(0, 0, 0)));
-		waypointlist.push_back(Waypoint(true, Vector3d(0, -strafeTravelDistance, 0), Vector3d(0, 0, 0)));
-		waypointlist.push_back(Waypoint(true, Vector3d(forwardTravelDistance, 0, 0), Vector3d(0, 0, 0)));
-		waypointlist.push_back(Waypoint(true, Vector3d(0, strafeTravelDistance, 0), Vector3d(0, 0, M_PI)));
+		waypointlist.push_back(Waypoint(false, windowPos+MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(), Vector3d(-shootTravelDistance, 0.0, 0.0)), Vector3d(0, 0, pipeHeading)));
+		waypointlist.push_back(Waypoint(false, windowPos+MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(), Vector3d(0, -strafeTravelDistance, 0)), Vector3d(0, 0, pipeHeading)));
+		waypointlist.push_back(Waypoint(false, windowPos+MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(), Vector3d(forwardTravelDistance, 0, 0)), Vector3d(0, 0, pipeHeading)));
+		waypointlist.push_back(Waypoint(false, windowPos+MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(), Vector3d(0, strafeTravelDistance, 0)), Vector3d(0, 0, AttitudeHelpers::DAngleClamp(pipeHeading + M_PI))));
 		curwaypointpos = 0;
 	}
 
