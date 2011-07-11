@@ -125,6 +125,7 @@ function(sub_executable projectname)
 
 	#optionally set up qt functionality
 	if(qt)
+		set(QT_USE_QTOPENGL TRUE)
 		include(${QT_USE_FILE})
 		if (QWT_FOUND)
 		    include_directories(${QWT_INCLUDE_DIR}) # put QWT on the include path
