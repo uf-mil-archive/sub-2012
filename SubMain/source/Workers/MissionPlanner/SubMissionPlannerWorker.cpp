@@ -28,16 +28,16 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 			Vector3d(0.0,0.0,1.0),	// Z vector
 			Vector4d(1.0,0.0,0.0,0.0),	// Quat - populated later by waypoint generator
 			Vector2d(325.49416, 222.07906),		// cc
-			Vector2d(959.00928, 958.34753)		//fc
-			);
+			Vector2d(959.00928, 958.34753),		//fc
+			Matrix3d::Zero());
 	MissionCamera fCam(MissionCameraIDs::Front,
 			Vector3d(0.0,0.0,1.0),	// X vector
 			Vector3d(0.0,-1.0,0.0),	// Y vector
 			Vector3d(1.0,0.0,0.0),	// Z vector
 			Vector4d(1.0,0.0,0.0,0.0),	// Quat - populated later by waypoint generator
 			Vector2d(319.54324, 208.29877),		// cc
-			Vector2d(967.16810, 965.86543)		//fc
-			);
+			Vector2d(967.16810, 965.86543),		//fc
+			Matrix3d::Zero());
 
 	std::vector<MissionCamera> cams;
 	cams.push_back(dCam);
