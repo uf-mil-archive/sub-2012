@@ -1,7 +1,7 @@
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 #include "DataObjects/PD/PDWrench.h"
 #include "DataObjects/PD/PDInfo.h"
-#include "DataObjects/PD/PDActuator.h"
+#include "DataObjects/Merge/SetActuator.h"
 #include <boost/bind.hpp>
 
 using namespace boost;
@@ -50,9 +50,9 @@ namespace subjugator
 
 	void PDWorker::setActuator(const DataObject &obj)
 	{
-		if (const PDActuator *actuator = dynamic_cast<const PDActuator *>(&obj)) 
+		if (const SetActuator *actuator = dynamic_cast<const SetActuator *>(&obj))
 		{
-			mergeManager.setActuators(actuator->flags);
+			mergeManager.setActuators(actuator->getFlags());
 		}
 	}
 

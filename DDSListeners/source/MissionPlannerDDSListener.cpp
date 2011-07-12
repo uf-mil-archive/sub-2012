@@ -5,7 +5,7 @@
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "DDSMessages/PDActuatorMessage.h"
 #include "DDSMessages/PDActuatorMessageSupport.h"
-#include "DataObjects/PD/PDActuator.h"
+#include "DataObjects/Merge/SetActuator.h"
 
 using namespace subjugator;
 

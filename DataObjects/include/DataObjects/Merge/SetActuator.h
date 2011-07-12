@@ -1,14 +1,14 @@
-#ifndef DATAOBJECTS_MERGE_MERGEACTUATOR_H
-#define DATAOBJECTS_MERGE_MERGEACTUATOR_H
+#ifndef DATAOBJECTS_MERGE_SETACTUATOR_H
+#define DATAOBJECTS_MERGE_SETACTUATOR_H
 
 #include "DataObjects/Embedded/EmbeddedCommand.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {
-	class MergeActuator : public EmbeddedCommand {
+	class SetActuator : public EmbeddedCommand {
 		public:
-			MergeActuator() : flags(0) { }
-			MergeActuator(int flags) : flags(flags) { }
+			SetActuator() : flags(0) { }
+			SetActuator(int flags) : flags(flags) { }
 
 			static const int GRABBER_LEFT = (1 << 4);
 			static const int GRABBER_RIGHT = (1 << 3);
