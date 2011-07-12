@@ -14,13 +14,19 @@ namespace subjugator {
 			MergeInfo(boost::uint64_t timestamp, int tickcount, int flags, double current16, double voltage16, double current32, double voltage32);
 			MergeInfo(ByteVec::const_iterator begin, ByteVec::const_iterator end);
 
-			static const int Length = 11;
+			static const int Length = 12;
 
 			int getTickCount() const { return tickcount; }
 			long long int getTimestamp() const { return timestamp; }
 
-			int getFlags() const {return flags;}
+			int getFlags() const { return flags; }
 
+			bool getLeftGrabber() const { return (flags & (1 << 13)) != 0; }
+			bool getRightGrabber() const { return (flags & (1 << 12)) != 0; }
+			bool getLeftShooter() const { return (flags & (1 << 11)) != 0; }
+			bool getRightShooter() const { return (flags & (1 << 10)) != 0; }
+			bool getBallDropper() const { return (flags & (1 << 9)) != 0; }
+			bool getLimitSwitch() const { return (flags & (1 << 8)) != 0; }
 			bool getRail32State() const { return (flags & (1 << 3)) != 0; }
 			bool getESTOP() const { return (flags & (1 << 2)) != 0; }
 			bool getONOFF() const { return (flags & (1 << 1)) != 0; }
