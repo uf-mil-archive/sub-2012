@@ -23,7 +23,7 @@ void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
 	for (int i=0; i<3; i++)
 		vec(i+3) = wrench.moment[i];
 
-	shared_ptr<InputToken> ptr = screwcmdtoken.lock();
+	boost::shared_ptr<InputToken> ptr = screwcmdtoken.lock();
 	if (ptr)
 		ptr->Operate(PDWrench(vec));
 }
@@ -31,14 +31,14 @@ void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
 void PDDDSCommander::writerCountChanged(int count) {
 	if (count == 0) {
 		cout << "Lost all DataWriters, setting a zero screw" << endl;
-		shared_ptr<InputToken> ptr = screwcmdtoken.lock();
+		boost::shared_ptr<InputToken> ptr = screwcmdtoken.lock();
 		if (ptr)
 			ptr->Operate(PDWrench(PDWrench::Vector6D::Zero()));
 	}
 }
 
 void PDDDSCommander::receivedActuator(const PDActuatorMessage &actuator) {
-	shared_ptr<InputToken> ptr = actuatorcmdtoken.lock();
+	boost::shared_ptr<InputToken> ptr = actuatorcmdtoken.lock();
 	if (ptr)
 		ptr->Operate(PDActuator(actuator.flags));
 }
