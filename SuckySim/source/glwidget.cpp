@@ -29,6 +29,7 @@ void GLWidget::paintEvent(QPaintEvent *event)
 
     boost::shared_ptr<SimSub> simSub = boost::shared_ptr<SimSub>(new SimSub("SimSub1",8, Qt::black));
     simSub->setPosition_NED(Vector3d(5,5,0));
+ //   simSub->setYaw_Deg(30);
 
     world.AddObjectToWorld(simBuoy);
     world.AddObjectToWorld(simSub);
