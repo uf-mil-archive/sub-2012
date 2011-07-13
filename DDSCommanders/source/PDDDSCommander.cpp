@@ -1,9 +1,11 @@
 #include "DDSCommanders/PDDDSCommander.h"
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 #include "DataObjects/PD/PDWrench.h"
-#include "DataObjects/PD/PDActuator.h"
+#include "DataObjects/Merge/SetActuator.h"
 #include <boost/bind.hpp>
+#include <iostream>
 
+using namespace std;
 using namespace subjugator;
 using namespace boost;
 
@@ -21,23 +23,23 @@ void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
 	for (int i=0; i<3; i++)
 		vec(i+3) = wrench.moment[i];
 
-	shared_ptr<InputToken> ptr = screwcmdtoken.lock();
+	boost::shared_ptr<InputToken> ptr = screwcmdtoken.lock();
 	if (ptr)
 		ptr->Operate(PDWrench(vec));
 }
 
 void PDDDSCommander::writerCountChanged(int count) {
 	if (count == 0) {
-		shared_ptr<InputToken> ptr = screwcmdtoken.lock();
+		cout << "Lost all DataWriters, setting a zero screw" << endl;
+		boost::shared_ptr<InputToken> ptr = screwcmdtoken.lock();
 		if (ptr)
 			ptr->Operate(PDWrench(PDWrench::Vector6D::Zero()));
 	}
 }
 
 void PDDDSCommander::receivedActuator(const PDActuatorMessage &actuator) {
-	shared_ptr<InputToken> ptr = actuatorcmdtoken.lock();
+	boost::shared_ptr<InputToken> ptr = actuatorcmdtoken.lock();
 	if (ptr)
-		ptr->Operate(PDActuator(actuator.flags));
+		ptr->Operate(SetActuator(actuator.flags));
 }
-
 

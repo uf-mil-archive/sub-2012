@@ -6,7 +6,7 @@
  */
 
 #include "DDSCommanders/HydrophoneDDSCommander.h"
-#include "SubMain/Workers/Hydrophone/SubHydrophoneWorker.h"
+#include "Hydrophone/SubHydrophoneWorker.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
 #include <boost/bind.hpp>
 

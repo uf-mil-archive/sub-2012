@@ -14,12 +14,18 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     imureceiver(participant, "IMU", bind(&MainWindow::IMUDDSReadCallback, this, _1)),
     dvlreceiver(participant, "DVL", bind(&MainWindow::DVLDDSReadCallback, this, _1)),
     pdstatusreceiver(participant, "PDStatus", bind(&MainWindow::PDStatusDDSReadCallback, this, _1)),
+    hydrophonereceiver(participant, "Hydrophone", bind(&MainWindow::HydrophoneDDSReadCallback, this, _1)),
+    findermessagelistreceiver(participant, "Vision", bind(&MainWindow::FinderMessageListDDSReadCallback, this, _1)),
+    trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::TrajectoryDDSReadCallback, this, _1)),
     lposvssData(false),
 	setwaypointData(false),
 	depthData(false),
 	imuData(false),
 	dvlData(false),
-	pdstatusData(false)
+	pdstatusData(false),
+	hydrophoneData(false),
+	findermessagelistData(false),
+	trajectoryData(false)
 {    
     ui->setupUi(this);
     this->setWindowTitle(tr("DDSWatcher"));
@@ -31,6 +37,9 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     connect(this, SIGNAL(imuInfoReceived()), this, SLOT(onIMUInfoReceived()));
     connect(this, SIGNAL(dvlInfoReceived()), this, SLOT(onDVLInfoReceived()));
     connect(this, SIGNAL(pdstatusInfoReceived()), this, SLOT(onPDStatusInfoReceived()));
+    connect(this, SIGNAL(hydrophoneInfoReceived()), this, SLOT(onHydrophoneInfoReceived()));
+    connect(this, SIGNAL(findermessagelistInfoReceived()), this, SLOT(onFinderMessageListInfoReceived()));
+    connect(this, SIGNAL(trajectoryInfoReceived()), this, SLOT(onTrajectoryInfoReceived()));
 }
 
 
@@ -113,14 +122,23 @@ void MainWindow::onDVLInfoReceived()
 	ui->lblDVLBeamCorrelation1->setText(QString::number(dvlmsg.beamcorrelation[1]));
 	ui->lblDVLBeamCorrelation2->setText(QString::number(dvlmsg.beamcorrelation[2]));
 	ui->lblDVLBeamCorrelation3->setText(QString::number(dvlmsg.beamcorrelation[3]));
-	ui->lblDVLGood->setText(QString::number(dvlmsg.good));
+
+	if (dvlmsg.good)
+		ui->lblDVLGood->setText("True");
+	else
+		ui->lblDVLGood->setText("False");
 }
 
 void MainWindow::onPDStatusInfoReceived()
 {
 	ui->lblPDStatusTimestamp->setText(QString::number(pdstatusmsg.timestamp));
 	ui->lblPDStatusState->setText(QString::number(pdstatusmsg.state));
-	ui->lblPDStatusEstop->setText(QString::number(pdstatusmsg.estop));
+
+	if (pdstatusmsg.estop)
+		ui->lblPDStatusEstop->setText("True");
+	else
+		ui->lblPDStatusEstop->setText("False");
+
 	ui->lblPDStatusCurrent0->setText(QString::number(pdstatusmsg.current[0]));
 	ui->lblPDStatusCurrent1->setText(QString::number(pdstatusmsg.current[1]));
 	ui->lblPDStatusCurrent2->setText(QString::number(pdstatusmsg.current[2]));
@@ -135,6 +153,101 @@ void MainWindow::onPDStatusInfoReceived()
 	ui->lblPDStatusVoltage16->setText(QString::number(pdstatusmsg.voltage16));
 	ui->lblPDStatusCurrent32->setText(QString::number(pdstatusmsg.current32));
 	ui->lblPDStatusVoltage32->setText(QString::number(pdstatusmsg.voltage32));
+}
+
+void MainWindow::onHydrophoneInfoReceived()
+{
+	ui->lblHydrophoneTimestamp->setText(QString::number(hydrophonemsg.timestamp));
+	ui->lblHydrophoneDeclination->setText(QString::number(hydrophonemsg.declination));
+	ui->lblHydrophoneHeading->setText(QString::number(hydrophonemsg.heading));
+	ui->lblHydrophoneDistance->setText(QString::number(hydrophonemsg.distance));
+	ui->lblHydrophoneFrequency->setText(QString::number(hydrophonemsg.frequency));
+
+	if (hydrophonemsg.valid)
+		ui->lblHydrophoneValid->setText("True");
+	else
+		ui->lblHydrophoneValid->setText("False");
+}
+
+void MainWindow::onFinderMessageListInfoReceived()
+{
+	int numOf2dMsgs = findermessagelistmsg.messages2d.length();
+	int numOf3dMsgs = findermessagelistmsg.messages3d.length();
+
+	ui->lblVision2DNumOfObects->setText(QString::number(numOf2dMsgs));
+	ui->lblVision3DNumOfObects->setText(QString::number(numOf3dMsgs));
+
+	if (numOf2dMsgs > 0)
+	{
+		int value2D = ui->spinVision2D->value();
+
+		if (value2D > (numOf2dMsgs - 1))
+		{
+			value2D = 0;
+			ui->spinVision2D->setValue(0);
+		}
+
+		Finder2DMessage &msg2D = findermessagelistmsg.messages2d[value2D];
+
+		ui->lblVision2DObjectID->setText(QString::number(msg2D.objectid));
+		ui->lblVision2Du->setText(QString::number(msg2D.u));
+		ui->lblVision2Dv->setText(QString::number(msg2D.v));
+		ui->lblVision2DScale->setText(QString::number(msg2D.scale));
+		ui->lblVision2DAngle->setText(QString::number(msg2D.angle));
+	}
+
+	if (numOf3dMsgs > 0)
+	{
+		int value3D = ui->spinVision3D->value();
+
+		if (value3D > (numOf3dMsgs - 1))
+		{
+			value3D = 0;
+			ui->spinVision3D->setValue(0);
+		}
+
+		Finder3DMessage &msg3D = findermessagelistmsg.messages3d[value3D];
+
+		ui->lblVision3DObjectID->setText(QString::number(msg3D.objectid));
+		ui->lblVision3Dx->setText(QString::number(msg3D.x));
+		ui->lblVision3Dy->setText(QString::number(msg3D.y));
+		ui->lblVision3Dz->setText(QString::number(msg3D.z));
+		ui->lblVision3Dang1->setText(QString::number(msg3D.ang1));
+		ui->lblVision3Dang2->setText(QString::number(msg3D.ang2));
+		ui->lblVision3Dang3->setText(QString::number(msg3D.ang3));
+	}
+}
+
+
+void MainWindow::onTrajectoryInfoReceived()
+{
+	ui->lblTrajectoryX0->setText(QString::number(trajectorymsg.x[0]));
+	ui->lblTrajectoryX1->setText(QString::number(trajectorymsg.x[1]));
+	ui->lblTrajectoryX2->setText(QString::number(trajectorymsg.x[2]));
+	ui->lblTrajectoryX3->setText(QString::number(trajectorymsg.x[3]));
+	ui->lblTrajectoryX4->setText(QString::number(trajectorymsg.x[4]));
+	ui->lblTrajectoryX5->setText(QString::number(trajectorymsg.x[5]));
+
+	ui->lblTrajectoryXdot0->setText(QString::number(trajectorymsg.x_dot[0]));
+	ui->lblTrajectoryXdot1->setText(QString::number(trajectorymsg.x_dot[1]));
+	ui->lblTrajectoryXdot2->setText(QString::number(trajectorymsg.x_dot[2]));
+	ui->lblTrajectoryXdot3->setText(QString::number(trajectorymsg.x_dot[3]));
+	ui->lblTrajectoryXdot4->setText(QString::number(trajectorymsg.x_dot[4]));
+	ui->lblTrajectoryXdot5->setText(QString::number(trajectorymsg.x_dot[5]));
+
+	ui->lblTrajectoryXd0->setText(QString::number(trajectorymsg.xd[0]));
+	ui->lblTrajectoryXd1->setText(QString::number(trajectorymsg.xd[1]));
+	ui->lblTrajectoryXd2->setText(QString::number(trajectorymsg.xd[2]));
+	ui->lblTrajectoryXd3->setText(QString::number(trajectorymsg.xd[3]));
+	ui->lblTrajectoryXd4->setText(QString::number(trajectorymsg.xd[4]));
+	ui->lblTrajectoryXd5->setText(QString::number(trajectorymsg.xd[5]));
+
+	ui->lblTrajectoryXddot0->setText(QString::number(trajectorymsg.xd_dot[0]));
+	ui->lblTrajectoryXddot1->setText(QString::number(trajectorymsg.xd_dot[1]));
+	ui->lblTrajectoryXddot2->setText(QString::number(trajectorymsg.xd_dot[2]));
+	ui->lblTrajectoryXddot3->setText(QString::number(trajectorymsg.xd_dot[3]));
+	ui->lblTrajectoryXddot4->setText(QString::number(trajectorymsg.xd_dot[4]));
+	ui->lblTrajectoryXddot5->setText(QString::number(trajectorymsg.xd_dot[5]));
 }
 
 //***************************************************************************
@@ -174,4 +287,22 @@ void MainWindow::PDStatusDDSReadCallback(const PDStatusMessage &msg)
 {
 	pdstatusmsg = msg;
 	emit pdstatusInfoReceived();
+}
+
+void MainWindow::HydrophoneDDSReadCallback(const HydrophoneMessage &msg)
+{
+	hydrophonemsg = msg;
+	emit hydrophoneInfoReceived();
+}
+
+void MainWindow::FinderMessageListDDSReadCallback(const FinderMessageList &msg)
+{
+	findermessagelistmsg = msg;
+	emit findermessagelistInfoReceived();
+}
+
+void MainWindow::TrajectoryDDSReadCallback(const TrajectoryMessage &msg)
+{
+	trajectorymsg = msg;
+	emit trajectoryInfoReceived();
 }

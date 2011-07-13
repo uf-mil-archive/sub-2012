@@ -17,6 +17,8 @@ namespace subjugator
 	public:
 		enum FindPingerMiniBehaviorCode
 		{
+			None,
+			All,
 			TravelToPinger,
 		};
 	};

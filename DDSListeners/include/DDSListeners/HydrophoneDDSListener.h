@@ -8,7 +8,6 @@
 #ifndef HYDROPHONEDDSLISTENER_H_
 #define HYDROPHONEDDSLISTENER_H_
 
-#include "SubMain/Workers/Hydrophone/SubHydrophoneWorker.h"
 #include "SubMain/Workers/SubListener.h"
 #include "DDSListeners/DDSSender.h"
 #include "DDSMessages/HydrophoneMessage.h"

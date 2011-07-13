@@ -9,7 +9,7 @@ FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, bool tur
 	MissionBehavior(MissionBehaviors::FindPipe, "FindPipe", minDepth),
 	alignToPipe(aligntopipe), moveTravelDistance(movetraveldistance),
 	canContinue(false),	nextTask(false), creepDistance(0.1),
-	timerStarted(false), count(0), newFrame(false), turnRight(turnright)
+	pipeFrameCount(0), newFrame(false), turnRight(turnright)
 {
 	currentObjectID = ObjectIDs::Pipe;
 
@@ -90,88 +90,83 @@ void FindPipeBehavior::AlignToPipes()
 
 	if(!canContinue)
 	{
+		// Wait for new frame from camera
 		if(!newFrame)
 			return;
 
 		newFrame = false;
 
-		// Start Alignment Timer
-		if (!timerStarted)
+		// The list of 2d objects the class is holding is the current found images in the frame
+		double bestAngle = 0;
+		int bestIndex = 0;
+
+		for(size_t i = 0; i < objects2d.size(); i++)
 		{
-			timer.Start(alignTimeout);
-			timerStarted = true;
+			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
+			{
+				pipeFrameCount = 0;
+
+				if (turnRight)  // If turning to Right given pipe positions
+				{
+					if(objects2d[i].angle > bestAngle)	// Larger Angle is chosen
+					{
+						bestAngle = objects2d[i].angle;
+						bestIndex = i;
+					}
+				}
+				else
+				{
+					if(objects2d[i].angle < bestAngle) // More Negative Angle is chosen
+					{
+						bestAngle = objects2d[i].angle;
+						bestIndex = i;
+					}
+				}
+
+				sawPipe = true;
+			}
 		}
 
-		if (timer.HasExpired())
+		if(sawPipe)
 		{
-			canContinue = true;
+			// It's in view
+			// UPDATE X AND Y FROM CAMERA DATA TO CENTER THE PIPE(S), AND KEEP DEPTH AT OUR VARIABLE ALIGNDEPTH.
+			// UPDATE YAW TO THE ERROR PROVIDED BY THE CAMERA DATA
+			desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[bestIndex], servoGains2d, 0.0, true);
+
+			if (!desiredWaypoint)
+				return;
+
+			desiredWaypoint->Position_NED(2) = alignDepth;
+			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(alignToPipe + desiredWaypoint->RPY(2));
+			desiredWaypoint->number = getNextWaypointNum();
+
+			if (atDesiredWaypoint())
+			{
+				pipeAlignCount++;
+				if (pipeAlignCount > alignWaypointCount)
+					canContinue = true;
+
+			}
 		}
 		else
 		{
-			// The list of 2d objects the class is holding is the current found images in the frame
-			double bestAngle = 0;
-			int bestIndex = 0;
+			pipeFrameCount++;
 
-			for(size_t i = 0; i < objects2d.size(); i++)
+			// It's lost, drive forward. Assuming were pointed the right way
+			if (pipeFrameCount > desiredAttempts)
 			{
-				if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
-				{
-					count = 0;
+				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+				desiredWaypoint->isRelative = false;
 
-					if (turnRight)  // If turning to Right given pipe
-					{
-						if(objects2d[i].angle > bestAngle)	// Larger Angle is chosen
-						{
-							bestAngle = objects2d[i].angle;
-							bestIndex = i;
-						}
-					}
-					else
-					{
-						if(objects2d[i].angle < bestAngle) // More Negative Angle is chosen
-						{
-							bestAngle = objects2d[i].angle;
-							bestIndex = i;
-						}
-					}
-
-					sawPipe = true;
-				}
-			}
-
-			if(sawPipe)
-			{
-				// It's in view
-				// UPDATE X AND Y FROM CAMERA DATA TO CENTER THE PIPE(S), AND KEEP DEPTH AT OUR VARIABLE ALIGNDEPTH.
-				// UPDATE YAW TO THE ERROR PROVIDED BY THE CAMERA DATA
-				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[bestIndex], servoGains2d, 0.0, true);
-
-				if (!desiredWaypoint)
-					return;
-
+				// Project the distance in the XY NED Plane.
+				desiredWaypoint->Position_NED(0) = creepDistance*cos(lposRPY(2));
+				desiredWaypoint->Position_NED(1) = creepDistance*sin(lposRPY(2));
+				desiredWaypoint->Position_NED += lposInfo->getPosition_NED();
 				desiredWaypoint->Position_NED(2) = alignDepth;
-				desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(alignToPipe + desiredWaypoint->RPY(2));
+				desiredWaypoint->RPY = Vector3d(0.0, 0.0, lposRPY(2));
+
 				desiredWaypoint->number = getNextWaypointNum();
-			}
-			else
-			{
-				count++;
-
-				// It's lost, drive forward. Assuming were pointed the right way
-				if (count > desiredAttempts)
-				{
-					desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
-					desiredWaypoint->isRelative = false;
-
-					// Project the distance in the XY NED Plane.
-					desiredWaypoint->Position_NED(0) = creepDistance*cos(lposRPY(2));
-					desiredWaypoint->Position_NED(1) = creepDistance*sin(lposRPY(2));
-					desiredWaypoint->Position_NED += lposInfo->getPosition_NED();
-					desiredWaypoint->Position_NED(2) = alignDepth;
-					desiredWaypoint->RPY = Vector3d(0.0, 0.0, lposRPY(2));
-
-					desiredWaypoint->number = getNextWaypointNum();
-				}
 			}
 		}
 	}

@@ -8,6 +8,9 @@
 #ifndef HYDROPHONEINFO_H_
 #define HYDROPHONEINFO_H_
 
+#include <boost/cstdint.hpp>
+#include "HAL/format/DataObject.h"
+
 namespace subjugator {
 	class HydrophoneInfo : public DataObject {
 		public:

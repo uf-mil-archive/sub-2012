@@ -12,7 +12,7 @@
 #include "SubMain/Workers/SubWorker.h"
 #include "HAL/HAL.h"
 #include "HAL/SubHAL.h"
-#include "SubMain/Workers/Hydrophone/HydrophoneDataProcessor.h"
+#include "Hydrophone/HydrophoneDataProcessor.h"
 #include "DataObjects/Hydrophone/HydrophonePacketFormatter.h"
 #include "DataObjects/Hydrophone/HydrophoneDataObjectFormatter.h"
 

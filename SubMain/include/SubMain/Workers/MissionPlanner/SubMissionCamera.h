@@ -21,8 +21,8 @@ namespace subjugator
 	class MissionCamera
 	{
 	public:
-		MissionCamera(int id, Vector3d x, Vector3d y, Vector3d z, Vector4d quat, Vector2d cc, Vector2d fc)
-		: ID(id), X(x), Y(y), Z(z), Quaternion(quat), cc(cc), fc(fc) {}
+		MissionCamera(int id, Vector3d x, Vector3d y, Vector3d z, Vector4d quat, Vector2d cc, Vector2d fc, Matrix3d camCal)
+		: ID(id), X(x), Y(y), Z(z), Quaternion(quat), cc(cc), fc(fc), CameraCalibration(camCal) {}
 
 		int ID;
 		Vector3d X;
@@ -31,6 +31,7 @@ namespace subjugator
 		Vector4d Quaternion;
 		Vector2d cc;
 		Vector2d fc;
+		Matrix3d CameraCalibration;
 	};
 }
 

@@ -5,8 +5,8 @@
  *      Author: gbdash
  */
 
-#include "SubMain/Workers/Hydrophone/HydrophoneDataProcessor.h"
-#include "SubMain/Workers/Hydrophone/SubHydrophoneWorker.h"
+#include "Hydrophone/HydrophoneDataProcessor.h"
+#include "Hydrophone/SubHydrophoneWorker.h"
 #include "DataObjects/EmbeddedAddresses.h"
 #include "DataObjects/Hydrophone/HydrophoneSamples.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"

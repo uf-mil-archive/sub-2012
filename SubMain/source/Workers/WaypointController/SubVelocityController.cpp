@@ -9,16 +9,16 @@ typedef Matrix<double, 6, 1> Vector6d;
 VelocityController::VelocityController()
 {
 	Vector6d ktemp;
-	ktemp << 40.0,40.0,80.0,15.0,50.0,20.0;
+	ktemp << 20.0,20.0,80.0,15.0,50.0,20.0;
 
 	Vector6d kstemp;
-	kstemp << 130.0,130.0,120.0,40.0,40.0,80.0;
+	kstemp << 150.0,150.0,120.0,40.0,40.0,80.0;
 
 	Vector6d alphatemp;
-	alphatemp << 60.0,60.0,40.0,15.0,20.0,20.0;
+	alphatemp << 50.0,50.0,40.0,15.0,20.0,20.0;
 
 	Vector6d betatemp;
-	betatemp << 40.0,40.0,30.0,20.0,10.0,30.0;
+	betatemp << 60.0,60.0,30.0,20.0,10.0,30.0;;
 
 	SetGains(ktemp, kstemp, alphatemp, betatemp);
 
