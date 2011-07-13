@@ -42,6 +42,7 @@
 #define GLWIDGET_H
 
 #include <QGLWidget>
+#include "SuckySim/SimSub.h"
 #include "SuckySim/SimBuoy.h"
 #include "SuckySim/SimWorld.h"
 #include "SuckySim/SimPipe.h"

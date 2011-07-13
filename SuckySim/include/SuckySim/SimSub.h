@@ -3,6 +3,7 @@
 
 #include "SuckySim/SimObject.h"
 #include "SuckySim/SimCamera.h"
+#include "SuckySim/SimHelpers.h"
 #include <Eigen/Dense>
 #include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionCamera.h"
@@ -20,6 +21,10 @@ namespace subjugator
 
 		void setForwardSearch(ObjectIDs::ObjectIDCode obj) { forwardSearchObject = obj; }
 		void setDownSearch(ObjectIDs::ObjectIDCode obj) { downSearchObject = obj; }
+
+	protected:
+		virtual void Draw(QPainter* painter, double pPerM);
+		virtual bool PointIsInside(Vector2d p, double mPerPix);
 
 	private:
 			TrajectoryGenerator trajGen;

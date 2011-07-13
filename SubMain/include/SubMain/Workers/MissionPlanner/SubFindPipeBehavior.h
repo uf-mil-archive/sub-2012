@@ -3,7 +3,6 @@
 
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/SubBoolTimer.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
@@ -35,6 +34,7 @@ namespace subjugator
 		static const double alignDepth = 0.1;
 		static const double alignTimeout = 8;
 		static const int desiredAttempts = 4;
+		static const int alignWaypointCount = 30;
 
 		double alignToPipe;
 		double moveTravelDistance;
@@ -42,17 +42,16 @@ namespace subjugator
 		bool nextTask;
 		double startHeading;
 		double creepDistance;
-		bool timerStarted;
-		int count;
+		int pipeFrameCount;
 		bool newFrame;
 		bool turnRight;
+
+		int pipeAlignCount;
 
 		std::vector<FinderResult2D> objects2d;
 
 		boost::signals2::connection connection2D;
 		boost::weak_ptr<InputToken> mPlannerChangeCamObject;
-
-		BoolTimer timer;
 
 		virtual void Startup(MissionPlannerWorker& mpWorker);
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);
