@@ -10,7 +10,7 @@ using namespace Eigen;
 FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
 	MissionBehavior(MissionBehaviors::FindBuoy, "FindBuoy", minDepth),
 	canContinue(false),	bumpSet(false), backupSet(false), clearBuoysSet(false),
-	pipeSet(false), hasSeenBuoy(0)
+	pipeSet(false), hasSeenBuoy(0), yawChange(0), yawChangeSet(false), goLeft(false)
 {
 	gains2d = Vector2d(1.0, 1.0);
 
@@ -328,15 +328,41 @@ void FindBuoyBehavior::PanForBuoy()
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
 		desiredWaypoint->Position_NED(2) = alignDepth;
 
-		if(yawChange < yawMaxSearchAngle)
+		if(!goLeft)
 		{
-			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle * boost::math::constants::pi<double>() / 180.0);
-			yawChange += yawSearchAngle;
+			if(yawChange < yawMaxSearchAngle)
+			{
+				if(!yawChangeSet)
+				{
+					yawChangeSet = true;
+					desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle * boost::math::constants::pi<double>() / 180.0);
+					yawChange += yawSearchAngle;
+				}
+
+				if(atDesiredWaypoint())
+					yawChangeSet = false;
+			}
+			else
+			{
+				goLeft = true;
+				yawChange = 0;
+				yawChangeSet = false;
+			}
 		}
 		else
 		{
-			//desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle);
-			//yawChange -= yawSearchAngle;
+			if(yawChange < yawMaxSearchAngle)
+			{
+				if(!yawChangeSet)
+				{
+					yawChangeSet = true;
+					desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle * boost::math::constants::pi<double>() / 180.0);
+					yawChange += yawSearchAngle;
+				}
+
+				if(atDesiredWaypoint())
+					yawChangeSet = false;
+			}
 		}
 		desiredWaypoint->number = getNextWaypointNum();
 
@@ -352,12 +378,12 @@ void FindBuoyBehavior::getGains()
 
 	if (lastScale > 5000)
 	{
-		servoGains2d = Vector2d(0.0025, .025*boost::math::constants::pi<double>() / 180.0);
+		servoGains2d = Vector2d(0.025*boost::math::constants::pi<double>() / 180.0, 0.0025);
 		approachTravelDistance = 0.2; // m
 	}
 	else
 	{
-		servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
+		servoGains2d = Vector2d( .05*boost::math::constants::pi<double>() / 180.0, 0.0025);
 		approachTravelDistance = 0.5; // m
 	}
 }

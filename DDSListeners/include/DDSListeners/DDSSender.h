@@ -27,7 +27,7 @@ namespace subjugator
 			qos.liveliness.lease_duration.sec = 0;
 			qos.liveliness.lease_duration.nanosec = (DDS_UnsignedLong)(.5 * 1E9);
 
-			writer = participant->create_datawriter(topic, qos, NULL, DDS_STATUS_MASK_NONE);
+			writer = participant->create_datawriter(topic, DDS_DATAWRITER_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
 			if (!writer)
 				throw runtime_error("Failed to create DataWriter");
 

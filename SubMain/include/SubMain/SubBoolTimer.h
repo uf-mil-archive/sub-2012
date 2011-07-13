@@ -9,10 +9,15 @@ namespace subjugator
 	class BoolTimer
 	{
 	public:
+		BoolTimer() : started(false) {}
+
+		bool getStarted() { return started; }
+
 		void Start(double durationSecs)
 		{
 			startTickCount = getTimeStamp();
 			duration = durationSecs;
+			started = true;
 		}
 
 		bool HasExpired()
@@ -25,12 +30,15 @@ namespace subjugator
 			return false;
 		}
 
+		void Stop() { started = false; }
+
 	private:
 		static const double SECPERNSEC = 1e-9;
 		static const double NSECPERSEC = 1e9;
 
 		boost::int64_t startTickCount;
 		double duration;
+		bool started;
 
 		boost::int64_t getTimeStamp()
 		{

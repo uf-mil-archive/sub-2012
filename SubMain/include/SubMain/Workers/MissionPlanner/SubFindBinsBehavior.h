@@ -1,9 +1,9 @@
-/*
 #ifndef SUBFINDBINSBEHAVIOR_H
 #define SUBFINDBINSBEHAVIOR_H
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "SubMain/SubBoolTimer.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 
@@ -17,11 +17,16 @@ namespace subjugator
 	class FindBinsMiniBehaviors
 	{
 	public:
-		enum FindBuoyMiniBehaviorCode
+		enum FindBinsMiniBehaviorCode
 		{
 			None,
 			All,
+			DriveTowardsBins,
 			ApproachBins,
+			AlignToAllBins,
+			MoveToLeftBin,
+			MoveToInspectionDepth,
+			InspectBin,
 			ClearBins,
 			DriveTowardsPipe,
 		};
@@ -32,9 +37,14 @@ namespace subjugator
 	public:
 		FindBinsBehavior(double minDepth);
 	private:
+		static const double driveTowardsBinsDistance = 3.5;
 		static const double approachDepth = 1.0; // m
 		static const double approachTravelDistance = 0.2; // m
-		static const double approachThreshold = 8000;
+		static const int approachFrameCount = 5;
+		static const double alignDuration = 5.0;
+		static const int alignWaypointCount = 30;
+		static const double inspectionDepth = 1.0;
+
 		static const double desiredBumpDistance = 2.0;
 		static const double bumpTravelDistance = 0.5;
 		static const double backupTravelDistance = 2.0;
@@ -49,6 +59,11 @@ namespace subjugator
 		bool clearBuoysSet;
 		bool pipeSet;
 		bool newFrame;
+		
+		bool driveToBinsSet;
+		int binFrameCount;
+		int binAlignCount;
+		bool moveToInspect;
 
 		double pipeHeading;
 
@@ -58,11 +73,20 @@ namespace subjugator
 		boost::signals2::connection connection2D;
 		boost::weak_ptr<InputToken> mPlannerChangeCamObject;
 
+		BoolTimer timer;
+
 		virtual void Startup(MissionPlannerWorker& mpWorker);
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);
 		virtual void DoBehavior();
 
-		void ApproachBuoy();
+		void DriveTowardsBins();
+		void ApproachBins();
+		void AlignToAllBins();
+		void MoveToLeftBin();
+		void MoveToInspectionDepth();
+		void InspectBin();
+		void ClearBins();
+		void DriveTowardsPipe();
 
 		void Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects);
 	};
@@ -70,4 +94,4 @@ namespace subjugator
 
 
 #endif  // SUBFINDBINSBEHAVIOR_H
-*/
+

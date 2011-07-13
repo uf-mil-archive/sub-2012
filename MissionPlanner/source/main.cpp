@@ -9,6 +9,7 @@
 #include "DDSMessages/VisionSetIDsMessageSupport.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
 #include "DDSMessages/PDStatusMessage.h"
+#include "DDSMessages/HydrophoneMessage.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -47,6 +48,9 @@ int main(int argc, char **argv)
 		throw runtime_error("Failed to register type");
 
 	if (PDActuatorMessageTypeSupport::register_type(participant, PDActuatorMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (HydrophoneMessageTypeSupport::register_type(participant, HydrophoneMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
 	MissionPlannerDDSListener ddsListener(worker, participant);
