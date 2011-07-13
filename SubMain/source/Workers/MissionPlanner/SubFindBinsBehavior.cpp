@@ -12,7 +12,7 @@ FindBinsBehavior::FindBinsBehavior(double minDepth) :
 	canContinue(false), driveToBinsSet(false), binFrameCount(0), binAlignCount(0),
 	moveToInspect(false)
 {
-	servoGains2d = Vector2d(0.0025, .0035*boost::math::constants::pi<double>() / 180.0);
+	servoGains2d = Vector2d(.0035*boost::math::constants::pi<double>() / 180.0, 0.0025);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO list which bins we are looking for

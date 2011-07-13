@@ -56,6 +56,9 @@ namespace subjugator
 		double alignDepth;
 		double lastScale;
 
+		bool yawChangeSet;
+		bool goLeft;
+
 		double approachTravelDistance;
 
 		std::queue<ObjectIDs::ObjectIDCode> buoysToFind;

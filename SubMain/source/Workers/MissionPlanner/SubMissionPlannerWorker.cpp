@@ -31,8 +31,8 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 			Vector2d(959.00928, 958.34753),		//fc
 			Matrix3d::Zero());
 	MissionCamera fCam(MissionCameraIDs::Front,
-			Vector3d(0.0,0.0,1.0),	// X vector
-			Vector3d(0.0,-1.0,0.0),	// Y vector
+			Vector3d(0.0,1.0,0.0),	// X vector
+			Vector3d(0.0,0.0,1.0),	// Y vector
 			Vector3d(1.0,0.0,0.0),	// Z vector
 			Vector4d(1.0,0.0,0.0,0.0),	// Quat - populated later by waypoint generator
 			Vector2d(319.54324, 208.29877),		// cc
