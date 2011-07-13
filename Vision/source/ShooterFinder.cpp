@@ -26,7 +26,7 @@ vector<shared_ptr<FinderResult> > ShooterFinder::find(IOImages* ioimages)
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
 		// blur the image to remove noise
-		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(11,11),10,15,BORDER_DEFAULT);
+		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(9,9),10,15,BORDER_DEFAULT);
 
 		// call to thresholder here
 		t->thresh(ioimages,oIDs[i]);

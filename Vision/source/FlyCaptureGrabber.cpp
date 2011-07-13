@@ -10,7 +10,7 @@ FlyCaptureGrabber::~FlyCaptureGrabber(void)
 {
 }
 
-int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float gainVal)
+int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float shutterVal, float gainVal)
 {
 	// Print build information
 	PrintBuildInfo();
@@ -61,23 +61,41 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float gainVal)
 	printf("Setting configuration settings:\n");
 	//-------
 
-	Property white_balance(WHITE_BALANCE);
-	//white_balance.autoManualMode = true;
-	white_balance.absValue = 5.0;
-	cameras[camID].cam.SetProperty(&white_balance, false);
-	printf("Set auto white balance.\n");
+	Property brightness(BRIGHTNESS);
+	brightness.absValue = 150;  // 0 - 255
+	brightness.absControl = true;
+	brightness.autoManualMode = false;
+	cameras[camID].cam.SetProperty(&brightness, false);
+	
+
+	//Property white_balance(WHITE_BALANCE);
+	//white_balance.autoManualMode = false;
+	//white_balance.absValue = 60;
+	//white_balance.absControl = true;
+	//cameras[camID].cam.SetProperty(&white_balance, false);
+	//printf("Set auto white balance.\n");
 
 	Property auto_exposure(AUTO_EXPOSURE);
-	auto_exposure.autoManualMode = true;
-	auto_exposure.onOff = true;
+	auto_exposure.autoManualMode = false;
+	auto_exposure.onOff = false;
+	auto_exposure.absValue = 50; // 7 - 62
+	auto_exposure.absControl = true;
 	cameras[camID].cam.SetProperty(&auto_exposure, false);
 	printf("Set auto exposure.\n");
 
 	Property gain(GAIN);
-//	gain.absValue = gainVal;
-	gain.autoManualMode = true;
+	gain.absValue = gainVal; // 0 - 12 dB  (12 at pool at night)
+	gain.autoManualMode = false;
+	gain.absControl = true;
 	cameras[camID].cam.SetProperty(&gain, false);
-//	printf("Set gain to %.1f.\n",gainVal);
+	printf("Set gain to %f.\n", gainVal);
+
+	Property shutter(SHUTTER);
+	shutter.absValue = shutterVal;	// 0 - 33  (33 at pool at night)
+	shutter.absControl = true;
+	shutter.autoManualMode = false;
+	cameras[camID].cam.SetProperty(&shutter, false);
+	printf("Set shutter speed to %f.\n",shutterVal);
 
 	printf("\n");
 

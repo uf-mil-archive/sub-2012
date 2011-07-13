@@ -22,6 +22,9 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 	// call to normalizer here
 	n->norm(ioimages);
 
+	// blur the image to remove noise
+	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
+
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
 		// call to thresholder here
