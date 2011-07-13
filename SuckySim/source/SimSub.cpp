@@ -54,63 +54,63 @@ void SimSub::Draw(QPainter* painter,  double pPerM)
 
 	// Positions for Left pod
 	// Calculate the left pod back point connected to the hull
-	QPointF *lPod1 = new QPointF
-	(
-		0 + (((length-podLength)/2)*pPerM),
-		0
-	);
-
-	// Calculate the left pod back point not connected to hull
-	QPointF *lPod2 = new QPointF
-	(
-		lPod1->x(),
-		lPod1->y() - ((podWidth) * pPerM)
-	);
-
-	// Calculate the left pod front point not connected to hull
-	QPointF *lPod3 = new QPointF
-	(
-		((podLength) * pPerM),
-		lPod2->y()
-	);
-
-	// Calculate the left pod front point connected to hull
-	QPointF *lPod4 = new QPointF
-	(
-		lPod3->x(),
-		lPod1->y()
-	);
-
-
-
-	// Positions for right pod
-	// Calculate the right pod back point connected to the hull
-	QPointF *rPod1 = new QPointF
-	(
-		0 + (((length-podLength)/2)*pPerM),
-		(width * pPerM)
-	);
-
-	// Calculate the right pod back point not connected to hull
-	QPointF *rPod2 = new QPointF
-	(
-		rPod1->x(),
-		rPod1->y() + ((podWidth) * pPerM)
-	);
-
-	// Calculate the right pod front point not connected to hull
-	QPointF *rPod3 = new QPointF
-	(
-		(podLength * pPerM),
-		rPod2->y()
-	);
-
-	// Calculate the right pod front point connected to hull
-	QPointF *rPod4 = new QPointF
-	(
-		rPod3->x(),
-		rPod1->y()
-	);
+//	QPointF *lPod1 = new QPointF
+//	(
+//		0 + (((length-podLength)/2)*pPerM),
+//		0
+//	);
+//
+//	// Calculate the left pod back point not connected to hull
+//	QPointF *lPod2 = new QPointF
+//	(
+//		lPod1->x(),
+//		lPod1->y() - ((podWidth) * pPerM)
+//	);
+//
+//	// Calculate the left pod front point not connected to hull
+//	QPointF *lPod3 = new QPointF
+//	(
+//		((podLength) * pPerM),
+//		lPod2->y()
+//	);
+//
+//	// Calculate the left pod front point connected to hull
+//	QPointF *lPod4 = new QPointF
+//	(
+//		lPod3->x(),
+//		lPod1->y()
+//	);
+//
+//
+//
+//	// Positions for right pod
+//	// Calculate the right pod back point connected to the hull
+//	QPointF *rPod1 = new QPointF
+//	(
+//		0 + (((length-podLength)/2)*pPerM),
+//		(width * pPerM)
+//	);
+//
+//	// Calculate the right pod back point not connected to hull
+//	QPointF *rPod2 = new QPointF
+//	(
+//		rPod1->x(),
+//		rPod1->y() + ((podWidth) * pPerM)
+//	);
+//
+//	// Calculate the right pod front point not connected to hull
+//	QPointF *rPod3 = new QPointF
+//	(
+//		(podLength * pPerM),
+//		rPod2->y()
+//	);
+//
+//	// Calculate the right pod front point connected to hull
+//	QPointF *rPod4 = new QPointF
+//	(
+//		rPod3->x(),
+//		rPod1->y()
+//	);
 
 	double rotDeg = rpy(2) * 180.0 / boost::math::constants::pi<double>();
 
