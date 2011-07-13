@@ -7,7 +7,7 @@ using namespace Eigen;
 
 FindValidationGateBehavior::FindValidationGateBehavior(double minDepth, ObjectIDs::ObjectIDCode objId) :
 	MissionBehavior(MissionBehaviors::FindValidationGate, "FindValidation", minDepth),
-	canContinue(false), driveThroughSet(false), moveDepthSet(false)
+	canContinue(false), driveThroughSet(false), moveDepthSet(false), hasSeenGate(0), newFrame(false)
 {
 	currentObjectID = objId;
 
@@ -90,13 +90,19 @@ void FindValidationGateBehavior::DoBehavior()
 
 void FindValidationGateBehavior::ApproachGate()
 {
-	bool sawBuoy = false;
+	bool sawGate = false;
 	if(!canContinue)
 	{
+		if(!newFrame)
+			return;
+
+		getGains();
+
+		newFrame = false;
 		// The list of 2d objects the class is holding is the current found images in the frame
 		for(size_t i = 0; i < objects2d.size(); i++)
 		{
-			if(objects2d[i].objectID == currentObjectID)
+			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Front)
 			{
 				// The buoy we want is in view. Get the NED waypoint from the generator
 				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
@@ -105,6 +111,7 @@ void FindValidationGateBehavior::ApproachGate()
 					continue;
 
 				double distance = 0.0;
+				lastScale = objects2d[i].scale;
 				if(objects2d[i].scale >= approachThreshold)
 					canContinue = true;
 				else
@@ -118,23 +125,29 @@ void FindValidationGateBehavior::ApproachGate()
 				desiredWaypoint->Position_NED += distanceToTravel;
 				desiredWaypoint->number = getNextWaypointNum();
 
-				sawBuoy = true;
+				hasSeenGate = 0;
+				sawGate = true;
 
 				break;
 			}
 		}
 
 		// We either never saw the gate or we lost it. Keep searching forward at pipe heading
-		if(!sawBuoy)
+		if(!sawGate)
 		{
-			double serioslycpp = approachTravelDistance;
-			desiredWaypoint = boost::shared_ptr<Waypoint>();
-			desiredWaypoint->isRelative = false;
-			desiredWaypoint->Position_NED = MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
-					Vector3d(serioslycpp, 0.0, 0.0)) + lposInfo->getPosition_NED();
-			desiredWaypoint->Position_NED(2) = approachDepth;
-			desiredWaypoint->RPY = Vector3d(0.0, 0.0, pipeHeading);
-			desiredWaypoint->number = getNextWaypointNum();
+			if((hasSeenGate++) > 30)
+				stateManager.ChangeState(FindValidationGateMiniBehaviors::PanForGate);
+			else
+			{
+				double serioslycpp = approachTravelDistance;
+				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+				desiredWaypoint->isRelative = false;
+				desiredWaypoint->Position_NED = MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
+						Vector3d(serioslycpp, 0.0, 0.0)) + lposInfo->getPosition_NED();
+				desiredWaypoint->Position_NED(2) = approachDepth;
+				desiredWaypoint->RPY = Vector3d(0.0, 0.0, pipeHeading);
+				desiredWaypoint->number = getNextWaypointNum();
+			}
 		}
 	}
 	// Just waiting to arrive at the final waypoint for the mini behavior
@@ -143,6 +156,7 @@ void FindValidationGateBehavior::ApproachGate()
 		// Check to see if we have arrived
 		if(atDesiredWaypoint())
 		{
+			canContinue = false;
 			// Done approaching the current buoy, switch to bump
 			stateManager.ChangeState(FindValidationGateMiniBehaviors::DriveThroughGate);
 		}
@@ -181,6 +195,7 @@ void FindValidationGateBehavior::DriveThroughGate()
 void FindValidationGateBehavior::PanForGate()
 {
 	bool sawGate = false;
+	hasSeenGate = 0;
 
 	// The list of 2d objects the class is holding is the current found images in the frame
 	for(size_t i = 0; i < objects2d.size(); i++)
@@ -198,26 +213,28 @@ void FindValidationGateBehavior::PanForGate()
 	{
 		lock.lock();
 
-		desiredWaypoint = boost::shared_ptr<Waypoint>();
+		if(alignDepth == 0.0)
+			alignDepth = lposInfo->position_NED(2);
+
+		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
-		desiredWaypoint->Position_NED(2) = approachDepth;
+		desiredWaypoint->Position_NED(2) = alignDepth;
 
-		if(yawChange < boost::math::constants::pi<double>() / 180.0 * yawMaxSearchAngle)
+		if(yawChange < yawMaxSearchAngle)
 		{
-			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle);
+			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle * boost::math::constants::pi<double>() / 180.0);
 			yawChange += yawSearchAngle;
 		}
 		else
 		{
-			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle);
-			yawChange -= yawSearchAngle;
+			//desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle);
+			//yawChange -= yawSearchAngle;
 		}
 		desiredWaypoint->number = getNextWaypointNum();
 
 		lock.unlock();
 	}
-
 	// TODO what if we can't pan and find the gate?
 }
 
@@ -246,4 +263,21 @@ void FindValidationGateBehavior::MoveToDepth()
 		// We've found all the buoys! - the behavior shutdown will be called when the worker pops us off the list
 		stateManager.ChangeState(FindValidationGateMiniBehaviors::PanForGate);
 	}
+}
+
+// TODO Set travel distances
+void FindValidationGateBehavior::getGains()
+{
+	servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
+	approachTravelDistance = 0.5; // m
+/*	if (lastScale > 5000)
+	{
+		servoGains2d = Vector2d(0.0025, .025*boost::math::constants::pi<double>() / 180.0);
+		approachTravelDistance = 0.2; // m
+	}
+	else
+	{
+		servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
+		approachTravelDistance = 0.5; // m
+	}*/
 }

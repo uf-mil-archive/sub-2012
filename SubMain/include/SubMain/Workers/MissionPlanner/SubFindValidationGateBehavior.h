@@ -33,9 +33,8 @@ namespace subjugator
 		FindValidationGateBehavior(double minDepth, ObjectIDs::ObjectIDCode objId);
 	private:
 		static const double approachDepth = 1.0; // m
-		static const double approachTravelDistance = 0.2; // m
 		static const double approachThreshold = 35000;
-		static const double driveThroughGateDistance = 2.0;
+		static const double driveThroughGateDistance = 4.0;
 		static const double yawSearchAngle = 0.5;
 		static const double yawMaxSearchAngle = 45.0;
 
@@ -43,8 +42,15 @@ namespace subjugator
 		bool driveThroughSet;
 		bool moveDepthSet;
 
+		int hasSeenGate;
+		bool newFrame;
+
 		double pipeHeading;
 		double yawChange;
+		double alignDepth;
+		double lastScale;
+
+		double approachTravelDistance;
 
 		std::vector<FinderResult2D> objects2d;
 
@@ -59,6 +65,7 @@ namespace subjugator
 		void DriveThroughGate();
 		void PanForGate();
 		void MoveToDepth();
+		void getGains();
 		void Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects);
 	};
 }
