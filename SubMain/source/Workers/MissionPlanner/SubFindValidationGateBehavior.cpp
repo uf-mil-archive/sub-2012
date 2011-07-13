@@ -66,6 +66,7 @@ void FindValidationGateBehavior::Update2DCameraObjects(const std::vector<FinderR
 	lock.lock();
 
 	objects2d = camObjects;
+	newFrame = true;
 
 	lock.unlock();
 }
@@ -90,13 +91,16 @@ void FindValidationGateBehavior::DoBehavior()
 
 void FindValidationGateBehavior::ApproachGate()
 {
+	getGains();
+
 	bool sawGate = false;
 	if(!canContinue)
 	{
+		cout << "!canContinue" << endl;
 		if(!newFrame)
 			return;
-
-		getGains();
+			
+		cout << "!newFrame" << endl;
 
 		newFrame = false;
 		// The list of 2d objects the class is holding is the current found images in the frame
@@ -109,6 +113,8 @@ void FindValidationGateBehavior::ApproachGate()
 
 				if(!desiredWaypoint)	// Bad find, waygen says no good
 					continue;
+					
+				cout << "SAW GATE!!!" << endl;
 
 				double distance = 0.0;
 				lastScale = objects2d[i].scale;
@@ -135,10 +141,11 @@ void FindValidationGateBehavior::ApproachGate()
 		// We either never saw the gate or we lost it. Keep searching forward at pipe heading
 		if(!sawGate)
 		{
-			if((hasSeenGate++) > 30)
+			/*if((hasSeenGate++) > 30)
 				stateManager.ChangeState(FindValidationGateMiniBehaviors::PanForGate);
-			else
+			else*/
 			{
+				cout << "didn't see gate, going forward" << endl;
 				double serioslycpp = approachTravelDistance;
 				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 				desiredWaypoint->isRelative = false;
@@ -261,7 +268,7 @@ void FindValidationGateBehavior::MoveToDepth()
 		moveDepthSet = false;
 
 		// We've found all the buoys! - the behavior shutdown will be called when the worker pops us off the list
-		stateManager.ChangeState(FindValidationGateMiniBehaviors::PanForGate);
+		stateManager.ChangeState(FindValidationGateMiniBehaviors::DriveThroughGate);
 	}
 }
 
