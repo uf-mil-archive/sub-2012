@@ -38,6 +38,8 @@ void FindPingerBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 void FindPingerBehavior::UpdateHydrophoneData(const HydrophoneInfo& hInfo)
 {
 	lock.lock();
+	
+	cout << "UpdateHydrophoneData, freq is " << hInfo.getPingfrequency() << endl;
 
 	hydInfo = boost::shared_ptr<HydrophoneInfo>(new HydrophoneInfo(hInfo));
 	hydInfoNew = true;
@@ -56,10 +58,13 @@ void FindPingerBehavior::DoBehavior()
 
 void FindPingerBehavior::TravelToPinger()
 {
+	cout << "in TravelToPinger" << endl;
 	if(!canContinue)
 	{
 		if(!hydInfoNew)
 			return;
+
+		cout << "hydInfoNew" << endl;
 
 		lock.lock();
 
@@ -73,7 +78,7 @@ void FindPingerBehavior::TravelToPinger()
 
 		double distance = getTravelDistance();
 
-		desiredWaypoint = boost::shared_ptr<Waypoint>();
+		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
 		desiredWaypoint->number = getNextWaypointNum();
 
