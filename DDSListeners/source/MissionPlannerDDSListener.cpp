@@ -43,10 +43,10 @@ void MissionPlannerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> 
 
 		visionidsddssender.Send(*msg);
 		VisionSetIDsMessageTypeSupport::delete_data(msg);
-	} else if (PDActuator *pdact = dynamic_cast<PDActuator *>(dobj.get())) {
+	} else if (SetActuator *act = dynamic_cast<SetActuator *>(dobj.get())) {
 		PDActuatorMessage *actuator = PDActuatorMessageTypeSupport::create_data();
 
-		actuator->flags = pdact->flags;
+		actuator->flags = act->getFlags();
 
 		pdactuatorddssender.Send(*actuator);
 		PDActuatorMessageTypeSupport::delete_data(actuator);
