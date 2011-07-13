@@ -32,14 +32,12 @@ LocalWaypointDriverWorker::LocalWaypointDriverWorker(boost::asio::io_service& io
 
 bool LocalWaypointDriverWorker::Startup()
 {
-	//cout << "Startup State" << endl;
 	mStateManager.ChangeState(SubStates::INITIALIZE);
 	return true;
 }
 
 void LocalWaypointDriverWorker::readyState()
 {
-	//cout << "Ready State" << endl;
 	boost::int64_t t = getTimestamp();
 
 	// The first ready function call initializes the timers correctly
@@ -73,22 +71,22 @@ void LocalWaypointDriverWorker::readyState()
 
 void LocalWaypointDriverWorker::initializeState()
 {
-	//cout << "Init State" << endl;
 	inReady = false;
 
 	if(lposInfo.get() == NULL)
 		return;
+
+	velocityController.reset();
+	trajectoryGenerator.reset();
 
 	mStateManager.ChangeState(SubStates::STANDBY);
 }
 
 void LocalWaypointDriverWorker::standbyState()
 {
-//	cout << "Standby State" << endl;
-
 	inReady = false;
-	//if(!hardwareKilled)
-	//{
+	if(!hardwareKilled)
+	{
 		// delay for 2s after unkilled
 		//if !timer running
 		//if timer.haselapsed()
@@ -103,7 +101,7 @@ void LocalWaypointDriverWorker::standbyState()
 
 		velocityController = std::auto_ptr<VelocityController>(new VelocityController());
 		mStateManager.ChangeState(SubStates::READY);
-	//}
+	}
 }
 
 void LocalWaypointDriverWorker::emergencyState()
@@ -160,8 +158,8 @@ void LocalWaypointDriverWorker::setPDInfo(const DataObject& dobj)
 
 	hardwareKilled = newState;
  
-	//if(hardwareKilled)
-	//	mStateManager.ChangeState(SubStates::INITIALIZE);
+	if(hardwareKilled)
+		mStateManager.ChangeState(SubStates::INITIALIZE);
 
 	lock.unlock();
 }
@@ -214,7 +212,6 @@ void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
 {
 	lock.lock();
 
-	cout << "Driver Received Gains" << endl;
 	if(velocityController.get() == NULL)
 	{
 		lock.unlock();
@@ -228,7 +225,6 @@ void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
 		return;
 	}
 
-	cout << "Time to Set Gains" << endl;
 	velocityController->SetGains(info->k, info->ks, info->alpha, info->beta);
 
 	lock.unlock();

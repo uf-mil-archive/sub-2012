@@ -28,6 +28,7 @@ namespace subjugator
 			BinShape = 11,
 			BinX = 12,
 			BinO = 13,
+			BinSingle = 14,
 
 			// Man
 			Tube = 16,
