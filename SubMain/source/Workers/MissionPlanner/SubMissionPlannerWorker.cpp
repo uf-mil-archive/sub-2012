@@ -162,9 +162,11 @@ void MissionPlannerWorker::allState()
 		//onEmitting(info);
 
 		// Get the relative waypoint distance to print out
+		lock.lock();
 		Vector3d relP = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo->getQuat_NED_B()), info->currentWaypoint.Position_NED - lposInfo->getPosition_NED());
 		Vector3d relRPY = Vector3d::Zero();
 		Vector3d currentRPY = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
+		lock.unlock();
 
 		relRPY(1) = AttitudeHelpers::DAngleDiff(currentRPY(1), info->currentWaypoint.RPY(1));
 		relRPY(2) = AttitudeHelpers::DAngleDiff(currentRPY(2), info->currentWaypoint.RPY(2));
@@ -266,6 +268,7 @@ void MissionPlannerWorker::setPDInfo(const DataObject& dobj)
 	if(!info)
 		return;
 
+	lock.lock();
 	newState = info->getMergeInfo().getESTOP();
 
 	if(estop == newState) {
@@ -278,4 +281,6 @@ void MissionPlannerWorker::setPDInfo(const DataObject& dobj)
 	// TODO handle when estop goes true
 	//if(estop)
 	//	mStateManager.ChangeState(SubStates::INITIALIZE);
+	
+	lock.unlock();
 }
