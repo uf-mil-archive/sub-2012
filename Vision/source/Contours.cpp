@@ -1,5 +1,7 @@
 #include "Contours.h"
 
+using namespace std;
+
 Contours::Contours(float minContour, float maxContour, float maxPerimeter)
 {
 	area_holder = 0.0;
@@ -48,7 +50,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
                     }
 					// if cosines of all angles are small (all angles are ~90 degree) then write quandrange
                     // vertices to resultant sequence
-                    if( maxCosine < 0.3 )
+                    if( maxCosine < 0.5 )
 					{
 						// push to vector of saved boxes
 						OuterBox outerBox;
@@ -137,12 +139,17 @@ void Contours::drawResult(IOImages* ioimages, int objectID)
 		break;
 	}
 
+	char str[10];
 	for(size_t i=0; i<boxes.size(); i++)
 	{
 		circle(ioimages->prcd,boxes[i].centroid,2,color,2,8,0);
 		drawContours( ioimages->prcd, boxes[i].contour, 0, color, 2, 8, hierarchy, 0);
 		for(size_t j=0; j < boxes[i].corners.size(); j++)
+		{
 			circle(ioimages->prcd,boxes[i].corners[j],3,CV_RGB(255,255,0),-1,8);
+			sprintf(str,"%d",(int)j);
+			putText(ioimages->prcd,str,Point(boxes[i].corners[j].x+5,boxes[i].corners[j].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,255,255),1);
+		}
 		line(ioimages->prcd,boxes[i].centroid,boxes[i].orientation,CV_RGB(255,0,0),2,8);
 	}
 	for(size_t i=0; i<shapes.size(); i++)
@@ -316,4 +323,17 @@ int Contours::identifyShape(IOImages* ioimages)
 		return 1;
 	else
 		return 0;
+}
+
+void Contours::orientationError()
+{
+	for(unsigned int i=0; i<boxes.size(); i++)
+	{
+		double line1 = sqrt( pow(boxes[i].corners[1].x-boxes[i].corners[0].x,2.0) + pow(boxes[i].corners[1].y-boxes[i].corners[0].y,2.0) );
+		double line2 = sqrt( pow(boxes[i].corners[2].x-boxes[i].corners[3].x,2.0) + pow(boxes[i].corners[2].y-boxes[i].corners[3].y,2.0) );
+		printf("line 1: %f\n",line1);
+		printf("line 2: %f\n",line2);
+		boxes[i].orientationError = line1-line2; // right - left
+		printf("angle error: %f\n",boxes[i].orientationError);
+	}
 }

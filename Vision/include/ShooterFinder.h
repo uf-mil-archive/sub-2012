@@ -14,6 +14,7 @@ class ShooterFinder : public IFinder
 
 	private:
 		int result;
+		//EstimatePose ep;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "MILObjectIDs.h"
 #include "IOImages.h"
 #include <vector>
+#include <cmath>
 
 class Contours
 {
@@ -26,6 +27,7 @@ class Contours
 			Point orientation;
 			vector<Point> corners;
 			vector<vector<Point> > contour;
+			double orientationError;
 		};
 		vector<InnerContour> shapes; // output holder
 		vector<OuterBox> boxes; // output holder
@@ -41,6 +43,7 @@ class Contours
 		float calcAngleOfAllBoxes();
 		void sortBoxes();
 		int identifyShape(IOImages* ioimages);
+		void orientationError();
 
 	private:
 		vector<Vec4i> hierarchy; // heirarchy holder for the contour tree
