@@ -14,14 +14,15 @@
 #include "ShooterFinder.h"
 #include "BinsFinder.h"
 #include "ShapeFinder.h"
+#include "ValidationGateFinder.h"
 
 class FinderGenerator
 {
 public:
-	vector<IFinder*> listOfFinders;
+	vector<boost::shared_ptr<IFinder> > listOfFinders;
 	FinderGenerator(void);
 	~FinderGenerator(void);
-	vector<IFinder*> buildFinders(vector<int>);
+	vector<boost::shared_ptr<IFinder> > buildFinders(vector<int>);
 	void clearFinders();
 };
 

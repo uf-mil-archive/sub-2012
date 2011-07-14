@@ -14,11 +14,12 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	: Worker(io, rate), wayNum(0), estop(true)
 {
 	// TODO Enqueue mission tasks here
+	//missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
-//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
+//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
+	
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateHedge)));
-//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 26000, 29000))); // For 27kHz pinger
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 21000, 25000))); // For 27kHz pinger
 
 	// TODO correct camera vectors
 	// Cameras and waypoint generator
@@ -31,8 +32,8 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 			Vector2d(959.00928, 958.34753),		//fc
 			Matrix3d::Zero());
 	MissionCamera fCam(MissionCameraIDs::Front,
-			Vector3d(0.0,0.0,1.0),	// X vector
-			Vector3d(0.0,-1.0,0.0),	// Y vector
+			Vector3d(0.0,1.0,0.0),	// X vector
+			Vector3d(0.0,0.0,1.0),	// Y vector
 			Vector3d(1.0,0.0,0.0),	// Z vector
 			Vector4d(1.0,0.0,0.0,0.0),	// Quat - populated later by waypoint generator
 			Vector2d(319.54324, 208.29877),		// cc
@@ -162,9 +163,11 @@ void MissionPlannerWorker::allState()
 		//onEmitting(info);
 
 		// Get the relative waypoint distance to print out
+		lock.lock();
 		Vector3d relP = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo->getQuat_NED_B()), info->currentWaypoint.Position_NED - lposInfo->getPosition_NED());
 		Vector3d relRPY = Vector3d::Zero();
 		Vector3d currentRPY = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
+		lock.unlock();
 
 		relRPY(1) = AttitudeHelpers::DAngleDiff(currentRPY(1), info->currentWaypoint.RPY(1));
 		relRPY(2) = AttitudeHelpers::DAngleDiff(currentRPY(2), info->currentWaypoint.RPY(2));
@@ -266,6 +269,7 @@ void MissionPlannerWorker::setPDInfo(const DataObject& dobj)
 	if(!info)
 		return;
 
+	lock.lock();
 	newState = info->getMergeInfo().getESTOP();
 
 	if(estop == newState) {
@@ -278,4 +282,6 @@ void MissionPlannerWorker::setPDInfo(const DataObject& dobj)
 	// TODO handle when estop goes true
 	//if(estop)
 	//	mStateManager.ChangeState(SubStates::INITIALIZE);
+	
+	lock.unlock();
 }

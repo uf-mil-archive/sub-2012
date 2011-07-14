@@ -90,11 +90,13 @@ void LocalWaypointDriverWorker::standbyState()
 		// delay for 2s after unkilled
 		//if !timer running
 		//if timer.haselapsed()
+		lock.lock();
 		Vector3d temp = MILQuaternionOps::Quat2Euler(lposInfo->quaternion_NED_B);
 
 		Vector6d tempTraj;
 		tempTraj.block<3,1>(0,0) = lposInfo->position_NED;
 		tempTraj.block<3,1>(3,0) = Vector3d(0,0,temp(2));
+		lock.unlock();
 
 		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator(tempTraj));
 		setWaypoint(Waypoint(false, lposInfo->position_NED, Vector3d(0,0,temp(2))));

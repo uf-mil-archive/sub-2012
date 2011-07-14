@@ -3,6 +3,8 @@
 
 #include "IThresholder.h"
 
+using namespace cv;
+
 class ThresholderRGB : public IThresholder
 {
 public:

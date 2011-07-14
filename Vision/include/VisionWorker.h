@@ -26,7 +26,7 @@ public:
 class VisionWorker : public subjugator::Worker
 {
 public:
-	VisionWorker(boost::asio::io_service &io_service, boost::int64_t rateHz, int inputMode, bool showDebugImages, int cameraNumber);
+	VisionWorker(boost::asio::io_service &io_service, boost::int64_t rateHz, int inputMode, bool showDebugImages, int cameraNumber, bool logImages, float shutterVal, float gainVal);
 	~VisionWorker(void);
 
 	bool Startup();
@@ -36,12 +36,16 @@ private:
 	IOImages* ioimages;
 	int inputMode;
 	bool showDebugImages;
+	bool logImages;
 	int cameraNumber;
 	FinderGenerator finderGen;
-	vector<IFinder*> listOfFinders;
+	vector<boost::shared_ptr<IFinder> > listOfFinders;
 	vector<int> finderIDs;
 	vector<boost::shared_ptr<FinderResult> > fResult;
 	FlyCaptureGrabber flyCapGrab;
+	int frameCnt;
+	float shutterVal;
+	float gainVal;
 
 	void readyState();
 	void emergencyState();

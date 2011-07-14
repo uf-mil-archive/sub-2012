@@ -7,11 +7,11 @@ Line::Line(int num)
 	tmpAngle = 0.0;
 	AvgLine line1;
 	avgLines.push_back(line1);
-	if(num == 2)
-	{
+	//if(num == 2)
+	//{
 		AvgLine line2;
 		avgLines.push_back(line2);
-	}
+	//}
 }
 
 Line::~Line(void)
@@ -21,7 +21,7 @@ Line::~Line(void)
 int Line::findLines(IOImages* ioimages)
 {
 	Canny(ioimages->dbg, edgeImage, 50, 200, 3 );
-	HoughLinesP(edgeImage, lines, 1, CV_PI/360, 60, 30, 50 );
+	HoughLinesP(edgeImage, lines, 1, CV_PI/360, 80, 60, 50 );
 
     for( size_t i = 0; i < lines.size(); i++ )
     {
@@ -34,8 +34,21 @@ int Line::findLines(IOImages* ioimages)
 		// case when looking for a single line (i.e. tube)
 		if(numberOfLinesToFind == 1)
 		{
-			avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
-			avgLines[0].populated = true;
+			/*if(i==0)
+			{
+				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
+				avgLines[0].populated = true;
+			}
+			if(abs(lines[i][0] - avgLines[0].centroid.x) < 30)
+			{
+				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
+				avgLines[0].populated = true;
+			}
+			else
+			{*/
+				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
+				avgLines[0].populated = true;
+			//}
 		}
 		// case when looking for two lines (i.e. pipes)
 		if(numberOfLinesToFind == 2)

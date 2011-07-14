@@ -22,6 +22,9 @@ vector<shared_ptr<FinderResult> > HedgeFinder::find(IOImages* ioimages)
 	// call to normalizer here
 	n->norm(ioimages);
 
+	// blur the image to remove noise
+	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
+
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
 		// call to thresholder here
@@ -42,8 +45,8 @@ vector<shared_ptr<FinderResult> > HedgeFinder::find(IOImages* ioimages)
 				// cycle through both lines to find the center point
 				for(unsigned int j=0; j<line->avgLines.size(); j++)
 				{
-					if(line->avgLines[j].angle < 120*(3.1415/180) && line->avgLines[j].angle > 60*(3.1415/180)
-						|| line->avgLines[j].angle > -120*(3.1415/180) && line->avgLines[j].angle < -60*(3.1415/180))
+					if( (line->avgLines[j].angle < 120*(3.1415/180) && line->avgLines[j].angle > 60*(3.1415/180) )
+						|| (line->avgLines[j].angle > -120*(3.1415/180) && line->avgLines[j].angle < -60*(3.1415/180)))
 					{
 						driveToCenter.x = line->avgLines[j].centroid.x;
 					}
@@ -55,6 +58,7 @@ vector<shared_ptr<FinderResult> > HedgeFinder::find(IOImages* ioimages)
 				fResult2D->objectID = MIL_OBJECTID_GATE_HEDGE;
 				fResult2D->u = driveToCenter.x;
 				fResult2D->v = driveToCenter.y;
+				fResult2D->scale = line->avgLines[0].length;
 				resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 			}
 		}
