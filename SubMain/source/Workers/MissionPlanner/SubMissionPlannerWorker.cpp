@@ -4,6 +4,7 @@
 #include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindPingerBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubSurfaceBehavior.h"
 
 #include <iostream>
 
@@ -20,6 +21,8 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateHedge)));
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 21000, 25000))); // For 27kHz pinger
+	missionList.push(boost::shared_ptr<MissionBehavior>(new SurfaceBehavior(-1.0)));
+
 
 	// TODO correct camera vectors
 	// Cameras and waypoint generator
