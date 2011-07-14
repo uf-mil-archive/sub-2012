@@ -36,6 +36,8 @@ void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
 		threshBlack(ioimages);
 	else if(objectID == MIL_OBJECTID_BIN_SHAPE)
 		threshRed(ioimages, false);
+	else if(objectID == MIL_OBJECTID_GATE_VALIDATION)
+		threshOrange(ioimages, true);
 }
 
 void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
@@ -66,8 +68,8 @@ void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-20);
 	if(erodeDilateFlag)
 	{
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
 	}
 }
 
@@ -149,7 +151,9 @@ void ThresholderRGB::threshGreen(IOImages *ioimages)
 	split(srcLAB,channelsLAB);
 	split(srcHSV,channelsHSV);
 
-	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,101,15); // used incorrectly, but seems to work very robustly!
+	//imshow("0",channelsLAB[1]);
+
+	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,101,5); // used incorrectly, but seems to work very robustly!
 	subtract(channelsLAB[1],channelsRGB[2],ioimages->dbg); // subtract out white/red/yellow
 	bitwise_and(ioimages->dbg,channelsHSV[1],ioimages->dbg);
 	threshold(ioimages->dbg,ioimages->dbg,100,255,THRESH_BINARY);

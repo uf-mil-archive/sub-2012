@@ -113,9 +113,9 @@ double FindPingerBehavior::getTravelDistance()
 	if (hydInfo)
 	{
 		if (hydInfo->getDeclination() < (boost::math::constants::pi<double>() / 180.0 * 50.0))
-			distance = 1.5;
+			distance = 3;
 		else if ((hydInfo->getDeclination() >= boost::math::constants::pi<double>() / 180.0 * 50) && (hydInfo->getDeclination() < boost::math::constants::pi<double>() / 180.0 * 65.0))
-			distance = 0.5;
+			distance = 1;
 		else
 			distance = 0.1;
 
