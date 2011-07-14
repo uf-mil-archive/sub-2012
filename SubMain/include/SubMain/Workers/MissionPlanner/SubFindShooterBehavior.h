@@ -20,13 +20,11 @@ namespace subjugator
 		{
 			None,
 			All,
-			ApproachFirstWindow,
-			MoveToShootFirst,
-			ShootFirst,
-			TravelAroundWindow,
-			ApproachSecondWindow,
-			MoveToShootSecond,
-			ShootSecond
+			ApproachWindow,
+			MoveToWindow,
+			KentuckyWindage,
+			Shoot,
+			TravelAroundWindow
 		};
 	};
 
@@ -47,9 +45,11 @@ namespace subjugator
 		static const double forwardTravelDistance = 4;
 
 		bool canContinue;
-		bool moveToShootSet;
+		bool kentuckyWindageSet;
 		bool timerSet;
-		int firstTarget;
+		int currentTarget;
+		int currentTargetCtr;
+		bool secondTime;
 
 		double pipeHeading;
 		double windowHeading;
@@ -69,13 +69,12 @@ namespace subjugator
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);
 		virtual void DoBehavior();
 
-		void ApproachFirstWindow();
-		void MoveToShootFirst();
-		void ShootFirst();
+		void ApproachWindow();
+		void MoveToWindow();
+		void KentuckyWindage();
+		void Shoot();
 		void TravelAroundWindow();
-		void ApproachSecondWindow();
-		void MoveToShootSecond();
-		void ShootSecond();
+
 		void Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects);
 	};
 }

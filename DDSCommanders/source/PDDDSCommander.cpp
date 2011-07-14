@@ -1,7 +1,7 @@
 #include "DDSCommanders/PDDDSCommander.h"
 #include "SubMain/Workers/PDWorker/SubPDWorker.h"
 #include "DataObjects/PD/PDWrench.h"
-#include "DataObjects/Merge/SetActuator.h"
+#include "DataObjects/Actuator/SetActuator.h"
 #include <boost/bind.hpp>
 #include <iostream>
 

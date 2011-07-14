@@ -16,7 +16,7 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
 
 	// TODO enqueue which buoys we are looking for
 	buoysToFind.push(ObjectIDs::BuoyRed);
-	buoysToFind.push(ObjectIDs::BuoyYellow);
+	//buoysToFind.push(ObjectIDs::BuoyYellow);
 	//buoysToFind.push(ObjectIDs::BuoyGreen);
 
 	// Setup the callbacks
@@ -378,12 +378,12 @@ void FindBuoyBehavior::getGains()
 
 	if (lastScale > 5000)
 	{
-		servoGains2d = Vector2d(0.025*boost::math::constants::pi<double>() / 180.0, 0.0025);
-		approachTravelDistance = 0.2; // m
+		servoGains2d = Vector2d(0.025*boost::math::constants::pi<double>() / 180.0, 0.0035);
+		approachTravelDistance = 0.3; // m
 	}
 	else
 	{
-		servoGains2d = Vector2d( .05*boost::math::constants::pi<double>() / 180.0, 0.0025);
-		approachTravelDistance = 0.5; // m
+		servoGains2d = Vector2d( .05*boost::math::constants::pi<double>() / 180.0, 0.0035);
+		approachTravelDistance = 1; // m
 	}
 }

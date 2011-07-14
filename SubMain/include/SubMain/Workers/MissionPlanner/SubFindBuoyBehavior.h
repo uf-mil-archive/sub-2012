@@ -36,8 +36,8 @@ namespace subjugator
 	private:
 		static const double approachDepth = 1.0; // m
 		static const double approachThreshold = 11000;
-		static const double bumpTravelDistance = 1.25;
-		static const double backupTravelDistance = 2.0;
+		static const double bumpTravelDistance = 1.5;
+		static const double backupTravelDistance = 3.0;
 		static const double clearBuoysDepth = .25;
 		static const double driveTowardsPipeDistance = 2.0;
 		static const double yawSearchAngle = 5.0;

@@ -1,5 +1,5 @@
-#ifndef DATAOBJECTS_MERGE_SETACTUATOR_H
-#define DATAOBJECTS_MERGE_SETACTUATOR_H
+#ifndef DATAOBJECTS_ACTUATOR_SETACTUATOR_H
+#define DATAOBJECTS_ACTUATOR_SETACTUATOR_H
 
 #include "DataObjects/Embedded/EmbeddedCommand.h"
 #include <boost/cstdint.hpp>
