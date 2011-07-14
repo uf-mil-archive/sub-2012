@@ -49,7 +49,7 @@ bool VisionWorker::Startup()
 	{
 		namedWindow("Processed",1);
 		//moveWindow("Processed",500,500);
-		namedWindow("Debug",1);
+		//namedWindow("Debug",1);
 	}
 
 	if(inputMode == 0)
@@ -81,7 +81,7 @@ void VisionWorker::Shutdown()
 	if(showDebugImages)
 	{
 		cvDestroyWindow("Processed");
-		//cvDestroyWindow("Debug");
+		cvDestroyWindow("Debug");
 	}
 }
 
@@ -137,9 +137,12 @@ void VisionWorker::readyState()
 	//imshow("Source",ioimages->src);
 	if(showDebugImages)
 	{
-		imshow("Processed",ioimages->prcd);
-		imshow("Debug",ioimages->dbg);
-		waitKey(10);
+		if(frameCnt%20==0)
+		{
+			imshow("Processed",ioimages->prcd);
+			imshow("Debug",ioimages->dbg);
+			waitKey(10);
+		}
 	}
 	if(logImages && frameCnt%15 == 0)
 	{

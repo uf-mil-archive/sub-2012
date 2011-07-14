@@ -23,7 +23,7 @@ vector<shared_ptr<FinderResult> > HedgeFinder::find(IOImages* ioimages)
 	n->norm(ioimages);
 
 	// blur the image to remove noise
-	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
+	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
