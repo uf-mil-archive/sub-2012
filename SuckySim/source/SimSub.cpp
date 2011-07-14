@@ -52,66 +52,115 @@ void SimSub::Draw(QPainter* painter,  double pPerM)
 	int cX = (int)(position_NED(0) * pPerM);
 	int cY = (int)(position_NED(1) * pPerM);
 
+	painter->drawRect(QRect(((length-podLength)/2)*pPerM,-podWidth*pPerM,podLength*pPerM, podWidth*pPerM));
+
+
+	// Lines for Pods
+	double podOffset = (((length - podLength)/2)*pPerM);
+
 	// Positions for Left pod
 	// Calculate the left pod back point connected to the hull
-//	QPointF *lPod1 = new QPointF
-//	(
-//		0 + (((length-podLength)/2)*pPerM),
-//		0
-//	);
-//
-//	// Calculate the left pod back point not connected to hull
-//	QPointF *lPod2 = new QPointF
-//	(
-//		lPod1->x(),
-//		lPod1->y() - ((podWidth) * pPerM)
-//	);
-//
-//	// Calculate the left pod front point not connected to hull
-//	QPointF *lPod3 = new QPointF
-//	(
-//		((podLength) * pPerM),
-//		lPod2->y()
-//	);
-//
-//	// Calculate the left pod front point connected to hull
-//	QPointF *lPod4 = new QPointF
-//	(
-//		lPod3->x(),
-//		lPod1->y()
-//	);
-//
-//
-//
-//	// Positions for right pod
-//	// Calculate the right pod back point connected to the hull
-//	QPointF *rPod1 = new QPointF
-//	(
-//		0 + (((length-podLength)/2)*pPerM),
-//		(width * pPerM)
-//	);
-//
-//	// Calculate the right pod back point not connected to hull
-//	QPointF *rPod2 = new QPointF
-//	(
-//		rPod1->x(),
-//		rPod1->y() + ((podWidth) * pPerM)
-//	);
-//
-//	// Calculate the right pod front point not connected to hull
-//	QPointF *rPod3 = new QPointF
-//	(
-//		(podLength * pPerM),
-//		rPod2->y()
-//	);
-//
-//	// Calculate the right pod front point connected to hull
-//	QPointF *rPod4 = new QPointF
-//	(
-//		rPod3->x(),
-//		rPod1->y()
-//	);
+	QPointF *lPod1 = new QPointF
+	(
+		podOffset,
+		0
+	);
 
+	// Calculate the left pod back point not connected to hull
+	QPointF *lPod2 = new QPointF
+	(
+		lPod1->x(),
+		lPod1->y() - ((podWidth) * pPerM)
+	);
+
+	// Calculate the left pod front point not connected to hull
+	QPointF *lPod3 = new QPointF
+	(
+		podOffset + ((podLength) * pPerM),
+		lPod2->y()
+	);
+
+	// Calculate the left pod front point connected to hull
+	QPointF *lPod4 = new QPointF
+	(
+		lPod3->x(),
+		lPod1->y()
+	);
+
+
+
+	// Positions for right pod
+	// Calculate the right pod back point connected to the hull
+	QPointF *rPod1 = new QPointF
+	(
+		podOffset,
+		(width * pPerM)
+	);
+
+	// Calculate the right pod back point not connected to hull
+	QPointF *rPod2 = new QPointF
+	(
+		rPod1->x(),
+		rPod1->y() + ((podWidth) * pPerM)
+	);
+
+	// Calculate the right pod front point not connected to hull
+	QPointF *rPod3 = new QPointF
+	(
+		podOffset + (podLength * pPerM),
+		rPod2->y()
+	);
+
+	// Calculate the right pod front point connected to hull
+	QPointF *rPod4 = new QPointF
+	(
+		rPod3->x(),
+		rPod1->y()
+	);
+
+	QPointF *fCamNl = new QPointF
+	(
+		pPerM * forwardCamera->getFrustum().ntl(0),
+		pPerM * forwardCamera->getFrustum().ntl(1)
+	);
+	QPointF *fCamNr = new QPointF
+	(
+		pPerM * forwardCamera->getFrustum().ntr(0),
+		pPerM * forwardCamera->getFrustum().ntr(1)
+	);
+	QPointF *fCamFl = new QPointF
+	(
+		pPerM * forwardCamera->getFrustum().ftl(0),
+		pPerM * forwardCamera->getFrustum().ftl(1)
+	);
+	QPointF *fCamFr = new QPointF
+	(
+		pPerM * forwardCamera->getFrustum().ftr(0),
+		pPerM * forwardCamera->getFrustum().ftr(1)
+	);
+
+	QPointF *rCamFtl = new QPointF
+	(
+		pPerM * downCamera->getFrustum().ftl(0),
+		pPerM * downCamera->getFrustum().ftl(1)
+	);
+	QPointF *rCamFtr = new QPointF
+	(
+		pPerM * downCamera->getFrustum().ftr(0),
+		pPerM * downCamera->getFrustum().ftr(1)
+	);
+	QPointF *rCamFbl = new QPointF
+	(
+		pPerM * downCamera->getFrustum().fbl(0),
+		pPerM * downCamera->getFrustum().fbl(1)
+	);
+	QPointF *rCamFbr = new QPointF
+	(
+		pPerM * downCamera->getFrustum().fbr(0),
+		pPerM * downCamera->getFrustum().fbr(1)
+	);
+
+	// Plot Components of Sub
 	double rotDeg = rpy(2) * 180.0 / boost::math::constants::pi<double>();
 
 	painter->setPen(drawColor);
@@ -127,18 +176,30 @@ void SimSub::Draw(QPainter* painter,  double pPerM)
 	painter->drawRect(QRect(0,0,length*pPerM, width*pPerM));
 
 	// Draw the left pod
-	painter->drawRect(QRect(((length-podLength)/2)*pPerM,-podWidth*pPerM,podLength*pPerM, podWidth*pPerM));
-//	painter->drawLine(QLineF(*lPod1, *lPod2));
-//	painter->drawLine(QLineF(*lPod2, *lPod3));
-//	painter->drawLine(QLineF(*lPod3, *lPod4));
+	painter->drawLine(QLineF(*lPod1, *lPod2));
+	painter->drawLine(QLineF(*lPod2, *lPod3));
+	painter->drawLine(QLineF(*lPod3, *lPod4));
 
 	// Draw the right pod
-	painter->drawRect(QRect(((length-podLength)/2)*pPerM,width*pPerM,podLength*pPerM, podWidth*pPerM));
-//	painter->drawLine(QLineF(*rPod1, *rPod2));
-//	painter->drawLine(QLineF(*rPod2, *rPod3));
-//	painter->drawLine(QLineF(*rPod3, *rPod4));
+	painter->drawLine(QLineF(*rPod1, *rPod2));
+	painter->drawLine(QLineF(*rPod2, *rPod3));
+	painter->drawLine(QLineF(*rPod3, *rPod4));
 
-	painter->restore();
+	// Front camera frustum
+	painter->drawLine(QLineF(*fCamNl, *fCamNr));
+	painter->drawLine(QLineF(*fCamNr, *fCamFr));
+	painter->drawLine(QLineF(*fCamFr, *fCamFl));
+	painter->drawLine(QLineF(*fCamFl, *fCamNl));
+
+
+
+	// Down camera frustum
+//		painter->drawLine(QLineF(*rCamFbl, *rCamFtl));
+//		painter->drawLine(QLineF(*rCamFtl, *rCamFtr));
+//		painter->drawLine(QLineF(*rCamFtr, *rCamFbr));
+//		painter->drawLine(QLineF(*rCamFbr, *rCamFbl));
+
+		painter->restore();
 }
 
 bool SimSub::PointIsInside(Vector2d p, double mPerPix)

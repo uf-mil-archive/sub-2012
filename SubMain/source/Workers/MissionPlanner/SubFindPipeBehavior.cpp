@@ -102,13 +102,14 @@ void FindPipeBehavior::AlignToPipes()
 
 		for(size_t i = 0; i < objects2d.size(); i++)
 		{
+			// Object found in down camera.
 			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
 			{
 				pipeFrameCount = 0;
 
-				if (turnRight)  // If turning to Right given pipe positions
+				if (turnRight)  // If aligning to right pipe
 				{
-					if(objects2d[i].angle > bestAngle)	// Larger Angle is chosen
+					if(objects2d[i].angle > bestAngle)	// Choose object with larger positive angle.
 					{
 						bestAngle = objects2d[i].angle;
 						bestIndex = i;
@@ -116,7 +117,7 @@ void FindPipeBehavior::AlignToPipes()
 				}
 				else
 				{
-					if(objects2d[i].angle < bestAngle) // More Negative Angle is chosen
+					if(objects2d[i].angle < bestAngle) // Choose object with larger negative angle.
 					{
 						bestAngle = objects2d[i].angle;
 						bestIndex = i;
@@ -141,6 +142,7 @@ void FindPipeBehavior::AlignToPipes()
 			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(alignToPipe + desiredWaypoint->RPY(2));
 			desiredWaypoint->number = getNextWaypointNum();
 
+			// Once waypoint has been matched for enough time, continue.
 			if (atDesiredWaypoint())
 			{
 				pipeAlignCount++;

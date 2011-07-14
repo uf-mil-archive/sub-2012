@@ -18,6 +18,7 @@ namespace subjugator
 
 		void setPosition_NED(Vector3d pos) { position_NED = pos; }
 		Vector3d getPosition_NED() {return position_NED;}
+		void setRPY(Vector3d RPY) { rpy = RPY; }
 		Vector3d getRPY() {return rpy;}
 
 		bool getIsHighlighted() { return isHighlighted; }
