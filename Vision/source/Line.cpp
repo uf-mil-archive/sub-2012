@@ -1,5 +1,8 @@
 #include "Line.h"
 #include <cstdio>
+#include <cmath>
+
+using namespace std;
 
 Line::Line(int num)
 {
@@ -7,11 +10,11 @@ Line::Line(int num)
 	tmpAngle = 0.0;
 	AvgLine line1;
 	avgLines.push_back(line1);
-	//if(num == 2)
-	//{
+	if(num == 2)
+	{
 		AvgLine line2;
 		avgLines.push_back(line2);
-	//}
+	}
 }
 
 Line::~Line(void)
@@ -53,28 +56,30 @@ int Line::findLines(IOImages* ioimages)
 		// case when looking for two lines (i.e. pipes)
 		if(numberOfLinesToFind == 2)
 		{
-			//printf("difference: %.3f | %.3f\n",abs(tmpAngle - avgLines[0].angle), abs(tmpAngle - avgLines[1].angle));
 			// if a new angle comes in and the first average is unpopulated, save it as the first average
-			if(abs(tmpAngle - avgLines[0].angle) > 10*3.14159/180.0 && !avgLines[0].populated)
+			if(!avgLines[0].populated)
 			{
 				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 				avgLines[0].populated = true;
 			}
 			// if a new angle comes in and the first average is populated and the second average is open
-			// and the new angle is not close to the first average, save it as the second average
+			// and the new angle is far from the first average, save it as the second average
 			else if(avgLines[0].populated == true && avgLines[1].populated == false &&
-				abs(tmpAngle - avgLines[0].angle) > 10*3.14159/180.0)
+				abs(dAngleDiff(avgLines[0].angle,tmpAngle)) > 10*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 				avgLines[1].populated = true;
 			}
 			// if a new angle comes in and both averages are populated, find which average it is closest to,
 			// then call the update average helper
-			else if(abs(tmpAngle - avgLines[0].angle) < 10*3.14159/180.0)
+			else if(abs(dAngleDiff(avgLines[0].angle,tmpAngle)) < 10*3.14159/180.0)
+			{
 				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
-			else if(abs(tmpAngle - avgLines[1].angle) < 10*3.14159/180.0)
+			}
+			else if(abs(dAngleDiff(avgLines[1].angle,tmpAngle)) < 10*3.14159/180.0)
+			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
-
+			}
 
 		}
 	}
@@ -100,4 +105,16 @@ void Line::drawResult(IOImages *ioimages, int objectID)
 			putText(ioimages->prcd,str,Point(10,10+i*15),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,0,0),1);
 		}
 	}
+}
+
+double Line::dAngleDiff(double a, double b)
+{
+	static double Pi = 3.14159;
+	static double TwoPi = 2*Pi;
+
+	double res = b-a;
+	while(res < -1*Pi) res += TwoPi;
+	while(res > Pi) res-= TwoPi;
+
+	return res;
 }

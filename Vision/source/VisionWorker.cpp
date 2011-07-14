@@ -89,7 +89,7 @@ void VisionWorker::readyState()
 {
 	if(inputMode == 0)
 	{
-		if(!ioimages->setNewSource(imread("images/buoy1.jpg",1)))
+		if(!ioimages->setNewSource(imread("images/pipe.jpg",1)))
 		{
 			printf("Failed to open file!\n");
 			return;

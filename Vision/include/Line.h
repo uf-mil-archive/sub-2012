@@ -14,6 +14,7 @@ public:
 	~Line(void);
 	int findLines(IOImages* ioimages);
 	void drawResult(IOImages* ioimages, int objectID);
+	double dAngleDiff(double a, double b);
 
 private:
 	int numberOfLinesToFind;
