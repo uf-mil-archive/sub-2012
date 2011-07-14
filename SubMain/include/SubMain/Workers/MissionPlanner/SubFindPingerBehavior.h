@@ -28,7 +28,7 @@ namespace subjugator
 	public:
 		FindPingerBehavior(double minDepth, double freqMax, double freqMin);
 	private:
-		static const double travelDepth = 0.1;
+		static const double travelDepth = 0.5;
 		static const double angleBall = 0.1;
 		static const double decAngle = 80.0;
 
