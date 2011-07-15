@@ -8,17 +8,18 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
-FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
+FindBuoyBehavior::FindBuoyBehavior(double minDepth, bool goleft) :
 	MissionBehavior(MissionBehaviors::FindBuoy, "FindBuoy", minDepth),
 	canContinue(false),	bumpSet(false), backupSet(false), clearBuoysSet(false),
-	pipeSet(false), hasSeenBuoy(0), yawChange(0), yawChangeSet(false), goLeft(false)
+	pipeSet(false), hasSeenBuoy(0), yawChange(0), yawChangeSet(false), goLeft(goleft)
 {
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO enqueue which buoys we are looking for
+	buoysToFind.push(ObjectIDs::BuoyGreen);
 	buoysToFind.push(ObjectIDs::BuoyRed);
 	//buoysToFind.push(ObjectIDs::BuoyYellow);
-	buoysToFind.push(ObjectIDs::BuoyGreen);
+
 
 	// Setup the callbacks
 	stateManager.SetStateCallback(FindBuoyMiniBehaviors::ApproachBuoy,
@@ -312,7 +313,11 @@ void FindBuoyBehavior::PanForBuoy()
 		if(objects2d[i].objectID == currentObjectID)
 		{
 			sawBuoy = true;
-			stateManager.ChangeState(FindBuoyMiniBehaviors::ApproachBuoy);
+			if(hasSeenBuoy++ > 10)
+			{
+				hasSeenBuoy = 0;
+				stateManager.ChangeState(FindBuoyMiniBehaviors::ApproachBuoy);
+			}
 			break;
 		}
 	}
@@ -332,42 +337,13 @@ void FindBuoyBehavior::PanForBuoy()
 
 		if(!goLeft)
 		{
-			if(yawChange < yawMaxSearchAngle)
-			{
-				if(!yawChangeSet)
-				{
-					yawChangeSet = true;
-					desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle * boost::math::constants::pi<double>() / 180.0);
-					yawChange += yawSearchAngle;
-				}
-
-				if(atDesiredWaypoint())
-					yawChangeSet = false;
-			}
-			else
-			{
-				goLeft = true;
-				yawChange = 0;
-				yawChangeSet = false;
-			}
+			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) + yawSearchAngle*boost::math::constants::pi<double>());
 		}
 		else
 		{
-			if(yawChange < yawMaxSearchAngle)
-			{
-				if(!yawChangeSet)
-				{
-					yawChangeSet = true;
-					desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle * boost::math::constants::pi<double>() / 180.0);
-					yawChange += yawSearchAngle;
-				}
-
-				if(atDesiredWaypoint())
-					yawChangeSet = false;
-			}
+			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(lposRPY(2) - yawSearchAngle*boost::math::constants::pi<double>());
 		}
 		desiredWaypoint->number = getNextWaypointNum();
-		cout << "waypoint number: " << desiredWaypoint->number << " yawChange: " << yawChangeSet << endl;
 
 		lock.unlock();
 	}

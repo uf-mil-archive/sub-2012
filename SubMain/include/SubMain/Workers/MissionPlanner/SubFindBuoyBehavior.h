@@ -32,7 +32,7 @@ namespace subjugator
 	class FindBuoyBehavior : public MissionBehavior
 	{
 	public:
-		FindBuoyBehavior(double minDepth);
+		FindBuoyBehavior(double minDepth, bool goleft);
 	private:
 //		// Pool
 //
