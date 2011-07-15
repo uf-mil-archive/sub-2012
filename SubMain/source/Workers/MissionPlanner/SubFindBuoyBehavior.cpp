@@ -275,7 +275,8 @@ void FindBuoyBehavior::DriveTowardsPipe()
 {
 	if(!pipeSet)
 	{
-		double serioslycpp = driveTowardsPipeDistance;
+		double seriouslycppX = driveTowardsPipeDistanceX;
+		double seriouslycppY = driveTowardsPipeDistanceY;
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
 		desiredWaypoint->RPY(2) = pipeHeading;
@@ -283,7 +284,7 @@ void FindBuoyBehavior::DriveTowardsPipe()
 		// Add on the bump travel
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
 				+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
-									Vector3d(serioslycpp, 0.0, 0.0));
+									Vector3d(seriouslycppX, seriouslycppY, 0.0));
 		desiredWaypoint->Position_NED(2) = clearBuoysDepth;
 		desiredWaypoint->number = getNextWaypointNum();
 
@@ -301,7 +302,7 @@ void FindBuoyBehavior::DriveTowardsPipe()
 }
 
 void FindBuoyBehavior::PanForBuoy()
-{
+{ // put in the counter here, maybe just a constructor arg that sets left or right
 	bool sawBuoy = false;
 	hasSeenBuoy = 0;
 
