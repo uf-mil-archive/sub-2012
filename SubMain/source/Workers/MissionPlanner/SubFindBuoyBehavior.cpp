@@ -17,7 +17,7 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth) :
 	// TODO enqueue which buoys we are looking for
 	buoysToFind.push(ObjectIDs::BuoyRed);
 	//buoysToFind.push(ObjectIDs::BuoyYellow);
-	//buoysToFind.push(ObjectIDs::BuoyGreen);
+	buoysToFind.push(ObjectIDs::BuoyGreen);
 
 	// Setup the callbacks
 	stateManager.SetStateCallback(FindBuoyMiniBehaviors::ApproachBuoy,
@@ -365,6 +365,7 @@ void FindBuoyBehavior::PanForBuoy()
 			}
 		}
 		desiredWaypoint->number = getNextWaypointNum();
+		cout << "waypoint number: " << desiredWaypoint->number << " yawChange: " << yawChangeSet << endl;
 
 		lock.unlock();
 	}

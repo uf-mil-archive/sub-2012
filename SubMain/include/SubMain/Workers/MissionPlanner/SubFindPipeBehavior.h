@@ -31,10 +31,10 @@ namespace subjugator
 	public:
 		FindPipeBehavior(double minDepth, double aligntopipe, bool turnright, double movetraveldistance = 0.0);
 	private:
-		static const double alignDepth = 0.1;
+		static const double alignDepth = 1;
 		static const double alignTimeout = 8;
 		static const int desiredAttempts = 4;
-		static const int alignWaypointCount = 30;
+		static const int alignWaypointCount = 15;
 
 		double alignToPipe;
 		double moveTravelDistance;

@@ -59,7 +59,7 @@ namespace subjugator
 		void failState();
 		void allState();
 	private:
-		static const double MIN_DEPTH = -30.0; // m
+		static const double MIN_DEPTH = .2; // m
 		boost::mutex lock;
 
 		int wayNum;
