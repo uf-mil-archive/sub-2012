@@ -15,6 +15,7 @@
 #include "BinsFinder.h"
 #include "ShapeFinder.h"
 #include "ValidationGateFinder.h"
+#include <stdio.h>
 
 class FinderGenerator
 {

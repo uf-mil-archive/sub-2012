@@ -10,6 +10,7 @@
 #include "MILObjectIDs.h"
 #include "FlyCaptureGrabber.h"
 #include "HAL/format/DataObject.h"
+#include <boost/thread/mutex.hpp>
 
 using namespace cv;
 using namespace std;
@@ -46,6 +47,8 @@ private:
 	int frameCnt;
 	float shutterVal;
 	float gainVal;
+
+	boost::mutex updateLock;
 
 	void readyState();
 	void emergencyState();
