@@ -2,6 +2,7 @@
 #define IOIMAGES_H
 
 #include <opencv/cv.h>
+#include <stdio.h>
 
 using namespace cv;
 

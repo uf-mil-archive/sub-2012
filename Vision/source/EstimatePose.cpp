@@ -127,7 +127,7 @@ int EstimatePose::runEP(IOImages ioimages, vector<Point> corners)
 	sprintf(str,"4");
 	putText(ioimages.prcd,str,cvPoint(corners[3].x+5,corners[3].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,0,0),1);
 
-	//estimate_Pose(A,invA,pi_ref_keep,pi_keep,dists,R_star,xf_star,3,1);
+	estimate_Pose(A,invA,pi_ref_keep,pi_keep,dists,R_star,xf_star,3,1);
 
 	//posePrepare->xf_star(1) -= 1; // NOT SURE WHY THIS WAS HERE LAST YEAR
 	//posePrepare->xf_star(2) += 1;

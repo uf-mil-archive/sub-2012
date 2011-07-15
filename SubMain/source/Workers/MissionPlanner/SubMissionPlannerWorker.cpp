@@ -4,6 +4,7 @@
 #include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindPingerBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubSurfaceBehavior.h"
 
 #include <iostream>
 
@@ -14,12 +15,16 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	: Worker(io, rate), wayNum(0), estop(true)
 {
 	// TODO Enqueue mission tasks here
-	//missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
-//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
-//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 2.0)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH)));
 	
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateHedge)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 21000, 25000))); // For 27kHz pinger
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 23500, 26000))); // For 27kHz pinger
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 24500, 26000))); // For 27kHz pinger
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new SurfaceBehavior(-1.0)));
+
 
 	// TODO correct camera vectors
 	// Cameras and waypoint generator
@@ -32,9 +37,9 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 			Vector2d(959.00928, 958.34753),		//fc
 			Matrix3d::Zero());
 	MissionCamera fCam(MissionCameraIDs::Front,
-			Vector3d(0.0,1.0,0.0),	// X vector
-			Vector3d(0.0,0.0,1.0),	// Y vector
-			Vector3d(1.0,0.0,0.0),	// Z vector
+			Vector3d(0.0,0.0,1.0),	// X vector
+			Vector3d(1.0,0.0,0.0),	// Y vector
+			Vector3d(0.0,1.0,0.0),	// Z vector
 			Vector4d(1.0,0.0,0.0,0.0),	// Quat - populated later by waypoint generator
 			Vector2d(319.54324, 208.29877),		// cc
 			Vector2d(967.16810, 965.86543),		//fc

@@ -37,6 +37,9 @@ namespace subjugator {
 			double getRail32Current() const { return current32; }
 			double getRail32Voltage() const { return voltage32; }
 
+
+			// HACK for PD
+			void setFlags(int flags) { this->flags = flags; }
 		private:
 			boost::uint64_t timestamp;
 			int tickcount;
