@@ -1,5 +1,6 @@
 #include "SubMain/Workers/MissionPlanner/SubFindPingerBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
 
 using namespace subjugator;
 using namespace std;
@@ -70,12 +71,12 @@ void FindPingerBehavior::TravelToPinger()
 
 		hydInfoNew = false;
 
-		if(!((hydInfo->getPingfrequency() > minPingFrequency) && (hydInfo->getPingfrequency() < maxPingFrequency)))
+		if((hydInfo->getPingfrequency() < minPingFrequency) || (hydInfo->getPingfrequency() > maxPingFrequency) || !hydInfo->isValid())
 		{
 			lock.unlock();
 			return;
 		}
-
+		
 		double distance = getTravelDistance();
 
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());

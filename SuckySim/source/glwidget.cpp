@@ -29,11 +29,11 @@ void GLWidget::paintEvent(QPaintEvent *event)
 
     boost::shared_ptr<SimSub> simSub = boost::shared_ptr<SimSub>(new SimSub("SimSub1",8, Qt::black));
     simSub->setPosition_NED(Vector3d(5,5,0));
- //   simSub->setYaw_Deg(30);
+    simSub->setRPY(Vector3d(0,0,(0* boost::math::constants::pi<double>()/180)));
 
     world.AddObjectToWorld(simBuoy);
     world.AddObjectToWorld(simSub);
-   // world.AddObjectToWorld(boost::shared_ptr<SimBuoy>(new SimBuoy("BuoyRed",8, Qt::red)));
+   // world.AddObjectToWor(((length-podLength)/2)*pPerM)ld(boost::shared_ptr<SimBuoy>(new SimBuoy("BuoyRed",8, Qt::red)));
    // world.AddObjectToWorld(boost::shared_ptr<SimPipe>(new SimPipe("Pipe",8, Qt::red)));
    // world.AddObjectToWorld(boost::shared_ptr<SimHydrophone>(new SimHydrophone("HPhone27k", 0, 270000)));
 

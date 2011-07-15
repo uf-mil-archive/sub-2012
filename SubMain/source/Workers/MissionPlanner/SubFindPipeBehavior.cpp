@@ -1,5 +1,6 @@
 #include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
 
 using namespace subjugator;
 using namespace std;
@@ -13,7 +14,7 @@ FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, bool tur
 {
 	currentObjectID = ObjectIDs::Pipe;
 
-	servoGains2d = Vector2d(0.001, 0.001);
+	servoGains2d = Vector2d(0.0005, 0.0005);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// Setup the callbacks
@@ -102,13 +103,14 @@ void FindPipeBehavior::AlignToPipes()
 
 		for(size_t i = 0; i < objects2d.size(); i++)
 		{
+			// Object found in down camera.
 			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
 			{
 				pipeFrameCount = 0;
 
-				if (turnRight)  // If turning to Right given pipe positions
+				if (turnRight)  // If aligning to right pipe
 				{
-					if(objects2d[i].angle > bestAngle)	// Larger Angle is chosen
+					if(objects2d[i].angle > bestAngle)	// Choose object with larger positive angle.
 					{
 						bestAngle = objects2d[i].angle;
 						bestIndex = i;
@@ -116,7 +118,7 @@ void FindPipeBehavior::AlignToPipes()
 				}
 				else
 				{
-					if(objects2d[i].angle < bestAngle) // More Negative Angle is chosen
+					if(objects2d[i].angle < bestAngle) // Choose object with larger negative angle.
 					{
 						bestAngle = objects2d[i].angle;
 						bestIndex = i;
@@ -141,6 +143,7 @@ void FindPipeBehavior::AlignToPipes()
 			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(alignToPipe + desiredWaypoint->RPY(2));
 			desiredWaypoint->number = getNextWaypointNum();
 
+			// Once waypoint has been matched for enough time, continue.
 			if (atDesiredWaypoint())
 			{
 				pipeAlignCount++;

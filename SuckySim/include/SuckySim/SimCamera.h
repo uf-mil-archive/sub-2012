@@ -82,6 +82,7 @@ namespace subjugator
 		void setPosition_NED(const Vector3d& val) { position_NED = val; UpdateOthers(); }
 		void setRPY(const Vector3d& val) { rpy = val; UpdateOthers(); }
 
+		Frustum getFrustum() {return frustum;}
 
 	private:
 		MissionCamera mCam;

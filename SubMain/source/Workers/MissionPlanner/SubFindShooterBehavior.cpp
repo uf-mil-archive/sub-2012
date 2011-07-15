@@ -1,6 +1,7 @@
 #include "SubMain/Workers/MissionPlanner/SubFindShooterBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionEnums.h"
+#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
 #include <cmath>
 
 using namespace subjugator;
