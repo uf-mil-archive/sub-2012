@@ -19,6 +19,8 @@ namespace subjugator
 		{
 			None,
 			All,
+			TurnNorth,
+			MoveMoreCloselier,
 			TravelToPinger,
 		};
 	};
@@ -28,13 +30,16 @@ namespace subjugator
 	public:
 		FindPingerBehavior(double minDepth, double freqMax, double freqMin);
 	private:
-		static const double travelDepth = 0.5;
+		/*static const double travelDepth = 0.75;
 		static const double angleBall = 0.1;
 		static const double decAngle = 80.0;
+		static const double closelierDistance = 20;*/
 
 		bool canContinue;
 		bool hydInfoNew;
 		double maxDecAngle;
+		bool northSet;
+		bool closelierSet;
 
 		double pipeHeading;
 		double yawChange;
@@ -50,6 +55,8 @@ namespace subjugator
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);
 		virtual void DoBehavior();
 
+		void TurnNorth();
+		void MoveMoreCloselier();
 		void TravelToPinger();
 		void UpdateHydrophoneData(const HydrophoneInfo& hInfo);
 

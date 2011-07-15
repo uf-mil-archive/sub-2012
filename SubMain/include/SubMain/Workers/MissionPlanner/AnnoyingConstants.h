@@ -14,7 +14,7 @@
 
 #if official
 
-static const double approachDepth = 1.5; // m
+static const double approachDepth = 1; // m
 static const double approachThreshold = 10000;
 static const double bumpTravelDistance = 1.5;
 static const double backupTravelDistance = 3.5;
@@ -29,7 +29,7 @@ static const double yawMaxSearchAngle = 45.0;
 static const double approachDepth = .05; // m
 static const double approachThreshold = 11000;
 static const double bumpTravelDistance = .5;
-static const double backupTravelDistance = 1;
+static const double backupTravelDistance = .5;
 static const double clearBuoysDepth = .05;
 static const double driveTowardsPipeDistanceX = 0;
 static const double driveTowardsPipeDistanceY = 0.0;
@@ -44,15 +44,17 @@ static const double yawMaxSearchAngle = 45.0;
 
 #if official
 
-static const double travelDepth = 0.5;
+static const double travelDepth = 0.75;
 static const double angleBall = 0.1;
 static const double decAngle = 80.0;
+static const double closelierDistance = 20;
 
 #else
 
-static const double travelDepth = 0.5;
+static const double travelDepth = 0.75;
 static const double angleBall = 0.1;
 static const double decAngle = 80.0;
+static const double closelierDistance = 20;
 
 #endif
 //**********************************************************************
@@ -68,7 +70,7 @@ static const int alignWaypointCount = 15;
 
 #else
 
-static const double alignDepth = 1;
+static const double alignDepth = .05;
 static const double alignTimeout = 8;
 static const int desiredAttempts = 4;
 static const int alignWaypointCount = 15;
