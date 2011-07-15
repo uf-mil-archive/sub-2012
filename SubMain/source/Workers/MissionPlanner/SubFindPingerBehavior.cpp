@@ -71,12 +71,12 @@ void FindPingerBehavior::TravelToPinger()
 
 		hydInfoNew = false;
 
-		if(!((hydInfo->getPingfrequency() > minPingFrequency) && (hydInfo->getPingfrequency() < maxPingFrequency)))
+		if((hydInfo->getPingfrequency() < minPingFrequency) || (hydInfo->getPingfrequency() > maxPingFrequency) || !hydInfo->isValid())
 		{
 			lock.unlock();
 			return;
 		}
-
+		
 		double distance = getTravelDistance();
 
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
