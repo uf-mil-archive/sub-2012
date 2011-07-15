@@ -1,5 +1,6 @@
 #include "SubMain/Workers/MissionPlanner/SubFindValidationGateBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
 
 using namespace subjugator;
 using namespace std;

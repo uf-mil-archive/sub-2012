@@ -33,16 +33,16 @@ namespace subjugator
 	public:
 		FindShooterBehavior(double minDepth);
 	private:
-		static const double travelDepth = 1.0;
-		static const double approachThreshold = 11000;
-		static const double approachTravelDistance = .5;
-		static const double approachDepth = 0.1; // m
-		static const double angleBall = 0.1;
-		static const double decAngle = 80.0;
-		static const double shootTravelDistance = 1;
-		static const double shootTimeout = .4;
-		static const double strafeTravelDistance = 1;
-		static const double forwardTravelDistance = 4;
+//		static const double travelDepth = 1.0;
+//		static const double approachThreshold = 11000;
+//		static const double approachTravelDistance = .5;
+//		static const double approachDepth = 0.1; // m
+//		static const double angleBall = 0.1;
+//		static const double decAngle = 80.0;
+//		static const double shootTravelDistance = 1;
+//		static const double shootTimeout = .4;
+//		static const double strafeTravelDistance = 1;
+//		static const double forwardTravelDistance = 4;
 
 		bool canContinue;
 		bool kentuckyWindageSet;

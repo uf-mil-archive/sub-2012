@@ -32,11 +32,11 @@ namespace subjugator
 	public:
 		FindValidationGateBehavior(double minDepth, ObjectIDs::ObjectIDCode objId);
 	private:
-		static const double approachDepth = .75/*.05*/; // m
-		static const double approachThreshold = 150;
-		static const double driveThroughGateDistance = 10.0/*.5*/;
-		static const double yawSearchAngle = 0.5;
-		static const double yawMaxSearchAngle = 45.0;
+//		static const double approachDepth = .75/*.05*/; // m
+//		static const double approachThreshold = 150;
+//		static const double driveThroughGateDistance = 10.0/*.5*/;
+//		static const double yawSearchAngle = 0.5;
+//		static const double yawMaxSearchAngle = 45.0;
 
 		bool canContinue;
 		bool driveThroughSet;
