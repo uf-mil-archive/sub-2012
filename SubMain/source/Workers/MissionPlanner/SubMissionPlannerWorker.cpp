@@ -19,7 +19,7 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 2.0)));
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH, true /* pans left */)));
 
-//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateHedge)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateHedge)));
 
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 21800, 23600))); // For 23kHz pinger
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 23800, 26000))); // For 24kHz pinger
