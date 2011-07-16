@@ -124,7 +124,7 @@ void ThresholderRGB::threshYellow(IOImages *ioimages)
 
 	// find whites (and hope for no washout!)
 	//inRange(channelsHSV[0],Scalar(25,0,0,0),Scalar(75,0,0,0),channelsHSV[0]); // find yellow hue
-	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,101,15);
+	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,101,10);
 	bitwise_and(channelsLAB[1],channelsRGB[2],ioimages->dbg);
 	inRange(channelsHSV[1],Scalar(0,0,0,0),Scalar(65,0,0,0),channelsHSV[1]);
 	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(50,0,0,0),channelsHSV[2]);
@@ -153,12 +153,12 @@ void ThresholderRGB::threshGreen(IOImages *ioimages)
 
 	//imshow("0",channelsLAB[1]);
 
-	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,131,10); // used incorrectly, but seems to work very robustly!
+	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,171,10); // used incorrectly, but seems to work very robustly!
 	subtract(channelsLAB[1],channelsRGB[2],ioimages->dbg); // subtract out white/red/yellow
 	bitwise_and(ioimages->dbg,channelsHSV[1],ioimages->dbg);
-	threshold(ioimages->dbg,ioimages->dbg,100,255,THRESH_BINARY);
-	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
-	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	threshold(ioimages->dbg,ioimages->dbg,120,255,THRESH_BINARY);
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,5,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,5,CV_8UC1));
 }
 
 void ThresholderRGB::threshBlack(IOImages *ioimages)

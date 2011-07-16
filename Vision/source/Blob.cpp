@@ -56,6 +56,9 @@ int Blob::findBlob(IOImages* ioimages)
 	}
 
 	sort(data.begin(), data.end());
+	reverse(data.begin(),data.end());
+	if(data.size() > 2)
+		data.resize(2);
 
 	if (data.size() > 0)
 		return 1;
@@ -69,6 +72,7 @@ void Blob::drawResult(IOImages* ioimages, int objectID)
 
 	Scalar color;
 	Point position;
+	printf("oid: %d\n",objectID);
 	switch(objectID)
 	{
 	case MIL_OBJECTID_BUOY_RED:
@@ -84,8 +88,11 @@ void Blob::drawResult(IOImages* ioimages, int objectID)
 		position = Point(10,35);
 		break;
 	}
-	circle(ioimages->prcd,data[0].centroid,(int)data[0].radius,color,2,8,0);
-	sprintf(str,"x: %2.0d | y: %2.0d",data[0].centroid.x,data[0].centroid.y);
-	putText(ioimages->prcd,str,position,FONT_HERSHEY_SIMPLEX,0.3,color,1);
+	for(unsigned int i=0; i<data.size(); i++)
+	{
+		circle(ioimages->prcd,data[i].centroid,(int)data[i].radius,color,2,8,0);
+		//sprintf(str,"x: %2.0d | y: %2.0d",data[i].centroid.x,data[i].centroid.y);
+		//putText(ioimages->prcd,str,Point(position.x,position.y+i*10),FONT_HERSHEY_SIMPLEX,0.3,color,1);
+	}
 
 }
