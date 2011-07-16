@@ -19,7 +19,7 @@ void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
 	else if(objectID == MIL_OBJECTID_PIPE)
 		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_GATE_HEDGE)
-		/*threshGreen(ioimages, true);*/threshOrange(ioimages, true);
+		threshGreen(ioimages);/*threshOrange(ioimages, true);*/
 	else if(objectID == MIL_OBJECTID_TUBE)
 		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
@@ -61,7 +61,7 @@ void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 
 	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,251,10); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
-	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(40,0,0,0),channelsHSV[2]); // filter out blacks
+	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(90,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
@@ -94,7 +94,7 @@ void ThresholderRGB::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 
 	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,101,5); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
-	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(30,0,0,0),channelsHSV[2]); // filter out blacks
+	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(100,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
@@ -153,7 +153,7 @@ void ThresholderRGB::threshGreen(IOImages *ioimages)
 
 	//imshow("0",channelsLAB[1]);
 
-	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,101,5); // used incorrectly, but seems to work very robustly!
+	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,131,10); // used incorrectly, but seems to work very robustly!
 	subtract(channelsLAB[1],channelsRGB[2],ioimages->dbg); // subtract out white/red/yellow
 	bitwise_and(ioimages->dbg,channelsHSV[1],ioimages->dbg);
 	threshold(ioimages->dbg,ioimages->dbg,100,255,THRESH_BINARY);
