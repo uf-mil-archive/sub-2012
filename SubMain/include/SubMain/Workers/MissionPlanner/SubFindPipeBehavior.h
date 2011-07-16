@@ -4,6 +4,7 @@
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "SubMain/SubBoolTimer.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 
@@ -29,7 +30,7 @@ namespace subjugator
 	class FindPipeBehavior : public MissionBehavior
 	{
 	public:
-		FindPipeBehavior(double minDepth, double aligntopipe, bool turnright, double movetraveldistance = 0.0);
+		FindPipeBehavior(double minDepth, double aligntopipe, bool turnright, double movetraveldistance = 0.0, bool timeoutenabled=false);
 	private:
 //		static const double alignDepth = 1;
 //		static const double alignTimeout = 8;
@@ -47,6 +48,9 @@ namespace subjugator
 		bool turnRight;
 
 		int pipeAlignCount;
+		
+		bool timeoutenabled;
+		BoolTimer booltimer;
 
 		std::vector<FinderResult2D> objects2d;
 

@@ -32,11 +32,6 @@ namespace subjugator
 		boost::shared_ptr<BehaviorInfo> getBehaviorInfo();
 
 	protected:
-		static const double xyzErrorRadius = 0.1;
-		// Pi is written out here since boost constant is a function? It doesn't matter anyways,
-		// this is an error ball definition.
-		static const double yawpitchErrorRadius = 2.0*3.141592654/180.0;
-
 		boost::mutex lock;
 
 		MissionBehaviors::MissionBehaviorCode behaviorType;
@@ -64,7 +59,7 @@ namespace subjugator
 		virtual void Shutdown(MissionPlannerWorker& mpWorker) = 0;
 
 		void updateLPOS(const boost::shared_ptr<LPOSVSSInfo>& lpos);
-		bool atDesiredWaypoint();
+		bool atDesiredWaypoint(double xyzErrorRadius = 0.1, double yawpitchErrorRadius = (2.0 * 3.14159 / 180.0));
 
 		int getNextWaypointNum() { return waypointNumber + 1; }
 		void sendWaypoint();

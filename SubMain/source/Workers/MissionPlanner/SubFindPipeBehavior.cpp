@@ -6,11 +6,11 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
-FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, bool turnright, double movetraveldistance) :
+FindPipeBehavior::FindPipeBehavior(double minDepth, double aligntopipe, bool turnright, double movetraveldistance, bool timeoutenabled) :
 	MissionBehavior(MissionBehaviors::FindPipe, "FindPipe", minDepth),
 	alignToPipe(aligntopipe), moveTravelDistance(movetraveldistance),
 	canContinue(false),	nextTask(false), creepDistance(0.1),
-	pipeFrameCount(0), newFrame(false), turnRight(turnright)
+	pipeFrameCount(0), newFrame(false), turnRight(turnright), timeoutenabled(timeoutenabled)
 {
 	currentObjectID = ObjectIDs::Pipe;
 
@@ -38,6 +38,9 @@ void FindPipeBehavior::Startup(MissionPlannerWorker& mpWorker)
 
 	// Push to Align to Pipes
 	stateManager.ChangeState(FindPipeMiniBehaviors::AlignToPipes);
+	
+	if (timeoutenabled)
+		booltimer.Start(30);
 }
 
 void FindPipeBehavior::Shutdown(MissionPlannerWorker& mpWorker)
@@ -87,6 +90,11 @@ void FindPipeBehavior::DoBehavior()
 
 void FindPipeBehavior::AlignToPipes()
 {
+	if (booltimer.HasExpired() && timeoutenabled) {
+		behDone = true;
+		return;
+	}
+
 	bool sawPipe = false;
 
 	if(!canContinue)

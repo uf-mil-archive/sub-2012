@@ -1,5 +1,7 @@
 #include "FinderGenerator.h"
 
+using namespace std;
+
 FinderGenerator::FinderGenerator(void)
 {
 }
@@ -11,6 +13,8 @@ FinderGenerator::~FinderGenerator(void)
 
 vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oIDs)
 {
+	clearFinders();	
+
 	vector<int> buoyIDs;
 	vector<int> pipeIDs;
 	vector<int> hedgeIDs;
@@ -19,6 +23,16 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 	vector<int> binsIDs;
 	vector<int> shapeIDs;
 	vector<int> gateIDs;
+
+/*	if(oIDs.size() > 0)
+	{
+		if(oIDs[0]==MIL_OBJECTID_NO_OBJECT)
+		{
+			clearFinders();
+			return listOfFinders;
+		}
+	}
+*/
 
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
@@ -62,6 +76,7 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 
 void FinderGenerator::clearFinders()
 {
+	printf("Clearing the finder list!\n");
 	// clear the finder list
 	listOfFinders.clear();
 }
