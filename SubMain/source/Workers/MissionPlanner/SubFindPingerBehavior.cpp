@@ -35,6 +35,7 @@ void FindPingerBehavior::Startup(MissionPlannerWorker& mpWorker)
 
 	// Push to approach buoy
 	stateManager.ChangeState(FindPingerMiniBehaviors::TravelToPinger);
+	//stateManager.ChangeState(FindPingerMiniBehaviors::TurnNorth); // MATT
 }
 
 void FindPingerBehavior::Shutdown(MissionPlannerWorker& mpWorker)

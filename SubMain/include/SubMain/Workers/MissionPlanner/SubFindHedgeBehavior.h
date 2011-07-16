@@ -5,6 +5,7 @@
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
+#include "SubMain/SubBoolTimer.h"
 
 #include <Eigen/Dense>
 #include <queue>
@@ -52,6 +53,8 @@ namespace subjugator
 
 		boost::signals2::connection connection2D;
 		boost::weak_ptr<InputToken> mPlannerChangeCamObject;
+		
+		BoolTimer booltimer;
 
 		virtual void Startup(MissionPlannerWorker& mpWorker);
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);

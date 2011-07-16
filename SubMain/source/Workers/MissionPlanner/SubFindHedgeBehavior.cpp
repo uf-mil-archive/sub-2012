@@ -42,6 +42,8 @@ void FindHedgeBehavior::Startup(MissionPlannerWorker& mpWorker)
 
 	// Save our pipe heading
 	pipeHeading = lposRPY(2);
+	
+	booltimer.Start(60);
 
 	// Push to move to depth
 	stateManager.ChangeState(FindHedgeMiniBehaviors::MoveToDepth);
@@ -95,11 +97,16 @@ void FindHedgeBehavior::DoBehavior()
 
 void FindHedgeBehavior::ApproachGate()
 {
+	if (booltimer.HasExpired()) {
+		behDone = true;
+		return;
+	}
+
 	bool sawGate = false;
 	if(!canContinue)
 	{
-		if(!newFrame)
-			return;
+		/*if(!newFrame)
+			return;*/
 
 		getGains();
 
@@ -307,7 +314,7 @@ void FindHedgeBehavior::getGains()
 	//if (lastScale > 00)
 	{
 		servoGains2d = Vector2d(0.02*boost::math::constants::pi<double>() / 180.0, 0.003);
-		approachTravelDistance = 0.2; // m
+		approachTravelDistance = 0.4; // m
 	}
 	/*else
 	{

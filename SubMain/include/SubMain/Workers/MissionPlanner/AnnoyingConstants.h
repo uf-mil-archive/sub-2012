@@ -15,7 +15,7 @@
 #if official
 
 static const double approachDepth = 1; // m
-static const double approachThreshold = 5000;
+static const double approachThreshold = 8000;
 static const double bumpTravelDistance = 1.5;
 static const double backupTravelDistance = 3.5;
 static const double clearBuoysDepth = .5;
@@ -28,8 +28,8 @@ static const double yawMaxSearchAngle = 45.0;
 
 static const double approachDepth = .05; // m
 static const double approachThreshold = 11000;
-static const double bumpTravelDistance = .5;
-static const double backupTravelDistance = .5;
+static const double bumpTravelDistance = 1.5;
+static const double backupTravelDistance = 2.5;
 static const double clearBuoysDepth = .05;
 static const double driveTowardsPipeDistanceX = 0;
 static const double driveTowardsPipeDistanceY = 0.0;
@@ -47,7 +47,7 @@ static const double yawMaxSearchAngle = 45.0;
 static const double travelDepth = 0.75;
 static const double angleBall = 0.1;
 static const double decAngle = 80.0;
-static const double closelierDistance = 20;
+static const double closelierDistance = 25;
 
 #else
 
@@ -140,14 +140,14 @@ static const double driveThroughGateDistance = .5;
 #if official
 static const double hedgeApproachDepth = 1.0;
 static const double hedgeApproachThreshold = 300;
-static const double driveThroughHedgeDistance = 2.0/*.5*/;
+static const double driveThroughHedgeDistance = 3.5/*.5*/;
 static const double moveUpHedgeDistance = 0.5;
 
 #else
 
 static const double hedgeApproachDepth = 0.05;
 static const double hedgeApproachThreshold = 300;
-static const double driveThroughHedgeDistance = 0.5/*.5*/;
+static const double driveThroughHedgeDistance = 2.0/*.5*/;
 static const double moveUpHedgeDistance = 0.05;
 
 #endif

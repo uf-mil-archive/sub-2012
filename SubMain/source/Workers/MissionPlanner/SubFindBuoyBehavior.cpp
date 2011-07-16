@@ -20,7 +20,7 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth, bool goleft) :
 	buoysToFind.push(ObjectIDs::BuoyRed);
 //	buoysToFind.push(ObjectIDs::BuoyRed);
 
-//	buoysToFind.push(ObjectIDs::BuoyYellow);
+	//buoysToFind.push(ObjectIDs::BuoyYellow);
 
 
 	// Setup the callbacks
