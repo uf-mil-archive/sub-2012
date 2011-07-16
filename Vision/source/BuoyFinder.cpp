@@ -34,19 +34,19 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 		Blob* blob = new Blob(100,80000,1000);
 		result = blob->findBlob(ioimages);
 
-		// Prepare results
-		FinderResult2D *fResult2D = new FinderResult2D();
-		if(result)
-		{
+		for (int i=0; i<blob->data.size(); i++) {
+			// Prepare results
+			FinderResult2D *fResult2D = new FinderResult2D();
 			// Draw result
 			blob->drawResult(ioimages,oIDs[i]);
 			//printf("buoy finder!\n");
 			fResult2D->objectID = oIDs[i];
-			fResult2D->u = blob->centroid.x;
-			fResult2D->v = blob->centroid.y;
-			fResult2D->scale = blob->area;
+			fResult2D->u = blob->data[i].centroid.x;
+			fResult2D->v = blob->data[i].centroid.y;
+			fResult2D->scale = blob->data[i].area;
+			resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 		}
-		resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+
 		delete blob;
 	}
 	return resultVector;

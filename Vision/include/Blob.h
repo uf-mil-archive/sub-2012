@@ -8,10 +8,22 @@
 class Blob
 {
 	public:
-		float area;
-		float perimeter;
-		Point centroid;
-		float radius;
+		struct BlobData {
+			float area;
+			float perimeter;
+			Point centroid;
+			float radius;
+
+			bool operator==(const BlobData &bdata) const {
+				return radius == bdata.radius;
+			}
+
+			bool operator<(const BlobData &bdata) const {
+				return radius < bdata.radius;
+			}
+		};
+
+		std::vector<BlobData> data;
 
 		Blob(float minContour, float maxContour, float maxPerimeter);
 		~Blob(void);

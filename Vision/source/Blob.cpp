@@ -3,13 +3,8 @@
 
 Blob::Blob(float minContour, float maxContour, float maxPerimeter)
 {
-	centroid.x = 0;
-	centroid.y = 0;
-	area = 0.0;
 	area_holder = 0.0;
-	perimeter = 0;
 	perimeter_holder = 0;
-	radius = 0;
 	radius_holder = 0;
 	smallestContourSize = minContour;
 	largestContourSize = maxContour;
@@ -48,24 +43,30 @@ int Blob::findBlob(IOImages* ioimages)
 			if(center_holder.x != 0 && center_holder.y != 0)
 			{
 				circle(ioimages->prcd,center_holder,2,CV_RGB(0,255,255),-1,8,0);
-				if(area_holder > area)
-				{
-					perimeter = (float)perimeter_holder;
-					area = area_holder;
-					centroid.x = (int)center_holder.x;
-					centroid.y = (int)center_holder.y;
-					radius = radius_holder;
-				}
+				BlobData bdata;
+				bdata.perimeter = (float)perimeter_holder;
+				bdata.area = area_holder;
+				bdata.centroid.x = (int)center_holder.x;
+				bdata.centroid.y = (int)center_holder.y;
+				bdata.radius = radius_holder;
+
+				data.push_back(bdata);
 			}
 		}
 	}
-	if(centroid.x !=0 && centroid.y != 0 && area != 0)
+
+	sort(data.begin(), data.end());
+
+	if (data.size() > 0)
 		return 1;
 	return 0;
 }
 
 void Blob::drawResult(IOImages* ioimages, int objectID)
 {
+	if (data.empty())
+		return;
+
 	Scalar color;
 	Point position;
 	switch(objectID)
@@ -83,8 +84,8 @@ void Blob::drawResult(IOImages* ioimages, int objectID)
 		position = Point(10,35);
 		break;
 	}
-	circle(ioimages->prcd,centroid,(int)radius,color,2,8,0);
-	sprintf(str,"x: %2.0d | y: %2.0d",centroid.x,centroid.y);
+	circle(ioimages->prcd,data[0].centroid,(int)data[0].radius,color,2,8,0);
+	sprintf(str,"x: %2.0d | y: %2.0d",data[0].centroid.x,data[0].centroid.y);
 	putText(ioimages->prcd,str,position,FONT_HERSHEY_SIMPLEX,0.3,color,1);
 
 }
