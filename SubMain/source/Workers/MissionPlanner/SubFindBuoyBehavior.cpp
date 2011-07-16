@@ -16,8 +16,8 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth, bool goleft) :
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO enqueue which buoys we are looking for
-	buoysToFind.push(ObjectIDs::BuoyGreen);
-	buoysToFind.push(ObjectIDs::BuoyRed);
+	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyGreen, true));
+	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyRed, false));
 	//buoysToFind.push(ObjectIDs::BuoyYellow);
 
 
@@ -91,7 +91,7 @@ void FindBuoyBehavior::DoBehavior()
 
 	if(buoysToFind.size() > 0)
 	{
-		currentObjectID = buoysToFind.front();
+		currentObjectID = buoysToFind.front().objectID;
 
 		// Tell the down camera to not look for anything here
 		VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, ObjectIDs::None));
@@ -118,41 +118,73 @@ void FindBuoyBehavior::ApproachBuoy()
 		getGains();
 
 		newFrame = false;
+
+		// The list of 2d objects the class is holding is the current found images in the frame
+		double bestU = 0;
+		int bestIndex = 0;
+
 		// The list of 2d objects the class is holding is the current found images in the frame
 		for(size_t i = 0; i < objects2d.size(); i++)
 		{
 			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Front)
 			{
-				// The buoy we want is in view. Get the NED waypoint from the generator
-				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
+				// Populate bestU correctly the first time through.
+				if (bestU == 0)
+				{
+					bestU = objects2d[i].u;
+					bestIndex = i;
+				}
 
-				if(!desiredWaypoint)	// Bad find, waygen says no good
-					continue;
-
-				double distance = 0.0;
-				lastScale = objects2d[i].scale;
-				if(objects2d[i].scale >= approachThreshold)
-					canContinue = true;
+				// Find correct buoy to travel to based on apriori information.
+				if (buoysToFind.front().toRight) // Take largest u
+				{
+					if (objects2d[i].u > bestU)
+					{
+						bestU = objects2d[i].u;
+						bestIndex = i;
+					}
+				}
 				else
-					distance = approachTravelDistance;
+				{
+					if (objects2d[i].u < bestU)
+					{
+						bestU = objects2d[i].u;
+						bestIndex = i;
+					}
 
-				// Project the distance in the X,Y plane
-				Vector3d distanceToTravel(distance*cos(desiredWaypoint->RPY(2)),
-						distance*sin(desiredWaypoint->RPY(2)),
-						0.0);	// Use the servo'd z depth
+				}
 
-				desiredWaypoint->Position_NED += distanceToTravel;
-				desiredWaypoint->number = getNextWaypointNum();
-
-				hasSeenBuoy = 0;
 				sawBuoy = true;
-
-				break;
 			}
 		}
 
+		if(sawBuoy)
+		{
+			// The buoy we want is in view. Get the NED waypoint from the generator
+			desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[bestIndex], servoGains2d, 0.0, true);
+
+			if(!desiredWaypoint)	// Bad find, waygen says no good
+				return;
+
+			double distance = 0.0;
+			lastScale = objects2d[bestIndex].scale;
+			if(objects2d[bestIndex].scale >= approachThreshold)
+				canContinue = true;
+			else
+				distance = approachTravelDistance;
+
+			// Project the distance in the X,Y plane
+			Vector3d distanceToTravel(distance*cos(desiredWaypoint->RPY(2)),
+					distance*sin(desiredWaypoint->RPY(2)),
+					0.0);	// Use the servo'd z depth
+
+			desiredWaypoint->Position_NED += distanceToTravel;
+			desiredWaypoint->number = getNextWaypointNum();
+
+			hasSeenBuoy = 0;
+		}
 		// We either never saw the buoy or we lost it. Keep searching forward at pipe heading
-		if(!sawBuoy)
+		else
 		{
 			if((hasSeenBuoy++) > 10)
 				stateManager.ChangeState(FindBuoyMiniBehaviors::PanForBuoy);

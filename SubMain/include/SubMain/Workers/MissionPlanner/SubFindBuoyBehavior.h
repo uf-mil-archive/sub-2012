@@ -8,11 +8,24 @@
 
 #include <Eigen/Dense>
 #include <queue>
+#include <vector>
 
 #include <cmath>
 
+using namespace std;
+
 namespace subjugator
 {
+	class BuoyAwesomeness
+	{
+	public:
+		BuoyAwesomeness(ObjectIDs::ObjectIDCode id, bool toRight):
+			objectID(id), toRight(toRight){}
+
+		ObjectIDs::ObjectIDCode objectID;
+		bool toRight;
+	};
+
 	class FindBuoyMiniBehaviors
 	{
 	public:
@@ -74,7 +87,7 @@ namespace subjugator
 
 		double approachTravelDistance;
 
-		std::queue<ObjectIDs::ObjectIDCode> buoysToFind;
+		std::queue<BuoyAwesomeness> buoysToFind;
 		std::vector<FinderResult2D> objects2d;
 
 		boost::signals2::connection connection2D;
