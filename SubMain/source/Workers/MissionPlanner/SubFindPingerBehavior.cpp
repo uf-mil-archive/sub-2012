@@ -34,7 +34,7 @@ void FindPingerBehavior::Startup(MissionPlannerWorker& mpWorker)
 	pipeHeading = lposRPY(2);
 
 	// Push to approach buoy
-	stateManager.ChangeState(FindPingerMiniBehaviors::TurnNorth);
+	stateManager.ChangeState(FindPingerMiniBehaviors::TravelToPinger);
 }
 
 void FindPingerBehavior::Shutdown(MissionPlannerWorker& mpWorker)

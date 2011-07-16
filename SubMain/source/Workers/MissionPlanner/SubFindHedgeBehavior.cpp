@@ -303,16 +303,15 @@ void FindHedgeBehavior::MoveUpByGate()
 // TODO Set travel distances
 void FindHedgeBehavior::getGains()
 {
-	servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
-	approachTravelDistance = 0.5; // m
-/*	if (lastScale > 5000)
+
+	//if (lastScale > 00)
 	{
-		servoGains2d = Vector2d(0.0025, .025*boost::math::constants::pi<double>() / 180.0);
+		servoGains2d = Vector2d(0.02*boost::math::constants::pi<double>() / 180.0, 0.003);
 		approachTravelDistance = 0.2; // m
 	}
-	else
+	/*else
 	{
-		servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
-		approachTravelDistance = 0.5; // m
+		servoGains2d = Vector2d( .05*boost::math::constants::pi<double>() / 180.0, 0.0035);
+		approachTravelDistance = .8; // m
 	}*/
 }
