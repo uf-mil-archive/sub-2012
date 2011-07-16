@@ -18,7 +18,9 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth, bool goleft) :
 	// TODO enqueue which buoys we are looking for
 	buoysToFind.push(ObjectIDs::BuoyGreen);
 	buoysToFind.push(ObjectIDs::BuoyRed);
-	//buoysToFind.push(ObjectIDs::BuoyYellow);
+//	buoysToFind.push(ObjectIDs::BuoyRed);
+
+//	buoysToFind.push(ObjectIDs::BuoyYellow);
 
 
 	// Setup the callbacks
@@ -154,9 +156,9 @@ void FindBuoyBehavior::ApproachBuoy()
 		// We either never saw the buoy or we lost it. Keep searching forward at pipe heading
 		if(!sawBuoy)
 		{
-			if((hasSeenBuoy++) > 10)
-				stateManager.ChangeState(FindBuoyMiniBehaviors::PanForBuoy);
-			else
+			//if((hasSeenBuoy++) > 10)
+			//	stateManager.ChangeState(FindBuoyMiniBehaviors::PanForBuoy);
+			//else
 			{
 				double serioslycpp = approachTravelDistance;
 				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
@@ -243,7 +245,7 @@ void FindBuoyBehavior::BackupMofoYouRanHerOver()
 		yawChange = 0.0;
 		alignDepth = 0.0;
 
-		stateManager.ChangeState(FindBuoyMiniBehaviors::PanForBuoy);
+		stateManager.ChangeState(FindBuoyMiniBehaviors::ApproachBuoy);
 	}
 }
 
@@ -357,12 +359,12 @@ void FindBuoyBehavior::getGains()
 
 	if (lastScale > 5000)
 	{
-		servoGains2d = Vector2d(0.025*boost::math::constants::pi<double>() / 180.0, 0.0035);
-		approachTravelDistance = 0.3; // m
+		servoGains2d = Vector2d(0.02*boost::math::constants::pi<double>() / 180.0, 0.003);
+		approachTravelDistance = 0.2; // m
 	}
 	else
 	{
 		servoGains2d = Vector2d( .05*boost::math::constants::pi<double>() / 180.0, 0.0035);
-		approachTravelDistance = 1; // m
+		approachTravelDistance = .8; // m
 	}
 }

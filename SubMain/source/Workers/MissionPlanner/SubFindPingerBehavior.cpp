@@ -8,12 +8,18 @@ using namespace Eigen;
 
 FindPingerBehavior::FindPingerBehavior(double minDepth, double freqMin, double freqMax) :
 	MissionBehavior(MissionBehaviors::FindPinger, "FindPinger", minDepth),
-	canContinue(false), hydInfoNew(false), maxDecAngle(3.141592654/180.0 * decAngle),
+	northSet(false), closelierSet(false), canContinue(false), hydInfoNew(false), maxDecAngle(3.141592654/180.0 * decAngle),
 	maxPingFrequency(freqMax), minPingFrequency(freqMin)
 {
 	currentObjectID = ObjectIDs::Pinger;
 
 	// Setup the callbacks
+	stateManager.SetStateCallback(FindPingerMiniBehaviors::TurnNorth,
+			"TurnNorth",
+			boost::bind(&FindPingerBehavior::TurnNorth, this));
+	stateManager.SetStateCallback(FindPingerMiniBehaviors::MoveMoreCloselier,
+			"MoveMoreCloselier",
+			boost::bind(&FindPingerBehavior::MoveMoreCloselier, this));
 	stateManager.SetStateCallback(FindPingerMiniBehaviors::TravelToPinger,
 			"TravelToPinger",
 			boost::bind(&FindPingerBehavior::TravelToPinger, this));
@@ -28,7 +34,7 @@ void FindPingerBehavior::Startup(MissionPlannerWorker& mpWorker)
 	pipeHeading = lposRPY(2);
 
 	// Push to approach buoy
-	stateManager.ChangeState(FindPingerMiniBehaviors::TravelToPinger);
+	stateManager.ChangeState(FindPingerMiniBehaviors::TurnNorth);
 }
 
 void FindPingerBehavior::Shutdown(MissionPlannerWorker& mpWorker)
@@ -55,6 +61,50 @@ void FindPingerBehavior::DoBehavior()
 	// ObjectID is fixed, and set in the constructor
 
 	// The mini functions are called in the algorithm
+}
+
+void FindPingerBehavior::TurnNorth() {
+	if(!northSet)
+	{
+		double serioslycpp = bumpTravelDistance;
+		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+		desiredWaypoint->isRelative = false;
+		desiredWaypoint->RPY(2) = 0;
+		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
+		desiredWaypoint->number = getNextWaypointNum();
+
+		northSet = true;
+	}
+
+	// Check to see if we have arrived at the bump point
+	if(atDesiredWaypoint())
+	{
+		stateManager.ChangeState(FindPingerMiniBehaviors::MoveMoreCloselier);
+	}
+}
+
+void FindPingerBehavior::MoveMoreCloselier() {
+	if(!closelierSet)
+	{
+		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+		desiredWaypoint->isRelative = false;
+		desiredWaypoint->RPY(2) = lposRPY(2);
+
+		// Add on the bump travel
+		double whatever = closelierDistance;
+		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
+				+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
+									Vector3d(whatever, 0.0, 0.0));
+		desiredWaypoint->number = getNextWaypointNum();
+
+		closelierSet = true;
+	}
+
+	// Check to see if we have arrived at the bump point
+	if(atDesiredWaypoint())
+	{
+		stateManager.ChangeState(FindPingerMiniBehaviors::TravelToPinger);
+	}
 }
 
 void FindPingerBehavior::TravelToPinger()
@@ -114,9 +164,9 @@ double FindPingerBehavior::getTravelDistance()
 	if (hydInfo)
 	{
 		if (hydInfo->getDeclination() < (boost::math::constants::pi<double>() / 180.0 * 50.0))
-			distance = 3;
+			distance = 2;
 		else if ((hydInfo->getDeclination() >= boost::math::constants::pi<double>() / 180.0 * 50) && (hydInfo->getDeclination() < boost::math::constants::pi<double>() / 180.0 * 65.0))
-			distance = 1;
+			distance = .5;
 		else
 			distance = 0.1;
 
