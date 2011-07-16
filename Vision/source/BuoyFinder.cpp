@@ -23,7 +23,7 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 	n->norm(ioimages);
 
 	// blur the image to remove noise
-	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
+	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(7,7),10,15,BORDER_DEFAULT);
 
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
@@ -31,7 +31,7 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Blob* blob = new Blob(100,80000,1000);
+		Blob* blob = new Blob(100,80000,2000);
 		result = blob->findBlob(ioimages);
 
 		// Prepare results

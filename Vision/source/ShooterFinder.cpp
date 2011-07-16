@@ -53,7 +53,6 @@ vector<shared_ptr<FinderResult> > ShooterFinder::find(IOImages* ioimages)
 					fResult2D->u = contours->shapes[index].centroid.x;
 					fResult2D->v = contours->shapes[index].centroid.y;
 					fResult2D->angle = contours->boxes[index].orientationError;
-					printf("angle error: %f\n",contours->boxes[index].orientationError);
 					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 				}
 				else if(oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE || oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE)
@@ -64,7 +63,6 @@ vector<shared_ptr<FinderResult> > ShooterFinder::find(IOImages* ioimages)
 					fResult2D->u = contours->shapes[index].centroid.x;
 					fResult2D->v = contours->shapes[index].centroid.y;
 					fResult2D->angle = contours->boxes[index].orientationError;
-					printf("angle error: %f\n",contours->boxes[index].orientationError);
 					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 				}
 			}

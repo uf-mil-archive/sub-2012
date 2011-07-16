@@ -19,7 +19,9 @@ int main(int argc, char **argv)
 	boost::asio::io_service io;
 
 	if (argc < 5) {
-		cerr << "Usage: camNum shutterVal(12) gainVal(0) showDebugImages logImages objectIDs..." << endl;
+		cerr << "Usage: camNum shutterVal gainVal showDebugImages logImages objectIDs..." << endl;
+		cerr << "Transdec @ 6pm: for: 1,2 - down: 4,2" << endl;
+		cerr << "Hotel pool @ night: for: 30,10 - down: 30,10" << endl;
 		return 1;
 	}
 	
