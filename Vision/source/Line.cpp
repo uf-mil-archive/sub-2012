@@ -65,18 +65,18 @@ int Line::findLines(IOImages* ioimages)
 			// if a new angle comes in and the first average is populated and the second average is open
 			// and the new angle is far from the first average, save it as the second average
 			else if(avgLines[0].populated == true && avgLines[1].populated == false &&
-				abs(dAngleDiff(avgLines[0].angle,tmpAngle)) > 10*3.14159/180.0)
+				abs(dAngleDiff(avgLines[0].angle,tmpAngle)) > 20*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 				avgLines[1].populated = true;
 			}
 			// if a new angle comes in and both averages are populated, find which average it is closest to,
 			// then call the update average helper
-			else if(abs(dAngleDiff(avgLines[0].angle,tmpAngle)) < 10*3.14159/180.0)
+			else if(abs(dAngleDiff(avgLines[0].angle,tmpAngle)) < 20*3.14159/180.0)
 			{
 				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 			}
-			else if(abs(dAngleDiff(avgLines[1].angle,tmpAngle)) < 10*3.14159/180.0)
+			else if(abs(dAngleDiff(avgLines[1].angle,tmpAngle)) < 20*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 			}

@@ -1,5 +1,6 @@
 #include "FlyCaptureGrabber.h"
 #include <cstdio>
+#include <unistd.h>
 
 FlyCaptureGrabber::FlyCaptureGrabber(void)
 {
@@ -77,8 +78,8 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float shutterVal, floa
 
 	Property auto_exposure(AUTO_EXPOSURE);
 	auto_exposure.autoManualMode = false;
-	auto_exposure.onOff = false;
-	auto_exposure.absValue = 50; // 7 - 62
+	auto_exposure.onOff = true;
+	auto_exposure.absValue = 40; // 7 - 62
 	auto_exposure.absControl = true;
 	cameras[camID].cam.SetProperty(&auto_exposure, false);
 	printf("Set auto exposure.\n");
@@ -90,12 +91,20 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float shutterVal, floa
 	cameras[camID].cam.SetProperty(&gain, false);
 	printf("Set gain to %f.\n", gainVal);
 
+	
 	Property shutter(SHUTTER);
-	shutter.absValue = shutterVal;	// 0 - 33  (33 at pool at night)
+	//shutter.absValue = shutterVal;	// 0 - 33  (33 at pool at night)
+	shutter.absControl = false;
+	shutter.autoManualMode = true;
+	cameras[camID].cam.SetProperty(&shutter, false);
+	//printf("Set shutter speed to %f.\n",shutterVal);
+	usleep(5000000);
+	cameras[camID].cam.GetProperty(&shutter);	// 0 - 33  (33 at pool at night)
+	shutter.absValue /= 2;
+	printf("Adjusted shutter speed to: %f\n",shutter.absValue);
 	shutter.absControl = true;
 	shutter.autoManualMode = false;
-	cameras[camID].cam.SetProperty(&shutter, false);
-	printf("Set shutter speed to %f.\n",shutterVal);
+	cameras[camID].cam.SetProperty(&shutter, false);	
 
 	printf("\n");
 

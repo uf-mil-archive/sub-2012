@@ -39,7 +39,7 @@ vector<shared_ptr<FinderResult> > HedgeFinder::find(IOImages* ioimages)
 		FinderResult2D *fResult2D = new FinderResult2D();
 		if(result)
 		{
-			if(line->avgLines[0].populated && line->avgLines[1].populated)
+			/*if(line->avgLines[0].populated && line->avgLines[1].populated)
 			{
 				Point driveToCenter;
 				// cycle through both lines to find the center point
@@ -60,6 +60,29 @@ vector<shared_ptr<FinderResult> > HedgeFinder::find(IOImages* ioimages)
 				fResult2D->v = driveToCenter.y;
 				fResult2D->scale = line->avgLines[0].length;
 				resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+			}*/
+			Point driveToCenter;			
+			for(unsigned int j=0; j<line->avgLines.size(); j++)
+			{
+				//printf("angle %d: %f\n",j,line->avgLines[j].angle);
+				if( line->avgLines[j].populated && (line->avgLines[j].angle > 75*3.14159/180.0 || line->avgLines[j].angle < -75*3.14159/180.0) )
+				{
+					driveToCenter.x = line->avgLines[j].centroid.x;
+					driveToCenter.y = line->avgLines[j].centroid.y;
+					circle(ioimages->prcd,driveToCenter,5,Scalar(255,255,255),-1);
+					fResult2D->objectID = MIL_OBJECTID_GATE_HEDGE;
+					fResult2D->u = driveToCenter.x;
+					fResult2D->v = driveToCenter.y;
+					fResult2D->scale = line->avgLines[j].length;
+					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+					break;
+				}
+				if(j==line->avgLines.size()-1)
+				{
+					fResult2D->objectID = MIL_OBJECTID_NO_OBJECT;
+					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+					break;
+				}
 			}
 		}
 		else

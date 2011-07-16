@@ -19,7 +19,7 @@ void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
 	else if(objectID == MIL_OBJECTID_PIPE)
 		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_GATE_HEDGE)
-		threshGreen(ioimages);
+		/*threshGreen(ioimages, true);*/threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_TUBE)
 		threshOrange(ioimages, true);
 	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
