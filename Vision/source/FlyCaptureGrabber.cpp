@@ -63,7 +63,7 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float shutterVal, floa
 	//-------
 
 	Property brightness(BRIGHTNESS);
-	brightness.absValue = 150;  // 0 - 255
+	brightness.absValue = 100;  // 0 - 255
 	brightness.absControl = true;
 	brightness.autoManualMode = false;
 	cameras[camID].cam.SetProperty(&brightness, false);
@@ -79,7 +79,7 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float shutterVal, floa
 	Property auto_exposure(AUTO_EXPOSURE);
 	auto_exposure.autoManualMode = false;
 	auto_exposure.onOff = true;
-	auto_exposure.absValue = 40; // 7 - 62
+	auto_exposure.absValue = 7; // 7 - 62
 	auto_exposure.absControl = true;
 	cameras[camID].cam.SetProperty(&auto_exposure, false);
 	printf("Set auto exposure.\n");
@@ -94,17 +94,25 @@ int FlyCaptureGrabber::FlyCapInitializeCameras(int camID, float shutterVal, floa
 	
 	Property shutter(SHUTTER);
 	//shutter.absValue = shutterVal;	// 0 - 33  (33 at pool at night)
-	shutter.absControl = false;
-	shutter.autoManualMode = true;
-	cameras[camID].cam.SetProperty(&shutter, false);
-	//printf("Set shutter speed to %f.\n",shutterVal);
-	usleep(5000000);
-	cameras[camID].cam.GetProperty(&shutter);	// 0 - 33  (33 at pool at night)
-	shutter.absValue /= 2;
-	printf("Adjusted shutter speed to: %f\n",shutter.absValue);
-	shutter.absControl = true;
-	shutter.autoManualMode = false;
-	cameras[camID].cam.SetProperty(&shutter, false);	
+	if(shutterVal < 0)
+	{
+		shutter.absControl = true;
+		shutter.autoManualMode = true;
+		cameras[camID].cam.SetProperty(&shutter, false);
+		//printf("Set shutter speed to %f.\n",shutterVal);
+		//usleep(5000000);
+	
+		cameras[camID].cam.GetProperty(&shutter);	// 0 - 33  (33 at pool at night)
+		//shutter.absValue /= 2.5;
+		printf("Adjusted shutter speed to: %f\n",shutter.absValue);
+	}
+	else
+	{
+		//shutter.absValue = shutterVal;
+	}
+	//shutter.absControl = true;
+	//shutter.autoManualMode = false;
+	//cameras[camID].cam.SetProperty(&shutter, false);	
 
 	printf("\n");
 
