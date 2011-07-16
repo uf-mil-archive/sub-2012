@@ -238,7 +238,7 @@ void FindBuoyBehavior::BackupMofoYouRanHerOver()
 	}
 
 	// Check to see if we have arrived at the backup point
-	if(atDesiredWaypoint())
+	if(atDesiredWaypoint(0.3))
 	{
 		backupSet = false;
 		canContinue = false;

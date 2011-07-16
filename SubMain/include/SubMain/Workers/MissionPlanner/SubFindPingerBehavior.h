@@ -35,11 +35,11 @@ namespace subjugator
 		static const double decAngle = 80.0;
 		static const double closelierDistance = 20;*/
 
+		bool northSet;
+		bool closelierSet;
 		bool canContinue;
 		bool hydInfoNew;
 		double maxDecAngle;
-		bool northSet;
-		bool closelierSet;
 
 		double pipeHeading;
 		double yawChange;

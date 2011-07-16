@@ -66,7 +66,7 @@ void MissionBehavior::updateLPOS(const boost::shared_ptr<LPOSVSSInfo>& lpos)
 	lposRPY = MILQuaternionOps::Quat2Euler(lpos->getQuat_NED_B());
 }
 
-bool MissionBehavior::atDesiredWaypoint()
+bool MissionBehavior::atDesiredWaypoint(double xyzErrorRadius, double yawpitchErrorRadius)
 {
 	if(!lposInfo)
 		return false;
@@ -91,8 +91,8 @@ void MissionBehavior::sendWaypoint()
 		return;
 
 	// Not a new waypoint. don't send it
-	if(desiredWaypoint->number == waypointNumber)
-		return;
+//	if(desiredWaypoint->number == waypointNumber)
+//		return;
 
 	// Make sure min depth is not violated
 	if(desiredWaypoint->Position_NED(2) < depthCeiling)
