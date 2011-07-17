@@ -12,7 +12,7 @@ FindBinsBehavior::FindBinsBehavior(double minDepth) :
 	canContinue(false), driveToBinsSet(false), binFrameCount(0), binAlignCount(0),
 	moveToInspect(false)
 {
-	servoGains2d = Vector2d(.0035*boost::math::constants::pi<double>() / 180.0, 0.0025);
+	servoGains2d = Vector2d(.0015*boost::math::constants::pi<double>() / 180.0, 0.0025);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO list which bins we are looking for
@@ -60,7 +60,7 @@ void FindBinsBehavior::Startup(MissionPlannerWorker& mpWorker)
 	pipeHeading = lposRPY(2);
 
 	// Push to approach bins
-	stateManager.ChangeState(FindBinsMiniBehaviors::DriveTowardsBins);
+	stateManager.ChangeState(FindBinsMiniBehaviors::AlignToAllBins);
 }
 
 void FindBinsBehavior::Shutdown(MissionPlannerWorker& mpWorker)

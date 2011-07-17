@@ -40,7 +40,7 @@ namespace subjugator
 		FindBinsBehavior(double minDepth);
 	private:
 		static const double driveTowardsBinsDistance = 3.0;
-		static const double approachDepth = 1.0; // m
+		static const double approachDepth = 0.5; // m
 		static const double approachTravelDistance = 0.2; // m
 		static const int approachFrameCount = 5;
 		static const double alignDuration = 5.0;

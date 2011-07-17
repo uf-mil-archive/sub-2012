@@ -6,6 +6,7 @@
 #include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindHedgeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubSurfaceBehavior.h"
+#include "SubMain/Workers/MissionPlanner/SubFindBinsBehavior.h"
 #include "DataObjects/Actuator/SetActuator.h"
 
 #include <iostream>
@@ -22,12 +23,15 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH, true)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 1.0, true)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindHedgeBehavior(MIN_DEPTH)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 2.0, true)));
-//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 21800, 23400))); // For 23kHz pinger
-//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 23000, 25500))); // For 24kHz pinger
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0, true)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBinsBehavior(MIN_DEPTH)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 1.0, true)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindHedgeBehavior(MIN_DEPTH)));	
 	
 	// after the regular mission list, the timeout mission list is run
 	timeoutMissionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 24200, 26500))); // For 25kHz pinger/	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
+//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 21800, 23400))); // For 23kHz pinger
+//	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 23000, 25500))); // For 24kHz pinger
 	timeoutMissionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
 	timeoutMissionList.push(boost::shared_ptr<MissionBehavior>(new SurfaceBehavior(-1.0)));
 	

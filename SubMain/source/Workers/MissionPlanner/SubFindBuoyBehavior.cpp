@@ -17,7 +17,7 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth, bool goleft) :
 
 	// TODO enqueue which buoys we are looking for
 	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyGreen, true));
-	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyRed, false));
+	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyGreen, false));
 
 
 	// Setup the callbacks
