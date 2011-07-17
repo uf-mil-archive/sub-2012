@@ -48,8 +48,8 @@ namespace subjugator
 		static const double inspectionDepth = 1.0;
 		static const int desiredAttempts = 4;
 		static const double creepDistance = 0.1;
-		static const double driveTowardsPipeDistance = 2.5;
-		static const double clearBinsDepth = 1.0;
+		static const double driveTowardsPipeDistance = 1.5;
+		static const double clearBinsDepth = 0.5;
 
 		bool canContinue;
 		bool bumpSet;
@@ -75,7 +75,8 @@ namespace subjugator
 		std::vector<ObjectIDs::ObjectIDCode> binsToFind;
 		std::vector<ObjectIDs::ObjectIDCode> binsWeveSeen;
 
-		BoolTimer timer;
+		BoolTimer shotTimer;
+		bool shot;
 
 		virtual void Startup(MissionPlannerWorker& mpWorker);
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);
