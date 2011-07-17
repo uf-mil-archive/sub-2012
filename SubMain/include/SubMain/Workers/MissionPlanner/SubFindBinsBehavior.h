@@ -6,9 +6,11 @@
 #include "SubMain/SubBoolTimer.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
+#include "DataObjects/Actuator/SetActuator.h"
 
 #include <Eigen/Dense>
 #include <list>
+#include <algorithm>
 
 #include <cmath>
 
@@ -37,21 +39,17 @@ namespace subjugator
 	public:
 		FindBinsBehavior(double minDepth);
 	private:
-		static const double driveTowardsBinsDistance = 3.5;
+		static const double driveTowardsBinsDistance = 3.0;
 		static const double approachDepth = 1.0; // m
 		static const double approachTravelDistance = 0.2; // m
 		static const int approachFrameCount = 5;
 		static const double alignDuration = 5.0;
-		static const int alignWaypointCount = 30;
+		static const int alignWaypointCount = 15;
 		static const double inspectionDepth = 1.0;
-
-		static const double desiredBumpDistance = 2.0;
-		static const double bumpTravelDistance = 0.5;
-		static const double backupTravelDistance = 2.0;
-		static const double clearBuoysDepth = 1.0;
-		static const double driveTowardsPipeDistance = 1.0;
-		static const double yawSearchAngle = 45.0;
-		static const double yawMaxSearchAngle = 45.0;
+		static const int desiredAttempts = 4;
+		static const double creepDistance = 0.1;
+		static const double driveTowardsPipeDistance = 2.5;
+		static const double clearBinsDepth = 1.0;
 
 		bool canContinue;
 		bool bumpSet;
@@ -72,6 +70,10 @@ namespace subjugator
 
 		boost::signals2::connection connection2D;
 		boost::weak_ptr<InputToken> mPlannerChangeCamObject;
+		boost::weak_ptr<InputToken> mPlannerSendActuatorObject;
+
+		std::vector<ObjectIDs::ObjectIDCode> binsToFind;
+		std::vector<ObjectIDs::ObjectIDCode> binsWeveSeen;
 
 		BoolTimer timer;
 
