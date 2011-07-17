@@ -53,6 +53,9 @@ void FindBinsBehavior::Startup(MissionPlannerWorker& mpWorker)
 	// And become the controlling device of the camera
 	mPlannerChangeCamObject = mpWorker.ConnectToCommand((int)MissionPlannerWorkerCommands::SendVisionID, 1);
 
+	// And become the controlling device of the camera
+	mPlannerSendActuatorObject = mpWorker.ConnectToCommand((int)MissionPlannerWorkerCommands::SendActuator, 1);
+
 	// Save our pipe heading
 	pipeHeading = lposRPY(2);
 
@@ -76,6 +79,18 @@ void FindBinsBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 		// And disconnect from the camera command
 		r->Disconnect();
 	}
+
+/*	// Disconnect from the actuators
+	if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+	{
+		// Tell the cameras to not look for anything
+		VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, ObjectIDs::None));
+
+		r->Operate(todown);
+
+		// And disconnect from the camera command
+		r->Disconnect();
+	}*/
 }
 
 void FindBinsBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects)
@@ -230,7 +245,10 @@ void FindBinsBehavior::ApproachBins()
 
 void FindBinsBehavior::AlignToAllBins()
 {
-	bool sawBins = false;
+/*	if (booltimer.HasExpired() && timeoutenabled) {
+		behDone = true;
+		return;
+	}*/
 
 	// Push all bins in this state. We wait until we have solid frames of bins and then
 	// we shift to align
@@ -242,51 +260,65 @@ void FindBinsBehavior::AlignToAllBins()
 		r->Operate(todown);
 	}
 
+	bool sawBin = false;
+
 	if(!canContinue)
 	{
+		// Wait for new frame from camera
 		if(!newFrame)
 			return;
 
 		newFrame = false;
 
-		// The list of 2d objects the class is holding is the current found images in the frame
 		for(size_t i = 0; i < objects2d.size(); i++)
 		{
+			// Object found in down camera.
 			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
 			{
 				binFrameCount = 0;
 
-				if(!timer.getStarted())
-					timer.Start(alignDuration);
+				sawBin = true;
 
 				// It's in view
+				// UPDATE X AND Y FROM CAMERA DATA TO CENTER THE PIPE(S), AND KEEP DEPTH AT OUR VARIABLE ALIGNDEPTH.
+				// UPDATE YAW TO THE ERROR PROVIDED BY THE CAMERA DATA
 				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
 
 				if (!desiredWaypoint)
 					return;
 
-				desiredWaypoint->isRelative = false;
 				desiredWaypoint->Position_NED(2) = approachDepth;
+				desiredWaypoint->RPY(2) = desiredWaypoint->RPY(2);
 				desiredWaypoint->number = getNextWaypointNum();
 
-				if(atDesiredWaypoint())
+				// Once waypoint has been matched for enough time, continue.
+				if (atDesiredWaypoint())
 				{
 					binAlignCount++;
-					if(binAlignCount > alignWaypointCount)
+					if (binAlignCount > alignWaypointCount)
 						canContinue = true;
 				}
-
-
-				sawBins = true;
 			}
+		}
 
-			if(!sawBins)
+		if(!sawBin)
+		{
+			binFrameCount++;
+
+			// It's lost, drive forward. Assuming were pointed the right way
+			if (binFrameCount > desiredAttempts)
 			{
-				// It's lost, drive forward. Assuming were pointed the right way
-				if ((++binFrameCount) > approachFrameCount)
-				{
-					stateManager.ChangeState(FindBinsMiniBehaviors::ApproachBins);
-				}
+				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+				desiredWaypoint->isRelative = false;
+
+				// Project the distance in the XY NED Plane.
+				desiredWaypoint->Position_NED(0) = creepDistance*cos(lposRPY(2));
+				desiredWaypoint->Position_NED(1) = creepDistance*sin(lposRPY(2));
+				desiredWaypoint->Position_NED += lposInfo->getPosition_NED();
+				desiredWaypoint->Position_NED(2) = approachDepth;
+				desiredWaypoint->RPY = Vector3d(0.0, 0.0, lposRPY(2));
+
+				desiredWaypoint->number = getNextWaypointNum();
 			}
 		}
 	}
@@ -299,6 +331,17 @@ void FindBinsBehavior::AlignToAllBins()
 			canContinue = false;
 			binFrameCount = 0;
 			binAlignCount = 0;
+
+
+			//Shoot ball dropper
+			SetActuator toAct(0x1);
+
+			if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+			{
+				r->Operate(toAct);
+			}
+
+			behDone = true;	// REMOVE THIS DEVIN AFTER PRACTICE
 
 			// Done approaching the current buoy, switch to bump
 			stateManager.ChangeState(FindBinsMiniBehaviors::MoveToLeftBin);
@@ -308,78 +351,100 @@ void FindBinsBehavior::AlignToAllBins()
 
 void FindBinsBehavior::MoveToLeftBin()
 {
-	bool sawBin = false;
-	// Push all bins in this state. We wait until we have solid frames of bins and then
-	// we shift to align
-	currentObjectID = ObjectIDs::BinSingle;
-	VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, currentObjectID));
-
-	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
-	{
-		r->Operate(todown);
-	}
-
-	if(!canContinue)
-	{
-		if(!newFrame)
+	/*	if (booltimer.HasExpired() && timeoutenabled) {
+			behDone = true;
 			return;
+		}*/
 
-		newFrame = false;
+		// Push all bins in this state. We wait until we have solid frames of bins and then
+		// we shift to align
+		currentObjectID = ObjectIDs::BinSingle;
+		VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, currentObjectID));
 
-		// The list of 2d objects the class is holding is the current found images in the frame
-		for(size_t i = 0; i < objects2d.size(); i++)
+		if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
 		{
-			if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
+			r->Operate(todown);
+		}
+
+		bool sawBin = false;
+
+		if(!canContinue)
+		{
+			// Wait for new frame from camera
+			if(!newFrame)
+				return;
+
+			newFrame = false;
+
+			for(size_t i = 0; i < objects2d.size(); i++)
 			{
-				binFrameCount = 0;
-
-				if(!timer.getStarted())
-					timer.Start(alignDuration);
-
-				// It's in view
-				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
-
-				if (!desiredWaypoint)
-					return;
-
-				desiredWaypoint->isRelative = false;
-				desiredWaypoint->Position_NED(2) = approachDepth;
-				desiredWaypoint->number = getNextWaypointNum();
-
-				if(atDesiredWaypoint())
+				// Object found in down camera.
+				if(objects2d[i].objectID == currentObjectID && objects2d[i].cameraID == MissionCameraIDs::Down)
 				{
-					binAlignCount++;
-					if(binAlignCount > alignWaypointCount)
-						canContinue = true;
-				}
+					binFrameCount = 0;
 
-				sawBin = true;
+					sawBin = true;
+
+					// It's in view
+					// UPDATE X AND Y FROM CAMERA DATA TO CENTER THE PIPE(S), AND KEEP DEPTH AT OUR VARIABLE ALIGNDEPTH.
+					// UPDATE YAW TO THE ERROR PROVIDED BY THE CAMERA DATA
+					desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
+
+					if (!desiredWaypoint)
+						return;
+
+					desiredWaypoint->Position_NED(2) = approachDepth;
+					desiredWaypoint->RPY(2) = desiredWaypoint->RPY(2);
+					desiredWaypoint->number = getNextWaypointNum();
+
+					// Once waypoint has been matched for enough time, continue.
+					if (atDesiredWaypoint())
+					{
+						binAlignCount++;
+						if (binAlignCount > alignWaypointCount)
+							canContinue = true;
+					}
+
+					break;
+				}
 			}
 
 			if(!sawBin)
 			{
+				binFrameCount++;
+
 				// It's lost, drive forward. Assuming were pointed the right way
-				if ((++binFrameCount) > approachFrameCount)
+				if (binFrameCount > desiredAttempts)
 				{
-					stateManager.ChangeState(FindBinsMiniBehaviors::MoveToInspectionDepth);
+					double seriouslycpp = creepDistance;
+					desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+					desiredWaypoint->isRelative = false;
+
+					// Project the distance in the XY NED Plane.
+					desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
+							+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
+												Vector3d(0.0, seriouslycpp, 0.0));
+					desiredWaypoint->Position_NED(2) = approachDepth;
+					desiredWaypoint->RPY = Vector3d(0.0, 0.0, lposRPY(2));
+
+					desiredWaypoint->number = getNextWaypointNum();
 				}
 			}
 		}
-	}
-	// Just waiting to arrive at the final waypoint for the mini behavior
-	else
-	{
-		// Check to see if we have arrived
-		if(atDesiredWaypoint())
+		// Just waiting to arrive at the final waypoint for the mini behavior
+		else
 		{
-			canContinue = false;
-			binFrameCount = 0;
-			binAlignCount = 0;
+			// Check to see if we have arrived
+			if(atDesiredWaypoint())
+			{
+				canContinue = false;
+				binFrameCount = 0;
+				binAlignCount = 0;
 
-			// Done approaching the current buoy, switch to bump
-			stateManager.ChangeState(FindBinsMiniBehaviors::MoveToLeftBin);
+				// Done approaching the current buoy, switch to bump
+				stateManager.ChangeState(FindBinsMiniBehaviors::MoveToInspectionDepth);
+			}
 		}
-	}
 }
 
 void FindBinsBehavior::MoveToInspectionDepth()
@@ -402,6 +467,7 @@ void FindBinsBehavior::MoveToInspectionDepth()
 	if(atDesiredWaypoint())
 	{
 		moveToInspect = false;
+		canContinue = false;
 
 		stateManager.ChangeState(FindBinsMiniBehaviors::InspectBin);
 	}
@@ -409,7 +475,132 @@ void FindBinsBehavior::MoveToInspectionDepth()
 
 void FindBinsBehavior::InspectBin()
 {
+	// Continue to align on this bin and decide to shoot or not. We will send
+	// three object ids, one bin, and then both possible shapes.
+	currentObjectID = ObjectIDs::BinSingle;
+	std::vector<int> idsToFind;
+	idsToFind.push_back(ObjectIDs::BinSingle);
+	idsToFind.push_back(ObjectIDs::BinShape);
+	VisionSetIDs todown(MissionCameraIDs::Down, idsToFind);
 
+	if(boost::shared_ptr<InputToken> r = mPlannerChangeCamObject.lock())
+	{
+		r->Operate(todown);
+	}
+
+	// Search through the object list to find out if we are looking at X or O
+	bool sawBin = false;
+
+	if(!canContinue)
+	{
+		// Wait for new frame from camera
+		if(!newFrame)
+			return;
+
+		newFrame = false;
+
+		for(size_t i = 0; i < objects2d.size(); i++)
+		{
+			if(objects2d[i].cameraID != MissionCameraIDs::Down) continue;
+
+			if(std::find(binsWeveSeen.begin(), binsWeveSeen.end(), objects2d[i].objectID) != binsWeveSeen.end())
+				continue;
+
+			// Object found in down camera.
+			if(objects2d[i].objectID == currentObjectID)
+			{
+				binFrameCount = 0;
+
+				sawBin = true;
+
+				// It's in view
+				// UPDATE X AND Y FROM CAMERA DATA TO CENTER THE PIPE(S), AND KEEP DEPTH AT OUR VARIABLE ALIGNDEPTH.
+				// UPDATE YAW TO THE ERROR PROVIDED BY THE CAMERA DATA
+				desiredWaypoint = wayGen->GenerateFrom2D(*lposInfo, lposRPY, objects2d[i], servoGains2d, 0.0, true);
+
+				if (!desiredWaypoint)
+					return;
+
+				desiredWaypoint->Position_NED(2) = inspectionDepth;
+				desiredWaypoint->RPY(2) = desiredWaypoint->RPY(2);
+				desiredWaypoint->number = getNextWaypointNum();
+
+				// Once waypoint has been matched for enough time, continue.
+				if (atDesiredWaypoint())
+				{
+					binAlignCount++;
+					if (binAlignCount > alignWaypointCount)
+					{
+						//Shoot ball dropper
+						SetActuator toAct(0x1);
+
+						if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+						{
+							r->Operate(toAct);
+						}
+
+						// Move up so we can reuse align to all bins
+						desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+						desiredWaypoint->isRelative = false;
+						desiredWaypoint->RPY = lposRPY;
+
+						// Add on the retract travel
+						desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
+						desiredWaypoint->Position_NED(2) = approachDepth;
+						desiredWaypoint->number = getNextWaypointNum();
+
+						canContinue = true;
+
+						// pop target off
+					}
+				}
+
+				break;
+			}
+			else
+			{
+				// Add the object to the list so we keep moving past
+				//binsWeveSeen.push_back(objects2d[i].objectID);
+			}
+		}
+
+		if(!sawBin)
+		{
+			binFrameCount++;
+
+			// It's lost, drive forward. Assuming were pointed the right way
+			if (binFrameCount > desiredAttempts)
+			{
+				double seriouslycpp = creepDistance;
+				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
+				desiredWaypoint->isRelative = false;
+
+				// Project the distance in the XY NED Plane.
+				desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
+						+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
+											Vector3d(0.0, seriouslycpp, 0.0));
+				desiredWaypoint->Position_NED(2) = approachDepth;
+				desiredWaypoint->RPY = Vector3d(0.0, 0.0, lposRPY(2));
+
+				desiredWaypoint->number = getNextWaypointNum();
+			}
+		}
+	}
+	// Just waiting to arrive at the final waypoint for the mini behavior
+	else
+	{
+		// Check to see if we have arrived
+		if(atDesiredWaypoint())
+		{
+			canContinue = false;
+			binFrameCount = 0;
+			binAlignCount = 0;
+			binsWeveSeen.clear();
+
+			// Done approaching the current buoy, switch to bump
+			stateManager.ChangeState(FindBinsMiniBehaviors::AlignToAllBins);
+		}
+	}
 }
 
 void FindBinsBehavior::ClearBins()
@@ -422,7 +613,7 @@ void FindBinsBehavior::ClearBins()
 
 		// Add on the retract travel
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
-		desiredWaypoint->Position_NED(2) = clearBuoysDepth;
+		desiredWaypoint->Position_NED(2) = clearBinsDepth;
 		desiredWaypoint->number = getNextWaypointNum();
 
 		clearBuoysSet = true;
@@ -450,7 +641,7 @@ void FindBinsBehavior::DriveTowardsPipe()
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
 				+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
 									Vector3d(serioslycpp, 0.0, 0.0));
-		desiredWaypoint->Position_NED(2) = clearBuoysDepth;
+		desiredWaypoint->Position_NED(2) = clearBinsDepth;
 		desiredWaypoint->number = getNextWaypointNum();
 
 		pipeSet = true;

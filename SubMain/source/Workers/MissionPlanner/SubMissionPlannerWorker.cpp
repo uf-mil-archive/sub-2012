@@ -6,6 +6,7 @@
 #include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindHedgeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubSurfaceBehavior.h"
+#include "DataObjects/Actuator/SetActuator.h"
 
 #include <iostream>
 
@@ -238,13 +239,12 @@ void MissionPlannerWorker::sendWaypoint(const DataObject &obj)
 
 void MissionPlannerWorker::sendActuator(const DataObject &obj)
 {
-
 	// TODO Hook actuator controls
-/*	const Waypoint *info = dynamic_cast<const Waypoint *>(&obj);
+	const SetActuator *info = dynamic_cast<const SetActuator *>(&obj);
 	if(!info)
 		return;
 
-	onEmitting(boost::shared_ptr<Waypoint>(new Waypoint(*info)));*/
+	onEmitting(boost::shared_ptr<SetActuator>(new SetActuator(*info)));
 }
 
 void MissionPlannerWorker::sendVisionID(const DataObject &obj)
