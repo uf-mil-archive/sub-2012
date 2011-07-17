@@ -51,6 +51,8 @@ namespace subjugator
 		void halMergeStateChangeCallback();
 		
 		BoolTimer stoptimer;
+		BoolTimer gotimer;
+		bool seconddrop;
 	};
 }
 

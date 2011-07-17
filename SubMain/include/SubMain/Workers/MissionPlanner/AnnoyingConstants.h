@@ -138,7 +138,7 @@ static const double driveThroughGateDistance = .5;
  */
 
 #if official
-static const double hedgeApproachDepth = 1.0;
+static const double hedgeApproachDepth = 1.5;
 static const double hedgeApproachThreshold = 350;
 static const double driveThroughHedgeDistance = 4/*.5*/;
 static const double moveUpHedgeDistance = 0.5;
