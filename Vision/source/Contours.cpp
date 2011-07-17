@@ -37,7 +37,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 			if(hierarchy[i][2] >= 0 || !findInnerContours)
 			{
 				// approximate contour with accuracy proportional to the contour perimeter
-				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.02, true);
+				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.015, true);
 				// square contours should have 4 vertices after approximation and be convex.
 				if( approx.size() == 4 && isContourConvex(Mat(approx)) )
                 {
@@ -50,7 +50,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
                     }
 					// if cosines of all angles are small (all angles are ~90 degree) then write quandrange
                     // vertices to resultant sequence
-                    if( maxCosine < 0.5 )
+                    if( maxCosine < 0.4 )
 					{
 						// push to vector of saved boxes
 						OuterBox outerBox;
@@ -70,9 +70,16 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 			{
 				if(findInnerContours)
 				{
+					bool insideOuterBox = 0;
 					InnerContour innerContour;
 					minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
-					if(center_holder.x != 0 && center_holder.y != 0)
+					//printf("center circle: %f %f\n",center_holder.x,center_holder.y);
+					for(size_t k=0; k<boxes.size(); k++)
+					{
+						if(abs(center_holder.x-boxes[k].centroid.x) < 30 && abs(center_holder.y-boxes[k].centroid.y) < 30)
+							insideOuterBox = true;
+					}
+					if(center_holder.x != 0 && center_holder.y != 0 && insideOuterBox)
 					{
 						circle(ioimages->prcd,center_holder,2,CV_RGB(0,255,255),-1,8,0);
 						innerContour.perimeter = (float)perimeter_holder;

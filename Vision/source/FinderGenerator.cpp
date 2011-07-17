@@ -67,7 +67,7 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 	if(binsIDs.size() > 0)
 		listOfFinders.push_back( boost::shared_ptr<BinsFinder>(new BinsFinder( binsIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
 	if(shapeIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<ShapeFinder>(new ShapeFinder (shapeIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back( boost::shared_ptr<BinsFinder>(new BinsFinder (shapeIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
 	if(gateIDs.size() > 0)
 		listOfFinders.push_back( boost::shared_ptr<ValidationGateFinder>(new ValidationGateFinder (gateIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
 

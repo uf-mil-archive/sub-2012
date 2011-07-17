@@ -25,7 +25,7 @@ vector<shared_ptr<FinderResult> > ShapeFinder::find(IOImages* ioimages)
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
 		// blur the image to remove noise
-		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(15,15),10,15,BORDER_DEFAULT);
+		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(5,5),10,15,BORDER_DEFAULT);
 
 		// call to thresholder here
 		t->thresh(ioimages,oIDs[i]);

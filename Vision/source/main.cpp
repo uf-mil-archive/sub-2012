@@ -35,8 +35,8 @@ int main(int argc, char **argv)
 	printf("Log images: %d\n",(int)logImages);
 	
 	// We need a worker
-	//VisionWorker worker(io, 30 /*hz*/, 1, showDebugImages, camnum, logImages, shutterVal, gainVal);
-	VisionWorker worker(io, 30 /*hz*/, 0, showDebugImages, camnum, logImages, shutterVal, gainVal);
+	VisionWorker worker(io, 30 /*hz*/, 1, showDebugImages, camnum, logImages, shutterVal, gainVal);
+	//VisionWorker worker(io, 30 /*hz*/, 0, showDebugImages, camnum, logImages, shutterVal, gainVal);
 
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start Vision Worker!");

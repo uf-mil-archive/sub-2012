@@ -21,6 +21,9 @@ vector<shared_ptr<FinderResult> > BinsFinder::find(IOImages* ioimages)
 	vector<shared_ptr<FinderResult> > resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
+	
+	// blur the image to remove noise
+	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(7,7),10,15,BORDER_DEFAULT);
 
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
@@ -28,8 +31,13 @@ vector<shared_ptr<FinderResult> > BinsFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Contours* contours = new Contours(100,50000,1500);
-		result = contours->findContours(ioimages, false);
+		Contours* contours = new Contours(100,50000,2000);
+		if(oIDs[i] == MIL_OBJECTID_BIN_SINGLE || oIDs[i] == MIL_OBJECTID_BIN_ALL)
+			result = contours->findContours(ioimages, false);
+		else if(oIDs[i] == MIL_OBJECTID_BIN_SHAPE)
+			result = contours->findContours(ioimages, true);
+		
+		//printf("result: %d\n",result);
 
 		// Prepare results
 
@@ -61,6 +69,26 @@ vector<shared_ptr<FinderResult> > BinsFinder::find(IOImages* ioimages)
 					fResult2D->v = contours->boxes[j].centroid.y;
 					fResult2D->angle = contours->boxes[j].angle;
 					fResult2D->scale = contours->boxes[j].area;
+					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+				}
+			}
+			else if(oIDs[i] == MIL_OBJECTID_BIN_SHAPE)
+			{
+				printf("in shape\n");
+				for(unsigned int j=0; j<contours->shapes.size(); j++)
+				{
+					double scale = 0.0;
+					scale = contours->boxes[j].area / contours->shapes[j].area;
+					printf("scale of shape: %f\n",scale);
+					FinderResult2D *fResult2D = new FinderResult2D();
+					if(contours->shapes[j].shape_x)
+						fResult2D->objectID = MIL_OBJECTID_BIN_X;
+					else
+						fResult2D->objectID = MIL_OBJECTID_BIN_O;
+					fResult2D->u = contours->shapes[j].centroid.x;
+					fResult2D->v = contours->shapes[j].centroid.y;
+					fResult2D->angle = contours->shapes[j].shape_x;
+					fResult2D->scale = contours->shapes[j].area;
 					resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
 				}
 			}

@@ -17,7 +17,7 @@
 
 // PIPE
 #define		MIL_OBJECTID_PIPE   8
-//#define		MIL_OBJECTID_PIPES	9
+//#define		MIL_OBJECTID_SHOOTERWINDOW	9
 
 // BINS
 #define		MIL_OBJECTID_BIN_ALL   10

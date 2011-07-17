@@ -35,7 +35,7 @@ void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
 	else if(objectID == MIL_OBJECTID_BIN_SINGLE)
 		threshBlack(ioimages);
 	else if(objectID == MIL_OBJECTID_BIN_SHAPE)
-		threshRed(ioimages, false);
+		threshBlack(ioimages);
 	else if(objectID == MIL_OBJECTID_GATE_VALIDATION)
 		threshOrange(ioimages, true);
 }
@@ -59,13 +59,13 @@ void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 	//imshow("1",channelsHSV[1]);
 	//imshow("2",channelsHSV[2]);
 
-	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,251,10); // use lab channel hack
+	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,251,5); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
 	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(90,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
-	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-20);
+	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-10);
 	if(erodeDilateFlag)
 	{
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
@@ -92,18 +92,17 @@ void ThresholderRGB::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 	//imshow("1",channelsHSV[1]);
 	//imshow("2",channelsHSV[2]);
 
-	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,101,5); // use lab channel hack
+	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,251,5); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
-	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(100,0,0,0),channelsHSV[2]); // filter out blacks
+	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(120,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
-	//adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-40);
-	threshold(ioimages->dbg,ioimages->dbg,100,255,THRESH_BINARY);
+	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-10);
 	if(erodeDilateFlag)
 	{
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
 	}
 }
 
@@ -175,14 +174,26 @@ void ThresholderRGB::threshBlack(IOImages *ioimages)
 	cvtColor(ioimages->prcd,srcHSV,CV_BGR2HSV);
 	split(srcLAB,channelsLAB);
 	split(srcHSV,channelsHSV);
+	
+	
+	//imshow("rgb0",channelsRGB[0]);
+	//imshow("rgb1",channelsRGB[1]);
+	//imshow("rgb2",channelsRGB[2]);
+	//imshow("hsv0",channelsHSV[0]);
+	//imshow("hsv1",channelsHSV[1]);
+	//imshow("hsv2",channelsHSV[2]);
+	
+	
+	
+	
+	add(channelsRGB[2],channelsRGB[0],channelsRGB[2]);
+	threshold(channelsRGB[2], channelsRGB[2], 70, 255, THRESH_BINARY_INV);
+	//adaptiveThreshold(channelsHSV[1],ioimages->dbg,255,0,THRESH_BINARY,171,-10);
+	threshold(channelsRGB[1], channelsRGB[1], 70, 255, THRESH_BINARY_INV);
+	bitwise_and(channelsRGB[1], channelsRGB[2], ioimages->dbg);
 
-	threshold(channelsRGB[0], channelsRGB[0], 60, 255, THRESH_BINARY_INV);
-	threshold(channelsRGB[1], channelsRGB[1], 60, 255, THRESH_BINARY_INV);
-	//threshold(channelsRGB[2], channelsRGB[2], 60, 255, THRESH_BINARY_INV);
-	bitwise_and(channelsRGB[0], channelsRGB[1], ioimages->dbg);
-
-	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
-	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 	//bitwise_and(channelsRGB[2], ioimages->dbg, ioimages->dbg);
 
 }
