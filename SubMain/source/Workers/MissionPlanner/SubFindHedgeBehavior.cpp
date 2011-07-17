@@ -290,7 +290,7 @@ void FindHedgeBehavior::MoveUpByGate()
 
 		// Add on the bump travel
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
-				+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
+				- MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
 									Vector3d(0.0, 0.0, serioslycpp));
 		desiredWaypoint->number = getNextWaypointNum();
 
@@ -313,7 +313,7 @@ void FindHedgeBehavior::getGains()
 
 	//if (lastScale > 00)
 	{
-		servoGains2d = Vector2d(0.02*boost::math::constants::pi<double>() / 180.0, 0.003);
+		servoGains2d = Vector2d(0.02*boost::math::constants::pi<double>() / 180.0, 0.0015);
 		approachTravelDistance = 0.4; // m
 	}
 	/*else

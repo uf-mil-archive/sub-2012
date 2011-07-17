@@ -6,6 +6,7 @@
 #include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubFindHedgeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubSurfaceBehavior.h"
+#include "DataObjects/Actuator/SetActuator.h"
 
 #include <iostream>
 
@@ -17,16 +18,18 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 {
 	// TODO Enqueue mission tasks here
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 2.0))); 
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 2.0)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH, true)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 1.0, true)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindHedgeBehavior(MIN_DEPTH)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false /* going left */, 2.0, true)));
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 2.0, true)));
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 21800, 23400))); // For 23kHz pinger
 //	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 23000, 25500))); // For 24kHz pinger
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 24200, 26500))); // For 25kHz pinger
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new SurfaceBehavior(-1.0)));
+	
+	// after the regular mission list, the timeout mission list is run
+	timeoutMissionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 24200, 26500))); // For 25kHz pinger/	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
+	timeoutMissionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
+	timeoutMissionList.push(boost::shared_ptr<MissionBehavior>(new SurfaceBehavior(-1.0)));
 	
 	/*
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindValidationGateBehavior(MIN_DEPTH, ObjectIDs::GateValidation)));
@@ -143,6 +146,7 @@ void MissionPlannerWorker::standbyState()
 	if(!estop)
 	{
 		mStateManager.ChangeState(SubStates::READY);
+		timeoutTimer.Start(GLOBAL_TIMEOUT);
 	}
 }
 
@@ -150,6 +154,12 @@ void MissionPlannerWorker::readyState()
 {
 	if(!currentBehavior)
 	{
+		if(missionList.size() == 0 && timeoutMissionList.size() > 0) {
+			missionList = timeoutMissionList;
+			while (!timeoutMissionList.empty())
+				timeoutMissionList.pop();
+		}
+	
 		if(missionList.size() > 0)
 		{
 			currentBehavior = missionList.front();
@@ -164,12 +174,21 @@ void MissionPlannerWorker::readyState()
 
 	bool done = currentBehavior->Execute(lposInfo);
 
+	if (timeoutTimer.HasExpired() && timeoutMissionList.size() > 0) {
+		done = true;
+		missionList = timeoutMissionList;
+		while (!timeoutMissionList.empty())
+			timeoutMissionList.pop();
+	}
+
 	if(done) // current behavior finished
 	{
 		// Call stop on the current behavior to remove hooks
 		currentBehavior->Stop(*this);
 		currentBehavior.reset();
 	}
+	
+
 }
 
 void MissionPlannerWorker::allState()
@@ -220,13 +239,12 @@ void MissionPlannerWorker::sendWaypoint(const DataObject &obj)
 
 void MissionPlannerWorker::sendActuator(const DataObject &obj)
 {
-
 	// TODO Hook actuator controls
-/*	const Waypoint *info = dynamic_cast<const Waypoint *>(&obj);
+	const SetActuator *info = dynamic_cast<const SetActuator *>(&obj);
 	if(!info)
 		return;
 
-	onEmitting(boost::shared_ptr<Waypoint>(new Waypoint(*info)));*/
+	onEmitting(boost::shared_ptr<SetActuator>(new SetActuator(*info)));
 }
 
 void MissionPlannerWorker::sendVisionID(const DataObject &obj)

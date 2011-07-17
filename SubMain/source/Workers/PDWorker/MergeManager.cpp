@@ -44,7 +44,9 @@ void MergeManager::halStateChangeCallback() {
 }
 
 void MergeManager::halActuatorStateChangeCallback() {
-
+	if (endpoint->getState() == Endpoint::OPEN) {
+		actuatorendpoint->write(SetActuator(0));
+	}
 }
 
 void MergeManager::setActuators(int flags) {

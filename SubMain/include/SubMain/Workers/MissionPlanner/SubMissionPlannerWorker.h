@@ -10,6 +10,7 @@
 #include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "SubMain/SubStateManager.h"
+#include "SubMain/SubBoolTimer.h"
 #include "SubMain/Workers/SubWorker.h"
 
 #include <queue>
@@ -60,6 +61,7 @@ namespace subjugator
 		void allState();
 	private:
 		static const double MIN_DEPTH = .2; // m
+		static const int GLOBAL_TIMEOUT = 10*60;
 		boost::mutex lock;
 
 		int wayNum;
@@ -81,6 +83,9 @@ namespace subjugator
 		std::queue<boost::shared_ptr<MissionBehavior> > missionList;
 		boost::shared_ptr<WaypointGenerator> wayGen;
 		boost::shared_ptr<LPOSVSSInfo> lposInfo;
+		
+		std::queue<boost::shared_ptr<MissionBehavior> > timeoutMissionList;
+		BoolTimer timeoutTimer;
 	};
 }
 

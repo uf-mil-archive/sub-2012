@@ -42,6 +42,12 @@ namespace subjugator
 
 			// Color Calibration
 			ColorCalibration = 20,
+
+			//
+			BinLargeO = 25,
+			BinSmallO = 37,
+			BinSmallX = 42,
+			BinLargeX = 73,
 		};
 	};
 
