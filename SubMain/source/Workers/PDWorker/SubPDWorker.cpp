@@ -53,6 +53,7 @@ namespace subjugator
 		if (const SetActuator *actuator = dynamic_cast<const SetActuator *>(&obj))
 		{
 			mergeManager.setActuators(actuator->getFlags());
+			stoptimer.Start(.5);
 		}
 	}
 
@@ -86,6 +87,11 @@ namespace subjugator
 		}
 
 		onEmitting(boost::shared_ptr<DataObject>(new PDInfo(mStateManager.GetCurrentStateCode(), getTimestamp(), currents, mergeManager.getMergeInfo())));
+	
+		if (stoptimer.HasExpired() && stoptimer.getStarted()) {
+			mergeManager.setActuators(0);
+			stoptimer.Stop();
+		}
 	}
 
 	void PDWorker::allState()

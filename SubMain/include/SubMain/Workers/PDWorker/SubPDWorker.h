@@ -2,7 +2,7 @@
 #define _SubPDWorker_H__
 
 #include "SubMain/SubPrerequisites.h"
-
+#include "SubMain/SubBoolTimer.h"
 #include "SubMain/SubTranslations.h"
 #include "SubMain/Workers/SubWorker.h"
 #include "SubMain/Workers/PDWorker/SubThrusterManager.h"
@@ -49,6 +49,8 @@ namespace subjugator
 
 		void halMergeReceiveCallback(std::auto_ptr<DataObject> &dobj);
 		void halMergeStateChangeCallback();
+		
+		BoolTimer stoptimer;
 	};
 }
 
