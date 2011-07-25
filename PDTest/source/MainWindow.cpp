@@ -18,7 +18,7 @@ MainWindow::MainWindow()
 
 	connect(ui.sendButton, SIGNAL(clicked()), this, SLOT(onSendButtonClicked()));
 	connect(ui.stopButton, SIGNAL(clicked()), this, SLOT(onStopButtonClicked()));
-	connect(&deactivatetimer, SIGNAL(timeout()), this, SLOT(onDeactivateTimer()));
+//	connect(&deactivatetimer, SIGNAL(timeout()), this, SLOT(onDeactivateTimer()));
 	connect(this, SIGNAL(pdStatusUpdated()), this, SLOT(onPDStatusUpdated()));
 }
 

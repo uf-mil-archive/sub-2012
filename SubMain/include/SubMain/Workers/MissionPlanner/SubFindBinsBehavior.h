@@ -40,7 +40,7 @@ namespace subjugator
 		FindBinsBehavior(double minDepth);
 	private:
 		static const double driveTowardsBinsDistance = 3.0;
-		static const double approachDepth = 1.0; // m
+		static const double approachDepth = 0.5; // m
 		static const double approachTravelDistance = 0.2; // m
 		static const int approachFrameCount = 5;
 		static const double alignDuration = 5.0;
@@ -48,8 +48,8 @@ namespace subjugator
 		static const double inspectionDepth = 1.0;
 		static const int desiredAttempts = 4;
 		static const double creepDistance = 0.1;
-		static const double driveTowardsPipeDistance = 2.5;
-		static const double clearBinsDepth = 1.0;
+		static const double driveTowardsPipeDistance = 1.5;
+		static const double clearBinsDepth = 0.5;
 
 		bool canContinue;
 		bool bumpSet;
@@ -75,7 +75,11 @@ namespace subjugator
 		std::vector<ObjectIDs::ObjectIDCode> binsToFind;
 		std::vector<ObjectIDs::ObjectIDCode> binsWeveSeen;
 
-		BoolTimer timer;
+		BoolTimer shotTimer;
+		bool shot;
+		BoolTimer timeoutTimer;
+		bool approachset;
+		bool aligntobinsset;
 
 		virtual void Startup(MissionPlannerWorker& mpWorker);
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);

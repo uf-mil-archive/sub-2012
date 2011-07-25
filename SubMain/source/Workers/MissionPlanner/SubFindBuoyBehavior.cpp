@@ -16,8 +16,8 @@ FindBuoyBehavior::FindBuoyBehavior(double minDepth, bool goleft) :
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO enqueue which buoys we are looking for
+	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyGreen, false));
 	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyGreen, true));
-	buoysToFind.push(BuoyAwesomeness(ObjectIDs::BuoyRed, false));
 
 
 	// Setup the callbacks

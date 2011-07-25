@@ -1,6 +1,8 @@
 #include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
 #include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
+#include <boost/math/constants/constants.hpp>
+#include <cmath>
 
 using namespace subjugator;
 using namespace std;
@@ -149,6 +151,12 @@ void FindPipeBehavior::AlignToPipes()
 
 			desiredWaypoint->Position_NED(2) = alignDepth;
 			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(alignToPipe + desiredWaypoint->RPY(2));
+			if (desiredWaypoint->RPY(2) < -boost::math::constants::pi<double>()/2)
+				desiredWaypoint->RPY(2) += boost::math::constants::pi<double>();
+			else if (desiredWaypoint->RPY(2) > boost::math::constants::pi<double>()/2)
+				desiredWaypoint->RPY(2) -= boost::math::constants::pi<double>();
+			desiredWaypoint->RPY(2) = AttitudeHelpers::DAngleClamp(desiredWaypoint->RPY(2));
+			
 			desiredWaypoint->number = getNextWaypointNum();
 
 			// Once waypoint has been matched for enough time, continue.

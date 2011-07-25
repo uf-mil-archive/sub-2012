@@ -23,13 +23,14 @@ namespace subjugator
 	{
 	public:
 		MissionBehavior(MissionBehaviors::MissionBehaviorCode behCode, std::string behName, double mindepth) :
-			behaviorType(behCode), behName(behName), depthCeiling(mindepth), behDone(false) {}
+			behaviorType(behCode), behName(behName), depthCeiling(mindepth), behDone(false), behTimeout(false) {}
 
 		void Start(MissionPlannerWorker& mpWorker, int wayNum, const boost::shared_ptr<LPOSVSSInfo>& lpos);
 		int Stop(MissionPlannerWorker& mpWorker);
 		bool Execute(const boost::shared_ptr<LPOSVSSInfo>& lposInfo);
 
 		boost::shared_ptr<BehaviorInfo> getBehaviorInfo();
+		bool timedOut() const { return behTimeout; }
 
 	protected:
 		boost::mutex lock;
@@ -51,6 +52,7 @@ namespace subjugator
 		double depthCeiling;
 
 		bool behDone;
+		bool behTimeout;
 		int waypointNumber;
 		StateManager stateManager;
 

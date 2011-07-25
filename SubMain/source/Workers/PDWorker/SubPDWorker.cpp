@@ -3,15 +3,18 @@
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Actuator/SetActuator.h"
 #include <boost/bind.hpp>
+#include <iostream>
 
 using namespace boost;
+using namespace std;
 
 namespace subjugator
 {//TODO address hardcoding = not cool
 	PDWorker::PDWorker(boost::asio::io_service& io, int64_t rate)
 		: Worker(io, rate),hal(new SubHAL()),
 		hbeatEndpoint(hal->openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter())),
-		mergeManager(*hal)
+		mergeManager(*hal),
+		seconddrop(false)
 	{
 		hbeatEndpoint->open();
 		mStateManager.SetStateCallback(SubStates::INITIALIZE,
@@ -90,7 +93,24 @@ namespace subjugator
 	
 		if (stoptimer.HasExpired() && stoptimer.getStarted()) {
 			mergeManager.setActuators(0);
+			cout << "!!STOP" << endl;
 			stoptimer.Stop();
+			
+			if (!seconddrop) {
+				gotimer.Start(.5);
+				seconddrop = true;
+			} else {
+				seconddrop = false;
+			}
+		}
+		
+		if (gotimer.HasExpired() && gotimer.getStarted()) {
+			mergeManager.setActuators(1);
+			cout << "!!START" << endl;
+			gotimer.Stop();
+			
+			seconddrop = true;
+			stoptimer.Start(.5);
 		}
 	}
 

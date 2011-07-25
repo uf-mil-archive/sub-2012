@@ -9,10 +9,11 @@ using namespace Eigen;
 
 FindBinsBehavior::FindBinsBehavior(double minDepth) :
 	MissionBehavior(MissionBehaviors::FindBins, "FindBins", minDepth),
-	canContinue(false), driveToBinsSet(false), binFrameCount(0), binAlignCount(0),
-	moveToInspect(false)
+	canContinue(false), bumpSet(false), backupSet(false), clearBuoysSet(false), pipeSet(false), 
+	newFrame(false), driveToBinsSet(false), binFrameCount(0), binAlignCount(0),
+	moveToInspect(false), shot(false), approachset(false), aligntobinsset(false)
 {
-	servoGains2d = Vector2d(.0035*boost::math::constants::pi<double>() / 180.0, 0.0025);
+	servoGains2d = Vector2d(.0015*boost::math::constants::pi<double>() / 180.0, 0.0025);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// TODO list which bins we are looking for
@@ -165,6 +166,21 @@ void FindBinsBehavior::DriveTowardsBins()
 
 void FindBinsBehavior::ApproachBins()
 {
+	if (!approachset) {
+		timeoutTimer.Start(60);
+		approachset = true;
+	}
+	
+	if (timeoutTimer.HasExpired()) {
+		behTimeout = true;
+		SetActuator toAct(0x1);
+
+		if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+		{
+			r->Operate(toAct);
+		}
+	}
+
 	bool sawBins = false;
 	
 	// Push all bins in this state. We wait until we have solid frames of bins and then 
@@ -238,13 +254,28 @@ void FindBinsBehavior::ApproachBins()
 			canContinue = false;
 
 			// We've arrived over all bins, transition to next behavior here
-			stateManager.ChangeState(FindBinsMiniBehaviors::AlignToAllBins);
+			stateManager.ChangeState(FindBinsMiniBehaviors::MoveToLeftBin);
 		}
 	}
 }
 
 void FindBinsBehavior::AlignToAllBins()
 {
+	if (!aligntobinsset) {
+		timeoutTimer.Start(60);
+		aligntobinsset = true;
+	}
+	
+	if (timeoutTimer.HasExpired()) {
+		behTimeout = true;
+		SetActuator toAct(0x1);
+
+		if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+		{
+			r->Operate(toAct);
+		}
+	}
+
 /*	if (booltimer.HasExpired() && timeoutenabled) {
 		behDone = true;
 		return;
@@ -331,17 +362,6 @@ void FindBinsBehavior::AlignToAllBins()
 			canContinue = false;
 			binFrameCount = 0;
 			binAlignCount = 0;
-
-
-			//Shoot ball dropper
-			SetActuator toAct(0x1);
-
-			if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
-			{
-				r->Operate(toAct);
-			}
-
-			behDone = true;	// REMOVE THIS DEVIN AFTER PRACTICE
 
 			// Done approaching the current buoy, switch to bump
 			stateManager.ChangeState(FindBinsMiniBehaviors::MoveToLeftBin);
@@ -466,10 +486,28 @@ void FindBinsBehavior::MoveToInspectionDepth()
 	// Check to see if we have arrived at the clear point
 	if(atDesiredWaypoint())
 	{
-		moveToInspect = false;
-		canContinue = false;
+		// shoot
+		if(!shot)
+		{
+			shotTimer.Start(2);
+			shot = true;
+			
+			SetActuator toAct(0x1);
 
-		stateManager.ChangeState(FindBinsMiniBehaviors::InspectBin);
+			if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+			{
+				r->Operate(toAct);
+			}
+		}
+		else
+		{
+			if(shotTimer.HasExpired())
+			{
+				moveToInspect = false;
+				canContinue = false;
+				stateManager.ChangeState(FindBinsMiniBehaviors::ClearBins);
+			}
+		}
 	}
 }
 
@@ -609,7 +647,7 @@ void FindBinsBehavior::ClearBins()
 	{
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
-		desiredWaypoint->RPY(2) = pipeHeading;
+		desiredWaypoint->RPY(2) = lposRPY(2);
 
 		// Add on the retract travel
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
@@ -624,7 +662,7 @@ void FindBinsBehavior::ClearBins()
 	{
 		clearBuoysSet = false;
 
-		//stateManager.ChangeState(FindBinsBehavior::DriveTowardsPipe);
+		stateManager.ChangeState(FindBinsMiniBehaviors::DriveTowardsPipe);
 	}
 }
 
@@ -635,12 +673,12 @@ void FindBinsBehavior::DriveTowardsPipe()
 		double serioslycpp = driveTowardsPipeDistance;
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
-		desiredWaypoint->RPY(2) = pipeHeading;
+		desiredWaypoint->RPY(2) = lposRPY(2);
 
 		// Add on the bump travel
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
 				+ MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
-									Vector3d(serioslycpp, 0.0, 0.0));
+									Vector3d(serioslycpp, 1.0, 0.0));
 		desiredWaypoint->Position_NED(2) = clearBinsDepth;
 		desiredWaypoint->number = getNextWaypointNum();
 
