@@ -77,6 +77,9 @@ namespace subjugator
 
 		BoolTimer shotTimer;
 		bool shot;
+		BoolTimer timeoutTimer;
+		bool approachset;
+		bool aligntobinsset;
 
 		virtual void Startup(MissionPlannerWorker& mpWorker);
 		virtual void Shutdown(MissionPlannerWorker& mpWorker);

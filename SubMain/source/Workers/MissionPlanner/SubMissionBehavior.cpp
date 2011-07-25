@@ -55,7 +55,7 @@ bool MissionBehavior::Execute(const boost::shared_ptr<LPOSVSSInfo>& lposInfo)
 
 	sendWaypoint();	// This sends the current desired waypoint
 
-	return behDone;
+	return behDone || behTimeout;
 }
 
 void MissionBehavior::updateLPOS(const boost::shared_ptr<LPOSVSSInfo>& lpos)

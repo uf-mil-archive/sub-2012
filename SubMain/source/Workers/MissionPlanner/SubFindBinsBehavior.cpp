@@ -9,8 +9,9 @@ using namespace Eigen;
 
 FindBinsBehavior::FindBinsBehavior(double minDepth) :
 	MissionBehavior(MissionBehaviors::FindBins, "FindBins", minDepth),
-	canContinue(false), driveToBinsSet(false), binFrameCount(0), binAlignCount(0),
-	moveToInspect(false), shot(false)
+	canContinue(false), bumpSet(false), backupSet(false), clearBuoysSet(false), pipeSet(false), 
+	newFrame(false), driveToBinsSet(false), binFrameCount(0), binAlignCount(0),
+	moveToInspect(false), shot(false), approachset(false), aligntobinsset(false)
 {
 	servoGains2d = Vector2d(.0015*boost::math::constants::pi<double>() / 180.0, 0.0025);
 	gains2d = Vector2d(1.0, 1.0);
@@ -60,7 +61,7 @@ void FindBinsBehavior::Startup(MissionPlannerWorker& mpWorker)
 	pipeHeading = lposRPY(2);
 
 	// Push to approach bins
-	stateManager.ChangeState(FindBinsMiniBehaviors::AlignToAllBins);
+	stateManager.ChangeState(FindBinsMiniBehaviors::DriveTowardsBins);
 }
 
 void FindBinsBehavior::Shutdown(MissionPlannerWorker& mpWorker)
@@ -165,6 +166,21 @@ void FindBinsBehavior::DriveTowardsBins()
 
 void FindBinsBehavior::ApproachBins()
 {
+	if (!approachset) {
+		timeoutTimer.Start(60);
+		approachset = true;
+	}
+	
+	if (timeoutTimer.HasExpired()) {
+		behTimeout = true;
+		SetActuator toAct(0x1);
+
+		if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+		{
+			r->Operate(toAct);
+		}
+	}
+
 	bool sawBins = false;
 	
 	// Push all bins in this state. We wait until we have solid frames of bins and then 
@@ -245,6 +261,21 @@ void FindBinsBehavior::ApproachBins()
 
 void FindBinsBehavior::AlignToAllBins()
 {
+	if (!aligntobinsset) {
+		timeoutTimer.Start(60);
+		aligntobinsset = true;
+	}
+	
+	if (timeoutTimer.HasExpired()) {
+		behTimeout = true;
+		SetActuator toAct(0x1);
+
+		if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+		{
+			r->Operate(toAct);
+		}
+	}
+
 /*	if (booltimer.HasExpired() && timeoutenabled) {
 		behDone = true;
 		return;
@@ -460,6 +491,13 @@ void FindBinsBehavior::MoveToInspectionDepth()
 		{
 			shotTimer.Start(2);
 			shot = true;
+			
+			SetActuator toAct(0x1);
+
+			if(boost::shared_ptr<InputToken> r = mPlannerSendActuatorObject.lock())
+			{
+				r->Operate(toAct);
+			}
 		}
 		else
 		{
@@ -609,7 +647,7 @@ void FindBinsBehavior::ClearBins()
 	{
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
-		desiredWaypoint->RPY(2) = pipeHeading;
+		desiredWaypoint->RPY(2) = lposRPY(2);
 
 		// Add on the retract travel
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
@@ -624,7 +662,7 @@ void FindBinsBehavior::ClearBins()
 	{
 		clearBuoysSet = false;
 
-		stateManager.ChangeState(FindBinsBehavior::DriveTowardsPipe);
+		stateManager.ChangeState(FindBinsMiniBehaviors::DriveTowardsPipe);
 	}
 }
 
@@ -635,7 +673,7 @@ void FindBinsBehavior::DriveTowardsPipe()
 		double serioslycpp = driveTowardsPipeDistance;
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
-		desiredWaypoint->RPY(2) = pipeHeading;
+		desiredWaypoint->RPY(2) = lposRPY(2);
 
 		// Add on the bump travel
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()

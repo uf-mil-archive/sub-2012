@@ -23,10 +23,10 @@ MissionPlannerWorker::MissionPlannerWorker(boost::asio::io_service& io, int64_t 
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBuoyBehavior(MIN_DEPTH, true)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 1.0, true)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindHedgeBehavior(MIN_DEPTH)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0, true)));
+/*	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0, true)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindBinsBehavior(MIN_DEPTH)));
 	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 1.0, true)));
-	missionList.push(boost::shared_ptr<MissionBehavior>(new FindHedgeBehavior(MIN_DEPTH)));	
+	missionList.push(boost::shared_ptr<MissionBehavior>(new FindHedgeBehavior(MIN_DEPTH)));	*/
 	
 	// after the regular mission list, the timeout mission list is run
 	timeoutMissionList.push(boost::shared_ptr<MissionBehavior>(new FindPingerBehavior(MIN_DEPTH, 24200, 26500))); // For 25kHz pinger/	missionList.push(boost::shared_ptr<MissionBehavior>(new FindPipeBehavior(MIN_DEPTH, 0.0, false, 0.0)));
@@ -178,7 +178,7 @@ void MissionPlannerWorker::readyState()
 
 	bool done = currentBehavior->Execute(lposInfo);
 
-	if (timeoutTimer.HasExpired() && timeoutMissionList.size() > 0) {
+	if ((timeoutTimer.HasExpired() || currentBehavior->timedOut()) && timeoutMissionList.size() > 0) {
 		done = true;
 		missionList = timeoutMissionList;
 		while (!timeoutMissionList.empty())
