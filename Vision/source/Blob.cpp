@@ -72,7 +72,7 @@ void Blob::drawResult(IOImages* ioimages, int objectID)
 
 	Scalar color;
 	Point position;
-	printf("oid: %d\n",objectID);
+	//printf("oid: %d\n",objectID);
 	switch(objectID)
 	{
 	case MIL_OBJECTID_BUOY_RED:

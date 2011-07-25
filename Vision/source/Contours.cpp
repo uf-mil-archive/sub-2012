@@ -37,7 +37,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 			if(hierarchy[i][2] >= 0 || !findInnerContours)
 			{
 				// approximate contour with accuracy proportional to the contour perimeter
-				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.015, true);
+				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.02, true);
 				// square contours should have 4 vertices after approximation and be convex.
 				if( approx.size() == 4 && isContourConvex(Mat(approx)) )
                 {
@@ -50,7 +50,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
                     }
 					// if cosines of all angles are small (all angles are ~90 degree) then write quandrange
                     // vertices to resultant sequence
-                    if( maxCosine < 0.4 )
+                    if( maxCosine < 0.5 )
 					{
 						// push to vector of saved boxes
 						OuterBox outerBox;

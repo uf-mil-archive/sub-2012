@@ -57,15 +57,15 @@ void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 
 	//imshow("0",channelsHSV[0]);
 	//imshow("1",channelsHSV[1]);
-	//imshow("2",channelsHSV[2]);
+	//imshow("2",channelsLAB[2]);
 
-	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,251,5); // use lab channel hack
+	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,201,5); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
-	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(90,0,0,0),channelsHSV[2]); // filter out blacks
+	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(130,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
-	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
-	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-10);
+	////subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
+	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-7);
 	if(erodeDilateFlag)
 	{
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
@@ -187,13 +187,13 @@ void ThresholderRGB::threshBlack(IOImages *ioimages)
 	
 	
 	add(channelsRGB[2],channelsRGB[0],channelsRGB[2]);
-	threshold(channelsRGB[2], channelsRGB[2], 70, 255, THRESH_BINARY_INV);
+	threshold(channelsRGB[2], channelsRGB[2], 130, 255, THRESH_BINARY_INV);
 	//adaptiveThreshold(channelsHSV[1],ioimages->dbg,255,0,THRESH_BINARY,171,-10);
-	threshold(channelsRGB[1], channelsRGB[1], 70, 255, THRESH_BINARY_INV);
+	threshold(channelsRGB[1], channelsRGB[1], 130, 255, THRESH_BINARY_INV);
 	bitwise_and(channelsRGB[1], channelsRGB[2], ioimages->dbg);
 
-	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
-	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
+	//erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
 	//bitwise_and(channelsRGB[2], ioimages->dbg, ioimages->dbg);
 
 }
