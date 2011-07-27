@@ -1,7 +1,5 @@
 struct TrajectoryMessage {
     unsigned long long timestamp;
-	double x[6];
-	double x_dot[6];
 	double xd[6];
 	double xd_dot[6];
 };

@@ -26,7 +26,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
 	hydrophoneData(false),
 	findermessagelistData(false),
 	trajectoryData(false)
-{    
+{
     ui->setupUi(this);
     this->setWindowTitle(tr("DDSWatcher"));
 
@@ -221,20 +221,6 @@ void MainWindow::onFinderMessageListInfoReceived()
 
 void MainWindow::onTrajectoryInfoReceived()
 {
-	ui->lblTrajectoryX0->setText(QString::number(trajectorymsg.x[0]));
-	ui->lblTrajectoryX1->setText(QString::number(trajectorymsg.x[1]));
-	ui->lblTrajectoryX2->setText(QString::number(trajectorymsg.x[2]));
-	ui->lblTrajectoryX3->setText(QString::number(trajectorymsg.x[3]));
-	ui->lblTrajectoryX4->setText(QString::number(trajectorymsg.x[4]));
-	ui->lblTrajectoryX5->setText(QString::number(trajectorymsg.x[5]));
-
-	ui->lblTrajectoryXdot0->setText(QString::number(trajectorymsg.x_dot[0]));
-	ui->lblTrajectoryXdot1->setText(QString::number(trajectorymsg.x_dot[1]));
-	ui->lblTrajectoryXdot2->setText(QString::number(trajectorymsg.x_dot[2]));
-	ui->lblTrajectoryXdot3->setText(QString::number(trajectorymsg.x_dot[3]));
-	ui->lblTrajectoryXdot4->setText(QString::number(trajectorymsg.x_dot[4]));
-	ui->lblTrajectoryXdot5->setText(QString::number(trajectorymsg.x_dot[5]));
-
 	ui->lblTrajectoryXd0->setText(QString::number(trajectorymsg.xd[0]));
 	ui->lblTrajectoryXd1->setText(QString::number(trajectorymsg.xd[1]));
 	ui->lblTrajectoryXd2->setText(QString::number(trajectorymsg.xd[2]));

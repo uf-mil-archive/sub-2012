@@ -26,7 +26,7 @@ void TrackingControllerDDSCommander::receivedTrajectoryInfo(const TrajectoryMess
 	shared_ptr<InputToken> ptr = trajectorycmdtoken.lock();
 	if (ptr)
 	{
-		ptr->Operate(TrajectoryInfo(msg.timestamp, TrajectoryInfo::Vector6d(msg.x), TrajectoryInfo::Vector6d(msg.xd)));
+		ptr->Operate(TrajectoryInfo(msg.timestamp, TrajectoryInfo::Vector6d(msg.xd), TrajectoryInfo::Vector6d(msg.xd_dot)));
 	}
 }
 
