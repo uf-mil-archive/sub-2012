@@ -20,7 +20,12 @@ using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
-QVector<LocalWaypointDriverInfo> poseList;
+QVector<TrackingControllerInfo> poseList;
+//LPOSVSSInfo lposInfo;
+Vector3d Xpos;
+Vector4d Xquat;
+Vector3d Xvel;
+Vector3d Xangvel;
 QVector<double> testPts;
 
 // Plot Actual Position.
@@ -272,10 +277,16 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 	compare2Plot(false),
 	actualToggle(false),
 	testToggle(false),
-	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::DDSReadCallback, this, _1)),
+	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::TrajectoryDDSReadCallback, this, _1)),
+	lposvssreceiver(participant, "LPOSVSS", bind(&MainWindow::LPOSVSSDDSReadCallback, this, _1)),
 	waypointddssender(partSender, "SetWaypoint"),
 	gainsddssender(partSender, "ControllerGains")
 {
+	Xpos = Vector3d::Zero();
+	Xquat = Vector4d::Zero();
+	Xvel = Vector3d::Zero();
+	Xangvel = Vector3d::Zero();
+
     poseList.resize(numOfPoints);
 
     ui->setupUi(this);
@@ -285,6 +296,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
     ui->btnCallUpdate->setVisible(false);
 
     connect(this, SIGNAL(trajectoryReceived()), this, SLOT(onTrajectoryReceived()));
+    connect(this, SIGNAL(lposReceived()), this, SLOT(onLPOSReceived()));
 
     curve1_Plot1  = new QwtPlotCurve("Pos X");
     curve2_Plot1  = new QwtPlotCurve("Pos Y");
@@ -363,6 +375,25 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::onLPOSReceived()
+{
+    // Get Position NED
+	for (int i=0; i<3; i++)
+		Xpos(i) = lposmsg.position_NED[i];
+
+	// Get Position RPY
+	for (int i=0; i<4; i++)
+		Xquat(i) = lposmsg.quaternion_NED_B[i];
+
+	// Get Velocity NED
+	for (int i=0; i<3; i++)
+		Xvel(i) = lposmsg.velocity_NED[i];
+
+	// Get Velocity RPY
+	for (int i=0; i<3; i++)
+		Xangvel(i) = lposmsg.angularRate_BODY[i];
+}
+
 void MainWindow::onTrajectoryReceived()
 {
 	Vector6d x = Vector6d::Zero();
@@ -370,11 +401,13 @@ void MainWindow::onTrajectoryReceived()
 	Vector6d xd = Vector6d::Zero();
 	Vector6d xd_dot = Vector6d::Zero();
 
-	for (int i=0; i<6; i++)
-		x(i) = trajectorymsg.x[i];
+    // NED Position
+    x.block<3,1>(0,0) = Xpos;
+    x.block<3,1>(3,0) = MILQuaternionOps::Quat2Euler(Xquat);
 
-	for (int i=0; i<6; i++)
-			x_dot(i) = trajectorymsg.x_dot[i];
+    // NED Velocity
+    x_dot.block<3,1>(0,0) = Xvel;
+    x_dot.block<3,1>(3,0) = MILQuaternionOps::QuatRotate(Xquat, Xangvel);
 
 	for (int i=0; i<6; i++)
 			xd(i) = trajectorymsg.xd[i];
@@ -382,7 +415,7 @@ void MainWindow::onTrajectoryReceived()
 	for (int i=0; i<6; i++)
 			xd_dot(i) = trajectorymsg.xd_dot[i];
 
-	addPoint(LocalWaypointDriverInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot));
+	addPoint(TrackingControllerInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot));
 
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
 	buffer1->update(poseList.size());
@@ -598,7 +631,16 @@ void MainWindow::onTrajectoryReceived()
 	ui->qwtPlot2->replot();
 }
 
-void MainWindow::DDSReadCallback(const TrajectoryMessage &msg)
+void MainWindow::LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg)
+{
+	if (testToggle)
+		return;
+
+	lposmsg = msg;
+	emit lposReceived();
+}
+
+void MainWindow::TrajectoryDDSReadCallback(const TrajectoryMessage &msg)
 {
 	if (testToggle)
 		return;
@@ -607,7 +649,7 @@ void MainWindow::DDSReadCallback(const TrajectoryMessage &msg)
 	emit trajectoryReceived();
 }
 
-void MainWindow::addPoint(const LocalWaypointDriverInfo& p)
+void MainWindow::addPoint(const TrackingControllerInfo& p)
 {
     poseList.append(p);
 
@@ -899,7 +941,7 @@ void MainWindow::timerEvent(QTimerEvent *)
 {
 	TrajectoryInfo traj = trajectoryGenerator.Update(getTimestamp());
 
-	addPoint(LocalWaypointDriverInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), traj.getTrajectory(), traj.getTrajectory_dot()));
+	addPoint(TrackingControllerInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), traj.getTrajectory(), traj.getTrajectory_dot()));
 
     DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
     buffer1->update(poseList.size());//poseList.size());
@@ -1194,7 +1236,7 @@ void MainWindow::on_btnCallUpdate_clicked()
 {
 	ui->statusBar->showMessage("Update Called");
 
-	//addPoint(LocalWaypointDriverInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot));
+	//addPoint(TrackingControllerInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot));
 
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
 	buffer1->update(poseList.size());//poseList.size());

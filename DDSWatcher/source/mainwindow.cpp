@@ -4,6 +4,8 @@
 using namespace subjugator;
 using namespace std;
 using namespace Eigen;
+using namespace boost;
+using namespace boost::posix_time;
 
 MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     QMainWindow(parent),
@@ -25,7 +27,8 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
 	pdstatusData(false),
 	hydrophoneData(false),
 	findermessagelistData(false),
-	trajectoryData(false)
+	trajectoryData(false),
+	logging(false)
 {
     ui->setupUi(this);
     this->setWindowTitle(tr("DDSWatcher"));
@@ -47,6 +50,68 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_btnBrowse_clicked()
+{
+	ui->logFileEdit->setText(QFileDialog::getSaveFileName(this));
+}
+
+void MainWindow::on_btnStartLog_clicked()
+{
+	logstream.open(ui->logFileEdit->text().toUtf8().constData());
+	logstream << "LPOSPOSX, LPOSPOSY, LPOSPOSZ, LPOSQUAT0, LPOSQUAT1, LPOSQUAT2, LPOSQUAT3, LPOSVELX, LPOSVELY, LPOSVELZ, ";
+	logstream << "LPOSANGRATE0, LPOSANGRATE1, LPOSANGRATE2, LPOSACCEL0, LPOSACCEL1, LPOSACCEL2, TRAJXD0, TRAJXD1, TRAJXD2, ";
+	logstream << "TRAJXD3, TRAJXD4, TRAJXD5, TRAJXD_DOT0, TRAJXD_DOT1, TRAJXD_DOT2, TRAJXD_DOT3, TRAJXD_DOT4, TRAJXD_DOT5" << endl;
+	ui->lblLogging->setText("Yes");
+
+	logging = true;
+}
+
+void MainWindow::on_btnStopLog_clicked()
+{
+	logstream.close();
+	ui->lblLogging->setText("No");
+
+	logging = false;
+}
+
+void MainWindow::logData()
+{
+	if (logging)
+	{
+		logstream << second_clock::local_time().time_of_day() << ", ";
+		logstream << ui->lblLPOSPosition0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSPosition1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSPosition2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion3->text().toStdString() << ", ";
+		logstream << ui->lblLPOSVelocity0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSVelocity1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSVelocity2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAngular0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAngular1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAngular2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAcceleration0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAcceleration1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAcceleration2->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd0->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd1->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd2->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd3->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd4->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd5->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot0->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot1->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot2->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot3->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot4->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot5->text().toStdString() << ", " << endl;
+	}
+}
+
+
 
 //***************************************************************************
 // On Received Functions
@@ -71,6 +136,8 @@ void MainWindow::onLPOSVSSInfoReceived()
     ui->lblLPOSAcceleration0->setText(QString::number(lposvssmsg.acceleration_BODY[0]));
     ui->lblLPOSAcceleration1->setText(QString::number(lposvssmsg.acceleration_BODY[1]));
     ui->lblLPOSAcceleration2->setText(QString::number(lposvssmsg.acceleration_BODY[2]));
+
+    logData();
 }
 
 void MainWindow::onSetWaypointInfoReceived()
@@ -234,6 +301,8 @@ void MainWindow::onTrajectoryInfoReceived()
 	ui->lblTrajectoryXddot3->setText(QString::number(trajectorymsg.xd_dot[3]));
 	ui->lblTrajectoryXddot4->setText(QString::number(trajectorymsg.xd_dot[4]));
 	ui->lblTrajectoryXddot5->setText(QString::number(trajectorymsg.xd_dot[5]));
+
+	logData();
 }
 
 //***************************************************************************

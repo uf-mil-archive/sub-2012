@@ -7,8 +7,13 @@
 #include <QVector>
 #include <QDebug>
 #include <QString>
+#include <QFileDialog>
+
+#include <fstream>
 
 #include <Eigen/Dense>
+
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 #include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
@@ -65,7 +70,7 @@ namespace subjugator
 		explicit MainWindow(DDSDomainParticipant *participant, QWidget *parent = 0);
 		~MainWindow();
 
-		void remove(QTreeWidgetItem &parent, QTreeWidgetItem *child);
+		void logData();
 
 		void LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg);
 		void SetWaypointDDSReadCallback(const SetWaypointMessage &msg);
@@ -88,6 +93,9 @@ namespace subjugator
 		void onFinderMessageListInfoReceived();
 		void onTrajectoryInfoReceived();
 
+		void on_btnBrowse_clicked();
+		void on_btnStartLog_clicked();
+		void on_btnStopLog_clicked();
 
 		signals:
 		void lposvssInfoReceived();
@@ -131,6 +139,9 @@ namespace subjugator
 		bool hydrophoneData;
 		bool findermessagelistData;
 		bool trajectoryData;
+
+		std::ofstream logstream;
+		bool logging;
 	};
 }
 #endif // MAINWINDOW_H
