@@ -212,6 +212,8 @@ void LocalWaypointDriverWorker::setWaypoint(const DataObject& dobj)
 
 void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
 {
+	LPOSVSSInfo lInfo = *lposInfo.get();
+
 	lock.lock();
 
 	if(velocityController.get() == NULL)
@@ -227,7 +229,7 @@ void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
 		return;
 	}
 
-	velocityController->SetGains(info->k, info->ks, info->alpha, info->beta);
+	velocityController->SetGains(info->k, info->ks, info->alpha, info->beta, lInfo);
 
 	lock.unlock();
 }

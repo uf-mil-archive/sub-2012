@@ -25,7 +25,7 @@ namespace subjugator
 		void GetWrench(LocalWaypointDriverInfo &info);
 		void Update(boost::int16_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo);
 		void InitTimer(boost::int64_t currentTickCount);
-		void SetGains(const Vector6d& kV, const Vector6d& ksV, const Vector6d& alphaV, const Vector6d& betaV);
+		void SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo);
 
 	private:
 		static const double SECPERNANOSEC = 1e-9;
@@ -35,6 +35,11 @@ namespace subjugator
 		Matrix6d ksPlus1;
 		Matrix6d alpha;
 		Matrix6d beta;
+		
+		Vector6d ktemp;
+		Vector6d kstemp;
+		Vector6d alphatemp;
+		Vector6d betatemp;
 
 		Vector6d e;
 		Vector6d e2;

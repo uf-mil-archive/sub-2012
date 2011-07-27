@@ -8,19 +8,11 @@ typedef Matrix<double, 6, 1> Vector6d;
 
 VelocityController::VelocityController()
 {
-	Vector6d ktemp;
+	// Default gains. TODO: load these from a file
 	ktemp << 20.0,20.0,80.0,15.0,50.0,20.0;
-
-	Vector6d kstemp;
 	kstemp << 150.0,150.0,120.0,40.0,40.0,80.0;
-
-	Vector6d alphatemp;
 	alphatemp << 50.0,50.0,40.0,15.0,20.0,20.0;
-
-	Vector6d betatemp;
-	betatemp << 60.0,60.0,30.0,20.0,10.0,30.0;;
-
-	SetGains(ktemp, kstemp, alphatemp, betatemp);
+	betatemp << 60.0,60.0,30.0,20.0,10.0,30.0;
 
 	rise_term_prev = Vector6d::Zero();
 	rise_term = Vector6d::Zero();
@@ -70,6 +62,9 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
 
     UpdateJacobianInverse(x);
 	//UpdateJacobian(x);
+	
+	// Set gains (these will be rotated from body to NED frame also inside this function)
+	SetGains(ktemp, kstemp, alphatemp, betatemp, lposInfo);
 
     lock.lock();
 
@@ -234,8 +229,15 @@ void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
 
 }
 
-void VelocityController::SetGains(const Vector6d& kV, const Vector6d& ksV, const Vector6d& alphaV, const Vector6d& betaV)
+void VelocityController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo)
 {
+	// Rotate x,y,z gains from Body into NED
+	Vector4d lposQuatNEDBody = lposInfo.getQuat_NED_B();
+	kV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, kV.block<3,1>(0,0));
+	ksV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, ksV.block<3,1>(0,0));
+	alphaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, alphaV.block<3,1>(0,0));
+	betaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, betaV.block<3,1>(0,0));
+
 	k = AttitudeHelpers::DiagMatrixFromVector(kV);
 	ks = AttitudeHelpers::DiagMatrixFromVector(ksV);
 	alpha = AttitudeHelpers::DiagMatrixFromVector(alphaV);
