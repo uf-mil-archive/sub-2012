@@ -8,8 +8,6 @@
 
 #include "DDSMessages/PDWrenchMessage.h"
 #include "DDSMessages/PDWrenchMessageSupport.h"
-#include "DDSMessages/TrajectoryMessage.h"
-#include "DDSMessages/TrajectoryMessageSupport.h"
 #include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
 
@@ -25,7 +23,6 @@ namespace subjugator
 
 	private:
 		DDSSender<PDWrenchMessage, PDWrenchMessageDataWriter, PDWrenchMessageTypeSupport> PDWrenchddssender;
-		DDSSender<TrajectoryMessage, TrajectoryMessageDataWriter, TrajectoryMessageTypeSupport> Trajectoryddssender;
 
 	};
 }

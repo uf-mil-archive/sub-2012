@@ -5,7 +5,6 @@
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
-#include "SubMain/Workers/TrackingController/TrajectoryGenerator.h"
 #include "SubMain/Workers/TrackingController/TrackingController.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/PD/PDInfo.h"
@@ -27,7 +26,7 @@ namespace subjugator
 		{
 			SetLPOSVSSInfo = 0,
 			SetPDInfo = 1,
-			SetWaypoint = 2,
+			SetTrajectoryInfo = 2,
 			SetControllerGains = 3,
 		};
 	};
@@ -50,8 +49,9 @@ namespace subjugator
 		void standbyState();
 
 	private:
-		std::auto_ptr<TrajectoryGenerator> trajectoryGenerator;
 		std::auto_ptr<TrackingController> trackingController;
+
+		std::auto_ptr<TrajectoryInfo> trajInfo;
 		std::auto_ptr<LPOSVSSInfo> lposInfo;
 
 		boost::mutex lock;
@@ -63,7 +63,7 @@ namespace subjugator
 
 		void setLPOSVSSInfo(const DataObject& dobj);
 		void setPDInfo(const DataObject& dobj);
-		void setWaypoint(const DataObject& dobj);
+		void setTrajectoryInfo(const DataObject &dobj);
 		void setControllerGains(const DataObject& dobj);
 	};
 }

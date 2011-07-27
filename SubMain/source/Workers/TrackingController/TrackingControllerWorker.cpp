@@ -26,7 +26,7 @@ TrackingControllerWorker::TrackingControllerWorker(boost::asio::io_service& io, 
 
 	setControlToken((int)TrackingControllerWorkerCommands::SetLPOSVSSInfo, boost::bind(&TrackingControllerWorker::setLPOSVSSInfo, this, _1));
 	setControlToken((int)TrackingControllerWorkerCommands::SetPDInfo, boost::bind(&TrackingControllerWorker::setPDInfo, this, _1));
-	setControlToken((int)TrackingControllerWorkerCommands::SetWaypoint, boost::bind(&TrackingControllerWorker::setWaypoint, this, _1));
+	setControlToken((int)TrackingControllerWorkerCommands::SetTrajectoryInfo, boost::bind(&TrackingControllerWorker::setTrajectoryInfo, this, _1));
 	setControlToken((int)TrackingControllerWorkerCommands::SetControllerGains, boost::bind(&TrackingControllerWorker::setControllerGains, this, _1));
 }
 
@@ -43,22 +43,18 @@ void TrackingControllerWorker::readyState()
 	// The first ready function call initializes the timers correctly
 	if(!inReady)
 	{
-		trajectoryGenerator->InitTimers(t);
 		trackingController->InitTimer(t);
 		inReady = true;
 
 		return;
 	}
 
-	TrajectoryInfo trajInfo = trajectoryGenerator->Update(t);
-
 	lock.lock();
-
-	LPOSVSSInfo lInfo = *lposInfo.get();
-
+	LPOSVSSInfo lInfo = *lposInfo;
+	TrajectoryInfo tInfo = *trajInfo;
 	lock.unlock();
 
-	trackingController->Update(t, trajInfo, lInfo);
+	trackingController->Update(t, tInfo, lInfo);
 
 	// Get the data
 	boost::shared_ptr<TrackingControllerInfo> info(new TrackingControllerInfo(mStateManager.GetCurrentStateCode(), getTimestamp()));
@@ -77,7 +73,6 @@ void TrackingControllerWorker::initializeState()
 		return;
 
 	trackingController.reset();
-	trajectoryGenerator.reset();
 
 	mStateManager.ChangeState(SubStates::STANDBY);
 }
@@ -87,21 +82,7 @@ void TrackingControllerWorker::standbyState()
 	inReady = false;
 	if(!hardwareKilled)
 	{
-		// delay for 2s after unkilled
-		//if !timer running
-		//if timer.haselapsed()
-		lock.lock();
-		Vector3d temp = MILQuaternionOps::Quat2Euler(lposInfo->quaternion_NED_B);
-
-		Vector6d tempTraj;
-		tempTraj.block<3,1>(0,0) = lposInfo->position_NED;
-		tempTraj.block<3,1>(3,0) = Vector3d(0,0,temp(2));
-		lock.unlock();
-
-		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator(tempTraj));
-		setWaypoint(Waypoint(false, lposInfo->position_NED, Vector3d(0,0,temp(2))));
-
-		trackingController = std::auto_ptr<TrackingController>(new TrackingController());
+    	trackingController = std::auto_ptr<TrackingController>(new TrackingController());
 		mStateManager.ChangeState(SubStates::READY);
 	}
 }
@@ -166,47 +147,13 @@ void TrackingControllerWorker::setPDInfo(const DataObject& dobj)
 	lock.unlock();
 }
 
-void TrackingControllerWorker::setWaypoint(const DataObject& dobj)
-{
-	lock.lock();
-
-	// Not allowed to set a waypoint if I don't know where I am
-	if(lposInfo.get() == NULL)
-	{
-		lock.unlock();
-		return;
-	}
-	if(trajectoryGenerator.get() == NULL)
-	{
-		Matrix<double, 6, 1> trajStart;
-		trajStart.block<3,1>(0,0) = lposInfo->getPosition_NED();
-		trajStart.block<3,1>(3,0) = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
-
-		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator(trajStart));
-	}
-
-	const Waypoint *info = dynamic_cast<const Waypoint *>(&dobj);
+void TrackingControllerWorker::setTrajectoryInfo(const DataObject &dobj) {
+	const TrajectoryInfo *info = dynamic_cast<const TrajectoryInfo *>(&dobj);
 	if(!info)
-	{
-		lock.unlock();
 		return;
-	}
 
-	if (info->isRelative)
-	{
-		Waypoint wp;
-		Vector3d angles = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
-
-		wp.Position_NED = lposInfo->getPosition_NED() + MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(), info->Position_NED);
-		for(int i = 0; i < 3; i++)
-			wp.RPY(i) = AttitudeHelpers::DAngleClamp(angles(i)+ info->RPY(i));
-		trajectoryGenerator->SetWaypoint(wp, true);
-
-	}
-	else
-		trajectoryGenerator->SetWaypoint(*info, true);
-
-
+	lock.lock();
+	trajInfo = std::auto_ptr<TrajectoryInfo>(new TrajectoryInfo(*info));
 	lock.unlock();
 }
 

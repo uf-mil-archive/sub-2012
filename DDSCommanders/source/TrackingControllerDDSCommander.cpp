@@ -12,32 +12,21 @@ using namespace subjugator;
 using namespace boost;
 
 TrackingControllerDDSCommander::TrackingControllerDDSCommander(Worker &worker, DDSDomainParticipant *participant)
-: waypointreceiver(participant, "SetWaypoint", bind(&TrackingControllerDDSCommander::receivedWaypoint, this, _1)),
+: trajectoryreceiver(participant, "Trajectory", bind(&TrackingControllerDDSCommander::receivedTrajectoryInfo, this, _1)),
   lposvssreceiver(participant, "LPOSVSS", bind(&TrackingControllerDDSCommander::receivedLPOSVSSInfo, this, _1)),
   pdstatusreceiver(participant, "PDStatus", bind(&TrackingControllerDDSCommander::receivedPDStatusInfo, this, _1)),
   gainsreceiver(participant, "ControllerGains", bind(&TrackingControllerDDSCommander::receivedGains, this, _1)) {
-	waypointcmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetWaypoint, 5);
+	trajectorycmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetTrajectoryInfo, 5);
 	lposvsscmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetLPOSVSSInfo, 5);
 	pdstatuscmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetPDInfo, 5);
 	gainscmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetControllerGains, 5);
 }
 
-void TrackingControllerDDSCommander::receivedWaypoint(const SetWaypointMessage &waypoint) {
-	bool isrelative;
-	Vector3d position_ned;
-	Vector3d rpy;
-
-	isrelative = waypoint.isRelative;
-
-	for (int i=0; i<3; i++)
-		position_ned(i) = waypoint.position_ned[i];
-	for (int i=0; i<3; i++)
-		rpy(i) = waypoint.rpy[i];
-
-	shared_ptr<InputToken> ptr = waypointcmdtoken.lock();
+void TrackingControllerDDSCommander::receivedTrajectoryInfo(const TrajectoryMessage &msg) {
+	shared_ptr<InputToken> ptr = trajectorycmdtoken.lock();
 	if (ptr)
 	{
-		ptr->Operate(Waypoint(isrelative, position_ned,rpy));
+		ptr->Operate(TrajectoryInfo(msg.timestamp, TrajectoryInfo::Vector6d(msg.x), TrajectoryInfo::Vector6d(msg.xd)));
 	}
 }
 
