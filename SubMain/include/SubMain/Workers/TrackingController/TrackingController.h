@@ -1,12 +1,12 @@
-#ifndef SUBVELOCITYCONTROLLER_H
-#define SUBVELOCITYCONTROLLER_H
+#ifndef SUBTRACKINGCONTROLLER_H
+#define SUBTRACKINGCONTROLLER_H
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
-#include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
+#include "DataObjects/TrackingController/TrackingControllerInfo.h"
 #include <Eigen/Dense>
 #include <cmath>
 
@@ -14,16 +14,16 @@ using namespace Eigen;
 
 namespace subjugator
 {
-	class VelocityController
+	class TrackingController
 	{
 	public:
 		typedef Matrix<double, 6, 1> Vector6d;
 		typedef Matrix<double, 6, 6> Matrix6d;
 	public:
-		VelocityController();
+		TrackingController();
 
-		void GetWrench(LocalWaypointDriverInfo &info);
-		void Update(boost::int16_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo);
+		void GetWrench(TrackingControllerInfo &info);
+		void Update(boost::int64_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo);
 		void InitTimer(boost::int64_t currentTickCount);
 		void SetGains(const Vector6d& kV, const Vector6d& ksV, const Vector6d& alphaV, const Vector6d& betaV);
 
@@ -70,4 +70,4 @@ namespace subjugator
 
 
 
-#endif /* SUBVELOCITYCONTROLLER_H */
+#endif /* SUBTrackingController_H */

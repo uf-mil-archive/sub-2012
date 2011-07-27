@@ -1,28 +1,28 @@
-#include "DDSCommanders/LocalWaypointDriverDDSCommander.h"
-#include "SubMain/Workers/WaypointController/LocalWaypointDriverWorker.h"
+#include "DDSCommanders/TrackingControllerDDSCommander.h"
+#include "SubMain/Workers/TrackingController/TrackingControllerWorker.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Merge/MergeInfo.h"
-#include "DataObjects/LocalWaypointDriver/ControllerGains.h"
+#include "DataObjects/TrackingController/ControllerGains.h"
 #include <boost/bind.hpp>
 #include <iostream>
 
 using namespace subjugator;
 using namespace boost;
 
-LocalWaypointDriverDDSCommander::LocalWaypointDriverDDSCommander(Worker &worker, DDSDomainParticipant *participant)
-: waypointreceiver(participant, "SetWaypoint", bind(&LocalWaypointDriverDDSCommander::receivedWaypoint, this, _1)),
-  lposvssreceiver(participant, "LPOSVSS", bind(&LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo, this, _1)),
-  pdstatusreceiver(participant, "PDStatus", bind(&LocalWaypointDriverDDSCommander::receivedPDStatusInfo, this, _1)),
-  gainsreceiver(participant, "ControllerGains", bind(&LocalWaypointDriverDDSCommander::receivedGains, this, _1)) {
-	waypointcmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetWaypoint, 5);
-	lposvsscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetLPOSVSSInfo, 5);
-	pdstatuscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetPDInfo, 5);
-	gainscmdtoken = worker.ConnectToCommand((int)LocalWaypointDriverWorkerCommands::SetControllerGains, 5);
+TrackingControllerDDSCommander::TrackingControllerDDSCommander(Worker &worker, DDSDomainParticipant *participant)
+: waypointreceiver(participant, "SetWaypoint", bind(&TrackingControllerDDSCommander::receivedWaypoint, this, _1)),
+  lposvssreceiver(participant, "LPOSVSS", bind(&TrackingControllerDDSCommander::receivedLPOSVSSInfo, this, _1)),
+  pdstatusreceiver(participant, "PDStatus", bind(&TrackingControllerDDSCommander::receivedPDStatusInfo, this, _1)),
+  gainsreceiver(participant, "ControllerGains", bind(&TrackingControllerDDSCommander::receivedGains, this, _1)) {
+	waypointcmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetWaypoint, 5);
+	lposvsscmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetLPOSVSSInfo, 5);
+	pdstatuscmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetPDInfo, 5);
+	gainscmdtoken = worker.ConnectToCommand((int)TrackingControllerWorkerCommands::SetControllerGains, 5);
 }
 
-void LocalWaypointDriverDDSCommander::receivedWaypoint(const SetWaypointMessage &waypoint) {
+void TrackingControllerDDSCommander::receivedWaypoint(const SetWaypointMessage &waypoint) {
 	bool isrelative;
 	Vector3d position_ned;
 	Vector3d rpy;
@@ -41,7 +41,7 @@ void LocalWaypointDriverDDSCommander::receivedWaypoint(const SetWaypointMessage 
 	}
 }
 
-void LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {
+void TrackingControllerDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {
 	int state;
 	boost::int64_t timestamp;
 	Vector3d position_NED;
@@ -71,7 +71,7 @@ void LocalWaypointDriverDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &
 	}
 }
 
-void LocalWaypointDriverDDSCommander::receivedPDStatusInfo(const PDStatusMessage &pdstatusinfo) {
+void TrackingControllerDDSCommander::receivedPDStatusInfo(const PDStatusMessage &pdstatusinfo) {
 	unsigned long long timestamp;
 	short state;
 	std::vector<double> current(8);
@@ -107,7 +107,7 @@ void LocalWaypointDriverDDSCommander::receivedPDStatusInfo(const PDStatusMessage
 	}
 }
 
-void LocalWaypointDriverDDSCommander::receivedGains(const ControllerGainsMessage &gains) {
+void TrackingControllerDDSCommander::receivedGains(const ControllerGainsMessage &gains) {
 	Matrix<double, 6, 1> k;
 	Matrix<double, 6, 1> ks;
 	Matrix<double, 6, 1> alpha;

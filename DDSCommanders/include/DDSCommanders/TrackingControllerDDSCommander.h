@@ -8,9 +8,9 @@
 #include "SubMain/Workers/SubWorker.h"
 
 namespace subjugator {
-	class LocalWaypointDriverDDSCommander {
+	class TrackingControllerDDSCommander {
 		public:
-			LocalWaypointDriverDDSCommander(Worker &worker, DDSDomainParticipant *participant);
+			TrackingControllerDDSCommander(Worker &worker, DDSDomainParticipant *participant);
 
 		private:
 			void receivedWaypoint(const SetWaypointMessage &waypoint);

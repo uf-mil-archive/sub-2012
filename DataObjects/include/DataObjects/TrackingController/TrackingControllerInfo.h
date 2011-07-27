@@ -10,11 +10,11 @@
 using namespace Eigen;
 
 namespace subjugator {
-	class LocalWaypointDriverInfo : public DataObject {
+	class TrackingControllerInfo : public DataObject {
 		public:
-		LocalWaypointDriverInfo(){}
-		LocalWaypointDriverInfo(int state, boost::int64_t timestamp):state(state), timestamp(timestamp){}
-		LocalWaypointDriverInfo(int state, boost::int64_t timestamp, Matrix<double, 6, 1> wrench, Matrix<double, 6, 1> x, Matrix<double, 6, 1> x_dot, Matrix<double, 6, 1> xd,  Matrix<double, 6, 1> xd_dot)
+		TrackingControllerInfo(){}
+		TrackingControllerInfo(int state, boost::int64_t timestamp):state(state), timestamp(timestamp){}
+		TrackingControllerInfo(int state, boost::int64_t timestamp, Matrix<double, 6, 1> wrench, Matrix<double, 6, 1> x, Matrix<double, 6, 1> x_dot, Matrix<double, 6, 1> xd,  Matrix<double, 6, 1> xd_dot)
 			: state(state),timestamp(timestamp), Wrench(wrench), X(x), X_dot(x_dot), Xd(xd), Xd_dot(xd_dot)
 			{}
 

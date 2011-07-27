@@ -1,42 +1,42 @@
-#include "SubMain/Workers/WaypointController/LocalWaypointDriverWorker.h"
+#include "SubMain/Workers/TrackingController/TrackingControllerWorker.h"
 
 using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
 
-LocalWaypointDriverWorker::LocalWaypointDriverWorker(boost::asio::io_service& io, int64_t rate)
+TrackingControllerWorker::TrackingControllerWorker(boost::asio::io_service& io, int64_t rate)
 	: Worker(io, rate), inReady(false), hardwareKilled(true)
 {
 	mStateManager.SetStateCallback(SubStates::INITIALIZE,
 			STATE_INITIALIZE_STRING,
-			boost::bind(&LocalWaypointDriverWorker::initializeState, this));
+			boost::bind(&TrackingControllerWorker::initializeState, this));
 	mStateManager.SetStateCallback(SubStates::READY,
 			STATE_READY_STRING,
-			boost::bind(&LocalWaypointDriverWorker::readyState, this));
+			boost::bind(&TrackingControllerWorker::readyState, this));
 	mStateManager.SetStateCallback(SubStates::STANDBY,
 			STATE_STANDBY_STRING,
-			boost::bind(&LocalWaypointDriverWorker::standbyState, this));
+			boost::bind(&TrackingControllerWorker::standbyState, this));
 	mStateManager.SetStateCallback(SubStates::EMERGENCY,
 			STATE_EMERGENCY_STRING,
-			boost::bind(&LocalWaypointDriverWorker::emergencyState, this));
+			boost::bind(&TrackingControllerWorker::emergencyState, this));
 	mStateManager.SetStateCallback(SubStates::ALL,
 			STATE_ALL_STRING,
-			boost::bind(&LocalWaypointDriverWorker::allState, this));
+			boost::bind(&TrackingControllerWorker::allState, this));
 
-	setControlToken((int)LocalWaypointDriverWorkerCommands::SetLPOSVSSInfo, boost::bind(&LocalWaypointDriverWorker::setLPOSVSSInfo, this, _1));
-	setControlToken((int)LocalWaypointDriverWorkerCommands::SetPDInfo, boost::bind(&LocalWaypointDriverWorker::setPDInfo, this, _1));
-	setControlToken((int)LocalWaypointDriverWorkerCommands::SetWaypoint, boost::bind(&LocalWaypointDriverWorker::setWaypoint, this, _1));
-	setControlToken((int)LocalWaypointDriverWorkerCommands::SetControllerGains, boost::bind(&LocalWaypointDriverWorker::setControllerGains, this, _1));
+	setControlToken((int)TrackingControllerWorkerCommands::SetLPOSVSSInfo, boost::bind(&TrackingControllerWorker::setLPOSVSSInfo, this, _1));
+	setControlToken((int)TrackingControllerWorkerCommands::SetPDInfo, boost::bind(&TrackingControllerWorker::setPDInfo, this, _1));
+	setControlToken((int)TrackingControllerWorkerCommands::SetWaypoint, boost::bind(&TrackingControllerWorker::setWaypoint, this, _1));
+	setControlToken((int)TrackingControllerWorkerCommands::SetControllerGains, boost::bind(&TrackingControllerWorker::setControllerGains, this, _1));
 }
 
-bool LocalWaypointDriverWorker::Startup()
+bool TrackingControllerWorker::Startup()
 {
 	mStateManager.ChangeState(SubStates::INITIALIZE);
 	return true;
 }
 
-void LocalWaypointDriverWorker::readyState()
+void TrackingControllerWorker::readyState()
 {
 	boost::int64_t t = getTimestamp();
 
@@ -44,7 +44,7 @@ void LocalWaypointDriverWorker::readyState()
 	if(!inReady)
 	{
 		trajectoryGenerator->InitTimers(t);
-		velocityController->InitTimer(t);
+		trackingController->InitTimer(t);
 		inReady = true;
 
 		return;
@@ -58,31 +58,31 @@ void LocalWaypointDriverWorker::readyState()
 
 	lock.unlock();
 
-	velocityController->Update(t, trajInfo, lInfo);
+	trackingController->Update(t, trajInfo, lInfo);
 
 	// Get the data
-	boost::shared_ptr<LocalWaypointDriverInfo> info(new LocalWaypointDriverInfo(mStateManager.GetCurrentStateCode(), getTimestamp()));
+	boost::shared_ptr<TrackingControllerInfo> info(new TrackingControllerInfo(mStateManager.GetCurrentStateCode(), getTimestamp()));
 
-	velocityController->GetWrench(*info);
+	trackingController->GetWrench(*info);
 
 	// Emit every iteration
 	onEmitting(info);
 }
 
-void LocalWaypointDriverWorker::initializeState()
+void TrackingControllerWorker::initializeState()
 {
 	inReady = false;
 
 	if(lposInfo.get() == NULL)
 		return;
 
-	velocityController.reset();
+	trackingController.reset();
 	trajectoryGenerator.reset();
 
 	mStateManager.ChangeState(SubStates::STANDBY);
 }
 
-void LocalWaypointDriverWorker::standbyState()
+void TrackingControllerWorker::standbyState()
 {
 	inReady = false;
 	if(!hardwareKilled)
@@ -101,21 +101,21 @@ void LocalWaypointDriverWorker::standbyState()
 		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator(tempTraj));
 		setWaypoint(Waypoint(false, lposInfo->position_NED, Vector3d(0,0,temp(2))));
 
-		velocityController = std::auto_ptr<VelocityController>(new VelocityController());
+		trackingController = std::auto_ptr<TrackingController>(new TrackingController());
 		mStateManager.ChangeState(SubStates::READY);
 	}
 }
 
-void LocalWaypointDriverWorker::emergencyState()
+void TrackingControllerWorker::emergencyState()
 {
 	inReady = false;
 }
 
-void LocalWaypointDriverWorker::allState()
+void TrackingControllerWorker::allState()
 {
 }
 
-boost::int64_t LocalWaypointDriverWorker::getTimestamp(void)
+boost::int64_t TrackingControllerWorker::getTimestamp(void)
 {
 	timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
@@ -123,12 +123,12 @@ boost::int64_t LocalWaypointDriverWorker::getTimestamp(void)
 	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 }
 
-void LocalWaypointDriverWorker::Shutdown()
+void TrackingControllerWorker::Shutdown()
 {
 	shutdown = true;
 }
 
-void LocalWaypointDriverWorker::setLPOSVSSInfo(const DataObject& dobj)
+void TrackingControllerWorker::setLPOSVSSInfo(const DataObject& dobj)
 {
 	const LPOSVSSInfo *info = dynamic_cast<const LPOSVSSInfo *>(&dobj);
 	if(!info)
@@ -141,7 +141,7 @@ void LocalWaypointDriverWorker::setLPOSVSSInfo(const DataObject& dobj)
 	lock.unlock();
 }
 
-void LocalWaypointDriverWorker::setPDInfo(const DataObject& dobj)
+void TrackingControllerWorker::setPDInfo(const DataObject& dobj)
 {
 	bool newState;
 
@@ -159,14 +159,14 @@ void LocalWaypointDriverWorker::setPDInfo(const DataObject& dobj)
 	}
 
 	hardwareKilled = newState;
- 
+
 	if(hardwareKilled)
 		mStateManager.ChangeState(SubStates::INITIALIZE);
 
 	lock.unlock();
 }
 
-void LocalWaypointDriverWorker::setWaypoint(const DataObject& dobj)
+void TrackingControllerWorker::setWaypoint(const DataObject& dobj)
 {
 	lock.lock();
 
@@ -210,11 +210,11 @@ void LocalWaypointDriverWorker::setWaypoint(const DataObject& dobj)
 	lock.unlock();
 }
 
-void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
+void TrackingControllerWorker::setControllerGains(const DataObject& dobj)
 {
 	lock.lock();
 
-	if(velocityController.get() == NULL)
+	if(trackingController.get() == NULL)
 	{
 		lock.unlock();
 		return;
@@ -227,7 +227,7 @@ void LocalWaypointDriverWorker::setControllerGains(const DataObject& dobj)
 		return;
 	}
 
-	velocityController->SetGains(info->k, info->ks, info->alpha, info->beta);
+	trackingController->SetGains(info->k, info->ks, info->alpha, info->beta);
 
 	lock.unlock();
 }

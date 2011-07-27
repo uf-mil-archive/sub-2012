@@ -1,16 +1,16 @@
-#include "DDSListeners/LocalWaypointDriverDDSListener.h"
+#include "DDSListeners/TrackingControllerDDSListener.h"
 
 using namespace subjugator;
 
-LocalWaypointDriverDDSListener::LocalWaypointDriverDDSListener(Worker &worker, DDSDomainParticipant *part)
+TrackingControllerDDSListener::TrackingControllerDDSListener(Worker &worker, DDSDomainParticipant *part)
 : PDWrenchddssender(part, "PDWrench"),
   Trajectoryddssender(part, "Trajectory")
   { connectWorker(worker); }
 
-void LocalWaypointDriverDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
+void TrackingControllerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 {
 	// Cast the data object into its real type
-	LocalWaypointDriverInfo *localwaypointdriverinfo = dynamic_cast<LocalWaypointDriverInfo *>(dobj.get());
+	TrackingControllerInfo *localwaypointdriverinfo = dynamic_cast<TrackingControllerInfo *>(dobj.get());
 	if (!localwaypointdriverinfo)
 		return;
 

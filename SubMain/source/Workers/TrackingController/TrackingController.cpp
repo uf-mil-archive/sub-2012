@@ -1,4 +1,4 @@
-#include "SubMain/Workers/WaypointController/SubVelocityController.h"
+#include "SubMain/Workers/TrackingController/TrackingController.h"
 
 using namespace subjugator;
 using namespace Eigen;
@@ -6,7 +6,7 @@ using namespace std;
 
 typedef Matrix<double, 6, 1> Vector6d;
 
-VelocityController::VelocityController()
+TrackingController::TrackingController()
 {
 	Vector6d ktemp;
 	ktemp << 20.0,20.0,80.0,15.0,50.0,20.0;
@@ -42,7 +42,7 @@ VelocityController::VelocityController()
 
 // We cheat here and copy the current data to common class level variables so multiple controllers
 // theoretically could be run in parallel.
-void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo)
+void TrackingController::Update(boost::int64_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo)
 {
     // Update dt
     double dt = (currentTick - previousTime)*SECPERNANOSEC;
@@ -81,7 +81,7 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
     lock.unlock();
 }
 
-Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
+Vector6d TrackingController::RiseFeedbackNoAccel(double dt)
 {
 	e = Vector6d::Zero();
 	e.block<3,1>(0,0) = xd.block<3,1>(0,0) - x.block<3,1>(0,0);
@@ -107,7 +107,7 @@ Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 	return rise_control;
 }
 
-Vector6d VelocityController::PDFeedback(double dt)
+Vector6d TrackingController::PDFeedback(double dt)
 {
 //	cout << "GAINS" << endl;
 //	cout << "K x: " << k(0) << " y: " << k(1) << " z: " << k(2) << " roll: " << k(3) << " pitch: " << k(4) << " yaw: " << k(5);
@@ -129,7 +129,7 @@ Vector6d VelocityController::PDFeedback(double dt)
 	return pd_control;
 }
 
-void VelocityController::UpdateJacobian(const Vector6d& x)
+void TrackingController::UpdateJacobian(const Vector6d& x)
 {
 	double sphi = sin(x(3));
 	double cphi = cos(x(3));
@@ -164,7 +164,7 @@ void VelocityController::UpdateJacobian(const Vector6d& x)
             cphi / ctheta;
 }
 
-void VelocityController::UpdateJacobianInverse(const Vector6d& x)
+void TrackingController::UpdateJacobianInverse(const Vector6d& x)
 {
 	double sphi = sin(x(3));
 	double cphi = cos(x(3));
@@ -198,7 +198,7 @@ void VelocityController::UpdateJacobianInverse(const Vector6d& x)
             ctheta*cphi;
 }
 
-Vector6d VelocityController::GetSigns(const Vector6d& x)
+Vector6d TrackingController::GetSigns(const Vector6d& x)
 {
 	Vector6d signs = Vector6d::Ones();
 
@@ -215,12 +215,12 @@ Vector6d VelocityController::GetSigns(const Vector6d& x)
 	return signs;
 }
 
-void VelocityController::InitTimer(boost::int64_t currentTickCount)
+void TrackingController::InitTimer(boost::int64_t currentTickCount)
 {
 	previousTime = currentTickCount;
 }
 
-void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
+void TrackingController::GetWrench(TrackingControllerInfo& info)
 {
 	lock.lock();
 
@@ -234,7 +234,7 @@ void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
 
 }
 
-void VelocityController::SetGains(const Vector6d& kV, const Vector6d& ksV, const Vector6d& alphaV, const Vector6d& betaV)
+void TrackingController::SetGains(const Vector6d& kV, const Vector6d& ksV, const Vector6d& alphaV, const Vector6d& betaV)
 {
 	k = AttitudeHelpers::DiagMatrixFromVector(kV);
 	ks = AttitudeHelpers::DiagMatrixFromVector(ksV);

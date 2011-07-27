@@ -115,7 +115,7 @@ add_subdirectory(IMUSmartSensor)
 add_subdirectory(DepthSmartSensor)
 add_subdirectory(DVLSmartSensor)
 add_subdirectory(LPOSVSS)
-add_subdirectory(LocalWaypointDriver)
+add_subdirectory(TrackingController)
 endif()
 endif()
 

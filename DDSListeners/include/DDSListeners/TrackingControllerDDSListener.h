@@ -1,7 +1,7 @@
 #ifndef LOCALWAYPOINTDRIVERDDSListener_H
 #define LOCALWAYPOINTDRIVERDDSListener_H
 
-#include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
+#include "DataObjects/TrackingController/TrackingControllerInfo.h"
 
 #include "SubMain/Workers/SubWorker.h"
 #include "SubMain/Workers/SubListener.h"
@@ -15,10 +15,10 @@
 
 namespace subjugator
 {
-	class LocalWaypointDriverDDSListener : public Listener
+	class TrackingControllerDDSListener : public Listener
 	{
 	public:
-		LocalWaypointDriverDDSListener(Worker &worker, DDSDomainParticipant *part);
+		TrackingControllerDDSListener(Worker &worker, DDSDomainParticipant *part);
 
 	protected:
 		virtual void DataObjectEmitted(boost::shared_ptr<DataObject> dobj);
@@ -30,4 +30,4 @@ namespace subjugator
 	};
 }
 
-#endif // LocalWaypointDriverDDSListener_H
+#endif // TrackingControllerDDSListener_H
