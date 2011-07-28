@@ -117,6 +117,7 @@ add_subdirectory(DVLSmartSensor)
 add_subdirectory(LPOSVSS)
 add_subdirectory(TrackingController)
 add_subdirectory(TrajectoryGenerator)
+add_subdirectory(EquTrajectoryGenerator)
 endif()
 endif()
 
