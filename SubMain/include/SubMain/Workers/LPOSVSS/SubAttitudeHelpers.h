@@ -21,6 +21,8 @@ namespace subjugator
 		static Vector4d RotationToQuaternion(const Matrix3d& R);
 		static Matrix3d VectorSkew3(const Vector3d& v);
 		static MatrixXd DiagMatrixFromVector(const VectorXd& v);
+		static VectorXd Tanh(const VectorXd& v);
+		static VectorXd Sech(const VectorXd& v);
 	};
 }
 

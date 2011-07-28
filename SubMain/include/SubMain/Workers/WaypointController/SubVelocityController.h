@@ -19,6 +19,11 @@ namespace subjugator
 	public:
 		typedef Matrix<double, 6, 1> Vector6d;
 		typedef Matrix<double, 6, 6> Matrix6d;
+		typedef Matrix<double, 19, 1> Vector19d;
+		typedef Matrix<double, 19, 19> Matrix19d;
+		typedef Matrix<double, 19, 5> Matrix19x5d;
+		typedef Matrix<double, Dynamic, Dynamic> MatrixXd;
+		typedef Matrix<double, Dynamic, Dynamic> VectorXd;
 	public:
 		VelocityController();
 
@@ -35,11 +40,15 @@ namespace subjugator
 		Matrix6d ksPlus1;
 		Matrix6d alpha;
 		Matrix6d beta;
+		Matrix6d gamma1; // Size = (N2+1)x(N2+1)
+		Matrix19d gamma2; // Size = 19x19
 		
 		Vector6d ktemp;
 		Vector6d kstemp;
 		Vector6d alphatemp;
 		Vector6d betatemp;
+		Vector6d gamma1temp;
+		Vector19d gamma2temp;
 
 		Vector6d e;
 		Vector6d e2;
@@ -48,7 +57,24 @@ namespace subjugator
 		Vector6d rise_term_int;
 		Vector6d rise_term_prev;
 		Vector6d rise_term_int_prev;
-
+		
+		Vector6d xd;
+		Vector6d xd_dot;
+		Vector6d xd_dotdot;
+		Vector6d xd_dotdotdot;
+		
+		// The number of columns defines the number of hidden layer neurons in the controller, for now this is hardcoded at 5
+		// Size = 19xN2
+		Matrix19x5d V_hat_dot;
+		Matrix19x5d V_hat_dot_prev;
+		Matrix19x5d V_hat;
+		Matrix19x5d V_hat_prev;
+		// Size = (N2+1)x6
+		Matrix6d W_hat_dot;
+        Matrix6d W_hat_dot_prev;
+        Matrix6d W_hat;
+        Matrix6d W_hat_prev;
+		
 		Matrix6d J;
 		Matrix6d J_inv;
 
@@ -57,8 +83,9 @@ namespace subjugator
 
 		Vector6d vb;
 
-		Vector6d xd;
-		Vector6d xd_dot;
+		bool pd_on;
+		bool rise_on;
+		bool nn_on;
 
 		boost::int64_t previousTime;
 
@@ -68,6 +95,7 @@ namespace subjugator
 		void UpdateJacobian(const Vector6d& x);
 		void UpdateJacobianInverse(const Vector6d& x);
 		Vector6d RiseFeedbackNoAccel(double dt);
+		Vector6d NNFeedForward(double dt);
 		Vector6d PDFeedback(double dt);
 		Vector6d GetSigns(const Vector6d& x);
 	};

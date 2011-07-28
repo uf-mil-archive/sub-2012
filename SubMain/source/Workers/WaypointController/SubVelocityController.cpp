@@ -13,6 +13,12 @@ VelocityController::VelocityController()
 	kstemp << 150.0,150.0,120.0,40.0,40.0,80.0;
 	alphatemp << 50.0,50.0,40.0,15.0,20.0,20.0;
 	betatemp << 60.0,60.0,30.0,20.0,10.0,30.0;
+	gamma1temp << 1.0,1.0,1.0,1.0,1.0,1.0;
+	gamma2temp << 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0;
+	
+	pd_on = false;
+	rise_on = true;
+	nn_on = false;
 
 	rise_term_prev = Vector6d::Zero();
 	rise_term = Vector6d::Zero();
@@ -25,6 +31,21 @@ VelocityController::VelocityController()
 	xd_dot = Vector6d::Zero();
 
 	vb = Vector6d::Zero();
+	
+	// NN stuff
+	xd = Vector6d::Zero();
+	xd_dot = Vector6d::Zero();
+	xd_dotdot = Vector6d::Zero();
+	xd_dotdotdot = Vector6d::Zero();
+	
+	V_hat_dot = Matrix19x5d::Zero();
+	V_hat_dot_prev = Matrix19x5d::Zero();
+	V_hat = Matrix19x5d::Zero();
+	V_hat_prev = Matrix19x5d::Zero();
+	W_hat_dot = Matrix6d::Zero();
+    W_hat_dot_prev = Matrix6d::Zero();
+    W_hat = Matrix6d::Zero();
+    W_hat_prev = Matrix6d::Zero();
 
 	currentControl = Vector6d::Zero();
 
@@ -59,6 +80,8 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
     // Save the relevant trajectory data
     xd = traj.getTrajectory();
     xd_dot = traj.getTrajectory_dot();
+    //xd_dotdot = traj.getTrajectory_dotdot();	// Needed by neural network
+    //xd_dotdotdot = traj.getTrajectory_dotdotdot(); // Needed by neural network
 
     UpdateJacobianInverse(x);
 	//UpdateJacobian(x);
@@ -67,10 +90,16 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
 	SetGains(ktemp, kstemp, alphatemp, betatemp, lposInfo);
 
     lock.lock();
-
-    //currentControl = PDFeedback(dt);
-    currentControl = RiseFeedbackNoAccel(dt);
-
+	
+	currentControl = Vector6d::Zero();
+	if(pd_on)
+		currentControl += PDFeedback(dt);
+	if(rise_on && !pd_on)	// only allow rise to be on if pd is off
+		currentControl += RiseFeedbackNoAccel(dt);
+	if(nn_on && rise_on && !pd_on) // Only allow nn to be added if rise is used
+		currentControl += NNFeedForward(dt);
+	
+	// We think there's supposed to be a possible transformation here, the math supports it but the sub does not like it. May need to look at this further.
 	//currentControl = J*currentControl;
 
     lock.unlock();
@@ -122,6 +151,52 @@ Vector6d VelocityController::PDFeedback(double dt)
 	Vector6d pd_control = ks * e2;
 
 	return pd_control;
+}
+
+Vector6d VelocityController::NNFeedForward(double dt)
+{
+    VectorXd xd_nn(xd.rows()*3+1,1); 		// xd_nn = [1 ; xd; xd_dot; xd_dotdot];
+    xd_nn(0,0) = 1.0;
+    xd_nn.block(xd.rows(),1,1,0) = xd;
+    xd_nn.block(xd.rows(),1,1+xd.rows(),0) = xd_dot;
+    xd_nn.block(xd.rows(),1,1+2*xd.rows(),0) = xd_dotdot;
+
+    VectorXd xd_nn_dot(xd.rows()*3+1,1);	// xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
+	xd_nn_dot(0,0) = 0.0;
+    xd_nn_dot.block(xd.rows(),1,1,0) = xd_dot;
+    xd_nn_dot.block(xd.rows(),1,1+xd.rows(),0) = xd_dotdot;
+    xd_nn_dot.block(xd.rows(),1,1+2*xd.rows(),0) = xd_dotdotdot;
+    
+    VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
+
+    VectorXd sigma_hat(1+sigma.rows(),1);          //sigma_hat = [1; sigma];
+    sigma_hat(0,0) = 1.0;
+    sigma_hat.block(sigma.rows(),1,1,0) = sigma;
+
+	VectorXd tempProd = V_hat.transpose() * xd_nn;	// 2 * Sech((V_hat.Transpose() * xd_nn).^2);
+    MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
+    MatrixXd sigma_hat_prime_term = AttitudeHelpers::DiagMatrixFromVector(inner);
+    //sigma_hat_prime = [zeros(1,length(sigma_hat_prime_term));sigma_hat_prime_term];
+    MatrixXd sigma_hat_prime(1+sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols());
+    sigma_hat_prime.fill(0.0);
+    sigma_hat_prime.block(sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols(), 1, 0) = sigma_hat_prime_term;
+
+    W_hat_dot = gamma1 * sigma_hat_prime * V_hat.transpose() * xd_nn_dot * e2.transpose();
+    V_hat_dot = gamma2 * xd_nn_dot * e2.transpose() * W_hat.transpose() * sigma_hat_prime;
+
+    // integrate W_hat_dot and V_hat_dot
+    W_hat = W_hat_prev + dt / 2.0 * (W_hat_dot + W_hat_dot_prev);
+    V_hat = V_hat_prev + dt / 2.0 * (V_hat_dot + V_hat_dot_prev);
+
+    Vector6d nn_control = W_hat.transpose() * sigma_hat;
+
+    // save previous values
+    W_hat_prev = W_hat;
+    W_hat_dot_prev = W_hat_dot;
+    V_hat_prev = V_hat;
+    V_hat_dot_prev = V_hat_dot;
+
+	return nn_control;
 }
 
 void VelocityController::UpdateJacobian(const Vector6d& x)
