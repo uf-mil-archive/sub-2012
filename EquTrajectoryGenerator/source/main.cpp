@@ -1,7 +1,9 @@
 #include <ndds/ndds_cpp.h>
 #include "SubMain/Workers/EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
 #include "DDSListeners/TrajectoryGeneratorDDSListener.h"
+#include "DDSCommanders/EquTrajectoryGeneratorDDSCommander.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
+#include "DDSMessages/SetWaypointMessageSupport.h"
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -35,8 +37,21 @@ int main(int argc, char **argv)
 
 	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
+		
+	if (SetWaypointMessageTypeSupport::register_type(participant, SetWaypointMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (TrajectoryMessageTypeSupport::register_type(participant, TrajectoryMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (LPOSVSSMessageTypeSupport::register_type(participant, LPOSVSSMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
+
+	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
 
 	TrajectoryGeneratorDDSListener listener(worker, participant);
+	EquTrajectoryGeneratorDDSCommander commander(worker, participant);
 
 	// Start the worker
 	io.run();

@@ -51,6 +51,8 @@ void EquTrajectoryGeneratorWorker::readyState()
 
 	// Emit every iteration
 	onEmitting(infop);
+
+	cout << "ready" << endl;
 }
 
 void EquTrajectoryGeneratorWorker::initializeState()

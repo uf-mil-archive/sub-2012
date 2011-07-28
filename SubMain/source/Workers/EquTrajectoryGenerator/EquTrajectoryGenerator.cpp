@@ -10,7 +10,7 @@ void EquTrajectoryGenerator::InitTimers(boost::int64_t currentTickCount) {
 }
 
 TrajectoryInfo EquTrajectoryGenerator::computeTrajectory(boost::int64_t currentTickCount) {
-	double t = (currentTickCount - startTickCount)*NSECPERSEC;
+	double t = (currentTickCount - startTickCount)/NSECPERSEC;
 
 	Vector6d trajectory;
 	// XYZ
