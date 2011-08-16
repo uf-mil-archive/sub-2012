@@ -160,3 +160,33 @@ MatrixXd AttitudeHelpers::DiagMatrixFromVector(const VectorXd& v)
 
 	return res;
 }
+
+VectorXd AttitudeHelpers::Tanh(const VectorXd& v)
+{
+	VectorXd res(v.rows(), 1);
+	res.fill(0.0);
+	if(v.cols() > 1)
+	{
+		cout << "AttitudeHelpers Error: Tanh only accepts vectors with 1 column!" << endl;
+		return res;
+	}	
+	for(int i=0; i<v.rows(); i++)
+		res(i,0) = tanh(v(i,0));
+	
+	return res;
+}
+
+VectorXd AttitudeHelpers::Sech(const VectorXd& v)
+{
+	VectorXd res(v.rows(), 1);
+	res.fill(0.0);
+	if(v.cols() > 1)
+	{
+		cout << "AttitudeHelpers Error: Sech only accepts vectors with 1 column!" << endl;
+		return res;
+	}	
+	for(int i=0; i<v.rows(); i++)
+		res(i,0) = 1.0/cosh(v(i,0));	
+	
+	return res;
+}
