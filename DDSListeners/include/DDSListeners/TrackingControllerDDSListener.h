@@ -8,6 +8,8 @@
 
 #include "DDSMessages/PDWrenchMessage.h"
 #include "DDSMessages/PDWrenchMessageSupport.h"
+#include "DDSMessages/TrackingControllerLogMessage.h"
+#include "DDSMessages/TrackingControllerLogMessageSupport.h"
 #include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
 
@@ -23,7 +25,7 @@ namespace subjugator
 
 	private:
 		DDSSender<PDWrenchMessage, PDWrenchMessageDataWriter, PDWrenchMessageTypeSupport> PDWrenchddssender;
-
+        DDSSender<TrackingControllerLogMessage, TrackingControllerLogMessageDataWriter, TrackingControllerLogMessageTypeSupport> logddssender;
 	};
 }
 
