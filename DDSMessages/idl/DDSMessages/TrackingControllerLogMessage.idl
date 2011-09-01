@@ -1,0 +1,7 @@
+struct TrackingControllerLogMessage {
+    double control[6];
+    double pd_control[6];
+    double rise_control[6];
+    double nn_control[6];
+};
+
