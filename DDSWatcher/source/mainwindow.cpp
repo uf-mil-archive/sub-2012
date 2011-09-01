@@ -19,6 +19,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     hydrophonereceiver(participant, "Hydrophone", bind(&MainWindow::HydrophoneDDSReadCallback, this, _1)),
     findermessagelistreceiver(participant, "Vision", bind(&MainWindow::FinderMessageListDDSReadCallback, this, _1)),
     trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::TrajectoryDDSReadCallback, this, _1)),
+    trackingcontrollerlogreceiver(participant, "TrackingControllerLog", bind(&MainWindow::TrackingControllerLogDDSReadCallback, this, _1)),
     lposvssData(false),
 	setwaypointData(false),
 	depthData(false),
@@ -28,6 +29,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
 	hydrophoneData(false),
 	findermessagelistData(false),
 	trajectoryData(false),
+	trackingcontrollerlogData(false),
 	logging(false)
 {
     ui->setupUi(this);
@@ -43,6 +45,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     connect(this, SIGNAL(hydrophoneInfoReceived()), this, SLOT(onHydrophoneInfoReceived()));
     connect(this, SIGNAL(findermessagelistInfoReceived()), this, SLOT(onFinderMessageListInfoReceived()));
     connect(this, SIGNAL(trajectoryInfoReceived()), this, SLOT(onTrajectoryInfoReceived()));
+    connect(this, SIGNAL(trajectoryControllerLogInfoReceived()), this, SLOT(onTrackingControllerLogInfoReceived()));
 }
 
 
@@ -305,6 +308,12 @@ void MainWindow::onTrajectoryInfoReceived()
 	logData();
 }
 
+void MainWindow::onTrackingControllerLogInfoReceived()
+{
+
+	//logData();
+}
+
 //***************************************************************************
 // CALLBACKS
 //***************************************************************************
@@ -360,4 +369,10 @@ void MainWindow::TrajectoryDDSReadCallback(const TrajectoryMessage &msg)
 {
 	trajectorymsg = msg;
 	emit trajectoryInfoReceived();
+}
+
+void MainWindow::TrackingControllerLogDDSReadCallback(const TrackingControllerLogMessage &msg)
+{
+	trackingcontrollerlogmsg = msg;
+	emit trackingControllerLogInfoReceived();
 }

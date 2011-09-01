@@ -55,6 +55,12 @@
 #include "DDSMessages/Finder3DMessageSupport.h"
 
 #include "DDSCommanders/TrajectoryDDSReceiver.h"
+#include "DDSMessages/TrajectoryMessage.h"
+#include "DDSMessages/TrajectoryMessageSupport.h"
+
+#include "DDSCommanders/TrackingControllerLogDDSReceiver.h"
+#include "DDSMessages/TrackingControllerLogMessage.h"
+#include "DDSMessages/TrackingControllerLogMessageSupport.h"
 
 namespace Ui {
     class MainWindow;
@@ -81,6 +87,7 @@ namespace subjugator
 		void HydrophoneDDSReadCallback(const HydrophoneMessage &msg);
 		void FinderMessageListDDSReadCallback(const FinderMessageList &msg);
 		void TrajectoryDDSReadCallback(const TrajectoryMessage &msg);
+		void TrackingControllerLogDDSReadCallback(const TrackingControllerLogMessage &msg);
 
 	private slots:
 		void onLPOSVSSInfoReceived();
@@ -92,6 +99,7 @@ namespace subjugator
 		void onHydrophoneInfoReceived();
 		void onFinderMessageListInfoReceived();
 		void onTrajectoryInfoReceived();
+		void onTrackingControllerLogInfoReceived();
 
 		void on_btnBrowse_clicked();
 		void on_btnStartLog_clicked();
@@ -107,6 +115,7 @@ namespace subjugator
 		void hydrophoneInfoReceived();
 		void findermessagelistInfoReceived();
 		void trajectoryInfoReceived();
+		void trackingControllerLogInfoReceived();
 
 	private:
 		Ui::MainWindow *ui;
@@ -129,6 +138,8 @@ namespace subjugator
 		FinderMessageList findermessagelistmsg;
 		TrajectoryDDSReceiver trajectoryreceiver;
 		TrajectoryMessage trajectorymsg;
+		TrackingControllerLogDDSReceiver trackingcontrollerlogreceiver;
+		TrackingControllerLogMessage trackingcontrollerlogmsg;
 
 		bool lposvssData;
 		bool setwaypointData;
@@ -139,6 +150,7 @@ namespace subjugator
 		bool hydrophoneData;
 		bool findermessagelistData;
 		bool trajectoryData;
+		bool trackingcontrollerlogData;
 
 		std::ofstream logstream;
 		bool logging;
