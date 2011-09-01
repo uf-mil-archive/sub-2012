@@ -122,7 +122,7 @@ Vector6d TrackingController::RiseFeedbackNoAccel(double dt)
 
 	rise_term = rise_term_prev + dt / 2.0 * (rise_term_int + rise_term_int_prev);
 
-	Vector6d rise_control = ksPlus1 * e2 + rise_term;
+	rise_control = ksPlus1 * e2 + rise_term;
 
 	// Save previous values
 	rise_term_prev = rise_term;
@@ -148,7 +148,7 @@ Vector6d TrackingController::PDFeedback(double dt)
 	Vector6d vbd = J_inv * (k * e + xd_dot);
 	e2 = vbd - vb;
 
-	Vector6d pd_control = ks * e2;
+	pd_control = ks * e2;
 
 	return pd_control;
 }
@@ -188,7 +188,7 @@ Vector6d TrackingController::NNFeedForward(double dt)
     W_hat = W_hat_prev + dt / 2.0 * (W_hat_dot + W_hat_dot_prev);
     V_hat = V_hat_prev + dt / 2.0 * (V_hat_dot + V_hat_dot_prev);
 
-    Vector6d nn_control = W_hat.transpose() * sigma_hat;
+    nn_control = W_hat.transpose() * sigma_hat;
 
     // save previous values
     W_hat_prev = W_hat;
@@ -299,9 +299,13 @@ void TrackingController::GetWrench(TrackingControllerInfo& info)
 	info.X_dot = x_dot;
 	info.Xd = xd;
 	info.Xd_dot = xd_dot;
+	info.V_hat = V_hat;
+	info.W_hat = W_hat;
+	info.pd_control = pd_control;
+	info.rise_control = rise_control;
+	info.nn_control = nn_control;
 
 	lock.unlock();
-
 }
 
 void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo)

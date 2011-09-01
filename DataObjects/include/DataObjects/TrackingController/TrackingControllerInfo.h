@@ -25,6 +25,12 @@ namespace subjugator {
 			Matrix<double, 6, 1> X_dot;
 			Matrix<double, 6, 1> Xd;
 			Matrix<double, 6, 1> Xd_dot;
+
+			Matrix<double, 19, 5> V_hat;
+			Matrix<double, 6, 6> W_hat;
+			Matrix<double, 6, 1> pd_control;
+			Matrix<double, 6, 1> rise_control;
+			Matrix<double, 6, 1> nn_control;
 	};
 }
 
