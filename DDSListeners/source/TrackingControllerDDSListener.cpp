@@ -34,6 +34,14 @@ void TrackingControllerDDSListener::DataObjectEmitted(boost::shared_ptr<DataObje
 		logmessage->nn_control[i] = trackingcontrollerinfo->nn_control[i];
 	}
 
+	for (int i=0;i<19;i++)
+		for (int j=0;j<5;j++)
+			logmessage->V_hat[i][j] = trackingcontrollerinfo->V_hat(i,j);
+
+	for (int i=0;i<6;i++)
+		for (int j=0;j<6;j++)
+			logmessage->W_hat[i][j] = trackingcontrollerinfo->W_hat(i,j);
+
 	logddssender.Send(*logmessage);
 	TrackingControllerLogMessageTypeSupport::delete_data(logmessage);
 }
