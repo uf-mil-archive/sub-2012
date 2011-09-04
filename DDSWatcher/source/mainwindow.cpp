@@ -64,10 +64,18 @@ void MainWindow::on_btnStartLog_clicked()
 	logstream.open(ui->logFileEdit->text().toUtf8().constData());
 	logstream << "LPOSPOSX, LPOSPOSY, LPOSPOSZ, LPOSQUAT0, LPOSQUAT1, LPOSQUAT2, LPOSQUAT3, LPOSVELX, LPOSVELY, LPOSVELZ, ";
 	logstream << "LPOSANGRATE0, LPOSANGRATE1, LPOSANGRATE2, LPOSACCEL0, LPOSACCEL1, LPOSACCEL2, TRAJXD0, TRAJXD1, TRAJXD2, ";
-	logstream << "TRAJXD3, TRAJXD4, TRAJXD5, TRAJXD_DOT0, TRAJXD_DOT1, TRAJXD_DOT2, TRAJXD_DOT3, TRAJXD_DOT4, TRAJXD_DOT5";
-	logstream << "CONTROL0, CONTROL1, CONTROL2, CONTROL3, CONTROL4, CONTROL5, PDCONTROL0, PDCONTROL1, PDCONTROL2, PDCONTROL3";
-	logstream << "PDCONTROL4, PDCONTROL5, RISECONTROL0, RISECONTROL1, RISECONTROL2, RISECONTROL3, RISECONTROL4, RISECONTROL5";
-	logstream << "NNCONTROL0, NNCONTROL1, NNCONTROL2, NNCONTROL3, NNCONTROL4, NNCONTROL5" << endl;
+	logstream << "TRAJXD3, TRAJXD4, TRAJXD5, TRAJXD_DOT0, TRAJXD_DOT1, TRAJXD_DOT2, TRAJXD_DOT3, TRAJXD_DOT4, TRAJXD_DOT5, ";
+	logstream << "CONTROL0, CONTROL1, CONTROL2, CONTROL3, CONTROL4, CONTROL5, PDCONTROL0, PDCONTROL1, PDCONTROL2, PDCONTROL3, ";
+	logstream << "PDCONTROL4, PDCONTROL5, RISECONTROL0, RISECONTROL1, RISECONTROL2, RISECONTROL3, RISECONTROL4, RISECONTROL5, ";
+	logstream << "NNCONTROL0, NNCONTROL1, NNCONTROL2, NNCONTROL3, NNCONTROL4, NNCONTROL5, VHAT00, VHAT01, VHAT02, VHAT03, ";
+	logstream << "VHAT04, VHAT10, VHAT11, VHAT12, VHAT13, VHAT14, VHAT20, VHAT21, VHAT22, VHAT23, VHAT24, VHAT30, VHAT31, ";
+	logstream << "VHAT32, VHAT33, VHAT34, VHAT40, VHAT41, VHAT42, VHAT43, VHAT44, VHAT50, VHAT51, VHAT52, VHAT53, VHAT54, ";
+	logstream << "VHAT60, VHAT61, VHAT62, VHAT63, VHAT64, VHAT70, VHAT71, VHAT72, VHAT73, VHAT74, VHAT80, VHAT81, VHAT82, ";
+	logstream << "VHAT83, VHAT84, VHAT90, VHAT91, VHAT92, VHAT93, VHAT94, VHAT100, VHAT101, VHAT102, VHAT103, VHAT104, VHAT110, ";
+	logstream << "VHAT111, VHAT112, VHAT113, VHAT114, VHAT120, VHAT121, VHAT122, VHAT123, VHAT124, VHAT130, VHAT131, VHAT132, ";
+	logstream << "VHAT133, VHAT134, VHAT140, VHAT141, VHAT142, VHAT143, VHAT144, VHAT150, VHAT151, VHAT152, VHAT153, VHAT154, ";
+	logstream << "VHAT160, VHAT161, VHAT162, VHAT163, VHAT164, VHAT170, VHAT171, VHAT172, VHAT173, VHAT174, VHAT180, VHAT181, ";
+	logstream << "VHAT182, VHAT183, VHAT184" << endl;
 	ui->lblLogging->setText("Yes");
 
 	logging = true;
@@ -137,7 +145,25 @@ void MainWindow::logData()
 		logstream << ui->lblNNController2->text().toStdString() << ", ";
 		logstream << ui->lblNNController3->text().toStdString() << ", ";
 		logstream << ui->lblNNController4->text().toStdString() << ", ";
-		logstream << ui->lblNNController5->text().toStdString() << ", " << endl;
+		logstream << ui->lblNNController5->text().toStdString() << ", ";
+
+		for (int i = 0; i < 19; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				logstream << V_hat(i,j) << ", ";
+			}
+		}
+
+		for (int i = 0; i < 6; i++)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				logstream << W_hat(i,j) << ", ";
+			}
+		}
+
+		logstream << "|" << endl;
 
 	}
 }
@@ -365,6 +391,22 @@ void MainWindow::onTrackingControllerLogInfoReceived()
 	ui->lblNNController3->setText(QString::number(trackingcontrollerlogmsg.nn_control[3]));
 	ui->lblNNController4->setText(QString::number(trackingcontrollerlogmsg.nn_control[4]));
 	ui->lblNNController5->setText(QString::number(trackingcontrollerlogmsg.nn_control[5]));
+
+	for (int i=0; i < 19; i++)
+	{
+		for (int j=0; j < 5; j++)
+		{
+			V_hat(i,j)=trackingcontrollerlogmsg.V_hat[i][j];
+		}
+	}
+
+	for (int i=0; i < 6; i++)
+	{
+		for (int j=0; j < 6; j++)
+		{
+			W_hat(i,j)=trackingcontrollerlogmsg.W_hat[i][j];
+		}
+	}
 
 	logData();
 }

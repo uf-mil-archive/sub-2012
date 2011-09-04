@@ -62,6 +62,8 @@
 #include "DDSMessages/TrackingControllerLogMessage.h"
 #include "DDSMessages/TrackingControllerLogMessageSupport.h"
 
+using namespace Eigen;
+
 namespace Ui {
     class MainWindow;
 }
@@ -141,6 +143,9 @@ namespace subjugator
 		TrackingControllerLogDDSReceiver trackingcontrollerlogreceiver;
 		TrackingControllerLogMessage trackingcontrollerlogmsg;
 
+		Matrix<double, 19, 5> V_hat;
+		Matrix<double, 6, 6> W_hat;
+
 		bool lposvssData;
 		bool setwaypointData;
 		bool depthData;
@@ -157,3 +162,4 @@ namespace subjugator
 	};
 }
 #endif // MAINWINDOW_H
+
