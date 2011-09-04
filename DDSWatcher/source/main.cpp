@@ -38,6 +38,9 @@ int main(int argc, char *argv[])
 	if (TrajectoryMessageTypeSupport::register_type(participant, TrajectoryMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 								throw runtime_error("Failed to register type");
 
+	if (TrackingControllerLogMessageTypeSupport::register_type(participant, TrackingControllerLogMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+								throw runtime_error("Failed to register type");
+
     MainWindow w(participant);
     w.show();
 

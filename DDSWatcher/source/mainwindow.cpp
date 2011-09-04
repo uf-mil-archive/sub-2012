@@ -45,7 +45,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     connect(this, SIGNAL(hydrophoneInfoReceived()), this, SLOT(onHydrophoneInfoReceived()));
     connect(this, SIGNAL(findermessagelistInfoReceived()), this, SLOT(onFinderMessageListInfoReceived()));
     connect(this, SIGNAL(trajectoryInfoReceived()), this, SLOT(onTrajectoryInfoReceived()));
-    connect(this, SIGNAL(trajectoryControllerLogInfoReceived()), this, SLOT(onTrackingControllerLogInfoReceived()));
+    connect(this, SIGNAL(trackingControllerLogInfoReceived()), this, SLOT(onTrackingControllerLogInfoReceived()));
 }
 
 
@@ -64,7 +64,10 @@ void MainWindow::on_btnStartLog_clicked()
 	logstream.open(ui->logFileEdit->text().toUtf8().constData());
 	logstream << "LPOSPOSX, LPOSPOSY, LPOSPOSZ, LPOSQUAT0, LPOSQUAT1, LPOSQUAT2, LPOSQUAT3, LPOSVELX, LPOSVELY, LPOSVELZ, ";
 	logstream << "LPOSANGRATE0, LPOSANGRATE1, LPOSANGRATE2, LPOSACCEL0, LPOSACCEL1, LPOSACCEL2, TRAJXD0, TRAJXD1, TRAJXD2, ";
-	logstream << "TRAJXD3, TRAJXD4, TRAJXD5, TRAJXD_DOT0, TRAJXD_DOT1, TRAJXD_DOT2, TRAJXD_DOT3, TRAJXD_DOT4, TRAJXD_DOT5" << endl;
+	logstream << "TRAJXD3, TRAJXD4, TRAJXD5, TRAJXD_DOT0, TRAJXD_DOT1, TRAJXD_DOT2, TRAJXD_DOT3, TRAJXD_DOT4, TRAJXD_DOT5";
+	logstream << "CONTROL0, CONTROL1, CONTROL2, CONTROL3, CONTROL4, CONTROL5, PDCONTROL0, PDCONTROL1, PDCONTROL2, PDCONTROL3";
+	logstream << "PDCONTROL4, PDCONTROL5, RISECONTROL0, RISECONTROL1, RISECONTROL2, RISECONTROL3, RISECONTROL4, RISECONTROL5";
+	logstream << "NNCONTROL0, NNCONTROL1, NNCONTROL2, NNCONTROL3, NNCONTROL4, NNCONTROL5" << endl;
 	ui->lblLogging->setText("Yes");
 
 	logging = true;
@@ -110,7 +113,32 @@ void MainWindow::logData()
 		logstream << ui->lblTrajectoryXddot2->text().toStdString() << ", ";
 		logstream << ui->lblTrajectoryXddot3->text().toStdString() << ", ";
 		logstream << ui->lblTrajectoryXddot4->text().toStdString() << ", ";
-		logstream << ui->lblTrajectoryXddot5->text().toStdString() << ", " << endl;
+		logstream << ui->lblTrajectoryXddot5->text().toStdString() << ", ";
+		logstream << ui->lblController0->text().toStdString() << ", ";
+		logstream << ui->lblController1->text().toStdString() << ", ";
+		logstream << ui->lblController2->text().toStdString() << ", ";
+		logstream << ui->lblController3->text().toStdString() << ", ";
+		logstream << ui->lblController4->text().toStdString() << ", ";
+		logstream << ui->lblController5->text().toStdString() << ", ";
+		logstream << ui->lblPDController0->text().toStdString() << ", ";
+		logstream << ui->lblPDController1->text().toStdString() << ", ";
+		logstream << ui->lblPDController2->text().toStdString() << ", ";
+		logstream << ui->lblPDController3->text().toStdString() << ", ";
+		logstream << ui->lblPDController4->text().toStdString() << ", ";
+		logstream << ui->lblPDController5->text().toStdString() << ", ";
+		logstream << ui->lblRiseController0->text().toStdString() << ", ";
+		logstream << ui->lblRiseController1->text().toStdString() << ", ";
+		logstream << ui->lblRiseController2->text().toStdString() << ", ";
+		logstream << ui->lblRiseController3->text().toStdString() << ", ";
+		logstream << ui->lblRiseController4->text().toStdString() << ", ";
+		logstream << ui->lblRiseController5->text().toStdString() << ", ";
+		logstream << ui->lblNNController0->text().toStdString() << ", ";
+		logstream << ui->lblNNController1->text().toStdString() << ", ";
+		logstream << ui->lblNNController2->text().toStdString() << ", ";
+		logstream << ui->lblNNController3->text().toStdString() << ", ";
+		logstream << ui->lblNNController4->text().toStdString() << ", ";
+		logstream << ui->lblNNController5->text().toStdString() << ", " << endl;
+
 	}
 }
 
@@ -310,8 +338,35 @@ void MainWindow::onTrajectoryInfoReceived()
 
 void MainWindow::onTrackingControllerLogInfoReceived()
 {
+	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[0]));
+	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[1]));
+	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[2]));
+	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[3]));
+	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[4]));
+	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[5]));
 
-	//logData();
+	ui->lblPDController0->setText(QString::number(trackingcontrollerlogmsg.pd_control[0]));
+	ui->lblPDController1->setText(QString::number(trackingcontrollerlogmsg.pd_control[1]));
+	ui->lblPDController2->setText(QString::number(trackingcontrollerlogmsg.pd_control[2]));
+	ui->lblPDController3->setText(QString::number(trackingcontrollerlogmsg.pd_control[3]));
+	ui->lblPDController4->setText(QString::number(trackingcontrollerlogmsg.pd_control[4]));
+	ui->lblPDController5->setText(QString::number(trackingcontrollerlogmsg.pd_control[5]));
+
+	ui->lblRiseController0->setText(QString::number(trackingcontrollerlogmsg.rise_control[0]));
+	ui->lblRiseController1->setText(QString::number(trackingcontrollerlogmsg.rise_control[1]));
+	ui->lblRiseController2->setText(QString::number(trackingcontrollerlogmsg.rise_control[2]));
+	ui->lblRiseController3->setText(QString::number(trackingcontrollerlogmsg.rise_control[3]));
+	ui->lblRiseController4->setText(QString::number(trackingcontrollerlogmsg.rise_control[4]));
+	ui->lblRiseController5->setText(QString::number(trackingcontrollerlogmsg.rise_control[5]));
+
+	ui->lblNNController0->setText(QString::number(trackingcontrollerlogmsg.nn_control[0]));
+	ui->lblNNController1->setText(QString::number(trackingcontrollerlogmsg.nn_control[1]));
+	ui->lblNNController2->setText(QString::number(trackingcontrollerlogmsg.nn_control[2]));
+	ui->lblNNController3->setText(QString::number(trackingcontrollerlogmsg.nn_control[3]));
+	ui->lblNNController4->setText(QString::number(trackingcontrollerlogmsg.nn_control[4]));
+	ui->lblNNController5->setText(QString::number(trackingcontrollerlogmsg.nn_control[5]));
+
+	logData();
 }
 
 //***************************************************************************
