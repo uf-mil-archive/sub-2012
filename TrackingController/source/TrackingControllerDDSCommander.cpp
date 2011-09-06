@@ -1,5 +1,5 @@
-#include "DDSCommanders/TrackingControllerDDSCommander.h"
-#include "SubMain/Workers/TrackingController/TrackingControllerWorker.h"
+#include "TrackingController/TrackingControllerDDSCommander.h"
+#include "TrackingController/TrackingControllerWorker.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/PD/PDInfo.h"

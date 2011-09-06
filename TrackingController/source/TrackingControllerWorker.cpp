@@ -1,4 +1,4 @@
-#include "SubMain/Workers/TrackingController/TrackingControllerWorker.h"
+#include "TrackingController/TrackingControllerWorker.h"
 
 using namespace subjugator;
 using namespace std;
