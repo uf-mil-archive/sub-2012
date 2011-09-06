@@ -3,5 +3,8 @@ struct TrackingControllerLogMessage {
     double pd_control[6];
     double rise_control[6];
     double nn_control[6];
+
+    double V_hat[19][5];
+    double W_hat[6][6];
 };
 
