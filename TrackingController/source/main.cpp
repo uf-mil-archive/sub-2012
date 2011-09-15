@@ -9,6 +9,8 @@
 #include "DDSListeners/LPOSVSSDDSListener.h"
 #include "DDSMessages/LPOSVSSMessage.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
+#include "DDSMessages/TrackingControllerLogMessage.h"
+#include "DDSMessages/TrackingControllerLogMessageSupport.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
@@ -55,6 +57,9 @@ int main(int argc, char **argv)
 
 	if (ControllerGainsMessageTypeSupport::register_type(participant, ControllerGainsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 						throw runtime_error("Failed to register type");
+
+	if (TrackingControllerLogMessageTypeSupport::register_type(participant, TrackingControllerLogMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+		throw runtime_error("Failed to register type");
 
 	TrackingControllerDDSCommander commander(worker, participant);
 
