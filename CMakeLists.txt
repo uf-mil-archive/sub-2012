@@ -74,7 +74,6 @@ else()
 endif()
 
 # Add projects subdirectories here
-# (maybe possible to find projects automatically?)
 
 add_subdirectory(HAL)
 add_subdirectory(DataObjects)
@@ -98,7 +97,7 @@ if(BUILD_SUB)
 		add_subdirectory(DDSWatcher)
 		#add_subdirectory(SuckySim)
 		if(QWT_FOUND)
-			add_subdirectory(TrajectoryTest)
+			#add_subdirectory(TrajectoryTest)
 		endif()
 	endif()
 	if(NDDS_FOUND)

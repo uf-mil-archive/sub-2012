@@ -1,5 +1,5 @@
-#include "DDSCommanders/TrajectoryGeneratorDDSCommander.h"
-#include "SubMain/Workers/TrajectoryGenerator/TrajectoryGeneratorWorker.h"
+#include "TrajectoryGenerator/TrajectoryGeneratorDDSCommander.h"
+#include "TrajectoryGenerator/TrajectoryGeneratorWorker.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/PD/PDInfo.h"

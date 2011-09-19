@@ -1,4 +1,4 @@
-#include "SubMain/Workers/TrajectoryGenerator/TrajectoryGeneratorWorker.h"
+#include "TrajectoryGenerator/TrajectoryGeneratorWorker.h"
 
 using namespace subjugator;
 using namespace std;
