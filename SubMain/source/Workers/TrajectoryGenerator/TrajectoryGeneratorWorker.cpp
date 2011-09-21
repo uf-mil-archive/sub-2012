@@ -74,7 +74,7 @@ void TrajectoryGeneratorWorker::standbyState()
 	inReady = false;
 	if(!hardwareKilled)
 	{
-    	trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator());
+		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator());
 		mStateManager.ChangeState(SubStates::READY);
 	}
 }

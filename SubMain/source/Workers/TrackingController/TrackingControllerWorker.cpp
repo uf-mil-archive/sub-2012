@@ -80,10 +80,17 @@ void TrackingControllerWorker::initializeState()
 void TrackingControllerWorker::standbyState()
 {
 	inReady = false;
-	if(!hardwareKilled)
+	if(!hardwareKilled && lposInfo.get())
 	{
-    	trackingController = std::auto_ptr<TrackingController>(new TrackingController());
+		trackingController = std::auto_ptr<TrackingController>(new TrackingController());
+
+		Vector6d traj;
+		traj.head<3>() = lposInfo->getPosition_NED();
+		traj.tail<3>().fill(0);
+		trajInfo = auto_ptr<TrajectoryInfo>(new TrajectoryInfo(getTimestamp(), traj, Vector6d::Zero()));
+
 		mStateManager.ChangeState(SubStates::READY);
+
 	}
 }
 
