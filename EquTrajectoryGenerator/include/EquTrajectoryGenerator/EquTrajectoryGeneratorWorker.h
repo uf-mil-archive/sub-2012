@@ -5,7 +5,7 @@
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
-#include "SubMain/Workers/EquTrajectoryGenerator/EquTrajectoryGenerator.h"
+#include "EquTrajectoryGenerator/EquTrajectoryGenerator.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"

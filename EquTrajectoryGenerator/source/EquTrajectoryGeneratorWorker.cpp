@@ -1,4 +1,4 @@
-#include "SubMain/Workers/EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
+#include "EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 
 using namespace subjugator;

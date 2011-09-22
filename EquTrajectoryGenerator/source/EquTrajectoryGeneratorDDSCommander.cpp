@@ -1,5 +1,5 @@
-#include "DDSCommanders/EquTrajectoryGeneratorDDSCommander.h"
-#include "SubMain/Workers/EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
+#include "EquTrajectoryGenerator/EquTrajectoryGeneratorDDSCommander.h"
+#include "EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/PD/PDInfo.h"

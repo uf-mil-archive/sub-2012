@@ -1,7 +1,7 @@
 #include <ndds/ndds_cpp.h>
-#include "SubMain/Workers/EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
+#include "EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
+#include "EquTrajectoryGenerator/EquTrajectoryGeneratorDDSCommander.h"
 #include "DDSListeners/TrajectoryGeneratorDDSListener.h"
-#include "DDSCommanders/EquTrajectoryGeneratorDDSCommander.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 #include <boost/scoped_ptr.hpp>
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
 	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
-		
+
 	if (SetWaypointMessageTypeSupport::register_type(participant, SetWaypointMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 

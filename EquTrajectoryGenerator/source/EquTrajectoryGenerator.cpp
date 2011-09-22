@@ -1,4 +1,4 @@
-#include "SubMain/Workers/EquTrajectoryGenerator/EquTrajectoryGenerator.h"
+#include "EquTrajectoryGenerator/EquTrajectoryGenerator.h"
 
 using namespace subjugator;
 using namespace Eigen;
