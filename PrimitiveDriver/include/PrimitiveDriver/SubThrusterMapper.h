@@ -3,7 +3,7 @@
 
 #include <Eigen/Dense>
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/PDWorker/SubThruster.h"
+#include "PrimitiveDriver/SubThruster.h"
 
 using namespace Eigen;
 

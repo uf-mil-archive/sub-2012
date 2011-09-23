@@ -2,9 +2,9 @@
 #include "DDSMessages/PDStatusMessage.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include "DDSMessages/PDActuatorMessageSupport.h"
-#include "SubMain/Workers/PDWorker/SubPDWorker.h"
+#include "PrimitiveDriver/SubPDWorker.h"
 #include "DDSListeners/PDDDSListener.h"
-#include "DDSCommanders/PDDDSCommander.h"
+#include "PrimitiveDriver/PDDDSCommander.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>

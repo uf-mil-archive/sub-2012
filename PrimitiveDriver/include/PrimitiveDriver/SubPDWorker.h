@@ -5,8 +5,8 @@
 #include "SubMain/SubBoolTimer.h"
 #include "SubMain/SubTranslations.h"
 #include "SubMain/Workers/SubWorker.h"
-#include "SubMain/Workers/PDWorker/SubThrusterManager.h"
-#include "SubMain/Workers/PDWorker/MergeManager.h"
+#include "PrimitiveDriver/SubThrusterManager.h"
+#include "PrimitiveDriver/MergeManager.h"
 #include "HAL/SubHAL.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
@@ -49,7 +49,7 @@ namespace subjugator
 
 		void halMergeReceiveCallback(std::auto_ptr<DataObject> &dobj);
 		void halMergeStateChangeCallback();
-		
+
 		BoolTimer stoptimer;
 		BoolTimer gotimer;
 		bool seconddrop;

@@ -1,4 +1,4 @@
-#include "SubMain/Workers/PDWorker/SubThrusterManager.h"
+#include "PrimitiveDriver/SubThrusterManager.h"
 
 using namespace subjugator;
 using namespace Eigen;

@@ -1,5 +1,5 @@
-#include "DDSCommanders/PDDDSCommander.h"
-#include "SubMain/Workers/PDWorker/SubPDWorker.h"
+#include "PrimitiveDriver/PDDDSCommander.h"
+#include "PrimitiveDriver/SubPDWorker.h"
 #include "DataObjects/PD/PDWrench.h"
 #include "DataObjects/Actuator/SetActuator.h"
 #include <boost/bind.hpp>

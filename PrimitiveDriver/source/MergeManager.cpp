@@ -1,4 +1,4 @@
-#include "SubMain/Workers/PDWorker/MergeManager.h"
+#include "PrimitiveDriver/MergeManager.h"
 #include "DataObjects/Merge/MergeDataObjectFormatter.h"
 #include "DataObjects/Embedded/StartPublishing.h"
 #include "DataObjects/HeartBeat.h"

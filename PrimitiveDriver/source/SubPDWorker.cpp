@@ -1,4 +1,4 @@
-#include "SubMain/Workers/PDWorker/SubPDWorker.h"
+#include "PrimitiveDriver/SubPDWorker.h"
 #include "DataObjects/PD/PDWrench.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Actuator/SetActuator.h"
@@ -90,12 +90,12 @@ namespace subjugator
 		}
 
 		onEmitting(boost::shared_ptr<DataObject>(new PDInfo(mStateManager.GetCurrentStateCode(), getTimestamp(), currents, mergeManager.getMergeInfo())));
-	
+
 		if (stoptimer.HasExpired() && stoptimer.getStarted()) {
 			mergeManager.setActuators(0);
 			cout << "!!STOP" << endl;
 			stoptimer.Stop();
-			
+
 			if (!seconddrop) {
 				gotimer.Start(.5);
 				seconddrop = true;
@@ -103,12 +103,12 @@ namespace subjugator
 				seconddrop = false;
 			}
 		}
-		
+
 		if (gotimer.HasExpired() && gotimer.getStarted()) {
 			mergeManager.setActuators(1);
 			cout << "!!START" << endl;
 			gotimer.Stop();
-			
+
 			seconddrop = true;
 			stoptimer.Start(.5);
 		}

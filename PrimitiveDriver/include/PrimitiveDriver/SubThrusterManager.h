@@ -2,8 +2,8 @@
 #define SUBTHRUSTERMANAGER_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/PDWorker/SubThrusterMapper.h"
-#include "SubMain/Workers/PDWorker/SubThruster.h"
+#include "PrimitiveDriver/SubThrusterMapper.h"
+#include "PrimitiveDriver/SubThruster.h"
 #include <Eigen/Dense>
 
 namespace subjugator
