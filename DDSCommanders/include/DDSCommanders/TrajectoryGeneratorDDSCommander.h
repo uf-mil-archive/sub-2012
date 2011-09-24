@@ -4,7 +4,7 @@
 #include "DDSCommanders/TrajectoryDDSReceiver.h"
 #include "DDSCommanders/LPOSVSSDDSReceiver.h"
 #include "DDSCommanders/PDStatusDDSReceiver.h"
-#include "DDSCommanders/ControllerGainsDDSReceiver.h"
+#include "DDSCommanders/SetWaypointDDSReceiver.h"
 #include "SubMain/Workers/SubWorker.h"
 
 namespace subjugator {
@@ -15,12 +15,15 @@ namespace subjugator {
 		private:
 			void receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo);
 			void receivedPDStatusInfo(const PDStatusMessage &pdstatusinfo);
+			void receivedSetWaypoint(const SetWaypointMessage &setwaypoint);
 
 			LPOSVSSDDSReceiver lposvssreceiver;
 			PDStatusDDSReceiver pdstatusreceiver;
+			SetWaypointDDSReceiver setwaypointreceiver;
 
 			boost::weak_ptr<InputToken> lposvsscmdtoken;
 			boost::weak_ptr<InputToken> pdstatuscmdtoken;
+			boost::weak_ptr<InputToken> setwaypointcmdtoken;
 	};
 }
 

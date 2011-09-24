@@ -13,9 +13,11 @@ using namespace boost;
 
 TrajectoryGeneratorDDSCommander::TrajectoryGeneratorDDSCommander(Worker &worker, DDSDomainParticipant *participant)
 : lposvssreceiver(participant, "LPOSVSS", bind(&TrajectoryGeneratorDDSCommander::receivedLPOSVSSInfo, this, _1)),
-  pdstatusreceiver(participant, "PDStatus", bind(&TrajectoryGeneratorDDSCommander::receivedPDStatusInfo, this, _1)) {
+  pdstatusreceiver(participant, "PDStatus", bind(&TrajectoryGeneratorDDSCommander::receivedPDStatusInfo, this, _1)),
+  setwaypointreceiver(participant, "SetWaypoint", bind(&TrajectoryGeneratorDDSCommander::receivedSetWaypoint, this, _1)) {
 	lposvsscmdtoken = worker.ConnectToCommand((int)TrajectoryGeneratorWorkerCommands::SetLPOSVSSInfo, 5);
 	pdstatuscmdtoken = worker.ConnectToCommand((int)TrajectoryGeneratorWorkerCommands::SetPDInfo, 5);
+	setwaypointcmdtoken = worker.ConnectToCommand((int)TrajectoryGeneratorWorkerCommands::SetWaypoint, 5);
 }
 
 void TrajectoryGeneratorDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {
@@ -81,6 +83,23 @@ void TrajectoryGeneratorDDSCommander::receivedPDStatusInfo(const PDStatusMessage
 	if (ptr)
 	{
 		ptr->Operate(PDInfo(state, timestamp, current, MergeInfo(timestamp, tickcount, flags, current16, voltage16, current32, voltage32)));
+	}
+}
+
+void TrajectoryGeneratorDDSCommander::receivedSetWaypoint(const SetWaypointMessage &setwaypoint) {
+	Waypoint waypoint;
+	
+	for (int i=0; i<3; i++) {
+		waypoint.Position_NED(i) = setwaypoint.position_ned[i];
+		waypoint.RPY(i) = setwaypoint.rpy[i];
+	}
+	
+	waypoint.isRelative = setwaypoint.isRelative;
+	
+	shared_ptr<InputToken> ptr = setwaypointcmdtoken.lock();
+	if (ptr)
+	{
+		ptr->Operate(waypoint);
 	}
 }
 

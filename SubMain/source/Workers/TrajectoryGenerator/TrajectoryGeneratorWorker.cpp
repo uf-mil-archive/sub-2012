@@ -26,6 +26,7 @@ TrajectoryGeneratorWorker::TrajectoryGeneratorWorker(boost::asio::io_service& io
 
 	setControlToken((int)TrajectoryGeneratorWorkerCommands::SetLPOSVSSInfo, boost::bind(&TrajectoryGeneratorWorker::setLPOSVSSInfo, this, _1));
 	setControlToken((int)TrajectoryGeneratorWorkerCommands::SetPDInfo, boost::bind(&TrajectoryGeneratorWorker::setPDInfo, this, _1));
+	setControlToken((int)TrajectoryGeneratorWorkerCommands::SetWaypoint, boost::bind(&TrajectoryGeneratorWorker::setWaypoint, this, _1));
 }
 
 bool TrajectoryGeneratorWorker::Startup()
@@ -74,7 +75,17 @@ void TrajectoryGeneratorWorker::standbyState()
 	inReady = false;
 	if(!hardwareKilled)
 	{
-		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator());
+		lock.lock();
+		Vector3d temp = MILQuaternionOps::Quat2Euler(lposInfo->quaternion_NED_B);
+
+		Vector6d tempTraj;
+		tempTraj.block<3,1>(0,0) = lposInfo->position_NED;
+		tempTraj.block<3,1>(3,0) = Vector3d(0,0,temp(2));
+		lock.unlock();
+
+		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator(tempTraj));
+		setWaypoint(Waypoint(false, lposInfo->position_NED, Vector3d(0,0,temp(2))));
+		
 		mStateManager.ChangeState(SubStates::READY);
 	}
 }
@@ -135,6 +146,50 @@ void TrajectoryGeneratorWorker::setPDInfo(const DataObject& dobj)
 
 	if(hardwareKilled)
 		mStateManager.ChangeState(SubStates::INITIALIZE);
+
+	lock.unlock();
+}
+
+void TrajectoryGeneratorWorker::setWaypoint(const DataObject& dobj)
+{
+	lock.lock();
+
+	// Not allowed to set a waypoint if I don't know where I am
+	if(lposInfo.get() == NULL)
+	{
+		lock.unlock();
+		return;
+	}
+	if(trajectoryGenerator.get() == NULL)
+	{
+		Matrix<double, 6, 1> trajStart;
+		trajStart.block<3,1>(0,0) = lposInfo->getPosition_NED();
+		trajStart.block<3,1>(3,0) = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
+
+		trajectoryGenerator = std::auto_ptr<TrajectoryGenerator>(new TrajectoryGenerator(trajStart));
+	}
+
+	const Waypoint *info = dynamic_cast<const Waypoint *>(&dobj);
+	if(!info)
+	{
+		lock.unlock();
+		return;
+	}
+
+	if (info->isRelative)
+	{
+		Waypoint wp;
+		Vector3d angles = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
+
+		wp.Position_NED = lposInfo->getPosition_NED() + MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(), info->Position_NED);
+		for(int i = 0; i < 3; i++)
+			wp.RPY(i) = AttitudeHelpers::DAngleClamp(angles(i)+ info->RPY(i));
+		trajectoryGenerator->SetWaypoint(wp, true);
+
+	}
+	else
+		trajectoryGenerator->SetWaypoint(*info, true);
+
 
 	lock.unlock();
 }
