@@ -62,6 +62,7 @@ void MainWindow::on_btnBrowse_clicked()
 void MainWindow::on_btnStartLog_clicked()
 {
 	logstream.open(ui->logFileEdit->text().toUtf8().constData());
+	logstream << "TIME, ";
 	logstream << "LPOSPOSX, LPOSPOSY, LPOSPOSZ, LPOSQUAT0, LPOSQUAT1, LPOSQUAT2, LPOSQUAT3, LPOSVELX, LPOSVELY, LPOSVELZ, ";
 	logstream << "LPOSANGRATE0, LPOSANGRATE1, LPOSANGRATE2, LPOSACCEL0, LPOSACCEL1, LPOSACCEL2, TRAJXD0, TRAJXD1, TRAJXD2, ";
 	logstream << "TRAJXD3, TRAJXD4, TRAJXD5, TRAJXD_DOT0, TRAJXD_DOT1, TRAJXD_DOT2, TRAJXD_DOT3, TRAJXD_DOT4, TRAJXD_DOT5, ";
@@ -75,7 +76,9 @@ void MainWindow::on_btnStartLog_clicked()
 	logstream << "VHAT111, VHAT112, VHAT113, VHAT114, VHAT120, VHAT121, VHAT122, VHAT123, VHAT124, VHAT130, VHAT131, VHAT132, ";
 	logstream << "VHAT133, VHAT134, VHAT140, VHAT141, VHAT142, VHAT143, VHAT144, VHAT150, VHAT151, VHAT152, VHAT153, VHAT154, ";
 	logstream << "VHAT160, VHAT161, VHAT162, VHAT163, VHAT164, VHAT170, VHAT171, VHAT172, VHAT173, VHAT174, VHAT180, VHAT181, ";
-	logstream << "VHAT182, VHAT183, VHAT184" << endl;
+	logstream << "VHAT182, VHAT183, VHAT184, WHAT00, WHAT01, WHAT02, WHAT03, WHAT04, WHAT05, WHAT10, WHAT11, WHAT12, WHAT13, ";
+	logstream << "WHAT14, WHAT15, WHAT20, WHAT21, WHAT22, WHAT23, WHAT24, WHAT25, WHAT30, WHAT31, WHAT32, WHAT33, WHAT34, ";
+	logstream << "WHAT35, WHAT40, WHAT41, WHAT42, WHAT43, WHAT44, WHAT45, WHAT50, WHAT51, WHAT52, WHAT53, WHAT54, WHAT55" << endl;
 	ui->lblLogging->setText("Yes");
 
 	logging = true;
@@ -365,11 +368,11 @@ void MainWindow::onTrajectoryInfoReceived()
 void MainWindow::onTrackingControllerLogInfoReceived()
 {
 	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[0]));
-	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[1]));
-	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[2]));
-	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[3]));
-	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[4]));
-	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[5]));
+	ui->lblController1->setText(QString::number(trackingcontrollerlogmsg.control[1]));
+	ui->lblController2->setText(QString::number(trackingcontrollerlogmsg.control[2]));
+	ui->lblController3->setText(QString::number(trackingcontrollerlogmsg.control[3]));
+	ui->lblController4->setText(QString::number(trackingcontrollerlogmsg.control[4]));
+	ui->lblController5->setText(QString::number(trackingcontrollerlogmsg.control[5]));
 
 	ui->lblPDController0->setText(QString::number(trackingcontrollerlogmsg.pd_control[0]));
 	ui->lblPDController1->setText(QString::number(trackingcontrollerlogmsg.pd_control[1]));
