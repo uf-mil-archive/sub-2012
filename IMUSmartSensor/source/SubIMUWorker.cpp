@@ -1,4 +1,4 @@
-#include "SubMain/Workers/SubIMUWorker.h"
+#include "IMUSmartSensor/SubIMUWorker.h"
 #include <iostream>
 
 using namespace std;

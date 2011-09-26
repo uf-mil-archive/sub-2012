@@ -1,4 +1,4 @@
-#include "SubMain/Workers/SubDVLWorker.h"
+#include "DVLSmartSensor/SubDVLWorker.h"
 
 using namespace boost::posix_time;
 using namespace boost;

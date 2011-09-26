@@ -1,5 +1,5 @@
 #include <ndds/ndds_cpp.h>
-#include "SubMain/Workers/SubDVLWorker.h"
+#include "DVLSmartSensor/SubDVLWorker.h"
 
 #include "DDSListeners/DVLDDSListener.h"
 

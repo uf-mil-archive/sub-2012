@@ -1,5 +1,5 @@
 #include <ndds/ndds_cpp.h>
-#include "SubMain/Workers/SubDepthWorker.h"
+#include "DepthSmartSensor/SubDepthWorker.h"
 
 #include "DDSListeners/DepthDDSListener.h"
 

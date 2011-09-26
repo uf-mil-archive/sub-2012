@@ -1,4 +1,4 @@
-#include "SubMain/Workers/SubDepthWorker.h"
+#include "DepthSmartSensor/SubDepthWorker.h"
 
 namespace subjugator
 {

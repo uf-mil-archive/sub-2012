@@ -1,5 +1,5 @@
 #include <ndds/ndds_cpp.h>
-#include "SubMain/Workers/SubIMUWorker.h"
+#include "IMUSmartSensor/SubIMUWorker.h"
 #include "DDSListeners/IMUDDSListener.h"
 
 #include <boost/scoped_ptr.hpp>
