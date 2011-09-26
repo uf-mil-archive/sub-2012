@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <boost/math/constants/constants.hpp>
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "SubMain/SubMILQuaternion.h"
 
 using namespace Eigen;
 

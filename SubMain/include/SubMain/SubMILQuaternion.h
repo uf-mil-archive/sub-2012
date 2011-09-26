@@ -3,7 +3,6 @@
 
 #include <Eigen/Dense>
 #include <cmath>
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 
 using namespace Eigen;
 

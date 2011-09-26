@@ -1,5 +1,5 @@
-#include "DDSCommanders/LPOSVSSDDSCommander.h"
-#include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
+#include "LPOSVSS/LPOSVSSDDSCommander.h"
+#include "LPOSVSS/SubLPOSVSSWorker.h"
 #include "DataObjects/PD/PDWrench.h"
 #include <boost/bind.hpp>
 

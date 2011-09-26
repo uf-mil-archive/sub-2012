@@ -1,4 +1,4 @@
-#include "SubMain/Workers/LPOSVSS/SubThrusterCurrentCorrector.h"
+#include "LPOSVSS/SubThrusterCurrentCorrector.h"
 
 using namespace subjugator;
 

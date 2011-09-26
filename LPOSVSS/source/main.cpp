@@ -1,6 +1,6 @@
 #include <ndds/ndds_cpp.h>
-#include "SubMain/Workers/LPOSVSS/SubLPOSVSSWorker.h"
-#include "DDSCommanders/LPOSVSSDDSCommander.h"
+#include "LPOSVSS/SubLPOSVSSWorker.h"
+#include "LPOSVSS/LPOSVSSDDSCommander.h"
 #include "DDSListeners/LPOSVSSDDSListener.h"
 #include "DataObjects/Depth/DepthInfo.h"
 

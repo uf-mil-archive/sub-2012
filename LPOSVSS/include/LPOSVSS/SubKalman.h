@@ -2,8 +2,8 @@
 #define SUBKALMAN_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "SubMain/SubAttitudeHelpers.h"
+#include "SubMain/SubMILQuaternion.h"
 #include <Eigen/Dense>
 #include <cmath>
 

@@ -1,7 +1,7 @@
 #ifndef SUBFINDPIPEBEHAVIOR_H
 #define SUBFINDPIPEBEHAVIOR_H
 
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include "SubMain/SubAttitudeHelpers.h"
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
 #include "SubMain/SubBoolTimer.h"
@@ -48,7 +48,7 @@ namespace subjugator
 		bool turnRight;
 
 		int pipeAlignCount;
-		
+
 		bool timeoutenabled;
 		BoolTimer booltimer;
 

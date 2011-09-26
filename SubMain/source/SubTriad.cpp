@@ -1,4 +1,4 @@
-#include "SubMain/Workers/LPOSVSS/SubTriad.h"
+#include "SubMain/SubTriad.h"
 
 #include <iostream>
 

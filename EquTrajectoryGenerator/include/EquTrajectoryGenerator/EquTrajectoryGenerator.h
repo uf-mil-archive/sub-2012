@@ -2,8 +2,8 @@
 #define _EQUTRAJECTORYGENERATOR_H__
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "SubMain/SubAttitudeHelpers.h"
+#include "SubMain/SubMILQuaternion.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"

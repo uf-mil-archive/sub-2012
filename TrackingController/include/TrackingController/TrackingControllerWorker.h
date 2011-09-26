@@ -3,7 +3,7 @@
 
 #include "SubMain/Workers/SubWorker.h"
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include "SubMain/SubAttitudeHelpers.h"
 #include "TrackingController/TrackingController.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/PD/PDInfo.h"

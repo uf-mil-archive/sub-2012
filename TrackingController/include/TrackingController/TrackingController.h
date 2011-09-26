@@ -2,8 +2,8 @@
 #define SUBTRACKINGCONTROLLER_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "SubMain/SubAttitudeHelpers.h"
+#include "SubMain/SubMILQuaternion.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/TrackingController/TrackingControllerInfo.h"

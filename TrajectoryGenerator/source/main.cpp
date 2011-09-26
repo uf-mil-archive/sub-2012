@@ -5,7 +5,6 @@
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 
-#include "DDSCommanders/LPOSVSSDDSCommander.h"
 #include "DDSListeners/LPOSVSSDDSListener.h"
 #include "DDSMessages/LPOSVSSMessage.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"

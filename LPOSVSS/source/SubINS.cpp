@@ -1,4 +1,4 @@
-#include "SubMain/Workers/LPOSVSS/SubINS.h"
+#include "LPOSVSS/SubINS.h"
 #include <iostream>
 
 using namespace subjugator;

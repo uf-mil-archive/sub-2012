@@ -6,9 +6,9 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <cmath>
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
-#include "SubMain/Workers/LPOSVSS/SubKalman.h"
+#include "SubMain/SubMILQuaternion.h"
+#include "SubMain/SubAttitudeHelpers.h"
+#include "LPOSVSS/SubKalman.h"
 #include <iostream>
 
 using namespace Eigen;

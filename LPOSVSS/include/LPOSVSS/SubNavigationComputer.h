@@ -2,17 +2,17 @@
 #define SUBNAVIGATIONCOMPUTER_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/LPOSVSS/SubThrusterCurrentCorrector.h"
+#include "LPOSVSS/SubThrusterCurrentCorrector.h"
 #include "DataObjects/DVL/DVLHighresBottomTrack.h"
 #include "DataObjects/IMU/IMUInfo.h"
 #include "DataObjects/Depth/DepthInfo.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
-#include "SubMain/Workers/LPOSVSS/SubTriad.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
-#include "SubMain/Workers/LPOSVSS/SubINS.h"
-#include "SubMain/Workers/LPOSVSS/SubKalman.h"
+#include "SubMain/SubTriad.h"
+#include "SubMain/SubAttitudeHelpers.h"
+#include "SubMain/SubMILQuaternion.h"
+#include "LPOSVSS/SubINS.h"
+#include "LPOSVSS/SubKalman.h"
 #include <cmath>
 #include <Eigen/Dense>
 

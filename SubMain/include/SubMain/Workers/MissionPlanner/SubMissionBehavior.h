@@ -7,8 +7,8 @@
 #include "DataObjects/MissionPlanner/BehaviorInfo.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionEnums.h"
 #include "SubMain/SubStateManager.h"
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "SubMain/SubAttitudeHelpers.h"
+#include "SubMain/SubMILQuaternion.h"
 #include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
 
 #include <Eigen/Dense>

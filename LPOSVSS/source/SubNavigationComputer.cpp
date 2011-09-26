@@ -1,4 +1,4 @@
-#include "SubMain/Workers/LPOSVSS/SubNavigationComputer.h"
+#include "LPOSVSS/SubNavigationComputer.h"
 
 using namespace subjugator;
 using namespace std;

@@ -2,7 +2,7 @@
 #define SUBTRIAD_H
 
 #include <Eigen/Dense>
-#include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
+#include "SubMain/SubAttitudeHelpers.h"
 #include <SubMain/SubPrerequisites.h>
 
 using namespace Eigen;

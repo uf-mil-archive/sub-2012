@@ -4,7 +4,7 @@
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/SubTranslations.h"
 #include "SubMain/Workers/SubWorker.h"
-#include "SubMain/Workers/LPOSVSS/SubNavigationComputer.h"
+#include "LPOSVSS/SubNavigationComputer.h"
 #include "DataObjects/DVL/DVLHighresBottomTrack.h"
 #include "DataObjects/IMU/IMUInfo.h"
 #include "DataObjects/Depth/DepthInfo.h"

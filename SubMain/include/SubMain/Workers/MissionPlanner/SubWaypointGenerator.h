@@ -3,7 +3,7 @@
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionCamera.h"
-#include "SubMain/Workers/LPOSVSS/SubTriad.h"
+#include "SubMain/SubTriad.h"
 
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/Vision/FinderResult2D.h"

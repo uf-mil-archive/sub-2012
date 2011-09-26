@@ -1,4 +1,5 @@
-#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "SubMain/SubMILQuaternion.h"
+#include "SubMain/SubAttitudeHelpers.h"
 
 using namespace subjugator;
 using namespace Eigen;
