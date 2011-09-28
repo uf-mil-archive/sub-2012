@@ -1,10 +1,12 @@
 #include "DataObjects/DVL/DVLConfiguration.h"
 #include <boost/lexical_cast.hpp>
+#include "boost/date_time/posix_time/posix_time.hpp"
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
 
 using namespace subjugator;
+using namespace boost::posix_time;
 using namespace std;
 
 DVLConfiguration::DVLConfiguration(double maxdepth, double alignmentdeg)
@@ -31,6 +33,9 @@ Packet DVLConfiguration::makePacket() const {
 	else
 		buf << "EA" << setw(5) << setfill('0') << showpos << (int)(alignmentdeg * 100) << 'r'; // showpos puts a + sign for positive numbers, per DVL documentation
 
+	time_facet *lf = new time_facet("%Y/%m/%d, %H:%M:%S");
+    buf.imbue(std::locale(buf.getloc(), lf));
+	buf << "TT" << second_clock::local_time() << "\r";
 	buf << "CS\r"; // start pinging
 
 	string str = buf.str();
