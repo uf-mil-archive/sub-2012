@@ -26,6 +26,9 @@ int main(int argc, char *argv[])
 	if (ControllerGainsMessageTypeSupport::register_type(partSender, ControllerGainsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 			throw runtime_error("Failed to register type");
 
+	if (LPOSVSSMessageTypeSupport::register_type(participant, LPOSVSSMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
+				throw runtime_error("Failed to register type");
+
     MainWindow w(participant, partSender);
     w.show();
 

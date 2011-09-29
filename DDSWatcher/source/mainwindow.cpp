@@ -4,6 +4,8 @@
 using namespace subjugator;
 using namespace std;
 using namespace Eigen;
+using namespace boost;
+using namespace boost::posix_time;
 
 MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     QMainWindow(parent),
@@ -17,6 +19,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     hydrophonereceiver(participant, "Hydrophone", bind(&MainWindow::HydrophoneDDSReadCallback, this, _1)),
     findermessagelistreceiver(participant, "Vision", bind(&MainWindow::FinderMessageListDDSReadCallback, this, _1)),
     trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::TrajectoryDDSReadCallback, this, _1)),
+    trackingcontrollerlogreceiver(participant, "TrackingControllerLog", bind(&MainWindow::TrackingControllerLogDDSReadCallback, this, _1)),
     lposvssData(false),
 	setwaypointData(false),
 	depthData(false),
@@ -25,8 +28,10 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
 	pdstatusData(false),
 	hydrophoneData(false),
 	findermessagelistData(false),
-	trajectoryData(false)
-{    
+	trajectoryData(false),
+	trackingcontrollerlogData(false),
+	logging(false)
+{
     ui->setupUi(this);
     this->setWindowTitle(tr("DDSWatcher"));
 
@@ -40,6 +45,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, QWidget *parent) :
     connect(this, SIGNAL(hydrophoneInfoReceived()), this, SLOT(onHydrophoneInfoReceived()));
     connect(this, SIGNAL(findermessagelistInfoReceived()), this, SLOT(onFinderMessageListInfoReceived()));
     connect(this, SIGNAL(trajectoryInfoReceived()), this, SLOT(onTrajectoryInfoReceived()));
+    connect(this, SIGNAL(trackingControllerLogInfoReceived()), this, SLOT(onTrackingControllerLogInfoReceived()));
 }
 
 
@@ -47,6 +53,125 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_btnBrowse_clicked()
+{
+	ui->logFileEdit->setText(QFileDialog::getSaveFileName(this));
+}
+
+void MainWindow::on_btnStartLog_clicked()
+{
+	logstream.open(ui->logFileEdit->text().toUtf8().constData());
+	logstream << "TIME, ";
+	logstream << "LPOSPOSX, LPOSPOSY, LPOSPOSZ, LPOSQUAT0, LPOSQUAT1, LPOSQUAT2, LPOSQUAT3, LPOSVELX, LPOSVELY, LPOSVELZ, ";
+	logstream << "LPOSANGRATE0, LPOSANGRATE1, LPOSANGRATE2, LPOSACCEL0, LPOSACCEL1, LPOSACCEL2, TRAJXD0, TRAJXD1, TRAJXD2, ";
+	logstream << "TRAJXD3, TRAJXD4, TRAJXD5, TRAJXD_DOT0, TRAJXD_DOT1, TRAJXD_DOT2, TRAJXD_DOT3, TRAJXD_DOT4, TRAJXD_DOT5, ";
+	logstream << "CONTROL0, CONTROL1, CONTROL2, CONTROL3, CONTROL4, CONTROL5, PDCONTROL0, PDCONTROL1, PDCONTROL2, PDCONTROL3, ";
+	logstream << "PDCONTROL4, PDCONTROL5, RISECONTROL0, RISECONTROL1, RISECONTROL2, RISECONTROL3, RISECONTROL4, RISECONTROL5, ";
+	logstream << "NNCONTROL0, NNCONTROL1, NNCONTROL2, NNCONTROL3, NNCONTROL4, NNCONTROL5, VHAT00, VHAT01, VHAT02, VHAT03, ";
+	logstream << "VHAT04, VHAT10, VHAT11, VHAT12, VHAT13, VHAT14, VHAT20, VHAT21, VHAT22, VHAT23, VHAT24, VHAT30, VHAT31, ";
+	logstream << "VHAT32, VHAT33, VHAT34, VHAT40, VHAT41, VHAT42, VHAT43, VHAT44, VHAT50, VHAT51, VHAT52, VHAT53, VHAT54, ";
+	logstream << "VHAT60, VHAT61, VHAT62, VHAT63, VHAT64, VHAT70, VHAT71, VHAT72, VHAT73, VHAT74, VHAT80, VHAT81, VHAT82, ";
+	logstream << "VHAT83, VHAT84, VHAT90, VHAT91, VHAT92, VHAT93, VHAT94, VHAT100, VHAT101, VHAT102, VHAT103, VHAT104, VHAT110, ";
+	logstream << "VHAT111, VHAT112, VHAT113, VHAT114, VHAT120, VHAT121, VHAT122, VHAT123, VHAT124, VHAT130, VHAT131, VHAT132, ";
+	logstream << "VHAT133, VHAT134, VHAT140, VHAT141, VHAT142, VHAT143, VHAT144, VHAT150, VHAT151, VHAT152, VHAT153, VHAT154, ";
+	logstream << "VHAT160, VHAT161, VHAT162, VHAT163, VHAT164, VHAT170, VHAT171, VHAT172, VHAT173, VHAT174, VHAT180, VHAT181, ";
+	logstream << "VHAT182, VHAT183, VHAT184, WHAT00, WHAT01, WHAT02, WHAT03, WHAT04, WHAT05, WHAT10, WHAT11, WHAT12, WHAT13, ";
+	logstream << "WHAT14, WHAT15, WHAT20, WHAT21, WHAT22, WHAT23, WHAT24, WHAT25, WHAT30, WHAT31, WHAT32, WHAT33, WHAT34, ";
+	logstream << "WHAT35, WHAT40, WHAT41, WHAT42, WHAT43, WHAT44, WHAT45, WHAT50, WHAT51, WHAT52, WHAT53, WHAT54, WHAT55" << endl;
+	ui->lblLogging->setText("Yes");
+
+	logging = true;
+}
+
+void MainWindow::on_btnStopLog_clicked()
+{
+	logstream.close();
+	ui->lblLogging->setText("No");
+
+	logging = false;
+}
+
+void MainWindow::logData()
+{
+	if (logging)
+	{
+		logstream << second_clock::local_time().time_of_day() << ", ";
+		logstream << ui->lblLPOSPosition0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSPosition1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSPosition2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSQuaternion3->text().toStdString() << ", ";
+		logstream << ui->lblLPOSVelocity0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSVelocity1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSVelocity2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAngular0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAngular1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAngular2->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAcceleration0->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAcceleration1->text().toStdString() << ", ";
+		logstream << ui->lblLPOSAcceleration2->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd0->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd1->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd2->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd3->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd4->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXd5->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot0->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot1->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot2->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot3->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot4->text().toStdString() << ", ";
+		logstream << ui->lblTrajectoryXddot5->text().toStdString() << ", ";
+		logstream << ui->lblController0->text().toStdString() << ", ";
+		logstream << ui->lblController1->text().toStdString() << ", ";
+		logstream << ui->lblController2->text().toStdString() << ", ";
+		logstream << ui->lblController3->text().toStdString() << ", ";
+		logstream << ui->lblController4->text().toStdString() << ", ";
+		logstream << ui->lblController5->text().toStdString() << ", ";
+		logstream << ui->lblPDController0->text().toStdString() << ", ";
+		logstream << ui->lblPDController1->text().toStdString() << ", ";
+		logstream << ui->lblPDController2->text().toStdString() << ", ";
+		logstream << ui->lblPDController3->text().toStdString() << ", ";
+		logstream << ui->lblPDController4->text().toStdString() << ", ";
+		logstream << ui->lblPDController5->text().toStdString() << ", ";
+		logstream << ui->lblRiseController0->text().toStdString() << ", ";
+		logstream << ui->lblRiseController1->text().toStdString() << ", ";
+		logstream << ui->lblRiseController2->text().toStdString() << ", ";
+		logstream << ui->lblRiseController3->text().toStdString() << ", ";
+		logstream << ui->lblRiseController4->text().toStdString() << ", ";
+		logstream << ui->lblRiseController5->text().toStdString() << ", ";
+		logstream << ui->lblNNController0->text().toStdString() << ", ";
+		logstream << ui->lblNNController1->text().toStdString() << ", ";
+		logstream << ui->lblNNController2->text().toStdString() << ", ";
+		logstream << ui->lblNNController3->text().toStdString() << ", ";
+		logstream << ui->lblNNController4->text().toStdString() << ", ";
+		logstream << ui->lblNNController5->text().toStdString() << ", ";
+
+		for (int i = 0; i < 19; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				logstream << V_hat(i,j) << ", ";
+			}
+		}
+
+		for (int i = 0; i < 6; i++)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				logstream << W_hat(i,j) << ", ";
+			}
+		}
+
+		logstream << "|" << endl;
+
+	}
+}
+
+
 
 //***************************************************************************
 // On Received Functions
@@ -71,6 +196,8 @@ void MainWindow::onLPOSVSSInfoReceived()
     ui->lblLPOSAcceleration0->setText(QString::number(lposvssmsg.acceleration_BODY[0]));
     ui->lblLPOSAcceleration1->setText(QString::number(lposvssmsg.acceleration_BODY[1]));
     ui->lblLPOSAcceleration2->setText(QString::number(lposvssmsg.acceleration_BODY[2]));
+
+    logData();
 }
 
 void MainWindow::onSetWaypointInfoReceived()
@@ -221,20 +348,6 @@ void MainWindow::onFinderMessageListInfoReceived()
 
 void MainWindow::onTrajectoryInfoReceived()
 {
-	ui->lblTrajectoryX0->setText(QString::number(trajectorymsg.x[0]));
-	ui->lblTrajectoryX1->setText(QString::number(trajectorymsg.x[1]));
-	ui->lblTrajectoryX2->setText(QString::number(trajectorymsg.x[2]));
-	ui->lblTrajectoryX3->setText(QString::number(trajectorymsg.x[3]));
-	ui->lblTrajectoryX4->setText(QString::number(trajectorymsg.x[4]));
-	ui->lblTrajectoryX5->setText(QString::number(trajectorymsg.x[5]));
-
-	ui->lblTrajectoryXdot0->setText(QString::number(trajectorymsg.x_dot[0]));
-	ui->lblTrajectoryXdot1->setText(QString::number(trajectorymsg.x_dot[1]));
-	ui->lblTrajectoryXdot2->setText(QString::number(trajectorymsg.x_dot[2]));
-	ui->lblTrajectoryXdot3->setText(QString::number(trajectorymsg.x_dot[3]));
-	ui->lblTrajectoryXdot4->setText(QString::number(trajectorymsg.x_dot[4]));
-	ui->lblTrajectoryXdot5->setText(QString::number(trajectorymsg.x_dot[5]));
-
 	ui->lblTrajectoryXd0->setText(QString::number(trajectorymsg.xd[0]));
 	ui->lblTrajectoryXd1->setText(QString::number(trajectorymsg.xd[1]));
 	ui->lblTrajectoryXd2->setText(QString::number(trajectorymsg.xd[2]));
@@ -248,6 +361,57 @@ void MainWindow::onTrajectoryInfoReceived()
 	ui->lblTrajectoryXddot3->setText(QString::number(trajectorymsg.xd_dot[3]));
 	ui->lblTrajectoryXddot4->setText(QString::number(trajectorymsg.xd_dot[4]));
 	ui->lblTrajectoryXddot5->setText(QString::number(trajectorymsg.xd_dot[5]));
+
+	logData();
+}
+
+void MainWindow::onTrackingControllerLogInfoReceived()
+{
+	ui->lblController0->setText(QString::number(trackingcontrollerlogmsg.control[0]));
+	ui->lblController1->setText(QString::number(trackingcontrollerlogmsg.control[1]));
+	ui->lblController2->setText(QString::number(trackingcontrollerlogmsg.control[2]));
+	ui->lblController3->setText(QString::number(trackingcontrollerlogmsg.control[3]));
+	ui->lblController4->setText(QString::number(trackingcontrollerlogmsg.control[4]));
+	ui->lblController5->setText(QString::number(trackingcontrollerlogmsg.control[5]));
+
+	ui->lblPDController0->setText(QString::number(trackingcontrollerlogmsg.pd_control[0]));
+	ui->lblPDController1->setText(QString::number(trackingcontrollerlogmsg.pd_control[1]));
+	ui->lblPDController2->setText(QString::number(trackingcontrollerlogmsg.pd_control[2]));
+	ui->lblPDController3->setText(QString::number(trackingcontrollerlogmsg.pd_control[3]));
+	ui->lblPDController4->setText(QString::number(trackingcontrollerlogmsg.pd_control[4]));
+	ui->lblPDController5->setText(QString::number(trackingcontrollerlogmsg.pd_control[5]));
+
+	ui->lblRiseController0->setText(QString::number(trackingcontrollerlogmsg.rise_control[0]));
+	ui->lblRiseController1->setText(QString::number(trackingcontrollerlogmsg.rise_control[1]));
+	ui->lblRiseController2->setText(QString::number(trackingcontrollerlogmsg.rise_control[2]));
+	ui->lblRiseController3->setText(QString::number(trackingcontrollerlogmsg.rise_control[3]));
+	ui->lblRiseController4->setText(QString::number(trackingcontrollerlogmsg.rise_control[4]));
+	ui->lblRiseController5->setText(QString::number(trackingcontrollerlogmsg.rise_control[5]));
+
+	ui->lblNNController0->setText(QString::number(trackingcontrollerlogmsg.nn_control[0]));
+	ui->lblNNController1->setText(QString::number(trackingcontrollerlogmsg.nn_control[1]));
+	ui->lblNNController2->setText(QString::number(trackingcontrollerlogmsg.nn_control[2]));
+	ui->lblNNController3->setText(QString::number(trackingcontrollerlogmsg.nn_control[3]));
+	ui->lblNNController4->setText(QString::number(trackingcontrollerlogmsg.nn_control[4]));
+	ui->lblNNController5->setText(QString::number(trackingcontrollerlogmsg.nn_control[5]));
+
+	for (int i=0; i < 19; i++)
+	{
+		for (int j=0; j < 5; j++)
+		{
+			V_hat(i,j)=trackingcontrollerlogmsg.V_hat[i][j];
+		}
+	}
+
+	for (int i=0; i < 6; i++)
+	{
+		for (int j=0; j < 6; j++)
+		{
+			W_hat(i,j)=trackingcontrollerlogmsg.W_hat[i][j];
+		}
+	}
+
+	logData();
 }
 
 //***************************************************************************
@@ -305,4 +469,10 @@ void MainWindow::TrajectoryDDSReadCallback(const TrajectoryMessage &msg)
 {
 	trajectorymsg = msg;
 	emit trajectoryInfoReceived();
+}
+
+void MainWindow::TrackingControllerLogDDSReadCallback(const TrackingControllerLogMessage &msg)
+{
+	trackingcontrollerlogmsg = msg;
+	emit trackingControllerLogInfoReceived();
 }

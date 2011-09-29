@@ -5,7 +5,7 @@
 #include "SuckySim/SimCamera.h"
 #include "SuckySim/SimHelpers.h"
 #include <Eigen/Dense>
-#include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
+#include "SubMain/Workers/TrajectoryGenerator/TrajectoryGenerator.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionCamera.h"
 #include "SubMain/Workers/MissionPlanner/SubMissionEnums.h"
 #include <boost/asio/deadline_timer.hpp>

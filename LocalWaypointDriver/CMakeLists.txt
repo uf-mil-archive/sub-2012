@@ -1,3 +1,0 @@
-sub_executable(LocalWaypointDriver DDS)
-sub_reference_library(LocalWaypointDriver SubMain HAL DataObjects DDSListeners DDSMessages DDSCommanders)
-

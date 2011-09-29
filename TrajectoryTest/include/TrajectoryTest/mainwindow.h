@@ -9,10 +9,12 @@
 #include <QVector>
 #include "ui_mainwindow.h"
 #include "dataseries.h"
-#include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
+#include "SubMain/Workers/TrajectoryGenerator/TrajectoryGenerator.h"
 #include "DDSCommanders/TrajectoryDDSReceiver.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
-#include "DataObjects/LocalWaypointDriver/LocalWaypointDriverInfo.h"
+#include "DataObjects/TrackingController/TrackingControllerInfo.h"
+#include "DDSCommanders/LPOSVSSDDSReceiver.h"
+#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 #include "DDSMessages/ControllerGainsMessage.h"
@@ -57,10 +59,11 @@ namespace subjugator
 		void setupCurve(QwtPlotCurve *curve, QPen pen);
 
 		//void addPoint(points pos);
-		void addPoint(const LocalWaypointDriverInfo& p);
+		void addPoint(const TrackingControllerInfo& p);
 
 		TrajectoryGenerator trajectoryGenerator;
-		void DDSReadCallback(const TrajectoryMessage &msg);
+		void TrajectoryDDSReadCallback(const TrajectoryMessage &msg);
+		void LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg);
 
 	protected:
 		virtual void timerEvent(QTimerEvent *e);
@@ -74,6 +77,7 @@ namespace subjugator
 	    void on_btnSubmitStart_clicked();
 	    void on_btnCallUpdate_clicked();
 	    void onTrajectoryReceived();
+	    void onLPOSReceived();
 	    void on_btnToggleActual_clicked();
 	    void on_tabWidget_currentChanged(int index);
 	    void on_btnSubmitGains_clicked();
@@ -83,6 +87,7 @@ namespace subjugator
 
 	    signals:
 	    void trajectoryReceived();
+	    void lposReceived();
 
 	private:
 	    void initGradient(QwtPlot *plot);
@@ -120,8 +125,10 @@ namespace subjugator
 		bool testToggle;
 
 		TrajectoryDDSReceiver trajectoryreceiver;
+		LPOSVSSDDSReceiver lposvssreceiver;
 
 		TrajectoryMessage trajectorymsg;
+		LPOSVSSMessage lposmsg;
 
 		DDSSender<SetWaypointMessage, SetWaypointMessageDataWriter, SetWaypointMessageTypeSupport> waypointddssender;
 		DDSSender<ControllerGainsMessage, ControllerGainsMessageDataWriter, ControllerGainsMessageTypeSupport> gainsddssender;

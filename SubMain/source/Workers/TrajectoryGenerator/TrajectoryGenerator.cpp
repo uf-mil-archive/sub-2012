@@ -1,4 +1,4 @@
-#include "SubMain/Workers/WaypointController/TrajectoryGenerator.h"
+#include "SubMain/Workers/TrajectoryGenerator/TrajectoryGenerator.h"
 #include <limits>
 
 using namespace subjugator;
@@ -88,7 +88,7 @@ TrajectoryInfo TrajectoryGenerator::Update(boost::int64_t currentTickCount)
 
     if(!holdXTime)
 {
-		
+
 		tX = (double)(currentTickCount - StartTickCountX) / NSECPERSEC;
 		cout << "CurrentX: " << tX << endl;
 		cout << "Total X: " << twX.TotalTime << endl;

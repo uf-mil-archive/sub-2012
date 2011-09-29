@@ -1,4 +1,4 @@
-#include "SubMain/Workers/WaypointController/SubVelocityController.h"
+#include "SubMain/Workers/TrackingController/TrackingController.h"
 
 using namespace subjugator;
 using namespace Eigen;
@@ -6,7 +6,7 @@ using namespace std;
 
 typedef Matrix<double, 6, 1> Vector6d;
 
-VelocityController::VelocityController()
+TrackingController::TrackingController()
 {
 	// Default gains. TODO: load these from a file
 	ktemp << 20.0,20.0,80.0,15.0,50.0,20.0;
@@ -15,7 +15,7 @@ VelocityController::VelocityController()
 	betatemp << 60.0,60.0,30.0,20.0,10.0,30.0;
 	gamma1temp << 1.0,1.0,1.0,1.0,1.0,1.0;
 	gamma2temp << 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0;
-	
+
 	pd_on = false;
 	rise_on = true;
 	nn_on = false;
@@ -31,13 +31,13 @@ VelocityController::VelocityController()
 	xd_dot = Vector6d::Zero();
 
 	vb = Vector6d::Zero();
-	
+
 	// NN stuff
 	xd = Vector6d::Zero();
 	xd_dot = Vector6d::Zero();
 	xd_dotdot = Vector6d::Zero();
 	xd_dotdotdot = Vector6d::Zero();
-	
+
 	V_hat_dot = Matrix19x5d::Zero();
 	V_hat_dot_prev = Matrix19x5d::Zero();
 	V_hat = Matrix19x5d::Zero();
@@ -55,7 +55,7 @@ VelocityController::VelocityController()
 
 // We cheat here and copy the current data to common class level variables so multiple controllers
 // theoretically could be run in parallel.
-void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo)
+void TrackingController::Update(boost::int64_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo)
 {
     // Update dt
     double dt = (currentTick - previousTime)*SECPERNANOSEC;
@@ -85,12 +85,12 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
 
     UpdateJacobianInverse(x);
 	//UpdateJacobian(x);
-	
+
 	// Set gains (these will be rotated from body to NED frame also inside this function)
 	SetGains(ktemp, kstemp, alphatemp, betatemp, lposInfo);
 
     lock.lock();
-	
+
 	currentControl = Vector6d::Zero();
 	if(pd_on)
 		currentControl += PDFeedback(dt);
@@ -98,14 +98,14 @@ void VelocityController::Update(boost::int16_t currentTick, const TrajectoryInfo
 		currentControl += RiseFeedbackNoAccel(dt);
 	if(nn_on && rise_on && !pd_on) // Only allow nn to be added if rise is used
 		currentControl += NNFeedForward(dt);
-	
+
 	// We think there's supposed to be a possible transformation here, the math supports it but the sub does not like it. May need to look at this further.
 	//currentControl = J*currentControl;
 
     lock.unlock();
 }
 
-Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
+Vector6d TrackingController::RiseFeedbackNoAccel(double dt)
 {
 	e = Vector6d::Zero();
 	e.block<3,1>(0,0) = xd.block<3,1>(0,0) - x.block<3,1>(0,0);
@@ -122,7 +122,7 @@ Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 
 	rise_term = rise_term_prev + dt / 2.0 * (rise_term_int + rise_term_int_prev);
 
-	Vector6d rise_control = ksPlus1 * e2 + rise_term;
+	rise_control = ksPlus1 * e2 + rise_term;
 
 	// Save previous values
 	rise_term_prev = rise_term;
@@ -131,7 +131,7 @@ Vector6d VelocityController::RiseFeedbackNoAccel(double dt)
 	return rise_control;
 }
 
-Vector6d VelocityController::PDFeedback(double dt)
+Vector6d TrackingController::PDFeedback(double dt)
 {
 //	cout << "GAINS" << endl;
 //	cout << "K x: " << k(0) << " y: " << k(1) << " z: " << k(2) << " roll: " << k(3) << " pitch: " << k(4) << " yaw: " << k(5);
@@ -148,12 +148,12 @@ Vector6d VelocityController::PDFeedback(double dt)
 	Vector6d vbd = J_inv * (k * e + xd_dot);
 	e2 = vbd - vb;
 
-	Vector6d pd_control = ks * e2;
+	pd_control = ks * e2;
 
 	return pd_control;
 }
 
-Vector6d VelocityController::NNFeedForward(double dt)
+Vector6d TrackingController::NNFeedForward(double dt)
 {
     VectorXd xd_nn(xd.rows()*3+1,1); 		// xd_nn = [1 ; xd; xd_dot; xd_dotdot];
     xd_nn(0,0) = 1.0;
@@ -166,7 +166,7 @@ Vector6d VelocityController::NNFeedForward(double dt)
     xd_nn_dot.block(xd.rows(),1,1,0) = xd_dot;
     xd_nn_dot.block(xd.rows(),1,1+xd.rows(),0) = xd_dotdot;
     xd_nn_dot.block(xd.rows(),1,1+2*xd.rows(),0) = xd_dotdotdot;
-    
+
     VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
 
     VectorXd sigma_hat(1+sigma.rows(),1);          //sigma_hat = [1; sigma];
@@ -188,7 +188,7 @@ Vector6d VelocityController::NNFeedForward(double dt)
     W_hat = W_hat_prev + dt / 2.0 * (W_hat_dot + W_hat_dot_prev);
     V_hat = V_hat_prev + dt / 2.0 * (V_hat_dot + V_hat_dot_prev);
 
-    Vector6d nn_control = W_hat.transpose() * sigma_hat;
+    nn_control = W_hat.transpose() * sigma_hat;
 
     // save previous values
     W_hat_prev = W_hat;
@@ -199,7 +199,7 @@ Vector6d VelocityController::NNFeedForward(double dt)
 	return nn_control;
 }
 
-void VelocityController::UpdateJacobian(const Vector6d& x)
+void TrackingController::UpdateJacobian(const Vector6d& x)
 {
 	double sphi = sin(x(3));
 	double cphi = cos(x(3));
@@ -234,7 +234,7 @@ void VelocityController::UpdateJacobian(const Vector6d& x)
             cphi / ctheta;
 }
 
-void VelocityController::UpdateJacobianInverse(const Vector6d& x)
+void TrackingController::UpdateJacobianInverse(const Vector6d& x)
 {
 	double sphi = sin(x(3));
 	double cphi = cos(x(3));
@@ -268,7 +268,7 @@ void VelocityController::UpdateJacobianInverse(const Vector6d& x)
             ctheta*cphi;
 }
 
-Vector6d VelocityController::GetSigns(const Vector6d& x)
+Vector6d TrackingController::GetSigns(const Vector6d& x)
 {
 	Vector6d signs = Vector6d::Ones();
 
@@ -285,12 +285,12 @@ Vector6d VelocityController::GetSigns(const Vector6d& x)
 	return signs;
 }
 
-void VelocityController::InitTimer(boost::int64_t currentTickCount)
+void TrackingController::InitTimer(boost::int64_t currentTickCount)
 {
 	previousTime = currentTickCount;
 }
 
-void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
+void TrackingController::GetWrench(TrackingControllerInfo& info)
 {
 	lock.lock();
 
@@ -299,19 +299,46 @@ void VelocityController::GetWrench(LocalWaypointDriverInfo& info)
 	info.X_dot = x_dot;
 	info.Xd = xd;
 	info.Xd_dot = xd_dot;
+	info.V_hat = V_hat;
+	info.W_hat = W_hat;
+	info.pd_control = pd_control;
+	info.rise_control = rise_control;
+	info.nn_control = nn_control;
 
 	lock.unlock();
-
 }
 
-void VelocityController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo)
+void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo)
 {
-	// Rotate x,y,z gains from Body into NED
 	Vector4d lposQuatNEDBody = lposInfo.getQuat_NED_B();
+	Vector3d euler = MILQuaternionOps::Quat2Euler(lposQuatNEDBody);
+	double yaw = euler(2);
+
+	bool gainrotate = true;
+	if (gainrotate) {
+		Vector6d kV_temp = kV;
+		kV(0) = abs(kV_temp(0)-kV_temp(1))/2.0*cos(2*yaw)+(kV_temp(0)+kV_temp(1))/2.0;
+		kV(1) = -abs(kV_temp(0)-kV_temp(1))/2.0*cos(2*yaw)+(kV_temp(0)+kV_temp(1))/2.0;
+
+		Vector6d ksV_temp = ksV;
+		ksV(0) = abs(ksV_temp(0)-ksV_temp(1))/2.0*cos(2*yaw)+(ksV_temp(0)+ksV_temp(1))/2.0;
+		ksV(1) = -abs(ksV_temp(0)-ksV_temp(1))/2.0*cos(2*yaw)+(ksV_temp(0)+ksV_temp(1))/2.0;
+
+		Vector6d alphaV_temp = alphaV;
+		alphaV(0) = abs(alphaV_temp(0)-alphaV_temp(1))/2.0*cos(2*yaw)+(alphaV_temp(0)+alphaV_temp(1))/2.0;
+		alphaV(1) = -abs(alphaV_temp(0)-alphaV_temp(1))/2.0*cos(2*yaw)+(alphaV_temp(0)+alphaV_temp(1))/2.0;
+
+		Vector6d betaV_temp = betaV;
+		betaV(0) = abs(betaV_temp(0)-betaV_temp(1))/2.0*cos(2*yaw)+(betaV_temp(0)+betaV_temp(1))/2.0;
+		betaV(1) = -abs(betaV_temp(0)-betaV_temp(1))/2.0*cos(2*yaw)+(betaV_temp(0)+betaV_temp(1))/2.0;
+	}
+
+/*	// Rotate x,y,z gains from Body into NED
+
 	kV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, kV.block<3,1>(0,0));
 	ksV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, ksV.block<3,1>(0,0));
 	alphaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, alphaV.block<3,1>(0,0));
-	betaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, betaV.block<3,1>(0,0));
+	betaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, betaV.block<3,1>(0,0));*/
 
 	k = AttitudeHelpers::DiagMatrixFromVector(kV);
 	ks = AttitudeHelpers::DiagMatrixFromVector(ksV);
