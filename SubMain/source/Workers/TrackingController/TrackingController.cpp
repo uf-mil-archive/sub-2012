@@ -310,12 +310,35 @@ void TrackingController::GetWrench(TrackingControllerInfo& info)
 
 void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo)
 {
-	// Rotate x,y,z gains from Body into NED
 	Vector4d lposQuatNEDBody = lposInfo.getQuat_NED_B();
+	Vector3d euler = MILQuaternionOps::Quat2Euler(lposQuatNEDBody);
+	double yaw = euler(2);
+
+	bool gainrotate = true;
+	if (gainrotate) {
+		Vector6d kV_temp = kV;
+		kV(0) = abs(kV_temp(0)-kV_temp(1))/2.0*cos(2*yaw)+(kV_temp(0)+kV_temp(1))/2.0;
+		kV(1) = -abs(kV_temp(0)-kV_temp(1))/2.0*cos(2*yaw)+(kV_temp(0)+kV_temp(1))/2.0;
+
+		Vector6d ksV_temp = ksV;
+		ksV(0) = abs(ksV_temp(0)-ksV_temp(1))/2.0*cos(2*yaw)+(ksV_temp(0)+ksV_temp(1))/2.0;
+		ksV(1) = -abs(ksV_temp(0)-ksV_temp(1))/2.0*cos(2*yaw)+(ksV_temp(0)+ksV_temp(1))/2.0;
+
+		Vector6d alphaV_temp = alphaV;
+		alphaV(0) = abs(alphaV_temp(0)-alphaV_temp(1))/2.0*cos(2*yaw)+(alphaV_temp(0)+alphaV_temp(1))/2.0;
+		alphaV(1) = -abs(alphaV_temp(0)-alphaV_temp(1))/2.0*cos(2*yaw)+(alphaV_temp(0)+alphaV_temp(1))/2.0;
+
+		Vector6d betaV_temp = betaV;
+		betaV(0) = abs(betaV_temp(0)-betaV_temp(1))/2.0*cos(2*yaw)+(betaV_temp(0)+betaV_temp(1))/2.0;
+		betaV(1) = -abs(betaV_temp(0)-betaV_temp(1))/2.0*cos(2*yaw)+(betaV_temp(0)+betaV_temp(1))/2.0;
+	}
+
+/*	// Rotate x,y,z gains from Body into NED
+
 	kV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, kV.block<3,1>(0,0));
 	ksV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, ksV.block<3,1>(0,0));
 	alphaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, alphaV.block<3,1>(0,0));
-	betaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, betaV.block<3,1>(0,0));
+	betaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, betaV.block<3,1>(0,0));*/
 
 	k = AttitudeHelpers::DiagMatrixFromVector(kV);
 	ks = AttitudeHelpers::DiagMatrixFromVector(ksV);
