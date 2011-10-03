@@ -1,10 +1,10 @@
-#include "DDSCommanders/MissionPlannerDDSCommander.h"
+#include "MissionPlanner/MissionPlannerDDSCommander.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Merge/MergeInfo.h"
 #include "DataObjects/Vision/FinderResult2DVec.h"
 #include "DataObjects/Vision/FinderResult3DVec.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
 
 using namespace subjugator;
 using namespace boost;

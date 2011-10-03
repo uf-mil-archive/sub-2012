@@ -1,6 +1,6 @@
-#include "SubMain/Workers/MissionPlanner/SubFindBuoyBehavior.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
-#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
+#include "MissionPlanner/SubFindBuoyBehavior.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/AnnoyingConstants.h"
 
 #include <iostream>
 

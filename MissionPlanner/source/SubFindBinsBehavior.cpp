@@ -1,5 +1,5 @@
-#include "SubMain/Workers/MissionPlanner/SubFindBinsBehavior.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/SubFindBinsBehavior.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
 
 #include <iostream>
 
@@ -9,7 +9,7 @@ using namespace Eigen;
 
 FindBinsBehavior::FindBinsBehavior(double minDepth) :
 	MissionBehavior(MissionBehaviors::FindBins, "FindBins", minDepth),
-	canContinue(false), bumpSet(false), backupSet(false), clearBuoysSet(false), pipeSet(false), 
+	canContinue(false), bumpSet(false), backupSet(false), clearBuoysSet(false), pipeSet(false),
 	newFrame(false), driveToBinsSet(false), binFrameCount(0), binAlignCount(0),
 	moveToInspect(false), shot(false), approachset(false), aligntobinsset(false)
 {
@@ -138,7 +138,7 @@ void FindBinsBehavior::DriveTowardsBins()
 
 	if(!driveToBinsSet)
 	{
-		// There is typically a large amount of noisy pool between the 
+		// There is typically a large amount of noisy pool between the
 		// previous mission behavior and this one. To avoid false positives,
 		// we travel a chunk of it in a single, quick move.
 		double seriouslycpp = driveTowardsBinsDistance;
@@ -183,7 +183,7 @@ void FindBinsBehavior::ApproachBins()
 
 	bool sawBins = false;
 	
-	// Push all bins in this state. We wait until we have solid frames of bins and then 
+	// Push all bins in this state. We wait until we have solid frames of bins and then
 	// we shift to align
 	currentObjectID = ObjectIDs::BinAll;
 	VisionSetIDs todown(MissionCameraIDs::Down, std::vector<int>(1, currentObjectID));

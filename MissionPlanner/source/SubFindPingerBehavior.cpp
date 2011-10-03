@@ -1,6 +1,6 @@
-#include "SubMain/Workers/MissionPlanner/SubFindPingerBehavior.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
-#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
+#include "MissionPlanner/SubFindPingerBehavior.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/AnnoyingConstants.h"
 
 using namespace subjugator;
 using namespace std;

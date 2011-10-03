@@ -2,7 +2,7 @@
 #define SUBFINDBINSBEHAVIOR_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "MissionPlanner/SubMissionBehavior.h"
 #include "SubMain/SubBoolTimer.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"

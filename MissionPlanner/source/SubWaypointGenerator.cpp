@@ -1,4 +1,4 @@
-#include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
+#include "MissionPlanner/SubWaypointGenerator.h"
 
 using namespace std;
 using namespace subjugator;

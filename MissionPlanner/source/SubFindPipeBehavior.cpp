@@ -1,6 +1,6 @@
-#include "SubMain/Workers/MissionPlanner/SubFindPipeBehavior.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
-#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
+#include "MissionPlanner/SubFindPipeBehavior.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/AnnoyingConstants.h"
 #include <boost/math/constants/constants.hpp>
 #include <cmath>
 

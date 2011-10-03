@@ -1,55 +1,50 @@
-#include "SubMain/Workers/MissionPlanner/SubFindHedgeBehavior.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
-#include "SubMain/Workers/MissionPlanner/AnnoyingConstants.h"
+#include "MissionPlanner/SubFindValidationGateBehavior.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/AnnoyingConstants.h"
 
 using namespace subjugator;
 using namespace std;
 using namespace Eigen;
 
-FindHedgeBehavior::FindHedgeBehavior(double minDepth) :
-	MissionBehavior(MissionBehaviors::FindHedgeGate, "FindHedgeBehavior", minDepth),
-	canContinue(false), driveThroughSet(false), moveDepthSet(false), moveUpSet(false), hasSeenGate(0), newFrame(false)
+FindValidationGateBehavior::FindValidationGateBehavior(double minDepth, ObjectIDs::ObjectIDCode objId) :
+	MissionBehavior(MissionBehaviors::FindValidationGate, "FindValidation", minDepth),
+	canContinue(false), driveThroughSet(false), moveDepthSet(false), hasSeenGate(0), newFrame(false)
 {
-	currentObjectID = ObjectIDs::GateHedge;
+	currentObjectID = objId;
 
 	servoGains2d = Vector2d(0.035*boost::math::constants::pi<double>() / 180.0, 0.0025);
 	gains2d = Vector2d(1.0, 1.0);
 
 	// Setup the callbacks
-	stateManager.SetStateCallback(FindHedgeMiniBehaviors::ApproachGate,
+	stateManager.SetStateCallback(FindValidationGateMiniBehaviors::ApproachGate,
 			"ApproachGate",
-			boost::bind(&FindHedgeBehavior::ApproachGate, this));
-	stateManager.SetStateCallback(FindHedgeMiniBehaviors::PanForGate,
+			boost::bind(&FindValidationGateBehavior::ApproachGate, this));
+	stateManager.SetStateCallback(FindValidationGateMiniBehaviors::PanForGate,
 			"PanForGate",
-			boost::bind(&FindHedgeBehavior::PanForGate, this));
-	stateManager.SetStateCallback(FindHedgeMiniBehaviors::DriveThroughGate,
+			boost::bind(&FindValidationGateBehavior::PanForGate, this));
+	stateManager.SetStateCallback(FindValidationGateMiniBehaviors::DriveThroughGate,
 			"DriveThroughGate",
-			boost::bind(&FindHedgeBehavior::DriveThroughGate, this));
-	stateManager.SetStateCallback(FindHedgeMiniBehaviors::MoveToDepth,
+			boost::bind(&FindValidationGateBehavior::DriveThroughGate, this));
+	stateManager.SetStateCallback(FindValidationGateMiniBehaviors::MoveToDepth,
 			"MoveToDepth",
-			boost::bind(&FindHedgeBehavior::MoveToDepth, this));
-	stateManager.SetStateCallback(FindHedgeMiniBehaviors::MoveUpByGate,
-			"MoveUpByGate",
-			boost::bind(&FindHedgeBehavior::MoveUpByGate, this));
+			boost::bind(&FindValidationGateBehavior::MoveToDepth, this));
 }
 
-void FindHedgeBehavior::Startup(MissionPlannerWorker& mpWorker)
+void FindValidationGateBehavior::Startup(MissionPlannerWorker& mpWorker)
 {
 	// Connect to the worker's 2d object signal
-	connection2D = mpWorker.on2DCameraReceived.connect(boost::bind(&FindHedgeBehavior::Update2DCameraObjects, this, _1));
+	connection2D = mpWorker.on2DCameraReceived.connect(boost::bind(&FindValidationGateBehavior::Update2DCameraObjects, this, _1));
 	// And become the controlling device of the camera
 	mPlannerChangeCamObject = mpWorker.ConnectToCommand((int)MissionPlannerWorkerCommands::SendVisionID, 1);
 
 	// Save our pipe heading
 	pipeHeading = lposRPY(2);
-	
-	booltimer.Start(60);
 
-	// Push to move to depth
-	stateManager.ChangeState(FindHedgeMiniBehaviors::MoveToDepth);
+	// Push to pan for gate
+	stateManager.ChangeState(FindValidationGateMiniBehaviors::MoveToDepth);
 }
 
-void FindHedgeBehavior::Shutdown(MissionPlannerWorker& mpWorker)
+void FindValidationGateBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 {
 	connection2D.disconnect();	// Play nicely and disconnect from the 2d camera signal
 
@@ -67,7 +62,7 @@ void FindHedgeBehavior::Shutdown(MissionPlannerWorker& mpWorker)
 	}
 }
 
-void FindHedgeBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects)
+void FindValidationGateBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>& camObjects)
 {
 	lock.lock();
 
@@ -77,7 +72,7 @@ void FindHedgeBehavior::Update2DCameraObjects(const std::vector<FinderResult2D>&
 	lock.unlock();
 }
 
-void FindHedgeBehavior::DoBehavior()
+void FindValidationGateBehavior::DoBehavior()
 {
 	// LPOS info is updated by the algorithm
 
@@ -95,20 +90,18 @@ void FindHedgeBehavior::DoBehavior()
 	// The mini functions are called in the algorithm
 }
 
-void FindHedgeBehavior::ApproachGate()
+void FindValidationGateBehavior::ApproachGate()
 {
-	if (booltimer.HasExpired()) {
-		behDone = true;
-		return;
-	}
+	getGains();
 
 	bool sawGate = false;
 	if(!canContinue)
 	{
-		/*if(!newFrame)
-			return;*/
-
-		getGains();
+		cout << "!canContinue" << endl;
+		if(!newFrame)
+			return;
+			
+		cout << "!newFrame" << endl;
 
 		newFrame = false;
 		// The list of 2d objects the class is holding is the current found images in the frame
@@ -121,10 +114,12 @@ void FindHedgeBehavior::ApproachGate()
 
 				if(!desiredWaypoint)	// Bad find, waygen says no good
 					continue;
+					
+				cout << "SAW GATE!!!" << endl;
 
 				double distance = 0.0;
 				lastScale = objects2d[i].scale;
-				if(objects2d[i].scale >= hedgeApproachThreshold)
+				if(objects2d[i].scale >= approachThreshold)
 					canContinue = true;
 				else
 					distance = approachTravelDistance;
@@ -144,13 +139,14 @@ void FindHedgeBehavior::ApproachGate()
 			}
 		}
 
-		// We either never saw the buoy or we lost it. Keep searching forward at pipe heading
+		// We either never saw the gate or we lost it. Keep searching forward at pipe heading
 		if(!sawGate)
 		{
-			//if((hasSeenGate++) > 10)
-			//	stateManager.ChangeState(FindBuoyMiniBehaviors::PanForBuoy);
-			//else
+			/*if((hasSeenGate++) > 30)
+				stateManager.ChangeState(FindValidationGateMiniBehaviors::PanForGate);
+			else*/
 			{
+				cout << "didn't see gate, going forward" << endl;
 				double serioslycpp = approachTravelDistance;
 				desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 				desiredWaypoint->isRelative = false;
@@ -169,19 +165,17 @@ void FindHedgeBehavior::ApproachGate()
 		if(atDesiredWaypoint())
 		{
 			canContinue = false;
-
 			// Done approaching the current buoy, switch to bump
-			stateManager.ChangeState(FindHedgeMiniBehaviors::MoveUpByGate);
-		//	stateManager.ChangeState(FindHedgeMiniBehaviors::DriveThroughGate);
+			stateManager.ChangeState(FindValidationGateMiniBehaviors::DriveThroughGate);
 		}
 	}
 }
 
-void FindHedgeBehavior::DriveThroughGate()
+void FindValidationGateBehavior::DriveThroughGate()
 {
 	if(!driveThroughSet)
 	{
-		double serioslycpp = driveThroughHedgeDistance;
+		double serioslycpp = driveThroughGateDistance;
 		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
 		desiredWaypoint->isRelative = false;
 		desiredWaypoint->RPY(2) = lposRPY(2);	// hold our current heading and drive through the gate
@@ -206,7 +200,7 @@ void FindHedgeBehavior::DriveThroughGate()
 	}
 }
 
-void FindHedgeBehavior::PanForGate()
+void FindValidationGateBehavior::PanForGate()
 {
 	bool sawGate = false;
 	hasSeenGate = 0;
@@ -217,7 +211,7 @@ void FindHedgeBehavior::PanForGate()
 		if(objects2d[i].objectID == currentObjectID)
 		{
 			sawGate = true;
-			stateManager.ChangeState(FindHedgeMiniBehaviors::ApproachGate);
+			stateManager.ChangeState(FindValidationGateMiniBehaviors::ApproachGate);
 			break;
 		}
 	}
@@ -253,7 +247,7 @@ void FindHedgeBehavior::PanForGate()
 }
 
 // This behavior submerges us before we begin to pan
-void FindHedgeBehavior::MoveToDepth()
+void FindValidationGateBehavior::MoveToDepth()
 {
 	if(!moveDepthSet)
 	{
@@ -263,7 +257,7 @@ void FindHedgeBehavior::MoveToDepth()
 
 		// At the same X,Y position
 		desiredWaypoint->Position_NED = lposInfo->getPosition_NED();
-		desiredWaypoint->Position_NED(2) = hedgeApproachDepth;	// Move to the depth we want
+		desiredWaypoint->Position_NED(2) = approachDepth;	// Move to the depth we want
 		desiredWaypoint->number = getNextWaypointNum();
 
 		moveDepthSet = true;
@@ -275,50 +269,23 @@ void FindHedgeBehavior::MoveToDepth()
 		moveDepthSet = false;
 
 		// We've found all the buoys! - the behavior shutdown will be called when the worker pops us off the list
-		stateManager.ChangeState(FindHedgeMiniBehaviors::ApproachGate);
-	}
-}
-
-void FindHedgeBehavior::MoveUpByGate()
-{
-	if(!moveUpSet)
-	{
-		double serioslycpp = moveUpHedgeDistance;
-		desiredWaypoint = boost::shared_ptr<Waypoint>(new Waypoint());
-		desiredWaypoint->isRelative = false;
-		desiredWaypoint->RPY(2) = lposRPY(2);	// hold our current heading and drive through the gate
-
-		// Add on the bump travel
-		desiredWaypoint->Position_NED = lposInfo->getPosition_NED()
-				- MILQuaternionOps::QuatRotate(lposInfo->getQuat_NED_B(),
-									Vector3d(0.0, 0.0, serioslycpp));
-		desiredWaypoint->number = getNextWaypointNum();
-
-		moveUpSet = true;
-	}
-
-	// Check to see if we have arrived at the clear point
-	if(atDesiredWaypoint())
-	{
-		moveUpSet = false;
-
-		// We've gone through the gate - the behavior shutdown will be called when the worker pops us off the list
-		stateManager.ChangeState(FindHedgeMiniBehaviors::DriveThroughGate);
+		stateManager.ChangeState(FindValidationGateMiniBehaviors::DriveThroughGate);
 	}
 }
 
 // TODO Set travel distances
-void FindHedgeBehavior::getGains()
+void FindValidationGateBehavior::getGains()
 {
-
-	//if (lastScale > 00)
+	servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
+	approachTravelDistance = 0.5; // m
+/*	if (lastScale > 5000)
 	{
-		servoGains2d = Vector2d(0.02*boost::math::constants::pi<double>() / 180.0, 0.0015);
-		approachTravelDistance = 0.4; // m
+		servoGains2d = Vector2d(0.0025, .025*boost::math::constants::pi<double>() / 180.0);
+		approachTravelDistance = 0.2; // m
 	}
-	/*else
+	else
 	{
-		servoGains2d = Vector2d( .05*boost::math::constants::pi<double>() / 180.0, 0.0035);
-		approachTravelDistance = .8; // m
+		servoGains2d = Vector2d(0.0025, .05*boost::math::constants::pi<double>() / 180.0);
+		approachTravelDistance = 0.5; // m
 	}*/
 }

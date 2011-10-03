@@ -1,5 +1,5 @@
-#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/SubMissionBehavior.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
 #include "SubMain/Workers/SubInputToken.h"
 
 using namespace subjugator;

@@ -1,8 +1,8 @@
 #include <ndds/ndds_cpp.h>
 
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
 #include "DDSListeners/MissionPlannerDDSListener.h"
-#include "DDSCommanders/MissionPlannerDDSCommander.h"
+#include "MissionPlanner/MissionPlannerDDSCommander.h"
 
 #include "DDSMessages/FinderMessageListSupport.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"

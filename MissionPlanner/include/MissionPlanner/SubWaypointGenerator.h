@@ -2,7 +2,7 @@
 #define SUBWAYPOINTGENERATOR_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionCamera.h"
+#include "MissionPlanner/SubMissionCamera.h"
 #include "SubMain/SubTriad.h"
 
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"

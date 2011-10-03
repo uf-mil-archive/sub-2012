@@ -6,8 +6,8 @@
 #include "SuckySim/SimHelpers.h"
 #include <Eigen/Dense>
 #include "SubMain/Workers/TrajectoryGenerator/TrajectoryGenerator.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionCamera.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionEnums.h"
+#include "MissionPlanner/SubMissionCamera.h"
+#include "MissionPlanner/SubMissionEnums.h"
 #include <boost/asio/deadline_timer.hpp>
 
 using namespace Eigen;

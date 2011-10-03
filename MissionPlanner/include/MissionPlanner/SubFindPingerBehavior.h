@@ -2,7 +2,7 @@
 #define SUBFINDPINGERBEHAVIOR_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "MissionPlanner/SubMissionBehavior.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
 
 #include <Eigen/Dense>

@@ -5,11 +5,11 @@
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/MissionPlanner/BehaviorInfo.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionEnums.h"
+#include "MissionPlanner/SubMissionEnums.h"
 #include "SubMain/SubStateManager.h"
 #include "SubMain/SubAttitudeHelpers.h"
 #include "SubMain/SubMILQuaternion.h"
-#include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
+#include "MissionPlanner/SubWaypointGenerator.h"
 
 #include <Eigen/Dense>
 #include <cmath>

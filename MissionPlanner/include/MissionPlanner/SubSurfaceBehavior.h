@@ -2,7 +2,7 @@
 #define SUBSURFACEBEHAVIOR_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "MissionPlanner/SubMissionBehavior.h"
 
 #include <Eigen/Dense>
 

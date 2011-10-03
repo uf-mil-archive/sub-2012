@@ -2,7 +2,7 @@
 #define SUBFINDHEDGE_H
 
 #include "SubMain/SubPrerequisites.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionBehavior.h"
+#include "MissionPlanner/SubMissionBehavior.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "SubMain/SubBoolTimer.h"

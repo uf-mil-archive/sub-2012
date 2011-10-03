@@ -1,8 +1,8 @@
 #ifndef SIMCAMERA_H
 #define SIMCAMERA_H
 
-#include "SubMain/Workers/MissionPlanner/SubMissionCamera.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionEnums.h"
+#include "MissionPlanner/SubMissionCamera.h"
+#include "MissionPlanner/SubMissionEnums.h"
 
 #include <Eigen/Dense>
 #include <vector>

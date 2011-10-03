@@ -7,7 +7,7 @@
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
-#include "SubMain/Workers/MissionPlanner/SubWaypointGenerator.h"
+#include "MissionPlanner/SubWaypointGenerator.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "SubMain/SubStateManager.h"
 #include "SubMain/SubBoolTimer.h"

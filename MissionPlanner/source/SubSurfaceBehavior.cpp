@@ -1,5 +1,5 @@
-#include "SubMain/Workers/MissionPlanner/SubSurfaceBehavior.h"
-#include "SubMain/Workers/MissionPlanner/SubMissionPlannerWorker.h"
+#include "MissionPlanner/SubSurfaceBehavior.h"
+#include "MissionPlanner/SubMissionPlannerWorker.h"
 
 #include <iostream>
 
