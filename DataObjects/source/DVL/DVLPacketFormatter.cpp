@@ -37,7 +37,7 @@ bool DVLPacketFormatter::parseEnsemble(vector<Packet> &packets, ByteVec::const_i
 		return false; // no more ensembles
 
 	int checksum = getU16LE(bufpos + length); // extract checksum
-	if (checksum != computeChecksum(bufpos, bufpos + length - 2)) { // if checksum didn't pass
+	if (checksum != computeChecksum(bufpos, bufpos + length)) { // if checksum didn't pass
 		bufpos++; // consume one byte of the header, to ensure we look ahead to find the next ensemble
 		return true; // more ensembles could exist
 	}
