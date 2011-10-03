@@ -3,6 +3,6 @@
 # If you add an entry that is definitely yours to your local config, go ahead
 # and remove it from here.
 
-build
+build*/
 *~
 subjugator_pc

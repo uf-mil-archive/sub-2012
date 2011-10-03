@@ -1,7 +1,9 @@
 # Platform detection and defines
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-DRTI_UNIX -DRTI_LINUX)
-	set(NDDS_ARCH "x64Linux2.6gcc4.1.1" CACHE STRING "Architecture type for RTI DDS")
+	if(NOT NDDS_ARCH)
+		set(NDDS_ARCH "x64Linux2.6gcc4.1.1" CACHE STRING "Architecture type for RTI DDS")
+	endif()
 	mark_as_advanced(NDDS_ARCH)
 else()
 	message(FATAL_ERROR "TODO: FindNDDS.cmake windows support!")
