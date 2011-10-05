@@ -5,7 +5,7 @@
  *      Author: gbdash
  */
 
-#include "DDSCommanders/HydrophoneDDSCommander.h"
+#include "Hydrophone/HydrophoneDDSCommander.h"
 #include "Hydrophone/SubHydrophoneWorker.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
 #include <boost/bind.hpp>

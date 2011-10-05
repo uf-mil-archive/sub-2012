@@ -1,4 +1,4 @@
-#include "DDSCommanders/VisionDDSCommander.h"
+#include "VisionDDSCommander.h"
 #include "SubMain/Workers/SubWorker.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 
