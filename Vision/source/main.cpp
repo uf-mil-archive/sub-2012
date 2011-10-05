@@ -1,6 +1,6 @@
 #include <ndds/ndds_cpp.h>
 #include "VisionWorker.h"
-#include "DDSListeners/VisionDDSListener.h"
+#include "VisionDDSListener.h"
 #include "DDSCommanders/VisionDDSCommander.h"
 #include "DataObjects/Vision/VisionSetIDs.h"
 #include "DDSMessages/Finder2DMessageSupport.h"

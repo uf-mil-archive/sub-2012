@@ -1,7 +1,7 @@
 #include <ndds/ndds_cpp.h>
 #include "DepthSmartSensor/SubDepthWorker.h"
 
-#include "DDSListeners/DepthDDSListener.h"
+#include "DepthSmartSensor/DepthDDSListener.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>

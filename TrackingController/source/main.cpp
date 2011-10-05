@@ -1,11 +1,10 @@
 #include <ndds/ndds_cpp.h>
 #include "TrackingController/TrackingControllerWorker.h"
 #include "TrackingController/TrackingControllerDDSCommander.h"
-#include "DDSListeners/TrackingControllerDDSListener.h"
+#include "TrackingController/TrackingControllerDDSListener.h"
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 
-#include "DDSListeners/LPOSVSSDDSListener.h"
 #include "DDSMessages/LPOSVSSMessage.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
 #include "DDSMessages/TrackingControllerLogMessage.h"

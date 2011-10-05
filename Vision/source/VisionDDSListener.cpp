@@ -1,4 +1,4 @@
-#include "DDSListeners/VisionDDSListener.h"
+#include "VisionDDSListener.h"
 #include "DataObjects/DataObjectVec.h"
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/FinderResult3D.h"
@@ -48,7 +48,7 @@ void VisionDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
 				f3dmsg->ang3 = fres3d->ang3;
 				f3dmsg->objectid = fres3d->objectID;
 				
-				fml->messages3d[newpos] = *f3dmsg;	
+				fml->messages3d[newpos] = *f3dmsg;
 				Finder3DMessageTypeSupport::delete_data(f3dmsg);
 			}
 		}

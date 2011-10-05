@@ -1,7 +1,7 @@
 #include <ndds/ndds_cpp.h>
 #include "LPOSVSS/SubLPOSVSSWorker.h"
 #include "LPOSVSS/LPOSVSSDDSCommander.h"
-#include "DDSListeners/LPOSVSSDDSListener.h"
+#include "LPOSVSS/LPOSVSSDDSListener.h"
 #include "DataObjects/Depth/DepthInfo.h"
 
 #include <boost/scoped_ptr.hpp>

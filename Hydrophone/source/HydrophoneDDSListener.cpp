@@ -5,7 +5,7 @@
  *      Author: gbdash
  */
 
-#include "DDSListeners/HydrophoneDDSListener.h"
+#include "Hydrophone/HydrophoneDDSListener.h"
 #include "DataObjects/Hydrophone/HydrophoneInfo.h"
 #include <iostream>
 

@@ -1,11 +1,10 @@
 #include <ndds/ndds_cpp.h>
 #include "TrajectoryGenerator/TrajectoryGeneratorWorker.h"
 #include "TrajectoryGenerator/TrajectoryGeneratorDDSCommander.h"
-#include "DDSListeners/TrajectoryGeneratorDDSListener.h"
+#include "TrajectoryGenerator/TrajectoryGeneratorDDSListener.h"
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 
-#include "DDSListeners/LPOSVSSDDSListener.h"
 #include "DDSMessages/LPOSVSSMessage.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
 

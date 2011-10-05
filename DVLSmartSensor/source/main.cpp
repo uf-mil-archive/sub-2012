@@ -1,7 +1,7 @@
 #include <ndds/ndds_cpp.h>
 #include "DVLSmartSensor/SubDVLWorker.h"
 
-#include "DDSListeners/DVLDDSListener.h"
+#include "DVLSmartSensor/DVLDDSListener.h"
 
 #include <boost/thread.hpp>
 #include <iostream>

@@ -1,4 +1,4 @@
-#include "DDSListeners/IMUDDSListener.h"
+#include "IMUSmartSensor/IMUDDSListener.h"
 #include <iostream>
 
 using namespace subjugator;

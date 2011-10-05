@@ -1,4 +1,4 @@
-#include "DDSListeners/DepthDDSListener.h"
+#include "DepthSmartSensor/DepthDDSListener.h"
 
 using namespace subjugator;
 

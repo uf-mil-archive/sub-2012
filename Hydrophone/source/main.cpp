@@ -10,7 +10,7 @@
 #include "Hydrophone/HydrophoneDataProcessor.h"
 #include "Hydrophone/SubHydrophoneWorker.h"
 #include "config.h"
-#include "DDSListeners/HydrophoneDDSListener.h"
+#include "Hydrophone/HydrophoneDDSListener.h"
 #include "DDSCommanders/HydrophoneDDSCommander.h"
 #include <ndds/ndds_cpp.h>
 

@@ -1,4 +1,4 @@
-#include "DDSListeners/TrajectoryGeneratorDDSListener.h"
+#include "EquTrajectoryGenerator/TrajectoryGeneratorDDSListener.h"
 
 using namespace subjugator;
 

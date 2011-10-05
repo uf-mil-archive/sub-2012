@@ -3,7 +3,7 @@
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include "DDSMessages/PDActuatorMessageSupport.h"
 #include "PrimitiveDriver/SubPDWorker.h"
-#include "DDSListeners/PDDDSListener.h"
+#include "PrimitiveDriver/PDDDSListener.h"
 #include "PrimitiveDriver/PDDDSCommander.h"
 
 #include <boost/scoped_ptr.hpp>

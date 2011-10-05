@@ -1,7 +1,7 @@
 #include <ndds/ndds_cpp.h>
 #include "EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
 #include "EquTrajectoryGenerator/EquTrajectoryGeneratorDDSCommander.h"
-#include "DDSListeners/TrajectoryGeneratorDDSListener.h"
+#include "EquTrajectoryGenerator/TrajectoryGeneratorDDSListener.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 #include <boost/scoped_ptr.hpp>

@@ -1,7 +1,7 @@
 #include <ndds/ndds_cpp.h>
 
 #include "MissionPlanner/SubMissionPlannerWorker.h"
-#include "DDSListeners/MissionPlannerDDSListener.h"
+#include "MissionPlanner/MissionPlannerDDSListener.h"
 #include "MissionPlanner/MissionPlannerDDSCommander.h"
 
 #include "DDSMessages/FinderMessageListSupport.h"

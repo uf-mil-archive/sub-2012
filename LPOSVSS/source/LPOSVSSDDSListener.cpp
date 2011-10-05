@@ -1,4 +1,4 @@
-#include "DDSListeners/LPOSVSSDDSListener.h"
+#include "LPOSVSS/LPOSVSSDDSListener.h"
 #include "DDSMessages/LPOSVSSMessage.h"
 
 using namespace subjugator;

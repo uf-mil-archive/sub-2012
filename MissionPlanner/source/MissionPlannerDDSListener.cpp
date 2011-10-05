@@ -1,4 +1,4 @@
-#include "DDSListeners/MissionPlannerDDSListener.h"
+#include "MissionPlanner/MissionPlannerDDSListener.h"
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DDSMessages/VisionSetIDsMessage.h"
