@@ -9,7 +9,7 @@
 # There may be a better way to do this but I can't find it
 if(CMAKE_CROSSCOMPILING)
 	file(RELATIVE_PATH SUBJUGATOR_RUNTIME_INSTALL_PREFIX ${CMAKE_FIND_ROOT_PATH} ${CMAKE_INSTALL_PREFIX}) # Strip the find root path from the install prefix to get the runtime path of the installed binaries
-	set(RELATIVE_PATH "/${RELATIVE_PATH}")
+	set(SUBJUGATOR_RUNTIME_INSTALL_PREFIX "/${SUBJUGATOR_RUNTIME_INSTALL_PREFIX}")
 else()
 	set(SUBJUGATOR_RUNTIME_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 endif()
