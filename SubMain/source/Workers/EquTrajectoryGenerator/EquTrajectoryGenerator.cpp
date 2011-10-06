@@ -18,7 +18,7 @@ TrajectoryInfo EquTrajectoryGenerator::computeTrajectory(boost::int64_t currentT
     trajectory(2) = -t/50;
     trajectory(3) = 0;
     trajectory(4) = 0;
-    trajectory(6) = -t/20+90*3.1415/180.0;
+    trajectory(5) = -t/20+90*3.1415/180.0;
 
 	Vector6d trajectory_dot;
 	trajectory_dot(0) = sin(t/20)/(5*exp(t/10)) - (cos(t/20)*(1/exp(t/10) - 1))/10;

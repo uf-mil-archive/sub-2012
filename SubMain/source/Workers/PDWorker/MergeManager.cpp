@@ -8,7 +8,6 @@
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include "HAL/format/BytePacketFormatter.h"
 #include <boost/bind.hpp>
-#include <iostream>
 
 using namespace subjugator;
 using namespace boost;
@@ -25,10 +24,8 @@ MergeManager::MergeManager(SubHAL &hal)
 
 void MergeManager::halReceiveCallback(std::auto_ptr<DataObject> &dobj) {
 	if (MergeInfo *info = dynamic_cast<MergeInfo *>(dobj.get())) {
-		cout << "Got merge info" << endl;
 		this->info = *info;
 	} else if (LimitSwitchStatus *limitstatus = dynamic_cast<LimitSwitchStatus *>(dobj.get())) {
-		cout << "Got limit switch status: " << limitstatus->getStatus() << endl;
 		if (limitstatus->getStatus())
 			this->info.setFlags(this->info.getFlags() | (1 << 8));
 		else
