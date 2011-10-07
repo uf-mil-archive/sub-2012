@@ -36,13 +36,13 @@ find_package(Boost REQUIRED COMPONENTS system thread date_time regex)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # add shared projects
-add_subdirectory(DDS)
-add_subdirectory(HAL)
-add_subdirectory(DataObjects)
-add_subdirectory(SubMain)
+add_subdirectory(Shared/DDS)
+add_subdirectory(Shared/HAL)
+add_subdirectory(Shared/DataObjects)
+add_subdirectory(Shared/SubMain)
 
 # We're building LPOSVSS binaries for both systems until its running smoothly on the gumstix
-add_subdirectory(LPOSVSS)
+add_subdirectory(Sensors/LPOSVSS)
 
 # handle libraries and projects that only runs on the pc
 if(BUILD_PC)
@@ -74,43 +74,30 @@ if(BUILD_PC)
 		message(WARNING "FFTW not found. Eigen will fall back to kissfft.")
 	endif()
 
-	add_subdirectory(Hydrophone)
-	add_subdirectory(MissionPlanner)
-	add_subdirectory(PrimitiveDriver)
-	add_subdirectory(SensorLogger)
+	add_subdirectory(Sensors/Hydrophone)
+	add_subdirectory(Mission/MissionPlanner)
+	add_subdirectory(Control/PrimitiveDriver)
+	add_subdirectory(Tools/SensorLogger)
 	
 	if(OpenCV_FOUND AND FLYCAPTURE_FOUND)
-		add_subdirectory(Vision)
+		add_subdirectory(Mission/Vision)
 	endif()
 	
 	if(QT_FOUND)
-		add_subdirectory(MotorCalibrate)
-		add_subdirectory(DepthTest)
-		add_subdirectory(DDSWatcher)
-		add_subdirectory(PDTest)
+		add_subdirectory(Tools/MotorCalibrate)
+		add_subdirectory(Tools/DepthTest)
+		add_subdirectory(Tools/DDSWatcher)
+		add_subdirectory(Tools/PDTest)
 		if(QWT_FOUND)
-			add_subdirectory(TrajectoryTest)
+			add_subdirectory(Tools/TrajectoryTest)
 		endif()
 	endif()
 endif()
 
 # handle projects that only run on the gumstix
 if(BUILD_GUMSTIX)
-	add_subdirectory(IMUSmartSensor)
-	add_subdirectory(DepthSmartSensor)
-	add_subdirectory(DVLSmartSensor)
-endif()
-
-# Handle the example projects
-set(BUILD_EXAMPLE FALSE CACHE BOOL "Whether to build simple demonstration projects in ExampleProjects/")
-if(BUILD_EXAMPLE)
-	add_subdirectory(ExampleProjects/DDSPublisher)
-	add_subdirectory(ExampleProjects/DDSSubscriber)
-	add_subdirectory(ExampleProjects/SimpleLib)
-	add_subdirectory(ExampleProjects/SimpleLibUser)
-	
-	if(QT_FOUND)
-		add_subdirectory(ExampleProjects/SimpleQt)
-	endif()
+	add_subdirectory(Sensors/IMUSmartSensor)
+	add_subdirectory(Sensors/DepthSmartSensor)
+	add_subdirectory(Sensors/DVLSmartSensor)
 endif()
 
