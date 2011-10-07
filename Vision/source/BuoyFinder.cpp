@@ -34,7 +34,7 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 		Blob* blob = new Blob(100,80000,2000);
 		result = blob->findBlob(ioimages);
 
-		for (int j=0; j<blob->data.size(); j++) {
+		for (unsigned int j=0; j<blob->data.size(); j++) {
 			// Prepare results
 			FinderResult2D *fResult2D = new FinderResult2D();
 			// Draw result

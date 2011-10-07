@@ -88,13 +88,6 @@ function(sub_executable projectname)
 		set(flycapture TRUE)
 	endif()
 
-	list(FIND ARGN GSL gsl_pos)
-	if(gsl_pos EQUAL -1)
-		set(gsl FALSE)
-	else()
-		set(gsl TRUE)
-	endif()
-
 	project(${projectname})
 
 	# set up some variables and includes
@@ -121,6 +114,9 @@ function(sub_executable projectname)
 	if(dds)
 		include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
 		set(libraries ${libraries} ${NDDS_LIBRARIES}) # link to DDS
+		
+		ndds_include_project_rtiddsgen_directories(DDS idl) # Put our DDS project's IDLs on the include path
+		include_directories(DDS/include) # And put its include directory on the include path
 	endif()
 
 	#optionally set up qt functionality
@@ -159,12 +155,6 @@ function(sub_executable projectname)
 	if(flycapture)
 		set(libraries ${libraries} ${FLYCAPTURE_LIBRARIES})
 		include_directories(${FLYCAPTURE_INCLUDES})
-	endif()
-
-	# GSL
-	if(gsl)
-		set(libraries ${libraries} ${GSL_LIBRARIES})
-		include_directories(${GSL_INCLUDE_DIRS})
 	endif()
 
 	# Boost comes last, since flycapture depends on it
