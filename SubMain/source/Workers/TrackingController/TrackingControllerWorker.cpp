@@ -86,7 +86,8 @@ void TrackingControllerWorker::standbyState()
 
 		Vector6d traj;
 		traj.head<3>() = lposInfo->getPosition_NED();
-		traj.tail<3>().fill(0);
+		traj.tail<3>() = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
+		traj(3) = traj(4) = 0;
 		trajInfo = auto_ptr<TrajectoryInfo>(new TrajectoryInfo(getTimestamp(), traj, Vector6d::Zero()));
 
 		mStateManager.ChangeState(SubStates::READY);
