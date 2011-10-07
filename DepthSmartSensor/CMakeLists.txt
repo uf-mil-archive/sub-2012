@@ -1,3 +1,3 @@
 sub_executable(DepthSmartSensor DDS)
-sub_reference_library(DepthSmartSensor HAL DataObjects DDSListeners DDSMessages SubMain)
+sub_reference_library(DepthSmartSensor SubMain HAL DataObjects DDS)
 
