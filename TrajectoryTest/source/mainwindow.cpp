@@ -275,8 +275,6 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 	errrpyPlot(false),
 	compare1Plot(false),
 	compare2Plot(false),
-	actualToggle(false),
-	testToggle(false),
 	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::TrajectoryDDSReadCallback, this, _1)),
 	lposvssreceiver(participant, "LPOSVSS", bind(&MainWindow::LPOSVSSDDSReadCallback, this, _1)),
 	waypointddssender(partSender, "SetWaypoint"),
@@ -633,18 +631,12 @@ void MainWindow::onTrajectoryReceived()
 
 void MainWindow::LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg)
 {
-	if (testToggle)
-		return;
-
 	lposmsg = msg;
 	emit lposReceived();
 }
 
 void MainWindow::TrajectoryDDSReadCallback(const TrajectoryMessage &msg)
 {
-	if (testToggle)
-		return;
-
 	trajectorymsg = msg;
 	emit trajectoryReceived();
 }
@@ -936,227 +928,6 @@ void MainWindow::on_actionActionErrorRPY_triggered()
     ui->qwtPlot2->replot();
 }
 
-// ADDED FOR SIMULATION
-void MainWindow::timerEvent(QTimerEvent *)
-{
-	TrajectoryInfo traj = trajectoryGenerator.Update(getTimestamp());
-
-	addPoint(TrackingControllerInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), Matrix<double, 6, 1>::Zero(), traj.getTrajectory(), traj.getTrajectory_dot()));
-
-    DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
-    buffer1->update(poseList.size());//poseList.size());
-
-    DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
-    buffer2->update(poseList.size());//poseList.size());
-
-    DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
-    buffer3->update(poseList.size());//poseList.size());
-
-    DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
-    buffer4->update(poseList.size());//poseList.size());
-
-    DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
-    buffer5->update(poseList.size());//poseList.size());
-
-    DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
-    buffer6->update(poseList.size());//poseList.size());
-
-    double minValP1 = 0.0, maxValP1 = 0.0, minValP2 = 0.0, maxValP2 = 0.0;
-
-    if (posPlot)
-	{
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
-
-			temp = (poseList[j].Xd.block<3,1>(0,0)).minCoeff();
-			if (temp < minValP1)
-				minValP1 = temp;
-
-			temp = (poseList[j].Xd.block<3,1>(0,0)).maxCoeff();
-			if (temp > maxValP1)
-				maxValP1 = temp;
-
-			temp = (poseList[j].Xd_dot.block<3,1>(0,0)).minCoeff();
-			if (temp < minValP2)
-				minValP2 = temp;
-
-			temp = (poseList[j].Xd_dot.block<3,1>(0,0)).maxCoeff();
-			if (temp > maxValP2)
-				maxValP2 = temp;
-		}
-	}
-	else if (rpyPlot)
-	{
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
-
-			temp = (poseList[j].Xd.block<3,1>(3,0)).minCoeff();
-			if (temp < minValP1)
-				minValP1 = temp;
-
-			temp = (poseList[j].Xd.block<3,1>(3,0)).maxCoeff();
-			if (temp > maxValP1)
-				maxValP1 = temp;
-
-			temp = (poseList[j].Xd_dot.block<3,1>(3,0)).minCoeff();
-			if (temp < minValP2)
-				minValP2 = temp;
-
-			temp = (poseList[j].Xd_dot.block<3,1>(3,0)).maxCoeff();
-			if (temp > maxValP2)
-				maxValP2 = temp;
-		}
-	}
-	else if (errposPlot)
-	{
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
-
-			temp = (poseList[j].X.block<3,1>(0,0)-poseList[j].Xd.block<3,1>(0,0)).minCoeff();
-			if (temp < minValP1)
-				minValP1 = temp;
-
-			temp = (poseList[j].X.block<3,1>(0,0)-poseList[j].Xd.block<3,1>(0,0)).maxCoeff();
-			if (temp > maxValP1)
-				maxValP1 = temp;
-
-			temp = (poseList[j].X_dot.block<3,1>(0,0)-poseList[j].Xd_dot.block<3,1>(0,0)).minCoeff();
-			if (temp < minValP2)
-				minValP2 = temp;
-
-			temp = (poseList[j].X_dot.block<3,1>(0,0)-poseList[j].Xd_dot.block<3,1>(0,0)).maxCoeff();
-			if (temp > maxValP2)
-				maxValP2 = temp;
-		}
-	}
-	else if (errrpyPlot)
-	{
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
-
-			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).minCoeff();
-			if (temp < minValP1)
-				minValP1 = temp;
-
-			temp = (poseList[j].X.block<3,1>(3,0)-poseList[j].Xd.block<3,1>(3,0)).maxCoeff();
-			if (temp > maxValP1)
-				maxValP1 = temp;
-
-			temp = (poseList[j].X_dot.block<3,1>(3,0)-poseList[j].Xd_dot.block<3,1>(3,0)).minCoeff();
-			if (temp < minValP2)
-				minValP2 = temp;
-
-			temp = (poseList[j].X_dot.block<3,1>(3,0)-poseList[j].Xd_dot.block<3,1>(3,0)).maxCoeff();
-			if (temp > maxValP2)
-				maxValP2 = temp;
-		}
-	}
-	else if (compare1Plot)
-	{
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
-
-			temp = (Vector2d(poseList[j].X(0), poseList[j].Xd(0))).minCoeff();
-			if (temp < minValP1)
-				minValP1 = temp;
-
-			temp = (Vector2d(poseList[j].X(0), poseList[j].Xd(0))).maxCoeff();
-			if (temp > maxValP1)
-				maxValP1 = temp;
-
-			temp = (Vector2d(poseList[j].X(1), poseList[j].Xd(1))).minCoeff();
-			if (temp < minValP2)
-				minValP2 = temp;
-
-			temp = (Vector2d(poseList[j].X(1), poseList[j].Xd(1))).maxCoeff();
-			if (temp > maxValP2)
-				maxValP2 = temp;
-		}
-	}
-	else if (compare2Plot)
-	{
-		for (int j = 0; j < poseList.size(); j ++)
-		{
-			double temp = 0.0;
-
-			temp = (Vector2d(poseList[j].X(2), poseList[j].Xd(2))).minCoeff();
-			if (temp < minValP1)
-				minValP1 = temp;
-
-			temp = (Vector2d(poseList[j].X(2), poseList[j].Xd(2))).maxCoeff();
-			if (temp > maxValP1)
-				maxValP1 = temp;
-
-			temp = (Vector2d(poseList[j].X(5), poseList[j].Xd(5))).minCoeff();
-			if (temp < minValP2)
-				minValP2 = temp;
-
-			temp = (Vector2d(poseList[j].X(5), poseList[j].Xd(5))).maxCoeff();
-			if (temp > maxValP2)
-				maxValP2 = temp;
-		}
-	}
-
-    if (minValP1 > -1)
-    	minValP1 = -1;
-    else
-    	minValP1 *= 1.05;
-
-    if (minValP2 > -1)
-		minValP2 = -1;
-	else
-		minValP2 *= 1.05;
-
-    if (maxValP1 < 1)
-    	maxValP1 = 1;
-    else
-    	maxValP1 *= 1.05;
-
-    if (maxValP2 < 1)
-    	maxValP2 = 1;
-    else
-    	maxValP2 *= 1.05;
-
-    if (posPlot)
-    {
-    	ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
-    	ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
-    }
-    else if (rpyPlot)
-    {
-    	ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
-    	ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
-    }
-    else if (errposPlot)
-	{
-		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
-		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
-	}
-    else if (errrpyPlot)
-	{
-		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP1, (180/M_PI)*maxValP1);
-		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
-	}
-    else if (compare1Plot)
-	{
-		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
-		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
-	}
-    else if (compare2Plot)
-	{
-		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
-		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
-	}
-
-    ui->qwtPlot1->replot();
-    ui->qwtPlot2->replot();
-}
-
 boost::int64_t MainWindow::getTimestamp(void)
 {
 	timespec t;
@@ -1169,40 +940,23 @@ void MainWindow::on_btnSubmitWaypt_clicked()
 {
 	ui->statusBar->showMessage("Waypoint Submitted");
 
-	if (testToggle)
-	{
-		trajectoryGenerator.InitTimers(getTimestamp());
+	SetWaypointMessage *msg = SetWaypointMessageTypeSupport::create_data();
+	msg->isRelative = true;
+	msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
+	msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
+	msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
+	msg->rpy[0] = 0;
+	msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
+	msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
+	waypointddssender.Send(*msg);
 
-		Waypoint wp;
+	SetWaypointMessageTypeSupport::delete_data(msg);
 
-		wp.setX(ui->lineEditWayptX->text().toDouble());
-		wp.setY(ui->lineEditWayptY->text().toDouble());
-		wp.setZ(ui->lineEditWayptZ->text().toDouble());
-		wp.setPitch(M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble());
-		wp.setYaw(M_PI / 180.0 * ui->lineEditWayptYaw->text().toDouble());
-
-		trajectoryGenerator.SetWaypoint(wp, true);
-	}
-	else
-	{
-		SetWaypointMessage *msg = SetWaypointMessageTypeSupport::create_data();
-		msg->isRelative = true;
-		msg->position_ned[0] = ui->lineEditWayptX->text().toDouble();
-		msg->position_ned[1] = ui->lineEditWayptY->text().toDouble();
-		msg->position_ned[2] = ui->lineEditWayptZ->text().toDouble();
-		msg->rpy[0] = 0;
-		msg->rpy[1] = M_PI/ 180.0 * ui->lineEditWayptPitch->text().toDouble();
-		msg->rpy[2] = M_PI/ 180.0 * ui->lineEditWayptYaw->text().toDouble();
-		waypointddssender.Send(*msg);
-
-		SetWaypointMessageTypeSupport::delete_data(msg);
-
-		ui->lineEditWayptX->setText(QString("0.0"));
-		ui->lineEditWayptY->setText(QString("0.0"));
-		ui->lineEditWayptZ->setText(QString("0.0"));
-		ui->lineEditWayptPitch->setText(QString("0.0"));
-		ui->lineEditWayptYaw->setText(QString("0.0"));
-	}
+	ui->lineEditWayptX->setText(QString("0.0"));
+	ui->lineEditWayptY->setText(QString("0.0"));
+	ui->lineEditWayptZ->setText(QString("0.0"));
+	ui->lineEditWayptPitch->setText(QString("0.0"));
+	ui->lineEditWayptYaw->setText(QString("0.0"));
 }
 
 void MainWindow::on_btnSubmitStart_clicked()
@@ -1258,14 +1012,6 @@ void MainWindow::on_btnCallUpdate_clicked()
 
 	ui->qwtPlot1->replot();
 	ui->qwtPlot2->replot();
-}
-
-void MainWindow::on_btnToggleActual_clicked()
-{
-	if (actualToggle)
-		actualToggle = false;
-	else
-		actualToggle = true;
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)
@@ -1400,24 +1146,3 @@ void MainWindow::on_actionDesired_vs_Actual_z_and_yaw_triggered()
     ui->qwtPlot2->replot();
 }
 
-void MainWindow::on_btnTestToggle_clicked()
-{
-	if (testToggle)
-	{
-		testToggle = false;
-
-		ui->btnSubmitStart->setVisible(false);
-		ui->btnCallUpdate->setVisible(false);
-	}
-	else
-	{
-		testToggle = true;
-
-		ui->btnSubmitStart->setVisible(true);
-		ui->btnCallUpdate->setVisible(true);
-
-	    Waypoint wp;
-	    trajectoryGenerator.SetWaypoint(wp, true);
-	    trajectoryGenerator.InitTimers(getTimestamp());
-	}
-}

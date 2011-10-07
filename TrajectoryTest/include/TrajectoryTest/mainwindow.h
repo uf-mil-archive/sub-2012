@@ -9,7 +9,6 @@
 #include <QVector>
 #include "ui_mainwindow.h"
 #include "dataseries.h"
-#include "SubMain/Workers/TrajectoryGenerator/TrajectoryGenerator.h"
 #include "DDSCommanders/TrajectoryDDSReceiver.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/TrackingController/TrackingControllerInfo.h"
@@ -20,6 +19,7 @@
 #include "DDSMessages/ControllerGainsMessage.h"
 #include "DDSMessages/ControllerGainsMessageSupport.h"
 #include "DDSListeners/DDSSender.h"
+#include "SubMain/SubMILQuaternion.h"
 #include <ndds/ndds_cpp.h>
 #include <Eigen/Dense>
 #include <time.h>
@@ -61,12 +61,8 @@ namespace subjugator
 		//void addPoint(points pos);
 		void addPoint(const TrackingControllerInfo& p);
 
-		TrajectoryGenerator trajectoryGenerator;
 		void TrajectoryDDSReadCallback(const TrajectoryMessage &msg);
 		void LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg);
-
-	protected:
-		virtual void timerEvent(QTimerEvent *e);
 
 	private slots:
 		void on_actionRPY_Data_triggered();
@@ -78,12 +74,10 @@ namespace subjugator
 	    void on_btnCallUpdate_clicked();
 	    void onTrajectoryReceived();
 	    void onLPOSReceived();
-	    void on_btnToggleActual_clicked();
 	    void on_tabWidget_currentChanged(int index);
 	    void on_btnSubmitGains_clicked();
 	    void on_actionDesired_vs_Actual_x_and_y_triggered();
 	    void on_actionDesired_vs_Actual_z_and_yaw_triggered();
-	    void on_btnTestToggle_clicked();
 
 	    signals:
 	    void trajectoryReceived();
@@ -121,8 +115,6 @@ namespace subjugator
 		bool errrpyPlot;
 		bool compare1Plot;
 		bool compare2Plot;
-		bool actualToggle;
-		bool testToggle;
 
 		TrajectoryDDSReceiver trajectoryreceiver;
 		LPOSVSSDDSReceiver lposvssreceiver;
