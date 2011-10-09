@@ -40,6 +40,7 @@ add_subdirectory(Shared/DDS)
 add_subdirectory(Shared/HAL)
 add_subdirectory(Shared/DataObjects)
 add_subdirectory(Shared/SubMain)
+add_subdirectory(Shared/LibSub)
 
 # We're building LPOSVSS binaries for both systems until its running smoothly on the gumstix
 add_subdirectory(Sensors/LPOSVSS)
