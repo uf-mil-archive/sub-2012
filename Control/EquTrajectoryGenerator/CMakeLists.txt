@@ -1,3 +1,3 @@
-sub_executable(EquTrajectoryGenerator DDS)
-sub_reference_library(EquTrajectoryGenerator SubMain HAL DataObjects DDS)
+sub_executable(EquTrajectoryGenerator LegacyDDS)
+sub_reference_library(EquTrajectoryGenerator SubMain HAL DataObjects)
 

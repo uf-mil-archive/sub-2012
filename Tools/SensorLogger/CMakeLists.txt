@@ -1,3 +1,3 @@
-sub_executable(SensorLogger DDS)
-sub_reference_library(SensorLogger DDS)
+sub_executable(SensorLogger LegacyDDS)
+sub_reference_library(SensorLogger)
 

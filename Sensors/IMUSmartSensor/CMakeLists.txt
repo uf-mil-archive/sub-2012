@@ -1,3 +1,3 @@
-sub_executable(IMUSmartSensor DDS)
-sub_reference_library(IMUSmartSensor SubMain HAL DataObjects DDS)
+sub_executable(IMUSmartSensor LegacyDDS)
+sub_reference_library(IMUSmartSensor SubMain HAL DataObjects)
 

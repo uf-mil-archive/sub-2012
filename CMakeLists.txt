@@ -36,11 +36,13 @@ find_package(Boost REQUIRED COMPONENTS system thread date_time regex)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # add shared projects
-add_subdirectory(Shared/DDS)
-add_subdirectory(Shared/HAL)
-add_subdirectory(Shared/DataObjects)
-add_subdirectory(Shared/SubMain)
 add_subdirectory(Shared/LibSub)
+add_subdirectory(Shared/HAL)
+
+# add legacy shared projects
+add_subdirectory(Legacy/DDS)
+add_subdirectory(Legacy/DataObjects)
+add_subdirectory(Legacy/SubMain)
 
 # We're building LPOSVSS binaries for both systems until its running smoothly on the gumstix
 add_subdirectory(Sensors/LPOSVSS)

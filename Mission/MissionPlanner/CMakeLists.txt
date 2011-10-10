@@ -1,3 +1,3 @@
-sub_executable(MissionPlanner DDS)
-sub_reference_library(MissionPlanner SubMain HAL DataObjects DDS)
+sub_executable(MissionPlanner LegacyDDS)
+sub_reference_library(MissionPlanner SubMain HAL DataObjects)
 

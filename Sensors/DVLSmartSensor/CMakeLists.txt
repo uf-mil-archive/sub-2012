@@ -1,3 +1,3 @@
-sub_executable(DVLSmartSensor DDS)
-sub_reference_library(DVLSmartSensor HAL DataObjects DDS SubMain)
+sub_executable(DVLSmartSensor LegacyDDS)
+sub_reference_library(DVLSmartSensor HAL DataObjects SubMain)
 

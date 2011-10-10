@@ -1,3 +1,3 @@
-sub_executable(Vision FlyCapture OpenCV DDS)
-sub_reference_library(Vision SubMain DataObjects HAL DDS)
+sub_executable(Vision FlyCapture OpenCV LegacyDDS)
+sub_reference_library(Vision SubMain DataObjects HAL)
 

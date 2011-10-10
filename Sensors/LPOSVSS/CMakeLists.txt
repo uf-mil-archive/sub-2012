@@ -1,3 +1,3 @@
-sub_executable(LPOSVSS DDS)
-sub_reference_library(LPOSVSS SubMain HAL DataObjects DDS)
+sub_executable(LPOSVSS LegacyDDS)
+sub_reference_library(LPOSVSS SubMain HAL DataObjects)
 

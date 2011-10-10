@@ -16,7 +16,7 @@ endif()
 set(SUBJUGATOR_CONFIG_DIRECTORY etc/subjugator CACHE STRING "Where the configuration files for the various subjugator binaries will be placed, relative to the install prefix")
 
 #############################################
-# sub_executable(ProjectName [DDS] [Qt])
+# sub_executable(ProjectName [LegacyDDS] [Qt])
 # Configures this project to build and install an executable, which is always
 # the name of the project in lowercase. If the project depends on DDS,
 # the DDS flag must be placed after the project name. All DDS generated code is placed in a
@@ -50,15 +50,15 @@ set(SUBJUGATOR_CONFIG_DIRECTORY etc/subjugator CACHE STRING "Where the configura
 #############################################
 
 function(sub_executable projectname)
-	list(FIND ARGN DDS dds_pos) #determine if the DDS flag was given
-	if (dds_pos EQUAL -1)
-		set(dds FALSE)
+	list(FIND ARGN LegacyDDS legacydds_pos) # determine if the DDS flag was given
+	if (legacydds_pos EQUAL -1)
+		set(legacydds FALSE)
 	else()
-		set(dds TRUE)
+		set(legacydds TRUE)
 	endif()
 
-	if (dds AND NOT NDDS_FOUND)
-		message(ERROR "sub_executable called with dds enabled, but DDS was not found")
+	if (legacydds AND NOT NDDS_FOUND)
+		message(ERROR "sub_executable called with legacy dds enabled, but DDS was not found")
 		return()
 	endif()
 
@@ -110,16 +110,17 @@ function(sub_executable projectname)
 		configure_file(include/config.h.in config.h) # configure it, putting it in the output directory
 	endif()
 
-	# Optionally set up dds functionality
-	if(dds)
+	# Handle legacy dds functionality
+	if(legacydds)
 		include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
 		set(libraries ${libraries} ${NDDS_LIBRARIES}) # link to DDS
 		
-		ndds_include_project_rtiddsgen_directories(DDS idl) # Put our DDS project's IDLs on the include path
-		include_directories(DDS/include) # And put its include directory on the include path
+		ndds_include_project_rtiddsgen_directories(LegacyDDS idl) # Put our DDS project's IDLs on the include path
+		include_directories(${LegacyDDS_SOURCE_DIR}/include) # Put its regular headers on the include path
+		set(libraries ${libraries} legacydds) # link to its libraries
 	endif()
 
-	#optionally set up qt functionality
+	# Set up qt functionality
 	if(qt)
 		set(QT_USE_QTOPENGL TRUE)
 		include(${QT_USE_FILE})
