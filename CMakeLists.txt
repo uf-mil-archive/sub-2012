@@ -88,7 +88,6 @@ if(BUILD_PC)
 	
 	if(QT_FOUND)
 		add_subdirectory(Tools/MotorCalibrate)
-		add_subdirectory(Tools/DepthTest)
 		add_subdirectory(Tools/DDSWatcher)
 		add_subdirectory(Tools/PDTest)
 		if(QWT_FOUND)
