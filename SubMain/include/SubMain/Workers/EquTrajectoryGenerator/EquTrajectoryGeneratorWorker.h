@@ -51,8 +51,10 @@ namespace subjugator
 
 		boost::mutex lock;
 		bool hardwareKilled;
+		std::auto_ptr<LPOSVSSInfo> lposInfo;
 
 		boost::int64_t getTimestamp(void);
+		void setLPOSVSSInfo(const DataObject& dobj);
 		void setPDInfo(const DataObject& dobj);
 	};
 }

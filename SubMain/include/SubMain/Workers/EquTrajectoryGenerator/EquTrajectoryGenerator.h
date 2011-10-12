@@ -4,6 +4,7 @@
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/LPOSVSS/SubAttitudeHelpers.h"
 #include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
+#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DataObjects/Waypoint/Waypoint.h"
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/EmbeddedTypeCodes.h"
@@ -28,11 +29,13 @@ namespace subjugator
 
     	EquTrajectoryGenerator();
 		TrajectoryInfo computeTrajectory(boost::int64_t currentTickCount);
-		void InitTimers(boost::int64_t currentTickCount);
+		void Init(boost::int64_t currentTickCount, const Vector3d &currentPos, double currentYaw);
 
 	private:
 		static const double NSECPERSEC = 1000000000;
 
+		Vector3d startPos;
+		double startYaw;
 		boost::int64_t startTickCount;
 	};
 

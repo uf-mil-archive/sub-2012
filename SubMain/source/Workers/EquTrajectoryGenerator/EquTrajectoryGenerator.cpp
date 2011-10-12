@@ -5,8 +5,10 @@ using namespace Eigen;
 
 EquTrajectoryGenerator::EquTrajectoryGenerator() : startTickCount(0) { }
 
-void EquTrajectoryGenerator::InitTimers(boost::int64_t currentTickCount) {
+void EquTrajectoryGenerator::Init(boost::int64_t currentTickCount, const Vector3d &currentPos, double currentYaw) {
 	startTickCount = currentTickCount;
+	startPos = currentPos;
+	startYaw = currentYaw;
 }
 
 TrajectoryInfo EquTrajectoryGenerator::computeTrajectory(boost::int64_t currentTickCount) {
@@ -27,6 +29,9 @@ TrajectoryInfo EquTrajectoryGenerator::computeTrajectory(boost::int64_t currentT
     trajectory_dot(3) = 0;
     trajectory_dot(4) = 0;
     trajectory_dot(5) = -1/20;
+    
+    trajectory.head<3>() += startPos;
+    trajectory(5) += startYaw;
 
 	return TrajectoryInfo(currentTickCount, trajectory, trajectory_dot);
 }

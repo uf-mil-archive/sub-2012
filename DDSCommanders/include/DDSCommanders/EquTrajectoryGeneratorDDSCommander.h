@@ -13,10 +13,13 @@ namespace subjugator {
 			EquTrajectoryGeneratorDDSCommander(Worker &worker, DDSDomainParticipant *participant);
 
 		private:
+			void receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo);
 			void receivedPDStatusInfo(const PDStatusMessage &pdstatusinfo);
 
+			LPOSVSSDDSReceiver lposvssreceiver;
 			PDStatusDDSReceiver pdstatusreceiver;
 
+			boost::weak_ptr<InputToken> lposvsscmdtoken;
 			boost::weak_ptr<InputToken> pdstatuscmdtoken;
 	};
 }

@@ -12,8 +12,39 @@ using namespace subjugator;
 using namespace boost;
 
 EquTrajectoryGeneratorDDSCommander::EquTrajectoryGeneratorDDSCommander(Worker &worker, DDSDomainParticipant *participant)
-: pdstatusreceiver(participant, "PDStatus", bind(&EquTrajectoryGeneratorDDSCommander::receivedPDStatusInfo, this, _1)) {
+: lposvssreceiver(participant, "LPOSVSS", bind(&EquTrajectoryGeneratorDDSCommander::receivedLPOSVSSInfo, this, _1)),
+  pdstatusreceiver(participant, "PDStatus", bind(&EquTrajectoryGeneratorDDSCommander::receivedPDStatusInfo, this, _1)) {
 	pdstatuscmdtoken = worker.ConnectToCommand((int)EquTrajectoryGeneratorWorkerCommands::SetPDInfo, 5);
+}
+
+void EquTrajectoryGeneratorDDSCommander::receivedLPOSVSSInfo(const LPOSVSSMessage &lposvssinfo) {
+	int state;
+	boost::int64_t timestamp;
+	Vector3d position_NED;
+	Vector4d quaternion_NED_B;
+	Vector3d velocity_NED;
+	Vector3d angularRate_BODY;
+	Vector3d acceleration_BODY;
+
+	state = lposvssinfo.state;
+	timestamp = lposvssinfo.timestamp;
+
+	for (int i=0; i<3; i++)
+		position_NED(i) = lposvssinfo.position_NED[i];
+	for (int i=0; i<4; i++)
+		quaternion_NED_B(i) = lposvssinfo.quaternion_NED_B[i];
+	for (int i=0; i<3; i++)
+		velocity_NED(i) = lposvssinfo.velocity_NED[i];
+	for (int i=0; i<3; i++)
+		angularRate_BODY(i) = lposvssinfo.angularRate_BODY[i];
+	for (int i=0; i<3; i++)
+		acceleration_BODY(i) = lposvssinfo.acceleration_BODY[i];
+
+	shared_ptr<InputToken> ptr = lposvsscmdtoken.lock();
+	if (ptr)
+	{
+		ptr->Operate(LPOSVSSInfo(state, timestamp, position_NED, quaternion_NED_B, velocity_NED, angularRate_BODY, acceleration_BODY));
+	}
 }
 
 void EquTrajectoryGeneratorDDSCommander::receivedPDStatusInfo(const PDStatusMessage &pdstatusinfo) {

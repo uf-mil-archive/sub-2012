@@ -1,4 +1,5 @@
 #include "SubMain/Workers/EquTrajectoryGenerator/EquTrajectoryGeneratorWorker.h"
+#include "SubMain/Workers/LPOSVSS/SubMILQuaternion.h"
 
 using namespace subjugator;
 using namespace std;
@@ -39,7 +40,9 @@ void EquTrajectoryGeneratorWorker::readyState()
 	// The first ready function call initializes the timers correctly
 	if(!inReady)
 	{
-		trajectoryGenerator.InitTimers(t);
+		lock.lock();
+		trajectoryGenerator.Init(t, lposInfo->getPosition_NED(), MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B())(2));
+		lock.unlock();
 		inReady = true;
 		return;
 	}
@@ -51,8 +54,6 @@ void EquTrajectoryGeneratorWorker::readyState()
 
 	// Emit every iteration
 	onEmitting(infop);
-
-	cout << "ready" << endl;
 }
 
 void EquTrajectoryGeneratorWorker::initializeState()
@@ -89,6 +90,20 @@ void EquTrajectoryGeneratorWorker::Shutdown()
 {
 	shutdown = true;
 }
+
+void EquTrajectoryGeneratorWorker::setLPOSVSSInfo(const DataObject& dobj)
+{
+	const LPOSVSSInfo *info = dynamic_cast<const LPOSVSSInfo *>(&dobj);
+	if(!info)
+		return;
+
+	lock.lock();
+
+	lposInfo = std::auto_ptr<LPOSVSSInfo>(new LPOSVSSInfo(*info));
+
+	lock.unlock();
+}
+
 
 void EquTrajectoryGeneratorWorker::setPDInfo(const DataObject& dobj)
 {
