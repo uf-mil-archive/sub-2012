@@ -316,7 +316,7 @@ void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Ve
 	Vector3d euler = MILQuaternionOps::Quat2Euler(lposQuatNEDBody);
 	double yaw = euler(2);
 
-	bool gainrotate = true;
+	bool gainrotate = false;
 	if (gainrotate) {
 		Vector6d kV_temp = kV;
 		kV(0) = abs(kV_temp(0)-kV_temp(1))/2.0*cos(2*yaw)+(kV_temp(0)+kV_temp(1))/2.0;
