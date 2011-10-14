@@ -9,12 +9,10 @@ typedef Matrix<double, 6, 1> Vector6d;
 TrackingController::TrackingController()
 {
 	// Default gains. TODO: load these from a file
-	ktemp << 20.0,20.0,80.0,15.0,50.0,20.0;
-	kstemp << 150.0,150.0,120.0,40.0,40.0,80.0;
-	alphatemp << 50.0,50.0,40.0,15.0,20.0,20.0;
-	alphatemp /= 1000;
-	betatemp << 60.0,60.0,30.0,20.0,10.0,30.0;
-	betatemp /= 1000;
+	ktemp << 20.0,20.0,70.0,15.0,50.0,20.0;
+	kstemp << 220.0,200.0,150.0,40.0,60.0,100.0;
+	alphatemp << 0.1,0.1,0.05,0.01,0.1,0.1;
+	betatemp << 15.0,10.0,15.0,5.0,10.0,10.0;
 	gamma1temp << 1.0,1.0,1.0,1.0,1.0,1.0;
 	gamma2temp << 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0;
 
@@ -347,4 +345,11 @@ void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Ve
 	alpha = AttitudeHelpers::DiagMatrixFromVector(alphaV);
 	beta = AttitudeHelpers::DiagMatrixFromVector(betaV);
 	ksPlus1 = ks + Matrix<double,6,6>::Identity();
+}
+
+void TrackingController::SetGainsTemp(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV) {
+	ktemp = kV;
+	kstemp = ksV;
+	alphatemp = alphaV;
+	betatemp = betaV;
 }
