@@ -14,6 +14,7 @@ using namespace boost;
 EquTrajectoryGeneratorDDSCommander::EquTrajectoryGeneratorDDSCommander(Worker &worker, DDSDomainParticipant *participant)
 : lposvssreceiver(participant, "LPOSVSS", bind(&EquTrajectoryGeneratorDDSCommander::receivedLPOSVSSInfo, this, _1)),
   pdstatusreceiver(participant, "PDStatus", bind(&EquTrajectoryGeneratorDDSCommander::receivedPDStatusInfo, this, _1)) {
+	lposvsscmdtoken = worker.ConnectToCommand((int)EquTrajectoryGeneratorWorkerCommands::SetLPOSVSSInfo, 5);
 	pdstatuscmdtoken = worker.ConnectToCommand((int)EquTrajectoryGeneratorWorkerCommands::SetPDInfo, 5);
 }
 

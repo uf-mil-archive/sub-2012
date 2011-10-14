@@ -25,7 +25,9 @@ EquTrajectoryGeneratorWorker::EquTrajectoryGeneratorWorker(boost::asio::io_servi
 			boost::bind(&EquTrajectoryGeneratorWorker::allState, this));
 
 	setControlToken((int)EquTrajectoryGeneratorWorkerCommands::SetPDInfo, boost::bind(&EquTrajectoryGeneratorWorker::setPDInfo, this, _1));
+	setControlToken((int)EquTrajectoryGeneratorWorkerCommands::SetLPOSVSSInfo, boost::bind(&EquTrajectoryGeneratorWorker::setLPOSVSSInfo, this, _1));
 }
+
 
 bool EquTrajectoryGeneratorWorker::Startup()
 {
@@ -65,7 +67,7 @@ void EquTrajectoryGeneratorWorker::initializeState()
 void EquTrajectoryGeneratorWorker::standbyState()
 {
 	inReady = false;
-	if(!hardwareKilled)
+	if(!hardwareKilled && lposInfo.get())
 		mStateManager.ChangeState(SubStates::READY);
 }
 
