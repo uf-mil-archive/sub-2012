@@ -355,7 +355,7 @@
             <item row="1" column="3">
              <widget class="QDoubleSpinBox" name="spinBoxax">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -365,7 +365,7 @@
             <item row="1" column="4">
              <widget class="QDoubleSpinBox" name="spinBoxbx">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -405,7 +405,7 @@
             <item row="2" column="3">
              <widget class="QDoubleSpinBox" name="spinBoxay">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -415,7 +415,7 @@
             <item row="3" column="3">
              <widget class="QDoubleSpinBox" name="spinBoxaz">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -425,7 +425,7 @@
             <item row="4" column="3">
              <widget class="QDoubleSpinBox" name="spinBoxaroll">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -435,7 +435,7 @@
             <item row="5" column="3">
              <widget class="QDoubleSpinBox" name="spinBoxapitch">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -445,7 +445,7 @@
             <item row="6" column="3">
              <widget class="QDoubleSpinBox" name="spinBoxayaw">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -455,7 +455,7 @@
             <item row="2" column="4">
              <widget class="QDoubleSpinBox" name="spinBoxby">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -465,7 +465,7 @@
             <item row="3" column="4">
              <widget class="QDoubleSpinBox" name="spinBoxbz">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -475,7 +475,7 @@
             <item row="4" column="4">
              <widget class="QDoubleSpinBox" name="spinBoxbroll">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -485,7 +485,7 @@
             <item row="5" column="4">
              <widget class="QDoubleSpinBox" name="spinBoxbpitch">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -495,7 +495,7 @@
             <item row="6" column="4">
              <widget class="QDoubleSpinBox" name="spinBoxbyaw">
               <property name="decimals">
-               <number>1</number>
+               <number>3</number>
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
@@ -538,7 +538,7 @@
      <x>0</x>
      <y>0</y>
      <width>1123</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

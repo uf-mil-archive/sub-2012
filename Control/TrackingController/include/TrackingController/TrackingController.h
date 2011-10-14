@@ -30,6 +30,9 @@ namespace subjugator
 		void GetWrench(TrackingControllerInfo &info);
 		void Update(boost::int64_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo);
 		void InitTimer(boost::int64_t currentTickCount);
+		
+		void SetGainsTemp(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV);
+		
 		void SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo);
 
 	private:

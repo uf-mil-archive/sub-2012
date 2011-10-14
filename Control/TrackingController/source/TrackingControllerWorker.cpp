@@ -182,7 +182,7 @@ void TrackingControllerWorker::setControllerGains(const DataObject& dobj)
 		return;
 	}
 
-	trackingController->SetGains(info->k, info->ks, info->alpha, info->beta, *lposInfo);
+	trackingController->SetGainsTemp(info->k, info->ks, info->alpha, info->beta);
 
 	lock.unlock();
 }

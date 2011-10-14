@@ -24,6 +24,7 @@ namespace subjugator
 		enum EquTrajectoryGeneratorCommandCode
 		{
 			SetPDInfo = 0,
+			SetLPOSVSSInfo = 1
 		};
 	};
 
