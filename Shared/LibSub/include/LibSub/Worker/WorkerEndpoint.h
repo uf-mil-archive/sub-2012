@@ -1,22 +1,39 @@
 #ifndef LIBSUB_WORKER_WORKERENDPOINT_H
 #define LIBSUB_WORKER_WORKERENDPOINT_H
 
-#include "LibSub/Worker/WorkerData.h"
+#include "LibSub/Worker/WorkerMailbox.h"
 #include "HAL/format/DataObjectEndpoint.h"
-#include <boost/scoped_ptr.hpp>
-#include <memory>
+#include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
 
 namespace subjugator {
-	class WorkerEndpoint : public WorkerData<std::auto_ptr<DataObject> > {
+	class WorkerEndpoint : public WorkerMailbox<boost::shared_ptr<DataObject> > {
 		public:
-			WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &name, double maxage=std::numeric_limits<double>::infinity());
+			typedef boost::function<void (DataObjectEndpoint&)> InitializeCallback;
+		
+			WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &name, const InitializeCallback &initcallback=InitializeCallback(), double maxage=std::numeric_limits<double>::infinity(), const Callback &rcallback=Callback());
 			
-			virtual Worker::State updateState(double dt);
+			DataObjectEndpoint &getEndpoint() { return *endpoint; }
+			const DataObjectEndpoint &getEndpoint() const { return *endpoint; }
+			
+			void write(const DataObject &dobj) { return getEndpoint().write(dobj); }
+			
+			template <typename T> boost::shared_ptr<T> getDataObject() const {
+				return boost::dynamic_pointer_cast<T>(get());
+			}
+
+			virtual const WorkerState &getWorkerState() const { return state; }
+			virtual void updateState(double dt);
 			
 		private:
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;
+			InitializeCallback initcallback;
 			double errorage;
-			bool reopening;
+			bool initialized;
+			WorkerState state;
+			
+			void halReceiveCallback(std::auto_ptr<DataObject> &dobj);
+			void halStateChangeCallback();
 	};
 }
 

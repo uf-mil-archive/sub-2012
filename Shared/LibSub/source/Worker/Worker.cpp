@@ -2,32 +2,29 @@
 
 using namespace subjugator;
 using namespace boost;
-
-Worker::Worker() : curstate(State::STANDBY) { }
+using namespace std;
 
 void Worker::update(double dt) {
-	State oldstate = curstate;
-	curstate = getUpdatedState(dt);
-	if (oldstate != curstate)
-		statechangedsig(oldstate, curstate);
-	
-	if (curstate.code == State::ACTIVE)
+	WorkerState oldstate = getWorkerState();
+	updateState(dt);
+	const WorkerState &newstate = getWorkerState();
+
+	if (oldstate != newstate) {
+		if (newstate.code == WorkerState::ACTIVE)
+			enterActive();
+		else if (oldstate.code == WorkerState::ACTIVE)
+			leaveActive();
+
+		statechangedsig.emit(make_pair(oldstate, newstate));
+	}
+
+	if (newstate.code == WorkerState::ACTIVE)
 		work(dt);
 }
 
-Worker::State Worker::getUpdatedState(double dt) const {
-	State newstate = State::ACTIVE;
-	for (UpdaterVec::const_iterator i = updatervec.begin(); i != updatervec.end(); ++i) {
-		State state = (*i)->updateState(dt);
-		
-		if (newstate.code > state.code) {
-			state = newstate;
-		} else if (newstate.code == state.code) {
-			if (newstate.msg.size())
-				state.msg += " " + newstate.msg;
-		}
-	}
-	
-	return newstate;
-}
+void Worker::work(double dt) { }
+
+void Worker::enterActive() { }
+
+void Worker::leaveActive() { }
 
