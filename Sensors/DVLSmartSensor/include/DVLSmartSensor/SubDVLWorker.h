@@ -4,6 +4,7 @@
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/SubWorker.h"
 #include "HAL/SubHAL.h"
+#include "HAL/IOThread.h"
 #include "DataObjects/DVL/DVLDataObjectFormatter.h"
 #include "DataObjects/DVL/DVLCommand.h"
 #include "DataObjects/DVL/DVLConfiguration.h"
@@ -24,6 +25,7 @@ namespace subjugator
 			void Shutdown();
 
 		private:
+			IOThread iothread;
 			SubHAL hal;
 			boost::scoped_ptr<DataObjectEndpoint> pEndpoint;
 

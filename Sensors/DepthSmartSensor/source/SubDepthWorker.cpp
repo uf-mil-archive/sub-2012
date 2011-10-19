@@ -3,7 +3,7 @@
 namespace subjugator
 {
 	DepthWorker::DepthWorker(boost::asio::io_service& io, int64_t rate)
-		: Worker(io, rate)
+		: Worker(io, rate), hal(iothread.getIOService())
 	{
 		mStateManager.SetStateCallback(SubStates::READY,
 				STATE_READY_STRING,
@@ -46,7 +46,7 @@ namespace subjugator
 		}
 
 		// We're good to go. Start the hal
-		hal.startIOThread();
+		iothread.start();
 
 		// To get the depth running, we require an initial heartbeat BEFORE telling it to publish
 		pEndpoint->write(HeartBeat());

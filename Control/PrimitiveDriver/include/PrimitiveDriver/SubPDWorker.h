@@ -9,6 +9,7 @@
 #include "PrimitiveDriver/MergeManager.h"
 #include "HAL/SubHAL.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
+#include "HAL/IOThread.h"
 #include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
 #include "DataObjects/HeartBeat.h"
 #include "DataObjects/EmbeddedTypeCodes.h"
@@ -39,6 +40,7 @@ namespace subjugator
 		void failState();
 		void allState();
 	private:
+		IOThread iothread;
 		boost::shared_ptr<SubHAL> hal;
 		boost::scoped_ptr<DataObjectEndpoint> hbeatEndpoint;
 		std::auto_ptr<ThrusterManager> thrusterManager;

@@ -5,6 +5,7 @@
 #include "MotorCalibrate/MotorRamper.h"
 #include "MotorCalibrate/MotorBangBang.h"
 #include "HAL/SubHAL.h"
+#include "HAL/IOThread.h"
 #include "HAL/format/DataObjectEndpoint.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
 #include <QObject>
@@ -18,7 +19,7 @@ namespace subjugator {
 			MotorDriverController(int motaddr=2);
 			inline const MotorDriverInfo &getMotorInfo() { return motorinfo; }
 
-			inline boost::asio::io_service &getIOService() { return hal.getIOService(); } // needed for LoggerController, TODO ugly...
+			inline boost::asio::io_service &getIOService() { return iothread.getIOService(); } // needed for LoggerController, TODO ugly...
 
 		public slots:
 			void setReference(double reference);
@@ -34,6 +35,7 @@ namespace subjugator {
 			void rampComplete();
 
 		private:
+			IOThread iothread;
 			SubHAL hal;
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;
 			MotorDriverInfo motorinfo;

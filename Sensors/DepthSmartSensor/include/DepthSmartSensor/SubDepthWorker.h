@@ -5,6 +5,7 @@
 #include "SubMain/Workers/SubWorker.h"
 #include "HAL/HAL.h"
 #include "HAL/SubHAL.h"
+#include "HAL/IOThread.h"
 #include "DataObjects/Depth/DepthDataObjectFormatter.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 #include "DataObjects/HeartBeat.h"
@@ -27,6 +28,7 @@ namespace subjugator
 			void Shutdown();
 
 		private:
+			IOThread iothread;
 			SubHAL hal;
 			DataObjectEndpoint* pEndpoint;
 

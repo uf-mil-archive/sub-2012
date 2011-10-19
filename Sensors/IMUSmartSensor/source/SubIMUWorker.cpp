@@ -6,7 +6,7 @@ using namespace std;
 namespace subjugator
 {
 	IMUWorker::IMUWorker(boost::asio::io_service& io, int64_t rate)
-		: Worker(io, rate)
+		: Worker(io, rate), hal(iothread.getIOService())
 	{
 		mStateManager.SetStateCallback(SubStates::READY,
 				STATE_READY_STRING,
@@ -48,7 +48,7 @@ namespace subjugator
 		}
 
 		// We're good to go. Push to ready state and start the hal
-		hal.startIOThread();
+		iothread.start();
 		mStateManager.ChangeState(SubStates::READY);
 
 		return true;

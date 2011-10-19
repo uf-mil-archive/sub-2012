@@ -7,6 +7,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 
 namespace subjugator {
 	template <class StreamType> // designed to be either a tcp::socket or a serial_port

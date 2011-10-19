@@ -18,7 +18,7 @@ using namespace std;
 namespace subjugator
 {
 	HydrophoneWorker::HydrophoneWorker(boost::asio::io_service& io, int64_t rate, std::string configPath)
-		: Worker(io, rate)
+		: Worker(io, rate), hal(iothread.getIOService())
 	{
 		mStateManager.SetStateCallback(SubStates::READY,
 				STATE_READY_STRING,
@@ -100,7 +100,7 @@ namespace subjugator
 
 		pEndpoint->write(HydrophoneStart());
 
-		hal.startIOThread();
+		iothread.start();
 		mStateManager.ChangeState(SubStates::READY);
 
 		return true;

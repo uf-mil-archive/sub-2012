@@ -6,7 +6,7 @@ using namespace boost;
 namespace subjugator
 {
 	DVLWorker::DVLWorker(boost::asio::io_service& io, int64_t rate)
-		: Worker(io, rate),
+		: Worker(io, rate), hal(iothread.getIOService()),
 		pEndpoint(hal.openDataObjectEndpoint(50, new DVLDataObjectFormatter(), new DVLPacketFormatter()))
 	{
 		mStateManager.SetStateCallback(SubStates::READY,
@@ -47,7 +47,7 @@ namespace subjugator
 		}
 
 		// We're good to go. Start the hal
-		hal.startIOThread();
+		iothread.start();
 
 		// The dvl requires a little fiddling to get it rolling
 		pEndpoint->write(DVLBreak());	// Send a break

@@ -11,7 +11,7 @@ using namespace std;
 namespace subjugator
 {//TODO address hardcoding = not cool
 	PDWorker::PDWorker(boost::asio::io_service& io, int64_t rate)
-		: Worker(io, rate),hal(new SubHAL()),
+		: Worker(io, rate),hal(new SubHAL(iothread.getIOService())),
 		hbeatEndpoint(hal->openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter())),
 		mergeManager(*hal),
 		seconddrop(false)
@@ -66,7 +66,7 @@ namespace subjugator
 		thrusterManager = std::auto_ptr<ThrusterManager>(new ThrusterManager(hal));
 
 		mStateManager.ChangeState(SubStates::INITIALIZE);
-		hal->startIOThread();
+		iothread.start();
 
 		return true;
 	}

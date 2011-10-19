@@ -2,19 +2,12 @@
 #define HAL_SUBHAL_H
 
 #include "HAL/HAL.h"
-#include "IOThread.h"
+#include <boost/asio.hpp>
 
 namespace subjugator {
 	class SubHAL : public HAL {
 		public:
-			SubHAL();
-			~SubHAL();
-
-			void startIOThread();
-			inline boost::asio::io_service &getIOService() { return iothread.getIOService(); }
-
-		private:
-			IOThread iothread;
+			SubHAL(boost::asio::io_service &ioservice);
 	};
 }
 

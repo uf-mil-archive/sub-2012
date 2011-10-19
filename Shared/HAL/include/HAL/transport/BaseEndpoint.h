@@ -2,7 +2,6 @@
 #define HAL_BASEENDPOINT_H
 
 #include "HAL/transport/Endpoint.h"
-#include "HAL/IOThread.h"
 #include <string>
 
 namespace subjugator {

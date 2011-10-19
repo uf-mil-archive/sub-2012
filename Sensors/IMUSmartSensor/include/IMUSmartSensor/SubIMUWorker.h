@@ -3,7 +3,7 @@
 
 #include "SubMain/SubPrerequisites.h"
 #include "SubMain/Workers/SubWorker.h"
-#include "HAL/HAL.h"
+#include "HAL/IOThread.h"
 #include "HAL/SubHAL.h"
 #include "HAL/format/SPIPacketFormatter.h"
 #include "DataObjects/IMU/IMUDataObjectFormatter.h"
@@ -19,6 +19,7 @@ namespace subjugator
 			bool Startup();
 
 		private:
+			IOThread iothread;
 			SubHAL hal;
 			std::auto_ptr<DataObjectEndpoint> pEndpoint;
 
