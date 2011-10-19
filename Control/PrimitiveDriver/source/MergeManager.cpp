@@ -14,39 +14,35 @@ using namespace boost;
 using namespace std;
 
 MergeManager::MergeManager(SubHAL &hal)
-: endpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21), new Sub7EPacketFormatter())),
-  actuatorendpoint(hal.openDataObjectEndpoint(61, new ActuatorDataObjectFormatter(), new BytePacketFormatter())) {
-	endpoint->configureCallbacks(bind(&MergeManager::halReceiveCallback, this, _1), bind(&MergeManager::halStateChangeCallback, this));
-	endpoint->open();
-	actuatorendpoint->configureCallbacks(bind(&MergeManager::halReceiveCallback, this, _1), bind(&MergeManager::halActuatorStateChangeCallback, this));
-	actuatorendpoint->open();
+: mergeendpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21), new Sub7EPacketFormatter()),
+               "merge",
+               boost::bind(&MergeManager::mergeInitCallback, this),
+               .5),
+  actuatorendpoint(hal.openDataObjectEndpoint(61, new ActuatorDataObjectFormatter(), new BytePacketFormatter()),
+               "actuator",
+               boost::bind(&MergeManager::actuatorInitCallback, this),
+               .5) {
+	registerStateUpdater(mergeendpoint);
+	registerStateUpdater(actuatorendpoint);
 }
 
-void MergeManager::halReceiveCallback(std::auto_ptr<DataObject> &dobj) {
-	if (MergeInfo *info = dynamic_cast<MergeInfo *>(dobj.get())) {
-		this->info = *info;
-	} else if (LimitSwitchStatus *limitstatus = dynamic_cast<LimitSwitchStatus *>(dobj.get())) {
-		if (limitstatus->getStatus())
-			this->info.setFlags(this->info.getFlags() | (1 << 8));
-		else
-			this->info.setFlags(this->info.getFlags() & ~(1 << 8));
-	}
-}
-
-void MergeManager::halStateChangeCallback() {
-	if (endpoint->getState() == Endpoint::OPEN) {
-		endpoint->write(HeartBeat());
-		endpoint->write(StartPublishing(10));
-	}
-}
-
-void MergeManager::halActuatorStateChangeCallback() {
-	if (endpoint->getState() == Endpoint::OPEN) {
-		actuatorendpoint->write(SetActuator(0));
-	}
+MergeInfo MergeManager::getMergeInfo() const {
+	MergeInfo info = *mergeendpoint.getDataObject<MergeInfo>(); // TODO this will get fixed up in the actuator overhaul
+	if (actuatorendpoint.getDataObject<LimitSwitchStatus>()->getStatus())
+		info.setFlags(info.getFlags() | (1 << 8));
+	return info;
 }
 
 void MergeManager::setActuators(int flags) {
-	actuatorendpoint->write(SetActuator(flags));
+	actuatorendpoint.write(SetActuator(flags));
+}
+
+void MergeManager::mergeInitCallback() {
+	mergeendpoint.write(HeartBeat());
+	mergeendpoint.write(StartPublishing(10));
+}
+
+void MergeManager::actuatorInitCallback() {
+	actuatorendpoint.write(SetActuator(0));
 }
 

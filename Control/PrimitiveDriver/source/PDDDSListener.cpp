@@ -1,30 +1,29 @@
 #include "PrimitiveDriver/PDDDSListener.h"
 #include "DataObjects/PD/PDInfo.h"
+#include <boost/bind.hpp>
 
 using namespace subjugator;
+using namespace boost;
 
-PDDDSListener::PDDDSListener(Worker &worker, DDSDomainParticipant *part)
-: ddssender(part, "PDStatus") { connectWorker(worker); }
+PDDDSListener::PDDDSListener(PDWorker &pdworker, DDSDomainParticipant *part)
+: ddssender(part, "PDStatus"),
+  pdconn(pdworker.infosignal.connect(bind(&PDDDSListener::pdInfoCallback, this, _1))) { }
 
-void PDDDSListener::DataObjectEmitted(boost::shared_ptr<DataObject> dobj)
-{
-	// Cast the data object into its real type
-	PDInfo *status = dynamic_cast<PDInfo *>(dobj.get());
-	if(!status)
-		return;
-
+void PDDDSListener::pdInfoCallback(const PDInfo &info) {
 	PDStatusMessage *msg = PDStatusMessageTypeSupport::create_data();
-	msg->timestamp = status->getTimestamp();
+	msg->timestamp = info.getTimestamp();
 
-	for(int i=0; i<8; i++)
-		msg->current[i] = status->getCurrent(i);
-	msg->estop = status->getMergeInfo().getESTOP();
-	msg->flags = status->getMergeInfo().getFlags();
-	msg->tickcount = status->getMergeInfo().getTickCount();
-	msg->voltage16 = status->getMergeInfo().getRail16Voltage();
-	msg->current16 = status->getMergeInfo().getRail16Current();
-	msg->voltage32 = status->getMergeInfo().getRail32Voltage();
-	msg->current32 = status->getMergeInfo().getRail32Current();
+	for (int i=0; i<8; i++)
+		msg->current[i] = info.getCurrent(i);
+
+	const MergeInfo &mergeinfo = info.getMergeInfo();
+	msg->estop = mergeinfo.getESTOP();
+	msg->flags = mergeinfo.getFlags();
+	msg->tickcount = mergeinfo.getTickCount();
+	msg->voltage16 = mergeinfo.getRail16Voltage();
+	msg->current16 = mergeinfo.getRail16Current();
+	msg->voltage32 = mergeinfo.getRail32Voltage();
+	msg->current32 = mergeinfo.getRail32Current();
 
 	ddssender.Send(*msg);
 	PDStatusMessageTypeSupport::delete_data(msg);

@@ -4,26 +4,25 @@
 #include "HAL/format/DataObjectEndpoint.h"
 #include "HAL/SubHAL.h"
 #include "DataObjects/Merge/MergeInfo.h"
+#include "LibSub/Worker/WorkerStateUpdater.h"
+#include "LibSub/Worker/WorkerEndpoint.h"
 #include <boost/scoped_ptr.hpp>
+#include <cassert>
 
 namespace subjugator {
-	class MergeManager {
+	class MergeManager : public WorkerStateUpdaterContainer {
 		public:
 			MergeManager(SubHAL &hal);
 
-			inline const MergeInfo &getMergeInfo() const { return info; }
-
+			MergeInfo getMergeInfo() const;
 			void setActuators(int flags);
 
 		private:
-			boost::scoped_ptr<DataObjectEndpoint> endpoint;
-			boost::scoped_ptr<DataObjectEndpoint> actuatorendpoint;
+			WorkerEndpoint mergeendpoint;
+			WorkerEndpoint actuatorendpoint;
 
-			MergeInfo info;
-
-			void halReceiveCallback(std::auto_ptr<DataObject> &dobj);
-			void halStateChangeCallback();
-			void halActuatorStateChangeCallback();
+			void mergeInitCallback();
+			void actuatorInitCallback();
 	};
 }
 

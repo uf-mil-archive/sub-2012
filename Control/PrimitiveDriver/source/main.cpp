@@ -2,9 +2,10 @@
 #include "DDSMessages/PDStatusMessage.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include "DDSMessages/PDActuatorMessageSupport.h"
-#include "PrimitiveDriver/SubPDWorker.h"
+#include "PrimitiveDriver/PDWorker.h"
 #include "PrimitiveDriver/PDDDSListener.h"
 #include "PrimitiveDriver/PDDDSCommander.h"
+#include "LibSub/Worker/WorkerRunner.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -14,14 +15,12 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	boost::asio::io_service io;
 
 	// We need a worker
-	PDWorker worker(io, 50 /*hz*/);
-	if(!worker.Startup())
-		throw new runtime_error("Failed to start PD Worker!");
+	PDWorker worker(io);
+	WorkerRunner workerrunner(worker, io);
 
 	// Now we need a DDS listener to push all the data up
 	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
@@ -42,8 +41,5 @@ int main(int argc, char **argv)
 
 	// Start the worker
 	io.run();
-
-	// Cleanly shutdown the worker
-	worker.Shutdown();
 }
 

@@ -3,12 +3,12 @@
 
 #include "DDSCommanders/PDWrenchDDSReceiver.h"
 #include "DDSCommanders/PDActuatorDDSReceiver.h"
-#include "SubMain/Workers/SubWorker.h"
+#include "PrimitiveDriver/PDWorker.h"
 
 namespace subjugator {
 	class PDDDSCommander {
 		public:
-			PDDDSCommander(Worker &worker, DDSDomainParticipant *participant);
+			PDDDSCommander(PDWorker &pdworker, DDSDomainParticipant *participant);
 
 		private:
 			void receivedWrench(const PDWrenchMessage &wrench);
@@ -16,11 +16,9 @@ namespace subjugator {
 			
 			void receivedActuator(const PDActuatorMessage &actuator);
 
+			PDWorker &pdworker;
 			PDWrenchDDSReceiver wrenchreceiver;
 			PDActuatorDDSReceiver actuatorreceiver;
-
-			boost::weak_ptr<InputToken> screwcmdtoken;
-			boost::weak_ptr<InputToken> actuatorcmdtoken;
 	};
 }
 
