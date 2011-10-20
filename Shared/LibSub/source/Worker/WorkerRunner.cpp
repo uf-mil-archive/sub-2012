@@ -4,10 +4,10 @@ using namespace subjugator;
 using namespace boost;
 
 WorkerRunner::WorkerRunner(Worker& worker, asio::io_service& io_service)
-: worker(worker), timer(io_service) { }
+: worker(worker), timer(io_service), running(false) { }
 
 void WorkerRunner::start() {
-	if (!running)
+	if (running)
 		return;
 
 	running = true;
