@@ -32,12 +32,12 @@ bool DVLPacketFormatter::parseEnsemble(vector<Packet> &packets, ByteVec::const_i
 	if (buffer.end() - bufpos < 4) // no more headers? or found a header but not enough data afterwards?
 		return false; // no more ensembles
 
-	int length = getU16LE(bufpos + 2); // extract ensemble length
+	int length = getU16LE(bufpos + 2) + 2; // extract ensemble length
 	if (buffer.end() - bufpos < length) // incomplete ensemble?
 		return false; // no more ensembles
 
-	int checksum = getU16LE(bufpos + length); // extract checksum
-	if (checksum != computeChecksum(bufpos, bufpos + length)) { // if checksum didn't pass
+	int checksum = getU16LE(bufpos + length - 2); // extract checksum
+	if (checksum != computeChecksum(bufpos, bufpos + length - 2)) { // if checksum didn't pass
 		bufpos++; // consume one byte of the header, to ensure we look ahead to find the next ensemble
 		return true; // more ensembles could exist
 	}
@@ -49,7 +49,7 @@ bool DVLPacketFormatter::parseEnsemble(vector<Packet> &packets, ByteVec::const_i
 		if (i != datatypes-1) // if we're not on the last one
 			nextoffset = getU16LE(bufpos + 6+(i+1)*2); // find the next offset
 		else
-			nextoffset = length-2; // otherwise treat the next offset as the position of the end of the packet
+			nextoffset = length - 2 - 2; // otherwise treat the next offset as the position of the end of the packet
 
 		packets.push_back(Packet(bufpos + startoffset, bufpos + nextoffset)); // copy the contents of the data type into a Packet and save it
 	}

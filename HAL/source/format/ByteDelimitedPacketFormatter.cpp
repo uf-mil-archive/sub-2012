@@ -58,12 +58,16 @@ bool ByteDelimitedPacketFormatter::validateChecksum() {
 }
 
 ByteVec ByteDelimitedPacketFormatter::formatPacket(const Packet &packet) const {
+	ByteVec unescaped(packet);
+	ByteVec checksumbytes = checksum->compute(packet.begin(), packet.end()); // add checksum
+	unescaped.insert(unescaped.end(), checksumbytes.begin(), checksumbytes.end());
+
 	ByteVec out;
-	out.reserve(packet.size() + 10); // checksum + escapes will create a few extra bytes
+	out.reserve(unescaped.size() + 10); // checksum + escapes will create a few extra bytes
 
 	out.push_back(flagbyte);
 
-	for (Packet::const_iterator i = packet.begin(); i != packet.end(); ++i) { // add escapes
+	for (ByteVec::const_iterator i = unescaped.begin(); i != unescaped.end(); ++i) { // add escapes
 		if (*i == flagbyte || *i == escapebyte) {
 			out.push_back(escapebyte);
 			out.push_back(*i ^ maskbyte);
@@ -71,9 +75,6 @@ ByteVec ByteDelimitedPacketFormatter::formatPacket(const Packet &packet) const {
 			out.push_back(*i);
 		}
 	}
-
-	ByteVec checksumbytes = checksum->compute(packet.begin(), packet.end()); // add checksum
-	out.insert(out.end(), checksumbytes.begin(), checksumbytes.end());
 
 	out.push_back(flagbyte);
 
