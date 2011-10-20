@@ -3,6 +3,7 @@
 #include <algorithm>
 
 using namespace subjugator;
+using namespace std;
 
 const WorkerState &WorkerStateUpdaterContainer::getWorkerState() const { return state; }
 

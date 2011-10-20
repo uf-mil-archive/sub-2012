@@ -2,6 +2,7 @@
 #define LIBSUB_WORKER_WORKERSTATE_H
 
 #include <string>
+#include <ostream>
 
 namespace subjugator {
 	struct WorkerState {
@@ -29,6 +30,8 @@ namespace subjugator {
 		Code code;
 		std::string msg;
 	};
+	
+	std::ostream &operator<<(std::ostream &out, const WorkerState &state);
 }
 		
 #endif
