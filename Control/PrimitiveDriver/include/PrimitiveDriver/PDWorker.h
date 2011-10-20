@@ -18,7 +18,6 @@ namespace subjugator {
 	class PDWorker : public Worker {
 		public:
 			PDWorker(HAL &hal);
-			virtual const Properties &getProperties() const;
 
 			WorkerMailbox<Vector6d> wrenchmailbox;
 			WorkerMailbox<int> actuatormailbox;

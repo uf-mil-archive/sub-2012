@@ -1,4 +1,5 @@
 #include "LibSub/Worker/Worker.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace subjugator;
 using namespace boost;
@@ -16,6 +17,9 @@ void Worker::update(double dt) {
 			leaveActive();
 
 		statechangedsig.emit(make_pair(oldstate, newstate));
+
+		string logmsg = "State changed to " + lexical_cast<string>(newstate);
+		logger.log(logmsg, newstate.code == State::ERROR ? WorkerLogEntry::ERROR : WorkerLogEntry::INFO);
 	}
 
 	if (newstate.code == State::ACTIVE)

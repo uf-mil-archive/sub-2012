@@ -6,6 +6,7 @@
 #include "DDSMessages/PDActuatorMessageSupport.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include <boost/asio.hpp>
+#include <iostream>
 
 using namespace subjugator;
 using namespace boost;
@@ -21,6 +22,7 @@ int main(int argc, char **argv) {
 	// Get the worker up
 	SubHAL hal(io);
 	PDWorker worker(hal);
+	OStreamLog(worker.logger, cout);
 	WorkerRunner workerrunner(worker, io);
 
 	// Get DDS up

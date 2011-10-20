@@ -12,7 +12,8 @@ using namespace boost;
 using namespace std;
 
 PDWorker::PDWorker(HAL &hal)
-: wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
+: Worker("PrimitiveDriver", 10),
+  wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
   actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
   hal(hal),
   heartbeatendpoint(
@@ -40,12 +41,6 @@ PDWorker::PDWorker(HAL &hal)
 		thrustermanager.addThruster(i);
 }
 
-const PDWorker::Properties &PDWorker::getProperties() const {
-	static const Properties props = { "PrimitiveDriver", 10 };
-
-	return props;
-}
-
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
 	VectorXd efforts = thrustermapper.mapWrenchToEfforts(optwrench.get_value_or(Vector6d::Zero()));
 	thrustermanager.setEfforts(efforts);
@@ -62,6 +57,8 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 		thrustermapper.clearEntry(num);
 
 	wrenchSet(wrenchmailbox.get());
+
+	logger.log("Thruster " + lexical_cast<string>(num) + " changed state: " + lexical_cast<string>(state));
 }
 
 void PDWorker::work(double dt) {

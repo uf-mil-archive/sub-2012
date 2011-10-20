@@ -14,6 +14,8 @@ void WorkerRunner::start() {
 	prevtime = posix_time::microsec_clock::local_time();
 	timer.expires_from_now(getDuration());
 	timer.async_wait(bind(&WorkerRunner::tick, this, _1));
+
+	worker.logger.log("Worker running");
 }
 
 void WorkerRunner::tick(const system::error_code& error) {
@@ -36,6 +38,6 @@ void WorkerRunner::tick(const system::error_code& error) {
 }
 
 posix_time::time_duration WorkerRunner::getDuration() const {
-	return posix_time::microseconds(1E6 / worker.getProperties().updatehz);
+	return posix_time::microseconds(1E6 / worker.getUpdateHz());
 }
 
