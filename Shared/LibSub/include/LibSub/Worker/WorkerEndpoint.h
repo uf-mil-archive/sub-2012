@@ -11,7 +11,7 @@ namespace subjugator {
 		public:
 			typedef boost::function<void (DataObjectEndpoint&)> InitializeCallback;
 		
-			WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &name, const InitializeCallback &initcallback=InitializeCallback(), double maxage=std::numeric_limits<double>::infinity(), const Callback &rcallback=Callback());
+			WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &name, const InitializeCallback &initcallback=InitializeCallback(), bool outgoingonly=false, double maxage=std::numeric_limits<double>::infinity(), const Callback &callback=Callback());
 			
 			DataObjectEndpoint &getEndpoint() { return *endpoint; }
 			const DataObjectEndpoint &getEndpoint() const { return *endpoint; }
@@ -28,6 +28,7 @@ namespace subjugator {
 		private:
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;
 			InitializeCallback initcallback;
+			bool outgoingonly;
 			double errorage;
 			bool initialized;
 			WorkerState state;

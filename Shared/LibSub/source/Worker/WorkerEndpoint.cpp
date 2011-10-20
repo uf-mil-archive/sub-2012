@@ -3,10 +3,11 @@
 using namespace subjugator;
 using namespace boost;
 
-WorkerEndpoint::WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &name, const InitializeCallback &initcallback, double maxage, const Callback &callback)
+WorkerEndpoint::WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &name, const InitializeCallback &initcallback, bool outgoingonly, double maxage, const Callback &callback)
 : WorkerMailbox<boost::shared_ptr<DataObject> >(name, maxage, callback),
   endpoint(endpoint),
   initcallback(initcallback),
+  outgoingonly(outgoingonly),
   errorage(0),
   initialized(0) {
 	endpoint->configureCallbacks(boost::bind(&WorkerEndpoint::halReceiveCallback, this, _1), boost::bind(&WorkerEndpoint::halStateChangeCallback, this));
@@ -19,7 +20,10 @@ void WorkerEndpoint::updateState(double dt) {
 	switch (endpoint->getState()) {
 		case Endpoint::OPEN:
 			errorage = 0;
-			state = WorkerMailbox<boost::shared_ptr<DataObject> >::getWorkerState();
+			if (outgoingonly) // if we're only concerned with the ability to send messages (outgoingonly)
+				state = WorkerState::ACTIVE; // then having an open endpoint is enough to consider us active
+			else
+				state = WorkerMailbox<boost::shared_ptr<DataObject> >::getWorkerState();
 			break;
 
 		case Endpoint::CLOSED:
