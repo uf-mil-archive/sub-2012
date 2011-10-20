@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
 	PDDDSCommander ddsCommander(worker, participant);
 
 	// Start the worker
+	workerrunner.start();
 	io.run();
 }
 

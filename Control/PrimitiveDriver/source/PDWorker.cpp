@@ -10,7 +10,10 @@ using namespace std;
 
 PDWorker::PDWorker(boost::asio::io_service &ioservice)
 : hal(ioservice),
-  heartbeatendpoint(hal.openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()), "heartbeat"),
+  heartbeatendpoint(
+  	hal.openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()), "heartbeat",
+  	WorkerEndpoint::InitializeCallback(), 
+  	true),
   thrustermanager(hal),
   mergemanager(hal) {
 	registerStateUpdater(heartbeatendpoint);
