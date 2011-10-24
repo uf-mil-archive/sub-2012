@@ -19,7 +19,7 @@ fprintf(fd, '<scalefact>%d</scalefact>\n', scalefact);
 fprintf(fd, '<samplingrate>%d</samplingrate>\n', samplingrate);
 fprintf(fd, '<soundvelocity>%d</soundvelocity>\n', soundvelocity);
 fprintf(fd, '<disth>%e</disth>\n', disth);
-fprintf(fd, '<disth4>%e</disth>\n', disth4);
+fprintf(fd, '<disth4>%e</disth4>\n', disth4);
 
 fprintf(fd, '<bandpass>\n');
 for i=1:length(bandpass_coefs)
