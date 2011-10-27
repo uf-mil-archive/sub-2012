@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	boost::asio::io_service io;
 
 	// We need a worker
-	LPOSVSSWorker worker(io, 50, true);
+	LPOSVSSWorker worker(io, 50, argc == 1);
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start LPOSVSS Worker!");
 
