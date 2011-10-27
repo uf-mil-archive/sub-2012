@@ -1,4 +1,5 @@
 #include "SubMain/Workers/TrackingController/TrackingController.h"
+#include <iostream>
 
 using namespace subjugator;
 using namespace Eigen;
@@ -9,16 +10,19 @@ typedef Matrix<double, 6, 1> Vector6d;
 TrackingController::TrackingController()
 {
 	// Default gains. TODO: load these from a file
-	ktemp << 20.0,20.0,70.0,15.0,50.0,20.0;
-	kstemp << 220.0,200.0,150.0,40.0,60.0,100.0;
-	alphatemp << 0.1,0.1,0.05,0.01,0.1,0.1;
-	betatemp << 15.0,10.0,15.0,5.0,10.0,10.0;
-	gamma1temp << 1.0,1.0,1.0,1.0,1.0,1.0;
+	ktemp <<    20.0, 20.0, 70.0,15.0,50.0,20.0;
+	kstemp <<  220.0,200.0,150.0,40.0,60.0,100.0;
+	alphatemp << 0.1,  0.1, 0.05,0.005, 0.1,0.1;
+	betatemp << 15.0, 10.0, 15.0, 5.0,10.0,10.0;
+	
+	gamma1temp << 1.0, 1.0,  1.0, 1.0,1.0,1.0;
+	gamma1temp *= 30;
 	gamma2temp << 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0;
+	gamma2temp *= 40;
 
 	pd_on = false;
 	rise_on = true;
-	nn_on = false;
+	nn_on = true;
 
 	rise_term_prev = Vector6d::Zero();
 	rise_term = Vector6d::Zero();
@@ -40,7 +44,7 @@ TrackingController::TrackingController()
 
 	V_hat_dot = Matrix19x5d::Zero();
 	V_hat_dot_prev = Matrix19x5d::Zero();
-	V_hat = Matrix19x5d::Zero();
+	V_hat = Matrix19x5d::Random();
 	V_hat_prev = Matrix19x5d::Zero();
 	W_hat_dot = Matrix6d::Zero();
     W_hat_dot_prev = Matrix6d::Zero();
@@ -96,8 +100,10 @@ void TrackingController::Update(boost::int64_t currentTick, const TrajectoryInfo
 		currentControl += PDFeedback(dt);
 	if(rise_on && !pd_on)	// only allow rise to be on if pd is off
 		currentControl += RiseFeedbackNoAccel(dt);
-	if(nn_on && rise_on && !pd_on) // Only allow nn to be added if rise is used
-		currentControl += NNFeedForward(dt);
+	if(nn_on && rise_on && !pd_on) { // Only allow nn to be added if rise is used
+		//currentControl += NNFeedForward(dt);
+		NNFeedForward(dt);
+	}
 
 	// We think there's supposed to be a possible transformation here, the math supports it but the sub does not like it. May need to look at this further.
 	//currentControl = J*currentControl;
@@ -155,23 +161,30 @@ Vector6d TrackingController::PDFeedback(double dt)
 
 Vector6d TrackingController::NNFeedForward(double dt)
 {
-    VectorXd xd_nn(xd.rows()*3+1,1); 		// xd_nn = [1 ; xd; xd_dot; xd_dotdot];
-    xd_nn(0,0) = 1.0;
-    xd_nn.block(xd.rows(),1,1,0) = xd;
-    xd_nn.block(xd.rows(),1,1+xd.rows(),0) = xd_dot;
-    xd_nn.block(xd.rows(),1,1+2*xd.rows(),0) = xd_dotdot;
+	xd_dotdot = (xd_dot - xd_dot_prev) / dt;
+	xd_dot_prev = xd_dot;
+	xd_dotdotdot = (xd_dotdot - xd_dotdot_prev) / dt;
+	xd_dotdot_prev = xd_dotdot;
 
-    VectorXd xd_nn_dot(xd.rows()*3+1,1);	// xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
-	xd_nn_dot(0,0) = 0.0;
-    xd_nn_dot.block(xd.rows(),1,1,0) = xd_dot;
-    xd_nn_dot.block(xd.rows(),1,1+xd.rows(),0) = xd_dotdot;
-    xd_nn_dot.block(xd.rows(),1,1+2*xd.rows(),0) = xd_dotdotdot;
+    VectorXd xd_nn(xd.rows()*3+1, 1); 		// xd_nn = [1 ; xd; xd_dot; xd_dotdot];
+    xd_nn(0) = 1.0;
+    xd_nn.block(1, 0, 6, 1) = xd;
+    xd_nn.block(7, 0, 6, 1) = xd_dot;
+    xd_nn.block(13, 0, 6, 1) = xd_dotdot;
+
+    VectorXd xd_nn_dot(xd.rows()*3+1, 1);	// xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
+	xd_nn_dot(0) = 0.0;
+    xd_nn_dot.block(1, 0, 6, 1) = xd_dot;
+    xd_nn_dot.block(7, 0, 6, 1) = xd_dotdot;
+    xd_nn_dot.block(13, 0, 6, 1) = xd_dotdotdot;
 
     VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
 
+	cout << "sigma: " << sigma << endl;
+
     VectorXd sigma_hat(1+sigma.rows(),1);          //sigma_hat = [1; sigma];
     sigma_hat(0,0) = 1.0;
-    sigma_hat.block(sigma.rows(),1,1,0) = sigma;
+    sigma_hat.block(1,0,sigma.rows(),0) = sigma;
 
 	VectorXd tempProd = V_hat.transpose() * xd_nn;	// 2 * Sech((V_hat.Transpose() * xd_nn).^2);
     MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
@@ -179,7 +192,7 @@ Vector6d TrackingController::NNFeedForward(double dt)
     //sigma_hat_prime = [zeros(1,length(sigma_hat_prime_term));sigma_hat_prime_term];
     MatrixXd sigma_hat_prime(1+sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols());
     sigma_hat_prime.fill(0.0);
-    sigma_hat_prime.block(sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols(), 1, 0) = sigma_hat_prime_term;
+    sigma_hat_prime.block(1, 0, sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols()) = sigma_hat_prime_term;
 
     W_hat_dot = gamma1 * sigma_hat_prime * V_hat.transpose() * xd_nn_dot * e2.transpose();
     V_hat_dot = gamma2 * xd_nn_dot * e2.transpose() * W_hat.transpose() * sigma_hat_prime;
@@ -195,6 +208,9 @@ Vector6d TrackingController::NNFeedForward(double dt)
     W_hat_dot_prev = W_hat_dot;
     V_hat_prev = V_hat;
     V_hat_dot_prev = V_hat_dot;
+
+	cout << "V_hat===========" << endl << V_hat << endl;
+	cout << "W_hat===========" << endl << W_hat << endl;
 
 	return nn_control;
 }
@@ -345,6 +361,9 @@ void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Ve
 	alpha = AttitudeHelpers::DiagMatrixFromVector(alphaV);
 	beta = AttitudeHelpers::DiagMatrixFromVector(betaV);
 	ksPlus1 = ks + Matrix<double,6,6>::Identity();
+	
+	gamma1 = AttitudeHelpers::DiagMatrixFromVector(gamma1temp);
+	gamma2 = AttitudeHelpers::DiagMatrixFromVector(gamma2temp);
 }
 
 void TrackingController::SetGainsTemp(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV) {
