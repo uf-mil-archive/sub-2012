@@ -14,11 +14,13 @@
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/TrackingController/TrackingControllerInfo.h"
 #include "DDSCommanders/LPOSVSSDDSReceiver.h"
+#include "DDSCommanders/TrackingControllerLogDDSReceiver.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 #include "DDSMessages/ControllerGainsMessage.h"
 #include "DDSMessages/ControllerGainsMessageSupport.h"
+#include "DDSMessages/TrackingControllerLogMessage.h"
 #include "DDSListeners/DDSSender.h"
 #include <ndds/ndds_cpp.h>
 #include <Eigen/Dense>
@@ -64,6 +66,7 @@ namespace subjugator
 		TrajectoryGenerator trajectoryGenerator;
 		void TrajectoryDDSReadCallback(const TrajectoryMessage &msg);
 		void LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg);
+		void TrackingControllerDDSReadCallback(const TrackingControllerLogMessage &msg);
 
 	protected:
 		virtual void timerEvent(QTimerEvent *e);
@@ -78,6 +81,7 @@ namespace subjugator
 	    void on_btnCallUpdate_clicked();
 	    void onTrajectoryReceived();
 	    void onLPOSReceived();
+	    void onTrackingControllerReceived();
 	    void on_btnToggleActual_clicked();
 	    void on_tabWidget_currentChanged(int index);
 	    void on_btnSubmitGains_clicked();
@@ -89,6 +93,7 @@ namespace subjugator
 
 	    signals:
 	    void trajectoryReceived();
+	    void trackingControllerReceived();
 	    void lposReceived();
 
 	private:
@@ -130,9 +135,11 @@ namespace subjugator
 
 		TrajectoryDDSReceiver trajectoryreceiver;
 		LPOSVSSDDSReceiver lposvssreceiver;
+		TrackingControllerLogDDSReceiver trackingreceiver;
 
 		TrajectoryMessage trajectorymsg;
 		LPOSVSSMessage lposmsg;
+		TrackingControllerLogMessage trackingmsg;
 
 		DDSSender<SetWaypointMessage, SetWaypointMessageDataWriter, SetWaypointMessageTypeSupport> waypointddssender;
 		DDSSender<ControllerGainsMessage, ControllerGainsMessageDataWriter, ControllerGainsMessageTypeSupport> gainsddssender;

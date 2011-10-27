@@ -26,6 +26,9 @@ Vector3d Xpos;
 Vector4d Xquat;
 Vector3d Xvel;
 Vector3d Xangvel;
+VectorXd nncontrol(6);
+MatrixXd V_hat(19,5);
+MatrixXd W_hat(6,6);
 QVector<double> testPts;
 
 // Plot Actual Position.
@@ -347,7 +350,8 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::TrajectoryDDSReadCallback, this, _1)),
 	lposvssreceiver(participant, "LPOSVSS", bind(&MainWindow::LPOSVSSDDSReadCallback, this, _1)),
 	waypointddssender(partSender, "SetWaypoint"),
-	gainsddssender(partSender, "ControllerGains")
+	gainsddssender(partSender, "ControllerGains"),
+	trackingreceiver(participant, "TrackingControllerLog", bind(&MainWindow::TrackingControllerDDSReadCallback, this, _1))
 {
 	Xpos = Vector3d::Zero();
 	Xquat = Vector4d::Zero();
@@ -364,6 +368,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 
     connect(this, SIGNAL(trajectoryReceived()), this, SLOT(onTrajectoryReceived()));
     connect(this, SIGNAL(lposReceived()), this, SLOT(onLPOSReceived()));
+    connect(this, SIGNAL(trackingControllerReceived()), this, SLOT(onTrackingControllerReceived()));
 
     curve1_Plot1  = new QwtPlotCurve("Pos X");
     curve2_Plot1  = new QwtPlotCurve("Pos Y");
@@ -461,6 +466,20 @@ void MainWindow::onLPOSReceived()
 		Xangvel(i) = lposmsg.angularRate_BODY[i];
 }
 
+void MainWindow::onTrackingControllerReceived()
+{
+    for (int i=0;i<19;i++)
+		for (int j=0;j<5;j++)
+			V_hat(i,j) = trackingmsg.V_hat[i][j];
+
+	for (int i=0;i<6;i++)
+		for (int j=0;j<6;j++)
+			W_hat(i,j) = trackingmsg.W_hat[i][j];
+
+	for (int i=0;i<6;i++)
+		nncontrol(i) = trackingmsg.nn_control[i];
+}
+
 void MainWindow::onTrajectoryReceived()
 {
 	Vector6d x = Vector6d::Zero();
@@ -482,7 +501,13 @@ void MainWindow::onTrajectoryReceived()
 	for (int i=0; i<6; i++)
 			xd_dot(i) = trajectorymsg.xd_dot[i];
 
-	addPoint(TrackingControllerInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot));
+	TrackingControllerInfo info(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot);
+
+	info.V_hat = V_hat;
+	info.W_hat = W_hat;
+	info.nn_control = nncontrol;
+
+	addPoint(info);
 
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
 	buffer1->update(poseList.size());
@@ -642,6 +667,29 @@ void MainWindow::onTrajectoryReceived()
 				maxValP2 = temp;
 		}
 	}
+	else if (vwPlot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (Vector3d(poseList[j].V_hat(0, 0), poseList[j].V_hat(1, 1), poseList[j].V_hat(2, 2))).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (Vector3d(poseList[j].V_hat(0, 0), poseList[j].V_hat(1, 1), poseList[j].V_hat(2, 2))).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (Vector3d(poseList[j].W_hat(0, 0), poseList[j].W_hat(1, 1), poseList[j].W_hat(2, 2))).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (Vector3d(poseList[j].W_hat(0, 0), poseList[j].W_hat(1, 1), poseList[j].W_hat(2, 2))).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
 
 	if (minValP1 > -1)
 		minValP1 = -1;
@@ -693,6 +741,16 @@ void MainWindow::onTrajectoryReceived()
 		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
 		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
 	}
+	else if (controlPlot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, -1000, 1000);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, -1000, 1000);
+	}
+	else if (vwPlot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
+	}
 
 	ui->qwtPlot1->replot();
 	ui->qwtPlot2->replot();
@@ -714,6 +772,15 @@ void MainWindow::TrajectoryDDSReadCallback(const TrajectoryMessage &msg)
 
 	trajectorymsg = msg;
 	emit trajectoryReceived();
+}
+
+void MainWindow::TrackingControllerDDSReadCallback(const TrackingControllerLogMessage &msg)
+{
+	if (testToggle)
+		return;
+
+	trackingmsg = msg;
+	emit trackingControllerReceived();
 }
 
 void MainWindow::addPoint(const TrackingControllerInfo& p)
@@ -1602,3 +1669,4 @@ void MainWindow::on_btnTestToggle_clicked()
 	    trajectoryGenerator.InitTimers(getTimestamp());
 	}
 }
+
