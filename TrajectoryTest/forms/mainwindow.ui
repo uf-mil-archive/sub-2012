@@ -572,7 +572,7 @@
      <x>0</x>
      <y>0</y>
      <width>1123</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -595,6 +595,9 @@
    <addaction name="separator"/>
    <addaction name="actionDesired_vs_Actual_z_and_yaw"/>
    <addaction name="separator"/>
+   <addaction name="actionControl"/>
+   <addaction name="separator"/>
+   <addaction name="actionVW"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionRPY_Data">
@@ -625,6 +628,16 @@
   <action name="actionDesired_vs_Actual_z_and_yaw">
    <property name="text">
     <string>Desired vs Actual z and yaw</string>
+   </property>
+  </action>
+  <action name="actionControl">
+   <property name="text">
+    <string>Control Output</string>
+   </property>
+  </action>
+  <action name="actionVW">
+   <property name="text">
+    <string>VW</string>
    </property>
   </action>
  </widget>

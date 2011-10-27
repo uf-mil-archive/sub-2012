@@ -83,6 +83,8 @@ namespace subjugator
 	    void on_btnSubmitGains_clicked();
 	    void on_actionDesired_vs_Actual_x_and_y_triggered();
 	    void on_actionDesired_vs_Actual_z_and_yaw_triggered();
+	    void on_actionControl_triggered();
+	    void on_actionVW_triggered();
 	    void on_btnTestToggle_clicked();
 
 	    signals:
@@ -121,6 +123,8 @@ namespace subjugator
 		bool errrpyPlot;
 		bool compare1Plot;
 		bool compare2Plot;
+		bool controlPlot;
+		bool vwPlot;
 		bool actualToggle;
 		bool testToggle;
 
