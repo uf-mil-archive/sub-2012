@@ -14,7 +14,7 @@ TrackingController::TrackingController()
 	kstemp <<  220.0,200.0,150.0,40.0,60.0,100.0;
 	alphatemp << 0.1,  0.1, 0.05,0.005, 0.1,0.1;
 	betatemp << 15.0, 10.0, 15.0, 5.0,10.0,10.0;
-	
+
 	gamma1temp << 1.0, 1.0,  1.0, 1.0,1.0,1.0;
 	gamma1temp *= 30;
 	gamma2temp << 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0;
@@ -178,7 +178,10 @@ Vector6d TrackingController::NNFeedForward(double dt)
     xd_nn_dot.block(7, 0, 6, 1) = xd_dotdot;
     xd_nn_dot.block(13, 0, 6, 1) = xd_dotdotdot;
 
-    VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
+    //VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
+	VectorXd one = VectorXd::Ones(xd_nn.rows(), 1); // not sure why I need the matrix form of ::Ones here, the vector form hits a static assert
+	cout << "before sigma" << endl;
+	VectorXd sigma = one.cwiseQuotient(one + (-V_hat.transpose() * xd_nn).array().exp().matrix());
 
 	cout << "sigma: " << sigma << endl;
 
@@ -186,9 +189,10 @@ Vector6d TrackingController::NNFeedForward(double dt)
     sigma_hat(0,0) = 1.0;
     sigma_hat.block(1,0,sigma.rows(),0) = sigma;
 
-	VectorXd tempProd = V_hat.transpose() * xd_nn;	// 2 * Sech((V_hat.Transpose() * xd_nn).^2);
-    MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
-    MatrixXd sigma_hat_prime_term = AttitudeHelpers::DiagMatrixFromVector(inner);
+	//VectorXd tempProd = V_hat.transpose() * xd_nn;	// 2 * Sech((V_hat.Transpose() * xd_nn).^2);
+    //MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
+    //MatrixXd sigma_hat_prime_term = AttitudeHelpers::DiagMatrixFromVector(inner);
+    MatrixXd sigma_hat_prime_term = AttitudeHelpers::DiagMatrixFromVector(sigma) * (MatrixXd::Identity(sigma.rows(), sigma.rows()) - AttitudeHelpers::DiagMatrixFromVector(sigma));
     //sigma_hat_prime = [zeros(1,length(sigma_hat_prime_term));sigma_hat_prime_term];
     MatrixXd sigma_hat_prime(1+sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols());
     sigma_hat_prime.fill(0.0);
@@ -361,7 +365,7 @@ void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Ve
 	alpha = AttitudeHelpers::DiagMatrixFromVector(alphaV);
 	beta = AttitudeHelpers::DiagMatrixFromVector(betaV);
 	ksPlus1 = ks + Matrix<double,6,6>::Identity();
-	
+
 	gamma1 = AttitudeHelpers::DiagMatrixFromVector(gamma1temp);
 	gamma2 = AttitudeHelpers::DiagMatrixFromVector(gamma2temp);
 }
