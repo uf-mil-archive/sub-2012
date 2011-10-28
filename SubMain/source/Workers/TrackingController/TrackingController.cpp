@@ -15,10 +15,10 @@ TrackingController::TrackingController()
 	alphatemp << 0.1,  0.1, 0.05,0.005, 0.1,0.1;
 	betatemp << 15.0, 10.0, 15.0, 5.0,10.0,10.0;
 
-	gamma1temp << 1.0, 1.0,  1.0, 1.0,1.0,1.0;
+	gamma1temp << 1.0, 1.0, 1.0, 1.0,1.0,1.0;
 	gamma1temp *= 30;
 	gamma2temp << 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0;
-	gamma2temp *= 40;
+	gamma2temp *= 5;
 
 	pd_on = false;
 	rise_on = true;
@@ -45,7 +45,8 @@ TrackingController::TrackingController()
 	V_hat_dot = Matrix19x5d::Zero();
 	V_hat_dot_prev = Matrix19x5d::Zero();
 	V_hat = Matrix19x5d::Random();
-	V_hat_prev = Matrix19x5d::Zero();
+	cout << "V_hat initial: " << V_hat << endl;
+	V_hat_prev = V_hat;
 	W_hat_dot = Matrix6d::Zero();
     W_hat_dot_prev = Matrix6d::Zero();
     W_hat = Matrix6d::Zero();
@@ -101,8 +102,8 @@ void TrackingController::Update(boost::int64_t currentTick, const TrajectoryInfo
 	if(rise_on && !pd_on)	// only allow rise to be on if pd is off
 		currentControl += RiseFeedbackNoAccel(dt);
 	if(nn_on && rise_on && !pd_on) { // Only allow nn to be added if rise is used
-		//currentControl += NNFeedForward(dt);
-		NNFeedForward(dt);
+		currentControl += NNFeedForward(dt);
+		//NNFeedForward(dt);
 	}
 
 	// We think there's supposed to be a possible transformation here, the math supports it but the sub does not like it. May need to look at this further.
@@ -179,7 +180,8 @@ Vector6d TrackingController::NNFeedForward(double dt)
     xd_nn_dot.block(13, 0, 6, 1) = xd_dotdotdot;
 
     //VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
-	VectorXd one = VectorXd::Ones(xd_nn.rows(), 1); // not sure why I need the matrix form of ::Ones here, the vector form hits a static assert
+	VectorXd one = VectorXd::Ones(V_hat.cols(), 1); // not sure why I need the matrix form of ::Ones here, the vector form hits a static assert
+	cout << one << endl;
 	cout << "before sigma" << endl;
 	VectorXd sigma = one.cwiseQuotient(one + (-V_hat.transpose() * xd_nn).array().exp().matrix());
 
@@ -187,7 +189,7 @@ Vector6d TrackingController::NNFeedForward(double dt)
 
     VectorXd sigma_hat(1+sigma.rows(),1);          //sigma_hat = [1; sigma];
     sigma_hat(0,0) = 1.0;
-    sigma_hat.block(1,0,sigma.rows(),0) = sigma;
+    sigma_hat.block(1,0,sigma.rows(),1) = sigma;
 
 	//VectorXd tempProd = V_hat.transpose() * xd_nn;	// 2 * Sech((V_hat.Transpose() * xd_nn).^2);
     //MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
@@ -199,7 +201,7 @@ Vector6d TrackingController::NNFeedForward(double dt)
     sigma_hat_prime.block(1, 0, sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols()) = sigma_hat_prime_term;
 
     W_hat_dot = gamma1 * sigma_hat_prime * V_hat.transpose() * xd_nn_dot * e2.transpose();
-    V_hat_dot = gamma2 * xd_nn_dot * e2.transpose() * W_hat.transpose() * sigma_hat_prime;
+    V_hat_dot = gamma2 * xd_nn_dot * (sigma_hat_prime.transpose() * W_hat * e2).transpose();
 
     // integrate W_hat_dot and V_hat_dot
     W_hat = W_hat_prev + dt / 2.0 * (W_hat_dot + W_hat_dot_prev);
@@ -213,6 +215,10 @@ Vector6d TrackingController::NNFeedForward(double dt)
     V_hat_prev = V_hat;
     V_hat_dot_prev = V_hat_dot;
 
+/*	cout << "xd_nn_dot=======" << endl << xd_nn_dot << endl;
+	cout << "V_hat_dot=======" << endl << V_hat_dot << endl;
+	cout << "W_hat_dot=======" << endl << W_hat_dot << endl;
+	cout << "gamma1==========" << endl << gamma1 << endl;*/
 	cout << "V_hat===========" << endl << V_hat << endl;
 	cout << "W_hat===========" << endl << W_hat << endl;
 

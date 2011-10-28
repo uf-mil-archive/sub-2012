@@ -32,7 +32,7 @@ TrajectoryInfo EquTrajectoryGenerator::computeTrajectory(boost::int64_t currentT
 	
 	trajectory.head<3>() += startPos;
 	trajectory(5) += startYaw;
-	trajectory(5) = AttitudeHelpers::DAngleClamp(trajectory(5));
+	//trajectory(5) = AttitudeHelpers::DAngleClamp(trajectory(5));
 
 	return TrajectoryInfo(currentTickCount, trajectory, trajectory_dot);
 }
