@@ -8,8 +8,7 @@ WorkerEndpoint::WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &
   endpoint(endpoint),
   initcallback(initcallback),
   outgoingonly(outgoingonly),
-  errorage(0),
-  initialized(0) {
+  errorage(0) {
 	endpoint->configureCallbacks(boost::bind(&WorkerEndpoint::halReceiveCallback, this, _1), boost::bind(&WorkerEndpoint::halStateChangeCallback, this));
 	endpoint->open();
 }
