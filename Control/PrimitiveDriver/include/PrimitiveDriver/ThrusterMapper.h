@@ -2,57 +2,43 @@
 #define THRUSTERMAPPER_H
 
 #include <Eigen/Dense>
-#include "PrimitiveDriver/Thruster.h"
-
-using namespace Eigen;
 
 namespace subjugator {
-	/*
-	 * This class is based on the work in
-	 * Experimental study on fine motion control of underwater robots
-	 * Hanai et al
-	 *
-	 * The only major difference is we do not rearrange the input screw
-	 * to horizontal/vertical motions, and hence the map matrix lacks the
-	 * P36 permutation described in the paper.
-	 */
 	class ThrusterMapper {
 		public:
-			typedef Matrix<double, 6, 1> Vector6D;
+			struct Entry {
+				Eigen::Vector3d lineofaction;
+				Eigen::Vector3d position;
+				double fsat, rsat;
 
-			ThrusterMapper(Vector3d originToCOM, std::vector<Vector3d> linesOfAction, std::vector<Vector3d> thrusterOrigins,
-					std::vector<double> fSatForce, std::vector<double> rSatForce);
-			ThrusterMapper(Vector3d originToCOM, const std::vector<boost::shared_ptr<Thruster> > &thrusterList);
+				Entry() { }
+				Entry(const Eigen::Vector3d &lineofaction, const Eigen::Vector3d position, double fsat, double rsat)
+				: lineofaction(lineofaction), position(position), fsat(fsat), rsat(rsat) { }
+			};
+			typedef Eigen::Matrix<double, 6, 1> Vector6D;
 
-			~ThrusterMapper(){ if(mLeastSolver) delete mLeastSolver; }
+			ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries);
 
-			void setFSatForce(std::vector<double> newF)
-			{
-				assert(newF.size() == mFSatForce.size());
-				mFSatForce = newF;
-			}
+			void setEntry(int num, const Entry &entry);
+			void clearEntry(int num);
 
-			void setRSatForce(std::vector<double> newR)
-			{
-				assert(newR.size() == mRSatForce.size());
-				mRSatForce = newR;
-			}
+			Eigen::VectorXd mapWrench(const Vector6D& wrench) const;
 
-			Vector3d getOriginToCom() { return mOriginToCOM; }
-
-			VectorXd MapScrewtoEffort(const Vector6D& screw);
 		private:
-			void buildMapMatrix(Vector3d originToCOM, std::vector<Vector3d> linesOfAction, std::vector<Vector3d> thrusterOrigins);
+			typedef Eigen::Matrix<double, 6, Eigen::Dynamic> MapMatrix;
 
-			MatrixXd mMapMatrix;
-			Vector3d mOriginToCOM;	// this is the position vector of the vehicle center of mass. Position vector
-									// of the COM, position of the thruster's COM, and the line of action must all be
-									// described in the same coordinate system.
+			Eigen::Vector3d centerofmass;
+			int entries;
 
-			JacobiSVD<MatrixXd>* mLeastSolver;
+			MapMatrix mapmatrix;
+			Eigen::VectorXd fsat;
+			Eigen::VectorXd rsat;
 
-			std::vector<double> mFSatForce;	// Handling saturation in the mapper is debatable still, but I'm
-			std::vector<double> mRSatForce;	// going to leave the code in place so we can explore this more.
+			mutable Eigen::JacobiSVD<MapMatrix> svd;
+			mutable bool svdstale;
+
+			void updateSvd() const;
+			void saturate(Eigen::VectorXd &wrench) const;
 	};
 }
 

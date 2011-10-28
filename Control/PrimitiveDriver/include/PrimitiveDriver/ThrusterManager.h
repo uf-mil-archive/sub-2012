@@ -4,29 +4,39 @@
 #include "PrimitiveDriver/ThrusterMapper.h"
 #include "PrimitiveDriver/Thruster.h"
 #include "LibSub/Worker/WorkerStateUpdater.h"
-
+#include <boost/ptr_container/ptr_vector.hpp>
 #include <Eigen/Dense>
 
 namespace subjugator {
-	class ThrusterManager : public WorkerStateUpdaterContainer {
+	class ThrusterManager : public WorkerStateUpdater {
 		public:
-			typedef Matrix<double, 6, 1> Vector6D;
+			typedef boost::function<void (int num, const WorkerState &state)> ThrusterChangeCallback;
 
-			ThrusterManager(HAL &h);
+			ThrusterManager(HAL &hal, int srcaddress, const ThrusterChangeCallback &callback);
 
-			void addThruster(Thruster *t);
-			void RebuildMapper();
-			void ImplementScrew(const Vector6D& screw);
-			void SetOriginToCOM(Vector3d pCom);
-			bool IsReady(){ return mIsReady; }
-			double getCurrent(int thruster) { return mThrusters[thruster]->getInfo().getCurrent(); }
+			int addThruster(int address); // returns the thrusters number
+			Thruster &getThruster(int num) { return thrusters[num]; }
+			const Thruster &getThruster(int num) const { return thrusters[num]; }
+
+			void setEffort(int num, double effort) { thrusters[num].setEffort(effort); }
+			MotorDriverInfo getInfo(int num) const { return thrusters[num].getInfo(); }
+			const WorkerState getState(int num) const { return thrusters[num].getWorkerState(); }
+
+			void setEfforts(const Eigen::VectorXd &efforts);
+			void zeroEfforts();
+			int getOnlineThrusterCount() const;
+
+			virtual void updateState(double dt);
+			virtual const WorkerState &getWorkerState() const { return state; }
 
 		private:
 			HAL &hal;
-			std::vector<boost::shared_ptr<Thruster> > mThrusters;
-			std::auto_ptr<ThrusterMapper> mThrusterMapper;
-			Vector3d mOriginToCOM;
-			bool mIsReady;
+			int srcaddress;
+			ThrusterChangeCallback callback;
+
+			WorkerState state;
+			typedef boost::ptr_vector<Thruster> ThrusterVec;
+			ThrusterVec thrusters;
 	};
 }
 

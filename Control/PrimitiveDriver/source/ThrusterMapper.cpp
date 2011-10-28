@@ -1,82 +1,58 @@
 #include "PrimitiveDriver/ThrusterMapper.h"
+#include <cassert>
 
 using namespace subjugator;
 using namespace Eigen;
 using namespace std;
 
-ThrusterMapper::ThrusterMapper(Vector3d originToCOM, std::vector<Vector3d> linesOfAction, std::vector<Vector3d> thrusterOrigins, std::vector<double> fSatForces, std::vector<double> rSatForces)
-: mOriginToCOM(originToCOM),
-  mFSatForce(fSatForces), mRSatForce(rSatForces) {
-	buildMapMatrix(originToCOM, linesOfAction, thrusterOrigins);
+ThrusterMapper::ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries)
+: centerofmass(centerofmass),
+  entries(entries),
+  mapmatrix(MapMatrix::Zero(entries, 6)),
+  fsat(VectorXd::Ones(entries)),
+  rsat(VectorXd::Ones(entries)),
+  svdstale(true) { }
+
+void ThrusterMapper::setEntry(int num, const Entry &entry) {
+	assert(num < entries);
+
+	Vector3d moment = (entry.position - centerofmass).cross(entry.lineofaction);
+
+	mapmatrix.block<3, 1>(0, num) = entry.lineofaction;
+	mapmatrix.block<3, 1>(3, num) = moment;
+	fsat[num] = entry.fsat;
+	rsat[num] = entry.rsat;
+
+	svdstale = true;
 }
 
-// This expects a sorted thruster list
-ThrusterMapper::ThrusterMapper(Vector3d originToCOM, const std::vector<boost::shared_ptr<Thruster> > &thrusterList)
-: mOriginToCOM(originToCOM) {
-	std::vector<Vector3d> actions;
-	std::vector<Vector3d> origins;
+void ThrusterMapper::clearEntry(int num) {
+	assert(num < entries);
 
-	mFSatForce.clear();
-	mRSatForce.clear();
-
-	for (size_t i = 0; i < thrusterList.size(); i++) {
-		actions.push_back(thrusterList[i]->getLineOfAction());
-		origins.push_back(thrusterList[i]->getOriginToThruster());
-		mFSatForce.push_back(thrusterList[i]->getFSatForce());
-		mRSatForce.push_back(thrusterList[i]->getRSatForce());
-	}
-
-	buildMapMatrix(originToCOM, actions, origins);
+	mapmatrix.col(num).fill(0);
+	svdstale = true;
 }
 
-void ThrusterMapper::buildMapMatrix(Vector3d originToCOM, std::vector<Vector3d> linesOfAction, std::vector<Vector3d> thrusterOrigins) {
-	mMapMatrix.resize(6, linesOfAction.size());
-	mMapMatrix.fill(0);
-
-	for (size_t i = 0; i < linesOfAction.size(); i++) {
-		Vector3d moment = (thrusterOrigins[i] - originToCOM).cross(linesOfAction[i]);
-		mMapMatrix.block<3,1>(0,i) = linesOfAction[i];
-		mMapMatrix.block<3,1>(3,i) = moment;
-	}
-
-	cout << mMapMatrix << endl;
-
-	// Initialize the solver with the map matrix
-	mLeastSolver = new JacobiSVD<MatrixXd>(mMapMatrix, (ComputeThinU | ComputeThinV));
+VectorXd ThrusterMapper::mapWrench(const Vector6D& wrench) const {
+	updateSvd();
+	VectorXd forces = svd.solve(wrench);
+	saturate(forces);
+	return forces;
 }
 
-VectorXd ThrusterMapper::MapScrewtoEffort(const Vector6D& screw) {
-	VectorXd sol = mLeastSolver->solve(screw);
+void ThrusterMapper::updateSvd() const {
+	if (!svdstale)
+		return;
 
-	// Handle saturation
-	double fMax = 0, rMin = 0;
-	double fMaxNorm = 0, rMinNorm = 0;
-
-	for (int i = 0; i < sol.rows(); i++) {
-		// Reverse
-		if (sol(i) < 0) {
-			if (sol(i) < rMin) {
-				rMin = sol(i);
-				rMinNorm = -1.0 * rMin / mRSatForce[i];
-			}
-			sol(i) *= 1.0 / mRSatForce[i];
-			continue;
-		}
-
-		// Forward
-		if (sol(i) > fMax) {
-			fMax = sol(i);
-			fMaxNorm = fMax / mFSatForce[i];
-		}
-		sol(i) *= 1.0 / mFSatForce[i];
-	}
-
-	// Scale if saturated
-	if (fMaxNorm > 1 && fMaxNorm > rMinNorm) { // A forward value is largest
-		sol *= (1.0 / fMaxNorm);
-	} else if (rMinNorm > 1) { // A reverse value is largest
-		sol*= (1.0 / rMinNorm);
-	}
-
-	return sol;
+	svd.compute(mapmatrix, ComputeThinU | ComputeThinV);
+	svdstale = false;
 }
+
+void ThrusterMapper::saturate(VectorXd &forces) const {
+	double maxnorm = forces.cwiseQuotient(fsat).maxCoeff(); // find the maximum force normalized by forward saturation
+	double minnorm = forces.cwiseQuotient(rsat).minCoeff(); // find the minimum force normalized by reverse saturation
+
+	if (maxnorm > 1.0 || minnorm < -1.0) // if the highest force exceeds saturation in either forward or reverse
+		forces /= max(maxnorm, -minnorm); // scale everything by the greatest normalized force
+}
+

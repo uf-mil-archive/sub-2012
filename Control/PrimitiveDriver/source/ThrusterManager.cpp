@@ -1,42 +1,44 @@
 #include "PrimitiveDriver/ThrusterManager.h"
+#include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
+#include <string>
 
 using namespace subjugator;
 using namespace Eigen;
 using namespace boost;
+using namespace std;
 
-ThrusterManager::ThrusterManager(HAL &hal)
-	:hal(hal), mIsReady(true) {
-	addThruster(new Thruster(30, 21, hal, Vector3d(0, 0, 1),  Vector3d( 11.7103,  5.3754, -1.9677)*.0254, 500, 500)); // FRV
-	addThruster(new Thruster(31, 21, hal, Vector3d(0, 0, 1),  Vector3d( 11.7125, -5.3754, -1.9677)*.0254, 500, 500)); // FLV
-	addThruster(new Thruster(32, 21, hal, Vector3d(0, -1, 0), Vector3d( 22.3004,  1.8020,  1.9190)*.0254, 500, 500)); // FS
-	addThruster(new Thruster(33, 21, hal, Vector3d(0, 0, 1),  Vector3d(-11.7125, -5.3754, -1.9677)*.0254, 500, 500)); // RLV
-	addThruster(new Thruster(34, 21, hal, Vector3d(1, 0, 0),  Vector3d(-24.9072, -4.5375, -2.4285)*.0254, 500, 500)); // LFOR
-	addThruster(new Thruster(35, 21, hal, Vector3d(1, 0, 0),  Vector3d(-24.9072,  4.5375, -2.4285)*.0254, 500, 500)); // RFOR
-	addThruster(new Thruster(36, 21, hal, Vector3d(0, 1, 0),  Vector3d(-20.8004, -1.8020,  2.0440)*.0254, 500, 500)); // RS
-	addThruster(new Thruster(37, 21, hal, Vector3d(0, 0, 1),  Vector3d(-11.7147,  5.3754, -1.9677)*.0254, 500, 500)); // RRV
-	SetOriginToCOM(Vector3d(0, 0, 0));
+ThrusterManager::ThrusterManager(HAL &hal, int srcaddress, const ThrusterChangeCallback &callback)
+: hal(hal), srcaddress(srcaddress), callback(callback) { }
 
-	RebuildMapper();
+int ThrusterManager::addThruster(int address) {
+	int num = thrusters.size();
+	thrusters.push_back(new Thruster(hal, address, srcaddress, bind(callback, num, _1)));
+	return num;
 }
 
-void ThrusterManager::addThruster(Thruster *t) {
-	mThrusters.push_back(shared_ptr<Thruster>(t));
-	registerStateUpdater(*t);
+void ThrusterManager::setEfforts(const VectorXd &efforts) {
+	assert(efforts.rows() == thrusters.size());
+
+	for (int i=0; i<efforts.rows(); i++)
+		thrusters[i].setEffort(efforts[i]);
 }
 
-void ThrusterManager::SetOriginToCOM(Vector3d pCom) {
-	mOriginToCOM = pCom;
+void ThrusterManager::zeroEfforts() {
+	for (ThrusterVec::iterator i = thrusters.begin(); i != thrusters.end(); ++i)
+		i->setEffort(0);
 }
 
-// Call this after you call addthruster to correctly build the mapper back up
-void ThrusterManager::RebuildMapper() {
-	mThrusterMapper = std::auto_ptr<ThrusterMapper>(new ThrusterMapper(mOriginToCOM, mThrusters));
+int ThrusterManager::getOnlineThrusterCount() const {
+	int count=0;
+	for (ThrusterVec::const_iterator i = thrusters.begin(); i != thrusters.end(); ++i)
+		if (i->getWorkerState().code == WorkerState::ACTIVE)
+			count++;
+	return count;
 }
 
-void ThrusterManager::ImplementScrew(const Vector6D& screw) {
-	VectorXd res = mThrusterMapper->MapScrewtoEffort(screw);
-	for (size_t i = 0; i < mThrusters.size(); i++) {
-		mThrusters[i]->SetEffort(res(i));
-	}
+void ThrusterManager::updateState(double dt) {
+	state.code = WorkerState::ACTIVE;
+	state.msg = lexical_cast<string>(getOnlineThrusterCount()) + " thrusters online";
 }
 

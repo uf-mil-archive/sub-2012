@@ -5,40 +5,64 @@
 #include "DataObjects/HeartBeat.h"
 
 using namespace subjugator;
+using namespace Eigen;
 using namespace boost;
 using namespace std;
 
 PDWorker::PDWorker(boost::asio::io_service &ioservice)
-: hal(ioservice),
+: wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
+  actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
+  hal(ioservice),
   heartbeatendpoint(
-  	hal.openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()), "heartbeat",
-  	WorkerEndpoint::InitializeCallback(), 
+    hal.openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()), "heartbeat",
+  	WorkerEndpoint::InitializeCallback(),
   	true),
-  thrustermanager(hal),
+  thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
+  thrustermapper(Vector3d(0, 0, 0), 8),
   mergemanager(hal) {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
+
+	// Insert configuration system here.
+	thrusterentries[30] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7103,  5.3754, -1.9677)*.0254, 500, 500); // FRV
+	thrusterentries[31] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7125, -5.3754, -1.9677)*.0254, 500, 500); // FLV
+	thrusterentries[32] = ThrusterMapper::Entry(Vector3d(0, -1, 0), Vector3d( 22.3004,  1.8020,  1.9190)*.0254, 500, 500); // FS
+	thrusterentries[33] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7125, -5.3754, -1.9677)*.0254, 500, 500); // RLV
+	thrusterentries[34] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072, -4.5375, -2.4285)*.0254, 500, 500); // LFOR
+	thrusterentries[35] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072,  4.5375, -2.4285)*.0254, 500, 500); // RFOR
+	thrusterentries[36] = ThrusterMapper::Entry(Vector3d(0, 1, 0),  Vector3d(-20.8004, -1.8020,  2.0440)*.0254, 500, 500); // RS
+	thrusterentries[37] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7147,  5.3754, -1.9677)*.0254, 500, 500); // RRV
 }
 
 const PDWorker::Properties &PDWorker::getProperties() const {
-	static const Properties props = { "PrimitiveDriver", 50 };
+	static const Properties props = { "PrimitiveDriver", 10 };
 
 	return props;
 }
 
-void PDWorker::setWrench(const Vector6d &wrench) {
-	thrustermanager.ImplementScrew(wrench);
+void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
+	VectorXd thrust = thrustermapper.mapWrench(optwrench.get_value_or(Vector6d::Zero()));
+	thrustermanager.setEfforts(thrust);
 }
 
-void PDWorker::setActuators(int flags) {
-	mergemanager.setActuators(flags);
+void PDWorker::actuatorSet(const boost::optional<int> &flags) {
+	mergemanager.setActuators(flags.get_value_or(0));
+}
+
+void PDWorker::thrusterStateChanged(int num, const WorkerState &state) {
+	if (state.code == WorkerState::ACTIVE)
+		thrustermapper.setEntry(num, thrusterentries[num]);
+	else
+		thrustermapper.clearEntry(num);
+
+	wrenchSet(wrenchmailbox.get());
 }
 
 void PDWorker::work(double dt) {
 	std::vector<double> currents(8);
 	for (int i=0; i<8; i++) {
-		currents[i] = thrustermanager.getCurrent(i);
+		currents[i] = thrustermanager.getInfo(i).getCurrent();
 	}
 	currentsignal.emit(currents);
 
@@ -49,6 +73,6 @@ void PDWorker::work(double dt) {
 }
 
 void PDWorker::leaveActive() {
-	thrustermanager.ImplementScrew(Vector6d::Zero());
+	thrustermanager.zeroEfforts();
 }
 

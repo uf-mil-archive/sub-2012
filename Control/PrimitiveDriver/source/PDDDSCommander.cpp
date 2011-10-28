@@ -15,23 +15,23 @@ PDDDSCommander::PDDDSCommander(PDWorker &pdworker, DDSDomainParticipant *partici
   actuatorreceiver(participant, "PDActuator", bind(&PDDDSCommander::receivedActuator, this, _1)) { }
 
 void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
-	PDWrench::Vector6D vec;
+	PDWorker::Vector6d vec;
 	for (int i=0; i<3; i++)
 		vec(i) = wrench.linear[i];
 	for (int i=0; i<3; i++)
 		vec(i+3) = wrench.moment[i];
 
-	pdworker.setWrench(vec);
+	pdworker.wrenchmailbox.set(vec);
 }
 
 void PDDDSCommander::writerCountChanged(int count) {
 	if (count == 0) {
-		cout << "Lost all DataWriters, setting a zero screw" << endl;
-		pdworker.setWrench(PDWorker::Vector6d::Zero());
+		cout << "Lost all DataWriters, clearing wrench" << endl;
+		pdworker.wrenchmailbox.clear();
 	}
 }
 
 void PDDDSCommander::receivedActuator(const PDActuatorMessage &actuator) {
-	pdworker.setActuators(actuator.flags);
+	pdworker.actuatormailbox.set(actuator.flags);
 }
 

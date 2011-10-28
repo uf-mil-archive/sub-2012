@@ -14,13 +14,13 @@
 namespace subjugator {
 	class PDWorker : public Worker {
 		public:
-			typedef Matrix<double, 6, 1> Vector6d;
+			typedef Eigen::Matrix<double, 6, 1> Vector6d;
 
 			PDWorker(boost::asio::io_service &ioservice);
 			virtual const Properties &getProperties() const;
 
-			void setWrench(const Vector6d &wrench);
-			void setActuators(int flags);
+			WorkerMailbox<Vector6d> wrenchmailbox;
+			WorkerMailbox<int> actuatormailbox;
 
 			WorkerSignal<std::vector<double> > currentsignal;
 			WorkerSignal<PDInfo> infosignal;
@@ -29,12 +29,20 @@ namespace subjugator {
 			virtual void work(double dt);
 
 		private:
+			void wrenchSet(const boost::optional<Vector6d> &wrench);
+			void actuatorSet(const boost::optional<int> &actuators);
+			void thrusterStateChanged(int num, const WorkerState &state);
+
+			virtual void leaveActive();
+
 			SubHAL hal;
 			WorkerEndpoint heartbeatendpoint;
 			ThrusterManager thrustermanager;
+			ThrusterMapper thrustermapper;
 			MergeManager mergemanager;
 
-			virtual void leaveActive();
+			typedef std::map<int, ThrusterMapper::Entry> ThrusterEntryMap;
+			ThrusterEntryMap thrusterentries;
 	};
 }
 

@@ -9,7 +9,7 @@
 namespace subjugator {
 	class PDWrench : public DataObject {
 		public:
-			typedef Matrix<double, 6, 1> Vector6D;
+			typedef Eigen::Matrix<double, 6, 1> Vector6D;
 
 			PDWrench(const Vector6D &vec) : vec(vec) { }
 
