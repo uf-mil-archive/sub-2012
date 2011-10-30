@@ -60,7 +60,7 @@ class EmbeddedProtocol(protocol.Protocol):
                     break
                 garbage.append(b)
             if garbage:
-                print 'embedded garbage', ''.join(garbage).encode('hex')
+                print self, 'embedded garbage', ''.join(garbage).encode('hex')
             
             data = []
             while True:
@@ -82,7 +82,7 @@ class EmbeddedProtocol(protocol.Protocol):
             
             (pcaddress, devaddress, packetcount), data = struct.unpack('BBH', data[:4]), data[4:]
             
-            self.packetReceived((pcaddress, devaddress, packetcount, data))
+            self.packetReceived(pcaddress, devaddress, packetcount, data)
     
     def sendPacket(self, devaddress, pcaddress, typecode, data):
         data = struct.pack('BBHB', devaddress, pcaddress, self.packet_count % 2**16, typecode) + data
@@ -102,11 +102,28 @@ class EmbeddedProtocol(protocol.Protocol):
         self.packet_count += 1
 
 class ThrusterProtocol(EmbeddedProtocol):
-    def __init__(self, thruster_id):
+    def __init__(self, thruster_id, thrusters):
         self.thruster_id = thruster_id
+        self.thrusters = thrusters
     
-    def packetReceived(self, pkt):
-        print 'thruster', self.thruster_id, pkt
+    def connectionMade(self):
+        EmbeddedProtocol.connectionMade(self)
+        print 'thruster', self.thruster_id, 'connection made'
+    
+    def packetReceived(self, pcaddress, devaddress, packetcount, data):
+        print 'thruster', self.thruster_id, pcaddress, devaddress, packetcount, data.encode('hex')
+        if data.startswith('\x00\x03'):
+            x, = struct.unpack('<H', data[2:])
+            if x & 0x8000:
+                x = x ^ 0x8000
+            else:
+                x = -x
+            x = x/100/2**8
+            print x
+            self.thrusters[self.thruster_id] = x
+    
+    def connectionLost(self, reason):
+        print 'thruster', self.thruster_id, 'connection lost'
 
 class IMUProtocol(protocol.Protocol):
     def __init__(self, listener_set):
@@ -140,10 +157,10 @@ class DepthProtocol(EmbeddedProtocol):
     def connectionMade(self):
         EmbeddedProtocol.connectionMade(self)
         print 'depth connection made'
-        self.listener_set.add(self)
+        self.listener_set.add(self) 
     
-    def packetReceived(self, data):
-        print 'depth', data
+    def packetReceived(self, pcaddress, devaddress, packetcount, data):
+        print 'depth', pcaddress, devaddress, packetcount, data.encode('hex')
     
     def sendUpdate(self, tickcount, flags, depth, thermister_temp, humidity, humidity_sensor_temp):
         data = struct.pack('<HBHHHH',
@@ -200,20 +217,43 @@ class DVLProtocol(protocol.Protocol):
         self.listener_set.remove(self)
 
 #class HydrophoneProtocol
-#class MergeProtocol
 
+class MergeProtocol(EmbeddedProtocol):
+    def connectionMade(self):
+        EmbeddedProtocol.connectionMade(self)
+        print 'merge connection made'
+    
+    def packetReceived(self, pcaddress, devaddress, packetcount, data):
+        print "merge", pcaddress, devaddress, packetcount, data.encode('hex')
+    
+    def connectionLost(self, reason):
+        print 'merge connection lost'
+
+
+class HeartbeatProtocol(EmbeddedProtocol):
+    def connectionMade(self):
+        EmbeddedProtocol.connectionMade(self)
+        print 'heartbeat connection made'
+    
+    def packetReceived(self, pcaddress, devaddress, packetcount, data):
+        print "heartbeat", pcaddress, devaddress, packetcount, data.encode('hex')
+    
+    def connectionLost(self, reason):
+        print 'heartbeat connection lost'
 
 depth_listeners = set()
 imu_listeners = set()
 dvl_listeners = set()
+thrusters = [0]*8
 
 reactor.listenTCP(10004, AutoServerFactory(DepthProtocol, depth_listeners))
 reactor.listenTCP(10025, AutoServerFactory(IMUProtocol, imu_listeners))
 for i in xrange(8):
-    reactor.listenTCP(10030 + i, AutoServerFactory(ThrusterProtocol, i))
+    reactor.listenTCP(10030 + i, AutoServerFactory(ThrusterProtocol, i, thrusters))
 reactor.listenTCP(10050, AutoServerFactory(DVLProtocol, dvl_listeners)) # hydrophone too?
-#reactor.listenTCP(10060, AutoServerFactory(protocol=merge_factory))
+reactor.listenTCP(10060, AutoServerFactory(MergeProtocol))
 reactor.listenTCP(10061, AutoServerFactory(ActuatorProtocol))
+reactor.listenTCP(10255, AutoServerFactory(HeartbeatProtocol))
 
 def send_imu_update(**update):
     for imu_listener in imu_listeners:
@@ -233,6 +273,12 @@ def buoyancy_force(depth, r):
     sphere_true_antiderivative = lambda h: sphere_antiderivative(clip(h, (-r, r)))
     vol_submerged = sphere_true_antiderivative(depth) - sphere_true_antiderivative(-inf)
     return 1000 * 9.81 * vol_submerged
+
+
+flu_to_frd = frd_to_flu = vector.axisangle_to_quat((1, 0, 0), math.pi)
+
+def lerp((low, high), x):
+    return low + (high - low) * x
 
 '''import pygame
 d = pygame.display.set_mode((640, 480))
@@ -257,6 +303,21 @@ def world_tick():
     body.addForce([random.gauss(0, 10) for i in xrange(3)])
     body.addTorque([random.gauss(0, 100) for i in xrange(3)])
     body.addTorque(-50 * V(body.getAngularVel()))
+    
+    
+    print thrusters
+    
+    for i, (reldir, relpos, fwdforce, revforce) in enumerate([
+        (v(0, 0, 1), v( 11.7103,  5.3754, -1.9677)*.0254, 500, 500), # FRV
+        (v(0, 0, 1), v( 11.7125, -5.3754, -1.9677)*.0254, 500, 500), # FLV
+        (v(0,-1, 0), v( 22.3004,  1.8020,  1.9190)*.0254, 500, 500), # FS
+        (v(0, 0, 1), v(-11.7125, -5.3754, -1.9677)*.0254, 500, 500), # RLV
+        (v(1, 0, 0), v(-24.9072, -4.5375, -2.4285)*.0254, 500, 500), # LFOR
+        (v(1, 0, 0), v(-24.9072,  4.5375, -2.4285)*.0254, 500, 500), # RFOR
+        (v(0, 1, 0), v(-20.8004, -1.8020,  2.0440)*.0254, 500, 500), # RS
+        (v(0, 0, 1), v(-11.7147,  5.3754, -1.9677)*.0254, 500, 500), # RRV
+    ]):
+        body.addRelForceAtRelPos(frd_to_flu.quat_rot(3*reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce)), frd_to_flu.quat_rot(relpos))
     
     for keycode, force in [
         (pygame.K_o, v(0, 0, +1500)),
