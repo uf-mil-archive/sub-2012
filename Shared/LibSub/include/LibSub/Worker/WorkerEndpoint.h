@@ -17,7 +17,7 @@ namespace subjugator {
 			DataObjectEndpoint &getEndpoint() { return *endpoint; }
 			const DataObjectEndpoint &getEndpoint() const { return *endpoint; }
 
-			void write(const DataObject &dobj) { return getEndpoint().write(dobj); }
+			void write(const DataObject &dobj) { return endpoint->write(dobj); }
 
 			template <typename T> boost::shared_ptr<T> getDataObject() const {
 				return boost::dynamic_pointer_cast<T>(get());

@@ -21,7 +21,7 @@ void WorkerRunner::tick(const system::error_code& error) {
 		return;
 
 	posix_time::ptime curtime = posix_time::microsec_clock::local_time();
-	double dt = (prevtime - curtime).total_microseconds() / 1.0E6;
+	double dt = (curtime - prevtime).total_microseconds() / 1.0E6;
 	prevtime = curtime;
 
 	worker.update(dt);

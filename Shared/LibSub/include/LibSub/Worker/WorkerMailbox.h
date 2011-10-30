@@ -29,7 +29,7 @@ namespace subjugator {
 				data.reset(newdata);
 
 				if (callback)
-					callback(*data);
+					callback(data);
 			}
 
 			void clear() {
@@ -39,7 +39,7 @@ namespace subjugator {
 				data.reset();
 
 				if (callback)
-					callback(*data);
+					callback(data);
 			}
 
 			T get(const T &def=T()) const {

@@ -8,7 +8,8 @@ WorkerEndpoint::WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &
   endpoint(endpoint),
   initcallback(initcallback),
   outgoingonly(outgoingonly),
-  errorage(0) {
+  errorage(0),
+  state(WorkerState::STANDBY) {
 	endpoint->configureCallbacks(boost::bind(&WorkerEndpoint::halReceiveCallback, this, _1), boost::bind(&WorkerEndpoint::halStateChangeCallback, this));
 	endpoint->open();
 }
@@ -18,7 +19,6 @@ void WorkerEndpoint::updateState(double dt) {
 
 	switch (endpoint->getState()) {
 		case Endpoint::OPEN:
-			errorage = 0;
 			if (outgoingonly) // if we're only concerned with the ability to send messages (outgoingonly)
 				state = WorkerState::ACTIVE; // then having an open endpoint is enough to consider us active
 			else
@@ -31,15 +31,19 @@ void WorkerEndpoint::updateState(double dt) {
 
 		default:
 		case Endpoint::ERROR:
-			errorage += dt;
-			if (errorage >= 1) {
-				errorage = 0;
-				endpoint->close();
-				endpoint->open();
-			}
-
 			state = WorkerState(WorkerState::ERROR, "Error with " + getName() + " endpoint: " + endpoint->getErrorMessage());
 			break;
+	}
+
+	if (state.code == WorkerState::STANDBY || state.code == WorkerState::ERROR) {
+		errorage += dt;
+		if (errorage >= 1) {
+			errorage = 0;
+			endpoint->close();
+			endpoint->open();
+		}
+	} else {
+		errorage = 0;
 	}
 }
 
