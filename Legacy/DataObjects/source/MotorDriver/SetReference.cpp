@@ -7,8 +7,6 @@ using namespace std;
 
 SetReference::SetReference(double reference) : reference(reference) { }
 
-#include <iostream>
-
 void SetReference::appendDataPacket(Packet &packet) const {
 	uint16_t referencebits = (uint16_t)(abs(reference) * 100 * pow(2.0, 8.0));
 	if (reference > 0)

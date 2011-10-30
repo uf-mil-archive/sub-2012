@@ -18,7 +18,7 @@ int ThrusterManager::addThruster(int address) {
 }
 
 void ThrusterManager::setEfforts(const VectorXd &efforts) {
-	assert(efforts.rows() == thrusters.size());
+	assert(efforts.rows() == (int)thrusters.size());
 
 	for (int i=0; i<efforts.rows(); i++)
 		thrusters[i].setEffort(efforts[i]);
@@ -38,6 +38,9 @@ int ThrusterManager::getOnlineThrusterCount() const {
 }
 
 void ThrusterManager::updateState(double dt) {
+	for (ThrusterVec::iterator i = thrusters.begin(); i != thrusters.end(); ++i)
+		i->updateState(dt);
+
 	state.code = WorkerState::ACTIVE;
 	state.msg = lexical_cast<string>(getOnlineThrusterCount()) + " thrusters online";
 }

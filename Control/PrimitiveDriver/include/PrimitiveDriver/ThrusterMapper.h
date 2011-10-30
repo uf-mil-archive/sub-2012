@@ -22,7 +22,7 @@ namespace subjugator {
 			void setEntry(int num, const Entry &entry);
 			void clearEntry(int num);
 
-			Eigen::VectorXd mapWrench(const Vector6D& wrench) const;
+			Eigen::VectorXd mapWrenchToEfforts(const Vector6D& wrench) const;
 
 		private:
 			typedef Eigen::Matrix<double, 6, Eigen::Dynamic> MapMatrix;
@@ -38,7 +38,7 @@ namespace subjugator {
 			mutable bool svdstale;
 
 			void updateSvd() const;
-			void saturate(Eigen::VectorXd &wrench) const;
+			Eigen::VectorXd forcesToEfforts(const Eigen::VectorXd &forces) const;
 	};
 }
 

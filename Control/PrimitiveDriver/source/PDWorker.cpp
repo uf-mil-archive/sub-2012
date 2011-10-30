@@ -25,14 +25,17 @@ PDWorker::PDWorker(boost::asio::io_service &ioservice)
 	registerStateUpdater(mergemanager);
 
 	// Insert configuration system here.
-	thrusterentries[30] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7103,  5.3754, -1.9677)*.0254, 500, 500); // FRV
-	thrusterentries[31] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7125, -5.3754, -1.9677)*.0254, 500, 500); // FLV
-	thrusterentries[32] = ThrusterMapper::Entry(Vector3d(0, -1, 0), Vector3d( 22.3004,  1.8020,  1.9190)*.0254, 500, 500); // FS
-	thrusterentries[33] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7125, -5.3754, -1.9677)*.0254, 500, 500); // RLV
-	thrusterentries[34] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072, -4.5375, -2.4285)*.0254, 500, 500); // LFOR
-	thrusterentries[35] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072,  4.5375, -2.4285)*.0254, 500, 500); // RFOR
-	thrusterentries[36] = ThrusterMapper::Entry(Vector3d(0, 1, 0),  Vector3d(-20.8004, -1.8020,  2.0440)*.0254, 500, 500); // RS
-	thrusterentries[37] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7147,  5.3754, -1.9677)*.0254, 500, 500); // RRV
+	thrusterentries[0] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7103,  5.3754, -1.9677)*.0254, 500, 500); // FRV
+	thrusterentries[1] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7125, -5.3754, -1.9677)*.0254, 500, 500); // FLV
+	thrusterentries[2] = ThrusterMapper::Entry(Vector3d(0, -1, 0), Vector3d( 22.3004,  1.8020,  1.9190)*.0254, 500, 500); // FS
+	thrusterentries[3] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7125, -5.3754, -1.9677)*.0254, 500, 500); // RLV
+	thrusterentries[4] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072, -4.5375, -2.4285)*.0254, 500, 500); // LFOR
+	thrusterentries[5] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072,  4.5375, -2.4285)*.0254, 500, 500); // RFOR
+	thrusterentries[6] = ThrusterMapper::Entry(Vector3d(0, 1, 0),  Vector3d(-20.8004, -1.8020,  2.0440)*.0254, 500, 500); // RS
+	thrusterentries[7] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7147,  5.3754, -1.9677)*.0254, 500, 500); // RRV
+
+	for (int i=30; i<=37;i++)
+		thrustermanager.addThruster(i);
 }
 
 const PDWorker::Properties &PDWorker::getProperties() const {
@@ -42,8 +45,8 @@ const PDWorker::Properties &PDWorker::getProperties() const {
 }
 
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
-	VectorXd thrust = thrustermapper.mapWrench(optwrench.get_value_or(Vector6d::Zero()));
-	thrustermanager.setEfforts(thrust);
+	VectorXd efforts = thrustermapper.mapWrenchToEfforts(optwrench.get_value_or(Vector6d::Zero()));
+	thrustermanager.setEfforts(efforts);
 }
 
 void PDWorker::actuatorSet(const boost::optional<int> &flags) {
@@ -62,7 +65,11 @@ void PDWorker::thrusterStateChanged(int num, const WorkerState &state) {
 void PDWorker::work(double dt) {
 	std::vector<double> currents(8);
 	for (int i=0; i<8; i++) {
-		currents[i] = thrustermanager.getInfo(i).getCurrent();
+		boost::optional<MotorDriverInfo> info = thrustermanager.getInfo(i);
+		if (info)
+			currents[i] = info->getCurrent();
+		else
+			currents[i] = 0;
 	}
 	currentsignal.emit(currents);
 

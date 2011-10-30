@@ -10,13 +10,22 @@ using namespace boost;
 using namespace std;
 
 Thruster::Thruster(HAL &hal, int address, int srcaddress, const StateChangeCallback &callback)
-:	endpoint(
+:	address(address),
+	endpoint(
 		hal.openDataObjectEndpoint(address, new MotorDriverDataObjectFormatter(address, srcaddress, BRUSHEDOPEN), new Sub7EPacketFormatter()),
 		"thruster" + lexical_cast<string>(address),
 		bind(&Thruster::endpointInitCallback, this),
 		false,
 		.2),
 	callback(callback) { }
+
+optional<MotorDriverInfo> Thruster::getInfo() const {
+	boost::shared_ptr<MotorDriverInfo> info = endpoint.getDataObject<MotorDriverInfo>();
+	if (info)
+		return *info;
+	else
+		return none;
+}
 
 void Thruster::setEffort(double effort) {
 	endpoint.write(SetReference(effort));

@@ -20,13 +20,14 @@ namespace subjugator {
 
 			Thruster(HAL &hal, int address, int srcaddress, const StateChangeCallback &callback);
 
-			MotorDriverInfo getInfo() const { return *endpoint.getDataObject<MotorDriverInfo>(); }
+			boost::optional<MotorDriverInfo> getInfo() const;
 			void setEffort(double effort);
 
 			virtual void updateState(double dt);
 			virtual const WorkerState &getWorkerState() const { return endpoint.getWorkerState(); }
 
 		private:
+			int address;
 			WorkerEndpoint endpoint;
 			StateChangeCallback callback;
 

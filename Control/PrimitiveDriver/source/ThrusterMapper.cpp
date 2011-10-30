@@ -8,7 +8,7 @@ using namespace std;
 ThrusterMapper::ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries)
 : centerofmass(centerofmass),
   entries(entries),
-  mapmatrix(MapMatrix::Zero(entries, 6)),
+  mapmatrix(MapMatrix::Zero(6, entries)),
   fsat(VectorXd::Ones(entries)),
   rsat(VectorXd::Ones(entries)),
   svdstale(true) { }
@@ -33,11 +33,11 @@ void ThrusterMapper::clearEntry(int num) {
 	svdstale = true;
 }
 
-VectorXd ThrusterMapper::mapWrench(const Vector6D& wrench) const {
+VectorXd ThrusterMapper::mapWrenchToEfforts(const Vector6D& wrench) const {
 	updateSvd();
 	VectorXd forces = svd.solve(wrench);
-	saturate(forces);
-	return forces;
+	VectorXd efforts = forcesToEfforts(forces);
+	return efforts;
 }
 
 void ThrusterMapper::updateSvd() const {
@@ -48,11 +48,19 @@ void ThrusterMapper::updateSvd() const {
 	svdstale = false;
 }
 
-void ThrusterMapper::saturate(VectorXd &forces) const {
-	double maxnorm = forces.cwiseQuotient(fsat).maxCoeff(); // find the maximum force normalized by forward saturation
-	double minnorm = forces.cwiseQuotient(rsat).minCoeff(); // find the minimum force normalized by reverse saturation
+VectorXd ThrusterMapper::forcesToEfforts(const VectorXd &forces) const {
+	VectorXd efforts(forces.rows());
+	for (int i=0; i<forces.rows(); i++) {
+		if (forces[i] > 0)
+			efforts[i] = forces[i] / fsat[i];
+		else
+			efforts[i] = forces[i] / rsat[i];
+	}
 
-	if (maxnorm > 1.0 || minnorm < -1.0) // if the highest force exceeds saturation in either forward or reverse
-		forces /= max(maxnorm, -minnorm); // scale everything by the greatest normalized force
+	double maxeffort = efforts.array().abs().maxCoeff();
+	if (maxeffort > 1.0)
+		efforts /= maxeffort;
+
+	return efforts;
 }
 
