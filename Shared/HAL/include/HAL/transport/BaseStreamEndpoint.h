@@ -35,7 +35,7 @@ namespace subjugator {
 			void startAsyncSendReceive() { // called by subclass when stream is ready and when we want to start sending and receiving
 				startAsyncReceive(); // start the first async receive
 
-				if (!pendingsendbuf.empty()) { // if there is stuff in the pending send buf
+				if (!pendingsendbuf.empty() && outgoingsendbuf.empty()) { // if there is stuff in the pending send buf and there is currently no async send
 					outgoingsendbuf = pendingsendbuf; // copy it to the outgoing send buffer
 					pendingsendbuf.clear();
 					startAsyncSend(); // start the first async send as well
@@ -68,6 +68,8 @@ namespace subjugator {
 					stream.close(error);
 					return;
 				}
+
+				assert(outgoingsendbuf.size() >= bytes);
 
 				outgoingsendbuf.erase(outgoingsendbuf.begin(), outgoingsendbuf.begin() + bytes); // erase the sent bytes from the outgoing send buffer
 				outgoingsendbuf.insert(outgoingsendbuf.end(), pendingsendbuf.begin(), pendingsendbuf.end()); // copy any data from the pending send buffer to the outgoing send buffer
