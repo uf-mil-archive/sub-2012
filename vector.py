@@ -46,10 +46,7 @@ class V(tuple):
     def mag2(self):
         return self*self
     def unit(self):
-        m = self.mag()
-        if m == 0:
-            return self
-        return (1/m)*self
+        return self/self.mag()
     def conj(self):
         return V([self[0]] + list(-V(self[1:])))
     def quat_to_matrix(self):
@@ -68,6 +65,8 @@ class V(tuple):
         return axis * angle
     def quat_rot(self, v):
         return V((self % V([0] + list(v)) % self.conj())[1:])
+    def scale(self, other):
+        return V(x*y for x, y in zip(self, other))
 
 
 def matrix_to_quat(m1):

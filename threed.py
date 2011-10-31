@@ -98,6 +98,7 @@ def rotate_to_body(body, inv=False):
 class Sub(object):
     def __init__(self, body):
         self.body = body
+        self.vectors = []
     
     def draw(self):
         glPushMatrix()
@@ -109,6 +110,17 @@ class Sub(object):
         glTranslate(-.4, 0, 0)
         glColor3f(1, 0, 0)
         gluSphere(q, .5, 20, 20)
+        
+        glDisable(GL_DEPTH_TEST)
+        glBegin(GL_LINES)
+        for start, end in self.vectors:
+            glColor3f(0, 0, 0)
+            glVertex3f(*start)
+            glColor3f(1, 1, 1)
+            glVertex3f(*end)
+        glEnd()
+        glEnable(GL_DEPTH_TEST)
+        
         glPopMatrix()
 
 
@@ -125,7 +137,7 @@ class Interface(object):
 
         glEnable(GL_DEPTH_TEST)
 
-        self.pos = v(-10,0,2)
+        self.pos = v(-10,0,-2)
         
         self.pool_mesh = mesh_from_obj(open('pool5_Scene.obj'))
         
@@ -138,10 +150,10 @@ class Interface(object):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEMOTION:
                 if self.grabbed:
-                    self.yaw += event.rel[0]/100
+                    self.yaw += -event.rel[0]/100
                     # y is reversed since opengl coordinates start from 0,0 at bottom left
                     # while Xorg starts from 0,0 at top left
-                    self.pitch += -event.rel[1]/100
+                    self.pitch += event.rel[1]/100
                     # caps it to a quarter turn up or down
                     self.pitch = min(max(self.pitch, -math.pi/2), math.pi/2)
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -157,22 +169,22 @@ class Interface(object):
         rot_matrix = euler_matrix(self.yaw, self.pitch, self.roll)
         
         forward = rotate_vec(v(1,0,0), rot_matrix)
-        left = rotate_vec(v(0,1,0), rot_matrix)
-        local_up = rotate_vec(v(0,0,1), rot_matrix)
+        left = rotate_vec(v(0,-1,0), rot_matrix)
+        local_up = rotate_vec(v(0,0,-1), rot_matrix)
         
         keys = pygame.key.get_pressed()
-        speed = 20
+        speed = 10
         if keys[pygame.K_LSHIFT]: speed *= 10
         
         if keys[pygame.K_w]: self.pos += forward*dt*speed
         if keys[pygame.K_s]: self.pos += -forward*dt*speed
         if keys[pygame.K_a]: self.pos += left*dt*speed
         if keys[pygame.K_d]: self.pos += -left*dt*speed
-        if keys[pygame.K_SPACE]: self.pos += v(0, 0, 1)*dt*speed
-        if keys[pygame.K_c]: self.pos += -v(0, 0, 1)*dt*speed
+        if keys[pygame.K_SPACE]: self.pos += v(0, 0, -1)*dt*speed
+        if keys[pygame.K_c]: self.pos += v(0, 0, 1)*dt*speed
         
-        self.pos += v(0,0,1)*max(0, -(self.pos[2] - 1))
-        self.pos += v(0,0,-1)*max(0, (self.pos[2] - 100))
+        self.pos += v(0,0,-1)*max(0, -(-self.pos[2] - 1))
+        self.pos += v(0,0,1)*max(0, (-self.pos[2] - 100))
         
         # clears the color buffer (what you see)
         # and the z-buffer (the distance into the screen of every pixel)
@@ -193,9 +205,14 @@ class Interface(object):
         
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        # rotates into a better coordinate system
-        glMultMatrixf([[0.,0.,-1.,0.],[-1.,0.,0.,0.],[0.,1.,0.,0.],[0.,0.,0.,1.]])
-        # after that, +x is forward, +y is left, and +z is up
+        # rotates into the FRD coordinate system
+        glMultMatrixf([
+            [ 0., 0.,-1., 0.],
+            [ 1., 0., 0., 0.],
+            [ 0.,-1., 0., 0.],
+            [ 0., 0., 0., 1.]
+        ])
+        # after that, +x is forward, +y is right, and +z is down
         
         # rotates the scene
         #print rot_matrix
@@ -212,7 +229,7 @@ class Interface(object):
         glEnable(GL_COLOR_MATERIAL)
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, [0, 0, 0, 1])
         glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, [0, 0, 0, 1])
-        glLightfv(GL_LIGHT0, GL_POSITION, [math.sin(self.t/5)*100, math.cos(self.t/5)*100, 100, 1])
+        glLightfv(GL_LIGHT0, GL_POSITION, [math.sin(self.t/5)*100, math.cos(self.t/5)*100, -100, 1])
         glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 1])
         glLightfv(GL_LIGHT0, GL_DIFFUSE, [.5, .5, .5, 1])
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, [.5, .5, .5])
@@ -226,13 +243,16 @@ class Interface(object):
         
         glColor3f(.4, .4, .4)
         
+        glPushMatrix()
+        glRotate(180, 1, 0, 0)
         self.pool_mesh.draw()
+        glPopMatrix()
         
         for obj in self.objs:
             obj.draw()
         
         glPushMatrix()
-        glTranslate(math.sin(self.t/5)*100, math.cos(self.t/5)*100, 100)
+        glTranslate(math.sin(self.t/5)*100, math.cos(self.t/5)*100, -100)
         q = gluNewQuadric()
         glDisable(GL_LIGHTING)
         glColor3f(1, 1, 1)
@@ -246,9 +266,9 @@ class Interface(object):
         glNormal3f(0, 0, 1)
         glColor4f(0, 0, 1, .5)
         glVertex3f(-125, -125, 0)
-        glVertex3f(+125, -125, 0)
-        glVertex3f(+125, +125, 0)
         glVertex3f(-125, +125, 0)
+        glVertex3f(+125, +125, 0)
+        glVertex3f(+125, -125, 0)
         glEnd()
         glDisable(GL_BLEND)
         
