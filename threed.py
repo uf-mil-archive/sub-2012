@@ -216,9 +216,6 @@ class Interface(object):
         if keys[pygame.K_SPACE]: self.pos += v(0, 0, -1)*dt*speed
         if keys[pygame.K_c]: self.pos += v(0, 0, 1)*dt*speed
         
-        self.pos += v(0,0,-1)*max(0, -(-self.pos[2] - 1))
-        self.pos += v(0,0,1)*max(0, (-self.pos[2] - 100))
-        
         # clears the color buffer (what you see)
         # and the z-buffer (the distance into the screen of every pixel)
         glClearColor(0,0,1,1)
@@ -292,57 +289,52 @@ class Interface(object):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBegin(GL_QUADS)
-        glNormal3f(0, 0, 1)
+        glNormal3f(0, 0, -1)
         glColor4f(0, 0, 1, .5)
         glVertex3f(-125, -125, 0)
         glVertex3f(-125, +125, 0)
         glVertex3f(+125, +125, 0)
         glVertex3f(+125, -125, 0)
+        glNormal3f(0, 0, 1)
+        glColor4f(0, 0, 1, .5)
+        glVertex3f(-125, -125, 0)
+        glVertex3f(+125, -125, 0)
+        glVertex3f(+125, +125, 0)
+        glVertex3f(-125, +125, 0)
         glEnd()
         glDisable(GL_BLEND)
         
-        return
-        
-        glBegin(GL_QUADS)
-        # sets the normal vector to +z (up, remember?)
-        glNormal3f(0, 0, 1)
-        # for each corner, sets the texture coordinate
-        # texture coordinates go from 0,0 for the bottom left to 1,1 for top right
-        # ones outside that range wrap around
-        # so this quad will have 200x200 of the texture repeated
-        # the vertex coordinates are the position
-        # they are all on the x-y plane (the ground)
-        glTexCoord2f(-100, -100);glVertex3f(-1000+self.pos[0]-self.pos[0]%10, -1000+self.pos[1]-self.pos[1]%10, 0)
-        glTexCoord2f(100, -100);glVertex3f(1000+self.pos[0]-self.pos[0]%10, -1000+self.pos[1]-self.pos[1]%10, 0)
-        glTexCoord2f(100, 100);glVertex3f(1000+self.pos[0]-self.pos[0]%10, 1000+self.pos[1]-self.pos[1]%10, 0)
-        glTexCoord2f(-100, 100);glVertex3f(-1000+self.pos[0]-self.pos[0]%10, 1000+self.pos[1]-self.pos[1]%10, 0)
-        # ends the list of quads
-        glEnd()
-        
-        glPushMatrix()
-        t2 = self.t % 1
-        glTranslate(0, 0, 9.8/2*(-t2**2+t2)+1)
-        glRotate(self.t*180, 0, 0, 1)
-        for i in xrange(8):
+        if self.pos[2] > 0:
+            glPushMatrix()
+            glLoadIdentity()
             
-            q = gluNewQuadric() # this makes a quadric object, which is used to draw spheres
-            gluQuadricTexture(q, True) # this tells the object to generate texture coordinates
-            glColor3f(1, 0, 0)
-            gluSphere(q, 1, 20, 20) # this draws a sphere at the local origin (but it is translated) with a radius of 1, and 10 lines of longitude and latitude
-            glTranslate(2,0,0)
-        glPopMatrix()
-        
-        glTranslate(0, 0, 5)
-        glBegin(GL_LINES)
-        for a in xrange(3):
-            glColor3d(0,0,0)
-            glVertex3d(0,0,0)
-            glColor3d(*[1 if a==i else 0 for i in xrange(3)])
-            glVertex3d(*[1 if a==i else 0 for i in xrange(3)])
-        glEnd()
-
-        
-        # finished drawing, now flip
+            glMatrixMode(GL_PROJECTION)
+            glPushMatrix()
+            glLoadIdentity()
+            glMatrixMode(GL_MODELVIEW)
+            
+            glDisable(GL_LIGHTING)
+            glDisable(GL_DEPTH_TEST)
+            
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            glBegin(GL_QUADS)
+            glColor4f(0, 0, 1, 0.5)
+            glVertex3f(-1, -1, 0)
+            glVertex3f(+1, -1, 0)
+            glVertex3f(+1, +1, 0)
+            glVertex3f(-1, +1, 0)
+            glEnd()
+            glDisable(GL_BLEND)
+            
+            glEnable(GL_DEPTH_TEST)
+            glEnable(GL_LIGHTING)
+            
+            glMatrixMode(GL_PROJECTION)
+            glPopMatrix()
+            glMatrixMode(GL_MODELVIEW)
+            
+            glPopMatrix()
 
 if __name__ == '__main__':
     i = Interface()

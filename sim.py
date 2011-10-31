@@ -85,10 +85,10 @@ def world_tick():
     global world_time
     
     body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.5)), (0, 0, -.1))
-    body.addForce(-1600 * V(body.getLinearVel()))
+    body.addForce(-(1600 if body.getPosition()[2] >= 0 else 160) * V(body.getLinearVel()))
     body.addForce([random.gauss(0, 1) for i in xrange(3)])
     body.addTorque([random.gauss(0, 10) for i in xrange(3)])
-    body.addTorque(-200 * V(body.getAngularVel()))
+    body.addTorque(-(200 if body.getPosition()[2] >= 0 else 20) * V(body.getAngularVel()))
     
     sub_model.vectors = []
     for i, (reldir, relpos, fwdforce, revforce) in enumerate([
@@ -101,6 +101,8 @@ def world_tick():
         (v(0, 1, 0), v(-20.8004, -1.8020,  2.0440)*.0254, 500, 500), # RS
         (v(0, 0, 1), v(-11.7147,  5.3754, -1.9677)*.0254, 500, 500), # RRV
     ]):
+        if body.getRelPointPos(relpos)[2] < 0: # skip thrusters that are out of the water
+            continue
         body.addRelForceAtRelPos(reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce), relpos)
         sub_model.vectors.append((relpos, relpos - .002*reldir*thrusters[i]*(fwdforce if thrusters[i] > 0 else revforce)))
     
