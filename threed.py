@@ -11,6 +11,8 @@ import time
 import math
 import sys
 
+from twisted.internet import reactor
+
 import numpy
 from vector import v, V
 
@@ -195,7 +197,7 @@ class Interface(object):
                     pygame.event.set_grab(self.grabbed)
                     pygame.mouse.set_visible(not self.grabbed)
                 elif event.key == pygame.K_q:
-                    sys.exit()
+                    reactor.stop()
         
         rot_matrix = euler_matrix(self.yaw, self.pitch, self.roll)
         
