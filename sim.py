@@ -10,6 +10,7 @@ from twisted.internet import protocol, reactor, task
 
 import vector
 import devices
+import threed
 
 v, V = vector.v, vector.V
 
@@ -73,6 +74,13 @@ M.setSphere(800, 0.5)
 body.setMass(M)
 body.setPosition((0, 0, -3))
 
+space = ode.HashSpace()
+
+body_geom = ode.GeomSphere(space, 0.5)
+body_geom.setBody(body)
+
+pool_geom = ode.GeomTriMesh(threed.mesh_from_obj(open('pool5_Scene.obj')).ode_trimeshdata, space)
+
 def world_tick():
     global world_time
     
@@ -106,19 +114,31 @@ def world_tick():
         (pygame.K_l, v(0, +1500, 0)),
     ]:
         if keys[keycode]:
-            body.addForce(force)
+            body.addForce(force*(10 if keys[pygame.K_LSHIFT] else 1))
     for keycode, torque in [
         (pygame.K_h, v(0, 0, -500)),
         (pygame.K_SEMICOLON, v(0, 0, +500)),
     ]:
         if keys[keycode]:
-            body.addTorque(torque)
+            body.addTorque(torque*(10 if keys[pygame.K_LSHIFT] else 1))
     
     last_vel = V(body.vectorFromWorld(body.getLinearVel()))
+    
+    contactgroup = ode.JointGroup()
+    near_pairs = []
+    space.collide(None, lambda _, geom1, geom2: near_pairs.append((geom1, geom2)))
+    for geom1, geom2 in near_pairs:
+        for contact in ode.collide(geom1, geom2):
+            contact.setBounce(0.2)
+            contact.setMu(5000)
+            j = ode.ContactJoint(world, contactgroup, contact)
+            j.attach(geom1.getBody(), geom2.getBody())
     
     dt = 1/30
     world.step(dt)
     world_time += dt
+    
+    contactgroup.empty()
     
     a = (V(body.vectorFromWorld(body.getLinearVel())) - last_vel)/dt - V(body.vectorFromWorld(world.getGravity()))
     
@@ -147,13 +167,11 @@ def world_tick():
     reactor.callLater(max(0, world_time + dt - reactor.seconds()), world_tick)
 
 
-if 1:
-    import threed
-    i = threed.Interface()
-    i.init()
-    sub_model = threed.Sub(body)
-    i.objs.append(sub_model)
-    task.LoopingCall(i.step).start(1/24)
+i = threed.Interface()
+i.init()
+sub_model = threed.Sub(body)
+i.objs.append(sub_model)
+task.LoopingCall(i.step).start(1/24)
 
 world_tick()
 

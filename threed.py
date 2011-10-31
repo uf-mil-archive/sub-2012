@@ -81,6 +81,13 @@ class Mesh(object):
                     glNormal3f(*self.normals[normal_index])
                 glVertex3f(*self.vertices[vert_index])
         glEnd()
+    
+    @property
+    def ode_trimeshdata(self):
+        import ode
+        x = ode.TriMeshData()
+        x.build(self.vertices, [[p[0] for p in t] for t in self.indices])
+        return x
 
 
 def rotate_to_body(body, inv=False):
