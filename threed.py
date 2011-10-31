@@ -14,7 +14,30 @@ import sys
 import numpy
 from vector import v, V
 
-# this is really not important
+class DisplayList(object):
+    def __init__(self):
+        self.sl = glGenLists(1)
+    def __del__(self):
+        glDeleteLists(self.sl, 1)
+    def __enter__(self):
+        glNewList(self.sl, GL_COMPILE)
+    def __exit__(self, *args):
+        glEndList()
+    def __call__(self):
+        glCallList(self.sl)
+
+def display_list(callable):
+    cache = {}
+    def x(*args, **kwargs):
+        assert not kwargs
+        if args not in cache:
+            dl = DisplayList()
+            with dl:
+                callable(*args)
+            cache[args] = dl
+        cache[args]()
+    return x
+
 def angleaxis_matrix(angle, (x, y, z)):
     s = math.sin(angle)
     c = math.cos(angle)
@@ -71,6 +94,7 @@ class Mesh(object):
         self.normals = normals
         self.indices = indices
     
+    @display_list
     def draw(self):
         glBegin(GL_TRIANGLES)
         for triangle in self.indices:
@@ -146,7 +170,7 @@ class Interface(object):
 
         self.pos = v(-10,0,-2)
         
-        self.pool_mesh = mesh_from_obj(open('pool5_Scene.obj'))
+        self.pool_mesh = mesh_from_obj(open('pool6_Scene.obj'))
         
         self.objs = []
 
@@ -249,11 +273,7 @@ class Interface(object):
         glEnable(GL_CULL_FACE)
         
         glColor3f(.4, .4, .4)
-        
-        glPushMatrix()
-        glRotate(180, 1, 0, 0)
         self.pool_mesh.draw()
-        glPopMatrix()
         
         for obj in self.objs:
             obj.draw()

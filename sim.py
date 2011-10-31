@@ -79,7 +79,7 @@ space = ode.HashSpace()
 body_geom = ode.GeomSphere(space, 0.5)
 body_geom.setBody(body)
 
-pool_geom = ode.GeomTriMesh(threed.mesh_from_obj(open('pool5_Scene.obj')).ode_trimeshdata, space)
+pool_geom = ode.GeomTriMesh(threed.mesh_from_obj(open('pool6_Scene.obj')).ode_trimeshdata, space)
 
 def world_tick():
     global world_time
