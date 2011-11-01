@@ -3,6 +3,7 @@ from __future__ import division
 import math
 import random
 import time
+import traceback
 
 import ode
 import pygame
@@ -155,16 +156,18 @@ def world_tick():
 
     imu_mag_prescale = imu_to_sub.conj().quat_rot(body.vectorFromWorld(north))
     imu_mag = magCorrection.conj().quat_rot(magCorrection.quat_rot(imu_mag_prescale).scale(magScale)) + magShift
-    
-    send_imu_update(
-        flags=0,
-        supply_voltage=random.gauss(12, .1),
-        ang_rate=imu_gyro,
-        acceleration=imu_acc,
-        mag_field=imu_mag,
-        temperature=random.gauss(25, .1),
-        timestamp=world_time,
-    )
+    try:
+        send_imu_update(
+            flags=0,
+            supply_voltage=random.gauss(12, .1),
+            ang_rate=imu_gyro,
+            acceleration=imu_acc,
+            mag_field=imu_mag,
+            temperature=random.gauss(25, .1),
+            timestamp=world_time,
+        )
+    except:
+        traceback.print_exc()
     
     reactor.callLater(max(0, world_time + dt - reactor.seconds()), world_tick)
 
@@ -180,24 +183,30 @@ world_tick()
 def dvl_task():
     dvl_to_sub = v(0.0, 0.923879532511287, 0.382683432365090, 0.0)
     dvl_vel = dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getLinearVel()))
-    send_dvl_update(
-        bottom_vel=list(dvl_vel) + [0.1], # XXX fourth is error(?)
-        bottom_dist=[0, 0, 0, 0],
-        water_vel=[0, 0, 0, 0],
-        water_dist=[0, 0, 0, 0],
-        speed_of_sound=100,
-    )
+    try:
+        send_dvl_update(
+            bottom_vel=list(dvl_vel) + [0.1], # XXX fourth is error(?)
+            bottom_dist=[0, 0, 0, 0],
+            water_vel=[0, 0, 0, 0],
+            water_dist=[0, 0, 0, 0],
+            speed_of_sound=100,
+        )
+    except:
+        traceback.print_exc()
 task.LoopingCall(dvl_task).start(1/5)
 
 def depth_task():
-    send_depth_update(
-        tickcount=0,
-        flags=0,
-        depth=max(0, body.getPosition()[2]),
-        thermister_temp=random.gauss(25, .1),
-        humidity=random.gauss(10, .3),
-        humidity_sensor_temp=random.gauss(25, .3),
-    )
+    try:
+        send_depth_update(
+            tickcount=0,
+            flags=0,
+            depth=max(0, body.getPosition()[2]),
+            thermister_temp=random.gauss(25, .1),
+            humidity=random.gauss(10, .3),
+            humidity_sensor_temp=random.gauss(25, .3),
+        )
+    except:
+        traceback.print_exc()
 task.LoopingCall(depth_task).start(1/5)
 
 
