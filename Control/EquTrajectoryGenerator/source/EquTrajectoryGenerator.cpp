@@ -25,10 +25,10 @@ TrajectoryInfo EquTrajectoryGenerator::computeTrajectory(boost::int64_t currentT
 	Vector6d trajectory_dot;
 	trajectory_dot(0) = sin(t/5)/(10*exp(t/20)) - (2*cos(t/5)*(1/exp(t/20) - 1))/5;
 	trajectory_dot(1) = (2*sin(t/5)*(1/exp(t/20) - 1))/5 + cos(t/5)/(10*exp(t/20));
-	trajectory_dot(2) = -1/80;
+	trajectory_dot(2) = -1./80;
 	trajectory_dot(3) = 0;
 	trajectory_dot(4) = 0;
-	trajectory_dot(5) = -1/5;
+	trajectory_dot(5) = -1./5;
 	
 	trajectory.head<3>() += startPos;
 	trajectory(5) += startYaw;

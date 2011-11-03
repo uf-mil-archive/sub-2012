@@ -1,3 +1,1 @@
-sub_executable(TrackingController LegacyDDS)
-sub_reference_library(TrackingController SubMain HAL DataObjects)
-
+sub_executable(TrackingController LegacyDDS SubMain HAL DataObjects)
