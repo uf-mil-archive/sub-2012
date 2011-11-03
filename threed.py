@@ -158,7 +158,7 @@ class Sub(object):
 
 
 class Interface(object):
-    def init(self):
+    def init(self, pool_mesh):
         global display, clock, pitch, yaw, roll, grabbed
         self.display = pygame.display.set_mode((700, 400), pygame.DOUBLEBUF|pygame.OPENGL)
         self.clock = pygame.time.Clock()
@@ -172,7 +172,7 @@ class Interface(object):
 
         self.pos = v(-10,0,-2)
         
-        self.pool_mesh = mesh_from_obj(open('pool6_Scene.obj'))
+        self.pool_mesh = pool_mesh
         
         self.objs = []
 
