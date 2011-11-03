@@ -1,37 +1,42 @@
-#!/usr/bin/env python
-
 from __future__ import division
 
-from OpenGL.GL import *
-from OpenGL.GLU import *
-
-import pygame
-import random
-import time
 import math
 import sys
 
-from twisted.internet import reactor
-
 import numpy
+from OpenGL.GL import *
+from OpenGL.GLU import *
+import pygame
+
 from vector import v, V
+
+@apply
+class GLMatrix(object):
+    def __enter__(self):
+        glPushMatrix()
+    
+    def __exit__(self, type, value, traceback):
+        glPopMatrix()
 
 class DisplayList(object):
     def __init__(self):
         self.sl = glGenLists(1)
+    
     def __del__(self):
         glDeleteLists(self.sl, 1)
+    
     def __enter__(self):
         glNewList(self.sl, GL_COMPILE)
-    def __exit__(self, *args):
+    
+    def __exit__(self, type, value, traceback):
         glEndList()
+    
     def __call__(self):
         glCallList(self.sl)
 
 def display_list(callable):
     cache = {}
-    def x(*args, **kwargs):
-        assert not kwargs
+    def x(*args):
         if args not in cache:
             dl = DisplayList()
             with dl:
@@ -43,27 +48,16 @@ def display_list(callable):
 def angleaxis_matrix(angle, (x, y, z)):
     s = math.sin(angle)
     c = math.cos(angle)
-    one_c = 1. - c
-    xx = x * x
-    yy = y * y
-    zz = z * z
-    xy = x * y
-    yz = y * z
-    zx = z * x
-    xs = x * s
-    ys = y * s
-    zs = z * s
-    m = numpy.array([
-        [(one_c * xx) + c, (one_c * xy) - zs, (one_c * zx) + ys, 0.],
-        [(one_c * xy) + zs, (one_c * yy) + c, (one_c * yz) - xs, 0.],
-        [(one_c * zx) - ys, (one_c * yz) + xs, (one_c * zz) + c, 0.],
-        [0., 0., 0., 1.],
+    return numpy.array([
+        [(1-c)*x*x + c,   (1-c)*y*x - z*s, (1-c)*z*x + y*s, 0],
+        [(1-c)*x*y + z*s, (1-c)*y*y + c,   (1-c)*z*y - x*s, 0],
+        [(1-c)*x*z - y*s, (1-c)*y*z + x*s, (1-c)*z*z + c,   0],
+        [0,               0,                0,              1],
     ])
-    return m
-
 
 def euler_matrix(yaw, pitch, roll):
     return numpy.dot(angleaxis_matrix(roll, (1, 0, 0)), numpy.dot(angleaxis_matrix(pitch, (0, 1, 0)), angleaxis_matrix(yaw, (0, 0, 1))))
+
 def rotate_vec(vec, m):
     x = numpy.dot((vec[0], vec[1], vec[2], 1), m)
     return V(x[:3])/x[3]
@@ -134,48 +128,49 @@ class Sub(object):
         self.vectors = []
     
     def draw(self):
-        glPushMatrix()
-        rotate_to_body(self.body)
-        glTranslate(.2, 0, 0)
-        q = gluNewQuadric()
-        glColor3f(0, 1, 0)
-        gluSphere(q, .5, 20, 20)
-        glTranslate(-.4, 0, 0)
-        glColor3f(1, 0, 0)
-        gluSphere(q, .5, 20, 20)
-        
-        glDisable(GL_DEPTH_TEST)
-        glBegin(GL_LINES)
-        for start, end in self.vectors:
-            glColor3f(0, 0, 0)
-            glVertex3f(*start)
-            glColor3f(1, 1, 1)
-            glVertex3f(*end)
-        glEnd()
-        glEnable(GL_DEPTH_TEST)
-        
-        glPopMatrix()
+        with GLMatrix:
+            rotate_to_body(self.body)
+            
+            glTranslate(.2, 0, 0)
+            q = gluNewQuadric()
+            glColor3f(0, 1, 0)
+            gluSphere(q, .5, 20, 20)
+            glTranslate(-.4, 0, 0)
+            glColor3f(1, 0, 0)
+            gluSphere(q, .5, 20, 20)
+            
+            glDisable(GL_DEPTH_TEST)
+            glBegin(GL_LINES)
+            for start, end in self.vectors:
+                glColor3f(0, 0, 0)
+                glVertex3f(*start)
+                glColor3f(1, 1, 1)
+                glVertex3f(*end)
+            glEnd()
+            glEnable(GL_DEPTH_TEST)
 
+class MeshDrawer(object):
+    def __init__(self, mesh, color):
+        self.mesh = mesh
+        self.color = color
+    
+    def draw(self):
+        glColor3f(*self.color)
+        self.mesh.draw()
 
 class Interface(object):
-    def init(self, pool_mesh):
-        global display, clock, pitch, yaw, roll, grabbed
+    def init(self):
         self.display = pygame.display.set_mode((700, 400), pygame.DOUBLEBUF|pygame.OPENGL)
         self.clock = pygame.time.Clock()
-
+        
         self.pitch = self.yaw = self.roll = 0
         self.grabbed = False
-
-        self.t = 0
-
-        glEnable(GL_DEPTH_TEST)
-
-        self.pos = v(-10,0,-2)
         
-        self.pool_mesh = pool_mesh
+        self.t = 0
+        self.pos = v(-10, 0, -2)
         
         self.objs = []
-
+    
     def step(self):
         dt = self.clock.tick()/1000
         self.t += dt
@@ -184,20 +179,22 @@ class Interface(object):
             if event.type == pygame.MOUSEMOTION:
                 if self.grabbed:
                     self.yaw += -event.rel[0]/100
-                    # y is reversed since opengl coordinates start from 0,0 at bottom left
-                    # while Xorg starts from 0,0 at top left
+                    
                     self.pitch += event.rel[1]/100
                     # caps it to a quarter turn up or down
                     self.pitch = min(max(self.pitch, -math.pi/2), math.pi/2)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                pass
+            
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_TAB:
                     self.grabbed = not self.grabbed
                     pygame.event.set_grab(self.grabbed)
                     pygame.mouse.set_visible(not self.grabbed)
+                
                 elif event.key == pygame.K_q:
-                    reactor.stop()
+                    sys.exit()
+            
+            elif event.type == pygame.QUIT:
+                sys.exit()
         
         rot_matrix = euler_matrix(self.yaw, self.pitch, self.roll)
         
@@ -206,8 +203,8 @@ class Interface(object):
         local_up = rotate_vec(v(0,0,-1), rot_matrix)
         
         keys = pygame.key.get_pressed()
-        speed = 10
-        if keys[pygame.K_LSHIFT]: speed *= 10
+        
+        speed = 100 if keys[pygame.K_LSHIFT] else 10
         
         if keys[pygame.K_w]: self.pos += forward*dt*speed
         if keys[pygame.K_s]: self.pos += -forward*dt*speed
@@ -216,22 +213,12 @@ class Interface(object):
         if keys[pygame.K_SPACE]: self.pos += v(0, 0, -1)*dt*speed
         if keys[pygame.K_c]: self.pos += v(0, 0, 1)*dt*speed
         
-        # clears the color buffer (what you see)
-        # and the z-buffer (the distance into the screen of every pixel)
-        glClearColor(0,0,1,1)
+        glClearColor(0, 0, 1, 1)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         
-        # it switches into manipulating the projection matrix
         glMatrixMode(GL_PROJECTION)
-        # then clears it
         glLoadIdentity()
-        # then sets it using the utility function to a perspective with a fov of 90
-        # an aspect ratio of the correct ratio
-        # a near distance of .1
-        # a far distance of 1000
-        # things outside of that distance range won't be drawn
-        # lets decrease 1000 to 20 to see
-        gluPerspective(90, self.display.get_width()/self.display.get_height(), .1, 1000) # fov, aspect ratio, near distance, far distance
+        gluPerspective(90, self.display.get_width()/self.display.get_height(), 0.1, 1000)
         
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
@@ -244,17 +231,11 @@ class Interface(object):
         ])
         # after that, +x is forward, +y is right, and +z is down
         
-        # rotates the scene
-        #print rot_matrix
         glMultMatrixf(rot_matrix.T)
-        #glRotate(math.degrees(roll), 1, 0, 0)
-        #glRotate(math.degrees(pitch), 0, 1, 0)
-        #glRotate(math.degrees(yaw), 0, 0, 1)
         
-        # moves the camera to (10,10,10) by moving the scene (-10,-10,-10)
         glTranslate(*-self.pos)
         
-        glEnable ( GL_LIGHTING )
+        glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, [0, 0, 0, 1])
@@ -269,23 +250,22 @@ class Interface(object):
         pygame.display.flip()
     
     def draw(self):
+        glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
-        
-        glColor3f(.4, .4, .4)
-        self.pool_mesh.draw()
         
         for obj in self.objs:
             obj.draw()
         
-        glPushMatrix()
-        glTranslate(math.sin(self.t/5)*100, math.cos(self.t/5)*100, -100)
-        q = gluNewQuadric()
-        glDisable(GL_LIGHTING)
-        glColor3f(1, 1, 1)
-        gluSphere(q, 30, 20, 20)
-        glEnable(GL_LIGHTING)
-        glPopMatrix()
+        # sun
+        with GLMatrix:
+            glTranslate(math.sin(self.t/5)*100, math.cos(self.t/5)*100, -100)
+            q = gluNewQuadric()
+            glDisable(GL_LIGHTING)
+            glColor3f(1, 1, 1)
+            gluSphere(q, 30, 20, 20)
+            glEnable(GL_LIGHTING)
         
+        # water
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBegin(GL_QUADS)
@@ -304,6 +284,7 @@ class Interface(object):
         glEnd()
         glDisable(GL_BLEND)
         
+        # underwater color
         if self.pos[2] > 0:
             glPushMatrix()
             glLoadIdentity()

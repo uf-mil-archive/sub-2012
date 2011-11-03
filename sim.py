@@ -2,7 +2,6 @@ from __future__ import division
 
 import math
 import random
-import time
 import traceback
 
 import ode
@@ -154,7 +153,7 @@ def world_tick():
     magCorrection = v(0.673081592748511, -0.207153644511562, -0.546990360033963, 0.452603671105992)
     magShift = v(0.722492613515378, -0.014544506498174, 0.283264416021074)
     magScale = v(0.963005126569852, 0.980211159628685, 1.000855176757894)
-
+    
     imu_mag_prescale = imu_to_sub.conj().quat_rot(body.vectorFromWorld(north))
     imu_mag = magCorrection.conj().quat_rot(magCorrection.quat_rot(imu_mag_prescale).scale(magScale)) + magShift
     try:
@@ -174,10 +173,16 @@ def world_tick():
 
 
 i = threed.Interface()
-i.init(pool_mesh)
+i.init()
+i.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
 sub_model = threed.Sub(body)
 i.objs.append(sub_model)
-task.LoopingCall(i.step).start(1/24)
+def _():
+    try:
+        i.step()
+    except SystemExit:
+        reactor.stop()
+task.LoopingCall(_).start(1/24)
 
 world_tick()
 

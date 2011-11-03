@@ -137,7 +137,7 @@ class DepthProtocol(EmbeddedProtocol):
     def connectionMade(self):
         EmbeddedProtocol.connectionMade(self)
         print 'depth connection made'
-        self.listener_set.add(self) 
+        self.listener_set.add(self)
     
     def packetReceived(self, pcaddress, devaddress, packetcount, data):
         if data == '\x64':
