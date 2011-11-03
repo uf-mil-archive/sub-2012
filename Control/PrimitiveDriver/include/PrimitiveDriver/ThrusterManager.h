@@ -1,7 +1,6 @@
 #ifndef SUBTHRUSTERMANAGER_H
 #define SUBTHRUSTERMANAGER_H
 
-#include "PrimitiveDriver/ThrusterMapper.h"
 #include "PrimitiveDriver/Thruster.h"
 #include "LibSub/Worker/WorkerStateUpdater.h"
 #include <boost/ptr_container/ptr_vector.hpp>

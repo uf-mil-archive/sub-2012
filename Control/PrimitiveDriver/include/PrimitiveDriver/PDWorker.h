@@ -1,5 +1,5 @@
-#ifndef _SubPDWorker_H__
-#define _SubPDWorker_H__
+#ifndef PRIMITIVEDRIVER_PDWORKER_H
+#define PRIMITIVEDRIVER_PDWORKER_H
 
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerMailbox.h"
@@ -7,9 +7,11 @@
 #include "LibSub/Worker/WorkerEndpoint.h"
 #include "DataObjects/PD/PDInfo.h"
 #include "PrimitiveDriver/ThrusterManager.h"
+#include "PrimitiveDriver/ThrusterMapper.h"
 #include "PrimitiveDriver/MergeManager.h"
 #include "HAL/SubHAL.h"
-#include <vector>
+#include <Eigen/Dense>
+#include <map>
 
 namespace subjugator {
 	class PDWorker : public Worker {

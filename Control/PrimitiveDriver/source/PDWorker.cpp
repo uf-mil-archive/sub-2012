@@ -3,6 +3,8 @@
 #include "DataObjects/PD/PDInfo.h"
 #include "DataObjects/Actuator/SetActuator.h"
 #include "DataObjects/HeartBeat.h"
+#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
+#include "HAL/format/Sub7EPacketFormatter.h"
 
 using namespace subjugator;
 using namespace Eigen;

@@ -1,17 +1,10 @@
-#ifndef _SubThruster_H__
-#define _SubThruster_H__
+#ifndef PRIMITIVEDRIVER_THRUSTER_H
+#define PRIMITIVEDRIVER_THRUSTER_H
 
-#include "SubMain/SubPrerequisites.h"
-#include <Eigen/Dense>
-#include "HAL/format/DataObjectEndpoint.h"
-#include "DataObjects/MotorDriver/MotorDriverInfo.h"
-#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
-#include "DataObjects/MotorDriver/SetReference.h"
-#include "HAL/format/Sub7EPacketFormatter.h"
 #include "HAL/HAL.h"
+#include "DataObjects/MotorDriver/MotorDriverInfo.h"
 #include "LibSub/Worker/WorkerStateUpdater.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
-#include <boost/scoped_ptr.hpp>
 
 namespace subjugator {
 	class Thruster : public WorkerStateUpdater {
