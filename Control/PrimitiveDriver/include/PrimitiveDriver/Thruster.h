@@ -14,13 +14,14 @@ namespace subjugator {
 			boost::shared_ptr<MotorDriverInfo> getInfo() const;
 			void setEffort(double effort);
 
-			virtual void updateState(double dt) { endpoint.updateState(dt); }
-			virtual const State &getState() const { return endpoint.getState(); }
+			virtual void updateState(double dt);
+			virtual const State &getState() const { return state; }
 
 		private:
 			int address;
 			WorkerEndpoint endpoint;
 
+			State state;
 			void endpointInitCallback();
 	};
 }

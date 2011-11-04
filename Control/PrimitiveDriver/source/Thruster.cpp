@@ -7,6 +7,7 @@
 #include <Eigen/Dense>
 #include <boost/lexical_cast.hpp>
 #include <boost/bind.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace subjugator;
 using namespace Eigen;
@@ -34,4 +35,29 @@ void Thruster::endpointInitCallback() {
 	endpoint.write(HeartBeat());
 	endpoint.write(StartPublishing(50));
 }
+
+void Thruster::updateState(double dt) {
+	shared_ptr<MotorDriverInfo> info = getInfo();
+
+	endpoint.updateState(dt);
+	if (endpoint.getState().code != State::ACTIVE) {
+		state = endpoint.getState();
+		return;
+	}
+
+	vector<string> errstrs;
+	if (info->getOverCurrent())
+		errstrs.push_back("over current");
+	if (info->getUnderVoltage())
+		errstrs.push_back("under voltage");
+	if (!info->getValidMotor())
+		errstrs.push_back("invalid motor");
+
+	if (errstrs.size() == 0)
+		state = State::ACTIVE;
+	else
+		state = State(State::ERROR, "Thruster " + lexical_cast<string>(address) + " offline because: " + join(errstrs, ", "));
+}
+
+
 
