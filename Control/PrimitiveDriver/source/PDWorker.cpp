@@ -55,8 +55,8 @@ void PDWorker::actuatorSet(const boost::optional<int> &flags) {
 	mergemanager.setActuators(flags.get_value_or(0));
 }
 
-void PDWorker::thrusterStateChanged(int num, const WorkerState &state) {
-	if (state.code == WorkerState::ACTIVE)
+void PDWorker::thrusterStateChanged(int num, const State &state) {
+	if (state.code == State::ACTIVE)
 		thrustermapper.setEntry(num, thrusterentries[num]);
 	else
 		thrustermapper.clearEntry(num);

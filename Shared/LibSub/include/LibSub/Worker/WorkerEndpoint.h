@@ -1,13 +1,13 @@
 #ifndef LIBSUB_WORKER_WORKERENDPOINT_H
 #define LIBSUB_WORKER_WORKERENDPOINT_H
 
-#include "LibSub/Worker/WorkerStateUpdater.h"
+#include "LibSub/State/StateUpdater.h"
 #include "HAL/format/DataObjectEndpoint.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 
 namespace subjugator {
-	class WorkerEndpoint : public WorkerStateUpdater {
+	class WorkerEndpoint : public StateUpdater {
 		public:
 			typedef boost::function<void (DataObjectEndpoint&)> InitializeCallback;
 			typedef boost::function<void (const boost::shared_ptr<DataObject> &)> ReceiveCallback;
@@ -29,7 +29,7 @@ namespace subjugator {
 				return boost::dynamic_pointer_cast<T>(get());
 			}
 
-			virtual const WorkerState &getWorkerState() const { return state; }
+			virtual const State &getState() const { return state; }
 			virtual void updateState(double dt);
 
 		private:
@@ -43,7 +43,7 @@ namespace subjugator {
 			boost::shared_ptr<DataObject> dobj;
 			double dobjage;
 			double errorage;
-			WorkerState state;
+			State state;
 
 			void halReceiveCallback(std::auto_ptr<DataObject> &dobj);
 			void halStateChangeCallback();

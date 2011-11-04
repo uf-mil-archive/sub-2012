@@ -37,9 +37,9 @@ void Thruster::endpointInitCallback() {
 }
 
 void Thruster::updateState(double dt) { // TODO worker has some logic like this, refactor into a base class somehow?
-	WorkerState prevstate = endpoint.getWorkerState();
+	State prevstate = endpoint.getState();
 	endpoint.updateState(dt);
-	const WorkerState &curstate = endpoint.getWorkerState();
+	const State &curstate = endpoint.getState();
 
 	if (prevstate != curstate)
 		callback(curstate);

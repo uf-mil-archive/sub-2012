@@ -1,29 +1,29 @@
 #ifndef LIBSUB_WORKER_WORKER_H
 #define LIBSUB_WORKER_WORKER_H
 
-#include "LibSub/Worker/WorkerState.h"
-#include "LibSub/Worker/WorkerStateUpdater.h"
+#include "LibSub/State/State.h"
+#include "LibSub/State/StateUpdater.h"
 #include "LibSub/Worker/WorkerSignal.h"
 #include <utility>
 
 namespace subjugator {
-	class Worker : protected WorkerStateUpdaterContainer {
+	class Worker : protected StateUpdaterContainer {
 		public:
 			struct Properties {
 				std::string name;
 				double updatehz;
 			};
 			virtual const Properties &getProperties() const = 0;
-		
-			WorkerSignal<std::pair<WorkerState, WorkerState> > statechangedsig;
-			const WorkerState &getState() const { return getWorkerState(); }
-			bool isActive() const { return getState().code == WorkerState::ACTIVE; }
-			
+
+			WorkerSignal<std::pair<State, State> > statechangedsig;
+			const State &getState() const { return getState(); }
+			bool isActive() const { return getState().code == State::ACTIVE; }
+
 			void update(double dt);
-			
+
 		protected:
 			virtual void work(double dt);
-			
+
 			virtual void enterActive();
 			virtual void leaveActive();
 	};

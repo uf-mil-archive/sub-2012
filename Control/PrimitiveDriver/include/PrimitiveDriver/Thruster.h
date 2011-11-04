@@ -3,13 +3,13 @@
 
 #include "HAL/HAL.h"
 #include "DataObjects/MotorDriver/MotorDriverInfo.h"
-#include "LibSub/Worker/WorkerStateUpdater.h"
+#include "LibSub/State/StateUpdater.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
 
 namespace subjugator {
-	class Thruster : public WorkerStateUpdater {
+	class Thruster : public StateUpdater {
 		public:
-			typedef boost::function<void (const WorkerState &state)> StateChangeCallback;
+			typedef boost::function<void (const State &state)> StateChangeCallback;
 
 			Thruster(HAL &hal, int address, int srcaddress, const StateChangeCallback &callback);
 
@@ -17,7 +17,7 @@ namespace subjugator {
 			void setEffort(double effort);
 
 			virtual void updateState(double dt);
-			virtual const WorkerState &getWorkerState() const { return endpoint.getWorkerState(); }
+			virtual const State &getState() const { return endpoint.getState(); }
 
 		private:
 			int address;

@@ -1,7 +1,7 @@
 #ifndef LIBSUB_WORKER_WORKERMAILBOX_H
 #define LIBSUB_WORKER_WORKERMAILBOX_H
 
-#include "LibSub/Worker/WorkerStateUpdater.h"
+#include "LibSub/State/StateUpdater.h"
 #include <boost/optional.hpp>
 #include <boost/thread.hpp>
 #include <boost/noncopyable.hpp>
@@ -11,7 +11,7 @@
 
 namespace subjugator {
 	template <typename T>
-	class WorkerMailbox : public WorkerStateUpdater {
+	class WorkerMailbox : public StateUpdater {
 		public:
 			typedef boost::function<void (const boost::optional<T> &) > Callback;
 
@@ -64,18 +64,18 @@ namespace subjugator {
 				return data;
 			}
 
-			virtual const WorkerState &getWorkerState() const { return state; }
+			virtual const State &getState() const { return state; }
 
 			virtual void updateState(double dt) {
 				boost::lock_guard<boost::mutex> lock(mutex);
 				if (data) {
 					age += dt;
 					if (age < maxage)
-						state = WorkerState::ACTIVE;
+						state = State::ACTIVE;
 					else
-						state = WorkerState(WorkerState::STANDBY, "Stale " + name + " data");
+						state = State(State::STANDBY, "Stale " + name + " data");
 				} else {
-					state = WorkerState(WorkerState::STANDBY, "Waiting for " + name + " data");
+					state = State(State::STANDBY, "Waiting for " + name + " data");
 				}
 			}
 
@@ -88,7 +88,7 @@ namespace subjugator {
 			boost::optional<T> data;
 			bool datataken;
 
-			WorkerState state;
+			State state;
 
 			mutable boost::mutex mutex;
 	};

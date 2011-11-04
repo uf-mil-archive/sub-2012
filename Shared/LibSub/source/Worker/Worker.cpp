@@ -5,20 +5,20 @@ using namespace boost;
 using namespace std;
 
 void Worker::update(double dt) {
-	WorkerState oldstate = getWorkerState();
+	State oldstate = getState();
 	updateState(dt);
-	const WorkerState &newstate = getWorkerState();
+	const State &newstate = getState();
 
 	if (oldstate != newstate) {
-		if (newstate.code == WorkerState::ACTIVE)
+		if (newstate.code == State::ACTIVE)
 			enterActive();
-		else if (oldstate.code == WorkerState::ACTIVE)
+		else if (oldstate.code == State::ACTIVE)
 			leaveActive();
 
 		statechangedsig.emit(make_pair(oldstate, newstate));
 	}
 
-	if (newstate.code == WorkerState::ACTIVE)
+	if (newstate.code == State::ACTIVE)
 		work(dt);
 }
 

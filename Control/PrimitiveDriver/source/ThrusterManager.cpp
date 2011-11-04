@@ -32,7 +32,7 @@ void ThrusterManager::zeroEfforts() {
 int ThrusterManager::getOnlineThrusterCount() const {
 	int count=0;
 	for (ThrusterVec::const_iterator i = thrusters.begin(); i != thrusters.end(); ++i)
-		if (i->getWorkerState().code == WorkerState::ACTIVE)
+		if (i->getState().code == State::ACTIVE)
 			count++;
 	return count;
 }
@@ -41,7 +41,7 @@ void ThrusterManager::updateState(double dt) {
 	for (ThrusterVec::iterator i = thrusters.begin(); i != thrusters.end(); ++i)
 		i->updateState(dt);
 
-	state.code = WorkerState::ACTIVE;
+	state.code = State::ACTIVE;
 	state.msg = lexical_cast<string>(getOnlineThrusterCount()) + " thrusters online";
 }
 

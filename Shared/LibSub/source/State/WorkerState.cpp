@@ -1,25 +1,25 @@
-#include "LibSub/Worker/WorkerState.h"
+#include "LibSub/State/State.h"
 
 using namespace subjugator;
 using namespace std;
 
-bool WorkerState::operator==(const WorkerState &other) const {
+bool State::operator==(const State &other) const {
 	return code == other.code && msg == other.msg;
 }
 
-WorkerState WorkerState::combine(const WorkerState &other) const {
+State State::combine(const State &other) const {
 	if (other.code > code)
 		return other;
 	else if (other.code < code)
 		return *this;
-	
-	WorkerState combined = *this;
+
+	State combined = *this;
 	if (other.msg.size())
 		combined.msg += " " + other.msg;
 	return combined;
 }
 
-ostream &subjugator::operator<<(ostream &out, const WorkerState &state) {
+ostream &subjugator::operator<<(ostream &out, const State &state) {
 	static const char *strs[] = { "ACTIVE", "STANDBY", "ERROR" };
 	out << strs[state.code];
 	if (state.msg.size())

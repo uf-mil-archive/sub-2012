@@ -18,7 +18,7 @@ WorkerEndpoint::WorkerEndpoint(DataObjectEndpoint *endpoint,
 	receivecallback(receivecallback),
 	dobjage(0),
 	errorage(0),
-	state(WorkerState::STANDBY) {
+	state(State::STANDBY) {
 	endpoint->configureCallbacks(boost::bind(&WorkerEndpoint::halReceiveCallback, this, _1), boost::bind(&WorkerEndpoint::halStateChangeCallback, this));
 	endpoint->open();
 }
@@ -32,26 +32,26 @@ void WorkerEndpoint::updateState(double dt) {
 	switch (endpoint->getState()) {
 		case Endpoint::OPEN:
 			if (outgoingonly) // if we're only concerned with the ability to send messages (outgoingonly)
-				state = WorkerState::ACTIVE; // then having an open endpoint is enough to consider us active
+				state = State::ACTIVE; // then having an open endpoint is enough to consider us active
 			else if (dobj && dobjage < maxdobjage)
-				state = WorkerState::ACTIVE;
+				state = State::ACTIVE;
 			else if (!dobj)
-				state = WorkerState(WorkerState::STANDBY, "Waiting for data on " + name + " endpoint");
+				state = State(State::STANDBY, "Waiting for data on " + name + " endpoint");
 			else
-				state = WorkerState(WorkerState::ERROR, "Stale data on " + name + " endpoint");
+				state = State(State::ERROR, "Stale data on " + name + " endpoint");
 			break;
 
 		case Endpoint::CLOSED:
-			state = WorkerState(WorkerState::STANDBY, "Waiting for " + name + " endpoint to open");
+			state = State(State::STANDBY, "Waiting for " + name + " endpoint to open");
 			break;
 
 		default:
 		case Endpoint::ERROR:
-			state = WorkerState(WorkerState::ERROR, "Error with " + name + " endpoint: " + endpoint->getErrorMessage());
+			state = State(State::ERROR, "Error with " + name + " endpoint: " + endpoint->getErrorMessage());
 			break;
 	}
 
-	if (state.code == WorkerState::STANDBY || state.code == WorkerState::ERROR) {
+	if (state.code == State::STANDBY || state.code == State::ERROR) {
 		errorage += dt;
 		if (errorage >= 1) {
 			errorage = 0;
