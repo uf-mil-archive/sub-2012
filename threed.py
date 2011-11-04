@@ -159,7 +159,7 @@ class MeshDrawer(object):
         self.mesh.draw()
 
 def perspective(fovy, aspect, zNear):
-    f = math.atan(math.radians(fovy))
+    f = 1/math.tan(math.radians(fovy)/2)
     glMultMatrixf([
         [f/aspect, 0, 0, 0],
         [ 0, f, 0, 0],
@@ -233,7 +233,7 @@ class Interface(object):
         
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        perspective(90, self.display.get_width()/self.display.get_height(), 0.1)
+        perspective(100, self.display.get_width()/self.display.get_height(), 0.1)
         
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
