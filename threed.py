@@ -158,6 +158,15 @@ class MeshDrawer(object):
         glColor3f(*self.color)
         self.mesh.draw()
 
+def perspective(fovy, aspect, zNear):
+    f = math.atan(math.radians(fovy))
+    glMultMatrixf([
+        [f/aspect, 0, 0, 0],
+        [ 0, f, 0, 0],
+        [0, 0, -1, -1],
+        [0, 0, -2*zNear, 0]
+    ])
+
 class Interface(object):
     def init(self):
         self.display = pygame.display.set_mode((700, 400), pygame.DOUBLEBUF|pygame.OPENGL)
@@ -218,7 +227,7 @@ class Interface(object):
         
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(90, self.display.get_width()/self.display.get_height(), 0.1, 1000)
+        perspective(90, self.display.get_width()/self.display.get_height(), 0.1)
         
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
@@ -266,23 +275,36 @@ class Interface(object):
             glEnable(GL_LIGHTING)
         
         # water
+        glDisable(GL_LIGHTING)
+        
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glBegin(GL_QUADS)
+        
+        glBegin(GL_TRIANGLE_FAN)
         glNormal3f(0, 0, -1)
-        glColor4f(0, 0, 1, .5)
-        glVertex3f(-125, -125, 0)
-        glVertex3f(-125, +125, 0)
-        glVertex3f(+125, +125, 0)
-        glVertex3f(+125, -125, 0)
-        glNormal3f(0, 0, 1)
-        glColor4f(0, 0, 1, .5)
-        glVertex3f(-125, -125, 0)
-        glVertex3f(+125, -125, 0)
-        glVertex3f(+125, +125, 0)
-        glVertex3f(-125, +125, 0)
+        glColor4f(0, 0, 0.5, 0.5)
+        glVertex4f(0, 0, 0, 1)
+        glVertex4f(-1, -1, 0, 0)
+        glVertex4f(-1, +1, 0, 0)
+        glVertex4f(+1, +1, 0, 0)
+        glVertex4f(+1, -1, 0, 0)
+        glVertex4f(-1, -1, 0, 0)
         glEnd()
+        
+        glBegin(GL_TRIANGLE_FAN)
+        glNormal3f(0, 0, 1)
+        glColor4f(0, 0, 0.5, 0.5)
+        glVertex4f(0, 0, 0, 1)
+        glVertex4f(-1, -1, 0, 0)
+        glVertex4f(+1, -1, 0, 0)
+        glVertex4f(+1, +1, 0, 0)
+        glVertex4f(-1, +1, 0, 0)
+        glVertex4f(-1, -1, 0, 0)
+        glEnd()
+        
         glDisable(GL_BLEND)
+        
+        glEnable(GL_LIGHTING)
         
         # underwater color
         if self.pos[2] > 0:
