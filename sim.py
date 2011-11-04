@@ -117,13 +117,13 @@ def world_tick():
         (pygame.K_l, v(0, +1500, 0)),
     ]:
         if keys[keycode]:
-            body.addForce(force*(10 if keys[pygame.K_LSHIFT] else 1))
+            body.addForce(force*(10 if keys[pygame.K_RSHIFT] else 1))
     for keycode, torque in [
         (pygame.K_h, v(0, 0, -500)),
         (pygame.K_SEMICOLON, v(0, 0, +500)),
     ]:
         if keys[keycode]:
-            body.addTorque(torque*(10 if keys[pygame.K_LSHIFT] else 1))
+            body.addTorque(torque*(10 if keys[pygame.K_RSHIFT] else 1))
     
     last_vel = V(body.vectorFromWorld(body.getLinearVel()))
     
