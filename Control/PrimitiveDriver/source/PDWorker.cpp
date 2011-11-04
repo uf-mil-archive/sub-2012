@@ -65,9 +65,9 @@ void PDWorker::thrusterStateChanged(int num, const WorkerState &state) {
 }
 
 void PDWorker::work(double dt) {
-	std::vector<double> currents(8);
+	vector<double> currents(8);
 	for (int i=0; i<8; i++) {
-		boost::optional<MotorDriverInfo> info = thrustermanager.getInfo(i);
+		shared_ptr<MotorDriverInfo> info = thrustermanager.getInfo(i);
 		if (info)
 			currents[i] = info->getCurrent();
 		else

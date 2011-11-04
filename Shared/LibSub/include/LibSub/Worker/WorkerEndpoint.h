@@ -1,22 +1,28 @@
 #ifndef LIBSUB_WORKER_WORKERENDPOINT_H
 #define LIBSUB_WORKER_WORKERENDPOINT_H
 
-#include "LibSub/Worker/WorkerMailbox.h"
+#include "LibSub/Worker/WorkerStateUpdater.h"
 #include "HAL/format/DataObjectEndpoint.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 
 namespace subjugator {
-	class WorkerEndpoint : public WorkerMailbox<boost::shared_ptr<DataObject> > {
+	class WorkerEndpoint : public WorkerStateUpdater {
 		public:
 			typedef boost::function<void (DataObjectEndpoint&)> InitializeCallback;
+			typedef boost::function<void (const boost::shared_ptr<DataObject> &)> ReceiveCallback;
 
-			WorkerEndpoint(DataObjectEndpoint *endpoint, const std::string &name, const InitializeCallback &initcallback=InitializeCallback(), bool outgoingonly=false, double maxage=std::numeric_limits<double>::infinity(), const Callback &callback=Callback());
-			// ^^ TODO something other than that
+			WorkerEndpoint(DataObjectEndpoint *endpoint,
+			               const std::string &name,
+			               const InitializeCallback &initcallback = InitializeCallback(),
+			               bool outgoingonly = false,
+			               double maxdobjage = std::numeric_limits<double>::infinity(),
+			               const ReceiveCallback &receivecallback = ReceiveCallback());
 
 			DataObjectEndpoint &getEndpoint() { return *endpoint; }
 			const DataObjectEndpoint &getEndpoint() const { return *endpoint; }
 
+			boost::shared_ptr<DataObject> get() const { return dobj; }
 			void write(const DataObject &dobj) { return endpoint->write(dobj); }
 
 			template <typename T> boost::shared_ptr<T> getDataObject() const {
@@ -28,8 +34,14 @@ namespace subjugator {
 
 		private:
 			boost::scoped_ptr<DataObjectEndpoint> endpoint;
+			std::string name;
 			InitializeCallback initcallback;
 			bool outgoingonly;
+			double maxdobjage;
+			ReceiveCallback receivecallback;
+
+			boost::shared_ptr<DataObject> dobj;
+			double dobjage;
 			double errorage;
 			WorkerState state;
 

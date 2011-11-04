@@ -23,12 +23,8 @@ Thruster::Thruster(HAL &hal, int address, int srcaddress, const StateChangeCallb
 		.2),
 	callback(callback) { }
 
-optional<MotorDriverInfo> Thruster::getInfo() const {
-	boost::shared_ptr<MotorDriverInfo> info = endpoint.getDataObject<MotorDriverInfo>();
-	if (info)
-		return *info;
-	else
-		return none;
+shared_ptr<MotorDriverInfo> Thruster::getInfo() const {
+	return endpoint.getDataObject<MotorDriverInfo>();
 }
 
 void Thruster::setEffort(double effort) {

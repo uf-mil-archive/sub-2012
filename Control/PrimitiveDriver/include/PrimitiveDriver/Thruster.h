@@ -13,7 +13,7 @@ namespace subjugator {
 
 			Thruster(HAL &hal, int address, int srcaddress, const StateChangeCallback &callback);
 
-			boost::optional<MotorDriverInfo> getInfo() const;
+			boost::shared_ptr<MotorDriverInfo> getInfo() const;
 			void setEffort(double effort);
 
 			virtual void updateState(double dt);

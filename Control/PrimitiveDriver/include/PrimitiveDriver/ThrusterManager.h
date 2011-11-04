@@ -18,7 +18,7 @@ namespace subjugator {
 			const Thruster &getThruster(int num) const { return thrusters[num]; }
 
 			void setEffort(int num, double effort) { thrusters[num].setEffort(effort); }
-			boost::optional<MotorDriverInfo> getInfo(int num) const { return thrusters[num].getInfo(); }
+			boost::shared_ptr<MotorDriverInfo> getInfo(int num) const { return thrusters[num].getInfo(); }
 			const WorkerState getState(int num) const { return thrusters[num].getWorkerState(); }
 
 			void setEfforts(const Eigen::VectorXd &efforts);
