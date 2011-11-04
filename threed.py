@@ -169,7 +169,8 @@ def perspective(fovy, aspect, zNear):
 
 class Interface(object):
     def init(self):
-        self.display = pygame.display.set_mode((700, 400), pygame.DOUBLEBUF|pygame.OPENGL)
+        self.display_flags = pygame.DOUBLEBUF|pygame.OPENGL|pygame.RESIZABLE
+        self.display = pygame.display.set_mode((700, 400), self.display_flags)
         self.clock = pygame.time.Clock()
         
         self.pitch = self.yaw = self.roll = 0
@@ -204,6 +205,9 @@ class Interface(object):
             
             elif event.type == pygame.QUIT:
                 sys.exit()
+            
+            elif event.type == pygame.VIDEORESIZE:
+                self.display = pygame.display.set_mode(event.size, self.display_flags)
         
         rot_matrix = euler_matrix(self.yaw, self.pitch, self.roll)
         
@@ -221,6 +225,8 @@ class Interface(object):
         if keys[pygame.K_d]: self.pos += -left*dt*speed
         if keys[pygame.K_SPACE]: self.pos += v(0, 0, -1)*dt*speed
         if keys[pygame.K_c]: self.pos += v(0, 0, 1)*dt*speed
+        
+        glViewport(0, 0, self.display.get_width(), self.display.get_height())
         
         glClearColor(0, 0, 1, 1)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
