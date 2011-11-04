@@ -13,15 +13,14 @@ using namespace Eigen;
 using namespace boost;
 using namespace std;
 
-Thruster::Thruster(HAL &hal, int address, int srcaddress, const StateChangeCallback &callback)
+Thruster::Thruster(HAL &hal, int address, int srcaddress)
 :	address(address),
 	endpoint(
 		hal.openDataObjectEndpoint(address, new MotorDriverDataObjectFormatter(address, srcaddress, BRUSHEDOPEN), new Sub7EPacketFormatter()),
 		"thruster" + lexical_cast<string>(address),
 		bind(&Thruster::endpointInitCallback, this),
 		false,
-		.2),
-	callback(callback) { }
+		.2) { }
 
 shared_ptr<MotorDriverInfo> Thruster::getInfo() const {
 	return endpoint.getDataObject<MotorDriverInfo>();
@@ -34,14 +33,5 @@ void Thruster::setEffort(double effort) {
 void Thruster::endpointInitCallback() {
 	endpoint.write(HeartBeat());
 	endpoint.write(StartPublishing(50));
-}
-
-void Thruster::updateState(double dt) { // TODO worker has some logic like this, refactor into a base class somehow?
-	State prevstate = endpoint.getState();
-	endpoint.updateState(dt);
-	const State &curstate = endpoint.getState();
-
-	if (prevstate != curstate)
-		callback(curstate);
 }
 

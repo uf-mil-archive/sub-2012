@@ -16,7 +16,7 @@ namespace subjugator {
 			virtual const Properties &getProperties() const = 0;
 
 			WorkerSignal<std::pair<State, State> > statechangedsig;
-			const State &getState() const { return getState(); }
+			const State &getState() const { return StateUpdaterContainer::getState(); }
 			bool isActive() const { return getState().code == State::ACTIVE; }
 
 			void update(double dt);

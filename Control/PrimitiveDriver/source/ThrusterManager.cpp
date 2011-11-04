@@ -13,7 +13,7 @@ ThrusterManager::ThrusterManager(HAL &hal, int srcaddress, const ThrusterChangeC
 
 int ThrusterManager::addThruster(int address) {
 	int num = thrusters.size();
-	thrusters.push_back(new Thruster(hal, address, srcaddress, bind(callback, num, _1)));
+	thrusters.push_back(new Thruster(hal, address, srcaddress));
 	return num;
 }
 
@@ -38,8 +38,16 @@ int ThrusterManager::getOnlineThrusterCount() const {
 }
 
 void ThrusterManager::updateState(double dt) {
-	for (ThrusterVec::iterator i = thrusters.begin(); i != thrusters.end(); ++i)
-		i->updateState(dt);
+	for (unsigned int i=0; i<thrusters.size(); i++) {
+		Thruster &t = thrusters[i];
+
+		State prevstate = t.getState();
+		t.updateState(dt);
+		const State &curstate = t.getState();
+
+		if (prevstate != curstate)
+			callback(i, curstate);
+	}
 
 	state.code = State::ACTIVE;
 	state.msg = lexical_cast<string>(getOnlineThrusterCount()) + " thrusters online";

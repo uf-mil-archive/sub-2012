@@ -6,6 +6,7 @@
 #include "PrimitiveDriver/PDDDSListener.h"
 #include "PrimitiveDriver/PDDDSCommander.h"
 #include "LibSub/Worker/WorkerRunner.h"
+#include "HAL/SubHAL.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio.hpp>
@@ -19,7 +20,8 @@ int main(int argc, char **argv) {
 	boost::asio::io_service io;
 
 	// We need a worker
-	PDWorker worker(io);
+	SubHAL hal(io);
+	PDWorker worker(hal);
 	WorkerRunner workerrunner(worker, io);
 
 	// Now we need a DDS listener to push all the data up

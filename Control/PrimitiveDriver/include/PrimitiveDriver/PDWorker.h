@@ -1,24 +1,23 @@
 #ifndef PRIMITIVEDRIVER_PDWORKER_H
 #define PRIMITIVEDRIVER_PDWORKER_H
 
+#include "PrimitiveDriver/ThrusterManager.h"
+#include "PrimitiveDriver/ThrusterMapper.h"
+#include "PrimitiveDriver/MergeManager.h"
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
+#include "LibSub/Math/EigenTypedefs.h"
+#include "HAL/HAL.h"
 #include "DataObjects/PD/PDInfo.h"
-#include "PrimitiveDriver/ThrusterManager.h"
-#include "PrimitiveDriver/ThrusterMapper.h"
-#include "PrimitiveDriver/MergeManager.h"
-#include "HAL/SubHAL.h"
 #include <Eigen/Dense>
 #include <map>
 
 namespace subjugator {
 	class PDWorker : public Worker {
 		public:
-			typedef Eigen::Matrix<double, 6, 1> Vector6d;
-
-			PDWorker(boost::asio::io_service &ioservice);
+			PDWorker(HAL &hal);
 			virtual const Properties &getProperties() const;
 
 			WorkerMailbox<Vector6d> wrenchmailbox;
@@ -37,7 +36,7 @@ namespace subjugator {
 
 			virtual void leaveActive();
 
-			SubHAL hal;
+			HAL &hal;
 			WorkerEndpoint heartbeatendpoint;
 			ThrusterManager thrustermanager;
 			ThrusterMapper thrustermapper;

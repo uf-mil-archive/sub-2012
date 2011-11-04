@@ -11,10 +11,10 @@ using namespace Eigen;
 using namespace boost;
 using namespace std;
 
-PDWorker::PDWorker(boost::asio::io_service &ioservice)
+PDWorker::PDWorker(HAL &hal)
 : wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
   actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
-  hal(ioservice),
+  hal(hal),
   heartbeatendpoint(
     hal.openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()), "heartbeat",
   	WorkerEndpoint::InitializeCallback(),

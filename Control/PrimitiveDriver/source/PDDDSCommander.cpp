@@ -15,7 +15,7 @@ PDDDSCommander::PDDDSCommander(PDWorker &pdworker, DDSDomainParticipant *partici
   actuatorreceiver(participant, "PDActuator", bind(&PDDDSCommander::receivedActuator, this, _1)) { }
 
 void PDDDSCommander::receivedWrench(const PDWrenchMessage &wrench) {
-	PDWorker::Vector6d vec;
+	Vector6d vec;
 	for (int i=0; i<3; i++)
 		vec(i) = wrench.linear[i];
 	for (int i=0; i<3; i++)

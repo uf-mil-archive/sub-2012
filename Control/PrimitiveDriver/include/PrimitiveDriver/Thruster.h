@@ -9,20 +9,17 @@
 namespace subjugator {
 	class Thruster : public StateUpdater {
 		public:
-			typedef boost::function<void (const State &state)> StateChangeCallback;
-
-			Thruster(HAL &hal, int address, int srcaddress, const StateChangeCallback &callback);
+			Thruster(HAL &hal, int address, int srcaddress);
 
 			boost::shared_ptr<MotorDriverInfo> getInfo() const;
 			void setEffort(double effort);
 
-			virtual void updateState(double dt);
+			virtual void updateState(double dt) { endpoint.updateState(dt); }
 			virtual const State &getState() const { return endpoint.getState(); }
 
 		private:
 			int address;
 			WorkerEndpoint endpoint;
-			StateChangeCallback callback;
 
 			void endpointInitCallback();
 	};
