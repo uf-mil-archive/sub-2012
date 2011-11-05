@@ -52,135 +52,102 @@ set(SUBJUGATOR_CONFIG_DIRECTORY etc/subjugator CACHE STRING "Where the configura
 #############################################
 
 function(sub_executable projectname)
-	list(FIND ARGN LegacyDDS legacydds_pos) # determine if the DDS flag was given
-	if (legacydds_pos EQUAL -1)
-		set(legacydds FALSE)
-	else()
-		set(legacydds TRUE)
-	endif()
-
-	if (legacydds AND NOT NDDS_FOUND)
-		message(ERROR "sub_executable called with legacy dds enabled, but DDS was not found")
-		return()
-	endif()
-
-	list(FIND ARGN Qt qt_pos)
-	if (qt_pos EQUAL -1)
-		set(qt FALSE)
-	else()
-		set(qt TRUE)
-	endif()
-
-	if (qt AND NOT QT_FOUND)
-		message(ERROR "sub_executable called with qt enabled, but QT was not found")
-		return()
-	endif()
-
-	list(FIND ARGN OpenCV cv_pos)
-	if(cv_pos EQUAL -1)
-		set(cv FALSE)
-	else()
-		set(cv TRUE)
-	endif()
-
-	list(FIND ARGN FlyCapture flycapture_pos)
-	if(flycapture_pos EQUAL -1)
-		set(flycapture FALSE)
-	else()
-		set(flycapture TRUE)
-	endif()
-
 	project(${projectname})
 
-	# set up some variables and includes
+	# find sources and headers
 	file(GLOB_RECURSE sources "source/*.cpp")
-	include_directories(${CMAKE_CURRENT_BINARY_DIR}) # generated headers are tossed in here by qt and others
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 		include_directories(include)
 		file(GLOB_RECURSE headers "include/*.h")
 	else()
 		set(headers "")
 	endif()
-	string(TOLOWER ${projectname} exename)
-
-	foreach(refprojectname ${ARGN})
-		string(TOLOWER ${refprojectname} reflibname)
-		if(${reflibname} STREQUAL legacydds)
-		elseif(${reflibname} STREQUAL qt)
-		elseif(${reflibname} STREQUAL opencv)
-		elseif(${reflibname} STREQUAL flycapture)
-		else()
-			set(libraries ${libraries} ${reflibname})
-			include_directories(${${refprojectname}_SOURCE_DIR}/include)
-		endif()
-	endforeach()
-
-	if(FFTW_FOUND)
-		set(libraries ${libraries} ${FFTW_LIBRARIES})
-	endif()
 
 	# Optionally process the config header
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
+		include_directories(${CMAKE_CURRENT_BINARY_DIR})
 		configure_file(include/config.h.in config.h) # configure it, putting it in the output directory
 	endif()
 
-	# Handle legacy dds functionality
-	if(legacydds)
-		include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
-		set(libraries ${libraries} ${NDDS_LIBRARIES}) # link to DDS
-		
-		ndds_include_project_rtiddsgen_directories(LegacyDDS idl) # Put our DDS project's IDLs on the include path
-		include_directories(${LegacyDDS_SOURCE_DIR}/include) # Put its regular headers on the include path
-		set(libraries ${libraries} legacydds) # link to its libraries
-	endif()
+	# Process each reference
+	foreach(ref ${ARGN})
+		if(ref STREQUAL LegacyDDS)
+			include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
+			set(libraries ${libraries} ${NDDS_LIBRARIES}) # link to DDS
 
-	# Set up qt functionality
-	if(qt)
-		set(QT_USE_QTOPENGL TRUE)
-		include(${QT_USE_FILE})
-		if (QWT_FOUND)
-		    include_directories(${QWT_INCLUDE_DIR}) # put QWT on the include path
-		    set(libraries ${libraries} ${QWT_LIBRARIES})
+			ndds_include_project_rtiddsgen_directories(LegacyDDS idl) # Put our DDS project's IDLs on the include path
+			include_directories(${LegacyDDS_SOURCE_DIR}/include) # Put its regular headers on the include path
+			set(libraries ${libraries} legacydds) # link to its libraries
+
+		elseif(ref STREQUAL DDS)
+			include_directories(${NDDS_INCLUDE_DIRS}) # put DDS on the include path
+			set(libraries ${libraries} ${NDDS_LIBRARIES}) # link to DDS
+
+		elseif(ref STREQUAL Qt)
+			set(QT_USE_QTOPENGL TRUE)
+			include(${QT_USE_FILE})
+			include_directories(${CMAKE_CURRENT_BINARY_DIR})
+			set(libraries ${libraries} ${QT_LIBRARIES})
+
+			if (QWT_FOUND)
+				include_directories(${QWT_INCLUDE_DIR}) # put QWT on the include path
+				set(libraries ${libraries} ${QWT_LIBRARIES})
+			endif()
+
+			QT4_WRAP_CPP(headers_moc_sources ${headers})
+			set(sources ${sources} ${headers_moc_sources})
+
+			if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
+				file(GLOB_RECURSE forms "forms/*.ui")
+				QT4_WRAP_UI(forms_moc_sources ${forms})
+				set(sources ${sources} ${forms_moc_sources})
+			endif()
+
+			if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/resources)
+				file(GLOB_RECURSE resources "resources/*.qrc")
+				QT4_ADD_RESOURCES(resources_moc_sources ${resources})
+				set(sources ${sources} ${resources_moc_sources})
+			endif()
+
+		elseif(ref STREQUAL OpenCV)
+			set(libraries ${libraries} ${OpenCV_LIBS})
+			include_directories(${OpenCV_INCLUDE_DIRS})
+
+		elseif(ref STREQUAL FlyCapture)
+			set(libraries ${libraries} ${FLYCAPTURE_LIBRARIES})
+			include_directories(${FLYCAPTURE_INCLUDES})
+
+		elseif(${ref}_SOURCE_DIR)
+			string(TOLOWER ${ref} libname)
+			set(libraries ${libraries} ${libname})
+			include_directories(${${ref}_SOURCE_DIR}/include)
+
+		else()
+			message(SEND_ERROR "Executable ${projectname} has unknown reference ${ref}")
 		endif()
-		set(libraries ${libraries} ${QT_LIBRARIES})
+	endforeach()
 
-		QT4_WRAP_CPP(headers_moc_sources ${headers})
-		set(sources ${sources} ${headers_moc_sources})
-
-		if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/forms)
-			file(GLOB_RECURSE forms "forms/*.ui")
-			QT4_WRAP_UI(forms_moc_sources ${forms})
-			set(sources ${sources} ${forms_moc_sources})
-		endif()
-
-		if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/resources)
-			file(GLOB_RECURSE resources "resources/*.qrc")
-			QT4_ADD_RESOURCES(resources_moc_sources ${resources})
-			set(sources ${sources} ${resources_moc_sources})
-		endif()
-	endif()
-
-	# OpenCV functionality
-	if(cv)
-		set(libraries ${libraries} ${OpenCV_LIBS})
-		include_directories(${OpenCV_INCLUDE_DIRS})
-	endif()
-
-	# FlyCapture
-	if(flycapture)
-		set(libraries ${libraries} ${FLYCAPTURE_LIBRARIES})
-		include_directories(${FLYCAPTURE_INCLUDES})
+	# automatically link to FFTW if we found it
+	if(FFTW_FOUND)
+		set(libraries ${libraries} ${FFTW_LIBRARIES})
 	endif()
 
 	# Boost comes last, since flycapture depends on it
 	set(libraries ${libraries} ${Boost_LIBRARIES})
 
 	# Define executable
+	string(TOLOWER ${projectname} exename)
 	add_executable(${exename} ${sources})
 	target_link_libraries(${exename} ${libraries})
 
+	# this causes CMake to keep runtime paths in the binary so dds libs are still found
+	# However, we're only doing this for LegacyDDS binaries. For new code you've got to set up ldconfig to find DDS libraries correctly
+	list(FIND ARGN LegacyDDS pos)
+	if(NOT pos EQUAL -1)
+		set_property(TARGET ${exename} PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+	endif()
+
 	# install
-	set_property(TARGET ${exename} PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE) # this causes CMake to keep runtime paths in the binary so dds libs are still found
 	install(TARGETS ${exename} DESTINATION bin)
 
 	# install configs
@@ -189,7 +156,7 @@ function(sub_executable projectname)
 endfunction()
 
 #############################################
-# sub_library(ProjectName ReferencedLibraryProject1 ReferencedLibraryProject2 ...)
+# sub_library(ProjectName [DDS] ReferencedProjects...)
 # Configures this project to build a static library, which can be linked into
 # executable projects. Additional arguments allow a library project to use
 # headers defined in another library project.
@@ -203,26 +170,33 @@ endfunction()
 function(sub_library projectname)
 	project(${projectname})
 
+	file(GLOB_RECURSE sources "source/*.cpp")
 	include_directories(include)
-	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 	# Process the config header
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in) # if the project has one
+		include_directories(${CMAKE_CURRENT_BINARY_DIR})
 		configure_file(include/config.h.in config.h) # configure it, putting it in the output directory
 	endif()
 
-	file(GLOB_RECURSE sources "source/*.cpp")
+	foreach(ref ${ARGN})
+		if(ref STREQUAL DDS)
+			include_directories(${NDDS_INCLUDE_DIRS})
+
+		elseif(${ref}_SOURCE_DIR)
+			include_directories(${${ref}_SOURCE_DIR}/include)
+
+		else()
+			message(SEND_ERROR "Library ${projectname} has unknown reference ${ref}")
+		endif()
+	endforeach()
+
 	string(TOLOWER ${projectname} libname)
 	add_library(${libname} ${sources})
 
 	# install configs
 	file(GLOB_RECURSE configs "config/*")
 	install(FILES ${configs} DESTINATION ${SUBJUGATOR_CONFIG_DIRECTORY})
-
-	foreach(refprojectname ${ARGN})
-		string(TOLOWER ${refprojectname} reflibname)
-		include_directories(${${refprojectname}_SOURCE_DIR}/include)
-	endforeach()
 endfunction()
 
 # Apparently -fPIC is recommended for any build on 64 bit linux.
