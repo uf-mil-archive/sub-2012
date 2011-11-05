@@ -1,48 +1,70 @@
-#include <ndds/ndds_cpp.h>
-#include "DDSMessages/PDStatusMessage.h"
-#include "DDSMessages/PDStatusMessageSupport.h"
-#include "DDSMessages/PDActuatorMessageSupport.h"
 #include "PrimitiveDriver/PDWorker.h"
-#include "PrimitiveDriver/PDDDSListener.h"
-#include "PrimitiveDriver/PDDDSCommander.h"
-#include "LibSub/Worker/WorkerRunner.h"
 #include "HAL/SubHAL.h"
-
-#include <boost/scoped_ptr.hpp>
+#include "LibSub/Worker/WorkerRunner.h"
+#include "LibSub/DDS/DDSBuilder.h"
+#include "DDSMessages/PDWrenchMessageSupport.h"
+#include "DDSMessages/PDActuatorMessageSupport.h"
+#include "DDSMessages/PDStatusMessageSupport.h"
 #include <boost/asio.hpp>
-#include <iostream>
 
 using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-int main(int argc, char **argv) {
-	boost::asio::io_service io;
+DECLARE_MESSAGE_TRAITS(PDWrenchMessage);
+DECLARE_MESSAGE_TRAITS(PDStatusMessage);
+DECLARE_MESSAGE_TRAITS(PDActuatorMessage);
 
-	// We need a worker
+int main(int argc, char **argv) {
+	asio::io_service io;
+
+	// Get the worker up
 	SubHAL hal(io);
 	PDWorker worker(hal);
 	WorkerRunner workerrunner(worker, io);
 
-	// Now we need a DDS listener to push all the data up
-	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
-	if (!participant)
-		throw runtime_error("Failed to create DDSDomainParticipant");
-
-	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-		throw runtime_error("Failed to register type");
-
-	if (PDWrenchMessageTypeSupport::register_type(participant, PDWrenchMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-		throw runtime_error("Failed to register type");
-
-	if (PDActuatorMessageTypeSupport::register_type(participant, PDActuatorMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-		throw runtime_error("failed to register type");
-
-	PDDDSListener ddsListener(worker, participant);
-	PDDDSCommander ddsCommander(worker, participant);
+	// Get DDS up
+	DDSBuilder dds(io);
+	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench"));
+	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator"));
+	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus"));
 
 	// Start the worker
 	workerrunner.start();
 	io.run();
+}
+
+namespace subjugator {
+	template <>
+	Vector6d from_dds(const PDWrenchMessage &msg) {
+		Vector6d vec;
+		for (int i=0; i<3; i++)
+			vec(i) = msg.linear[i];
+		for (int i=0; i<3; i++)
+			vec(i+3) = msg.moment[i];
+		return vec;
+	}
+
+	template <>
+	int from_dds(const PDActuatorMessage &actuator) {
+		return actuator.flags;
+	}
+
+	template <>
+	PDStatusMessage to_dds(const PDInfo &info) {
+		PDStatusMessage msg;
+		msg.timestamp = info.getTimestamp();
+		for (int i=0; i<8; i++)
+			msg.current[i] = info.getCurrent(i);
+		const MergeInfo &mergeinfo = info.getMergeInfo();
+		msg.estop = mergeinfo.getESTOP();
+		msg.flags = mergeinfo.getFlags();
+		msg.tickcount = mergeinfo.getTickCount();
+		msg.voltage16 = mergeinfo.getRail16Voltage();
+		msg.current16 = mergeinfo.getRail16Current();
+		msg.voltage32 = mergeinfo.getRail32Voltage();
+		msg.current32 = mergeinfo.getRail32Current();
+		return msg;
+	}
 }
 
