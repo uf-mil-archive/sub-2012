@@ -33,6 +33,7 @@ class AutoServerFactory(protocol.ServerFactory):
 depth_listeners = set()
 imu_listeners = set()
 dvl_listeners = set()
+merge_listeners = set()
 thrusters = [0]*8
 
 reactor.listenTCP(10004, AutoServerFactory(devices.DepthProtocol, depth_listeners))
@@ -40,7 +41,7 @@ reactor.listenTCP(10025, AutoServerFactory(devices.IMUProtocol, imu_listeners))
 for i in xrange(8):
     reactor.listenTCP(10030 + i, AutoServerFactory(devices.ThrusterProtocol, i, thrusters))
 reactor.listenTCP(10050, AutoServerFactory(devices.DVLProtocol, dvl_listeners)) # hydrophone too?
-reactor.listenTCP(10060, AutoServerFactory(devices.MergeProtocol))
+reactor.listenTCP(10060, AutoServerFactory(devices.MergeProtocol, merge_listeners))
 reactor.listenTCP(10061, AutoServerFactory(devices.ActuatorProtocol))
 reactor.listenTCP(10255, AutoServerFactory(devices.HeartbeatProtocol))
 
@@ -53,6 +54,9 @@ def send_depth_update(**update):
 def send_dvl_update(**update):
     for dvl_listener in dvl_listeners:
         dvl_listener.sendHighResVel(**update)
+def send_merge_update(**update):
+    for merge_listener in merge_listeners:
+        merge_listener.sendUpdate(**update)
 
 
 clip = lambda x, (low, high): min(max(x, low), high)
@@ -215,5 +219,18 @@ def depth_task():
         traceback.print_exc()
 task.LoopingCall(depth_task).start(1/5)
 
+def merge_task():
+    try:
+        send_merge_update(
+            tickcount=0,
+            flags=0,
+            current16=10,
+            voltage16=16,
+            current32=10,
+            voltage32=32,
+        )
+    except:
+        traceback.print_exc()
+task.LoopingCall(merge_task).start(1/5)
 
 reactor.run()
