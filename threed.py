@@ -131,13 +131,15 @@ class Sub(object):
         with GLMatrix:
             rotate_to_body(self.body)
             
-            glTranslate(.2, 0, 0)
             q = gluNewQuadric()
-            glColor3f(0, 1, 0)
-            gluSphere(q, .5, 20, 20)
-            glTranslate(-.4, 0, 0)
-            glColor3f(1, 0, 0)
-            gluSphere(q, .5, 20, 20)
+            with GLMatrix:
+                glTranslate(+.2, 0, 0)
+                glColor3f(0, 1, 0)
+                gluSphere(q, 0.5, 40, 20)
+            with GLMatrix:
+                glTranslate(-.2, 0, 0)
+                glColor3f(1, 0, 0)
+                gluSphere(q, 0.5, 40, 20)
             
             glDisable(GL_DEPTH_TEST)
             glBegin(GL_LINES)
@@ -217,7 +219,7 @@ class Interface(object):
         
         keys = pygame.key.get_pressed()
         
-        speed = 100 if keys[pygame.K_LSHIFT] else 10
+        speed = 50 if keys[pygame.K_LSHIFT] else 5
         
         if keys[pygame.K_w]: self.pos += forward*dt*speed
         if keys[pygame.K_s]: self.pos += -forward*dt*speed
@@ -277,7 +279,7 @@ class Interface(object):
             q = gluNewQuadric()
             glDisable(GL_LIGHTING)
             glColor3f(1, 1, 1)
-            gluSphere(q, 30, 20, 20)
+            gluSphere(q, 10, 20, 20)
             glEnable(GL_LIGHTING)
         
         # water
