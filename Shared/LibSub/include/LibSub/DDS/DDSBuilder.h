@@ -17,10 +17,27 @@ DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
 
 namespace subjugator {
 	template <class MessageT, typename DataT>
-	MessageT to_dds(const DataT &data) { BOOST_STATIC_ASSERT(sizeof(MessageT) == 0); }
+	void to_dds(MessageT &msg, const DataT &data) { msg = static_cast<MessageT>(data); }
 
 	template <typename DataT, class MessageT>
-	DataT from_dds(const MessageT &msg) { BOOST_STATIC_ASSERT(sizeof(MessageT) == 0); }
+	void from_dds(DataT &data, const MessageT &msg) { msg = static_cast<DataT>(msg); }
+
+	template <>
+	void to_dds(char *&msg, const std::string &data) { msg = const_cast<char *>(data.c_str()); }
+
+	template <>
+	void from_dds(std::string &data, char *const &msg) { data = std::string(msg); }
+
+	template <>
+	void to_dds(DDS_UnsignedLong &msg, const boost::posix_time::ptime &data) {
+		tm t = boost::posix_time::to_tm(data);
+		msg = static_cast<DDS_UnsignedLong>(mktime(&t));
+	}
+
+	template <>
+	void from_dds(boost::posix_time::ptime &data, const DDS_UnsignedLong &msg) {
+		data = boost::posix_time::from_time_t(static_cast<time_t>(msg));
+	}
 
 	class DDSBuilder {
 		public:
@@ -76,7 +93,9 @@ namespace subjugator {
 				  sender(topic) { }
 
 				void callback(const DataT &obj) {
-					sender.send(to_dds<MessageT>(obj));
+					MessageT msg;
+					to_dds(msg, obj);
+					sender.send(msg);
 				}
 			};
 
@@ -94,7 +113,9 @@ namespace subjugator {
 				  io(io) { }
 
 				void receiveCallback(const MessageT &msg) {
-					io.dispatch(boost::bind(&WorkerMailbox<DataT>::set, &mailbox, from_dds<DataT>(msg)));
+					DataT data;
+					from_dds(data, msg);
+					io.dispatch(boost::bind(&WorkerMailbox<DataT>::set, &mailbox, data));
 				}
 
 				void writerCountCallback(int count) {
@@ -119,19 +140,18 @@ namespace subjugator {
 
 				void stateChangedCallback(const std::pair<State, State> states) {
 					WorkerStateMessage msg;
-					msg.worker = const_cast<char *>(worker.getName().c_str());
-					msg.code = (WorkerStateCode)states.second.code;
-					msg.msg = const_cast<char *>(states.second.msg.c_str());
+					to_dds(msg.worker, worker.getName());
+					to_dds(msg.code, states.second.code);
+					to_dds(msg.msg, states.second.msg);
 					statesender.send(msg);
 				}
 
 				void logCallback(const WorkerLogEntry &entry) {
 					WorkerLogMessage msg;
-					msg.worker = const_cast<char *>(worker.getName().c_str());
-					msg.type = (WorkerLogType)entry.type;
-					msg.msg = const_cast<char *>(entry.msg.c_str());
-					tm t = to_tm(entry.time);
-					msg.time = mktime(&t);
+					to_dds(msg.worker, worker.getName());
+					to_dds(msg.type, entry.type);
+					to_dds(msg.msg, entry.msg);
+					to_dds(msg.time, entry.time);
 					logsender.send(msg);
 				}
 			};

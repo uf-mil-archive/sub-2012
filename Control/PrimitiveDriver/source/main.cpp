@@ -39,23 +39,20 @@ int main(int argc, char **argv) {
 
 namespace subjugator {
 	template <>
-	Vector6d from_dds(const PDWrenchMessage &msg) {
-		Vector6d vec;
+	void from_dds(Vector6d &vec, const PDWrenchMessage &msg) {
 		for (int i=0; i<3; i++)
 			vec(i) = msg.linear[i];
 		for (int i=0; i<3; i++)
 			vec(i+3) = msg.moment[i];
-		return vec;
 	}
 
 	template <>
-	int from_dds(const PDActuatorMessage &actuator) {
-		return actuator.flags;
+	void from_dds(int &flags, const PDActuatorMessage &actuator) {
+		flags = actuator.flags;
 	}
 
 	template <>
-	PDStatusMessage to_dds(const PDInfo &info) {
-		PDStatusMessage msg;
+	void to_dds(PDStatusMessage &msg, const PDInfo &info) {
 		msg.timestamp = info.getTimestamp();
 		for (int i=0; i<8; i++)
 			msg.current[i] = info.getCurrent(i);
@@ -67,7 +64,6 @@ namespace subjugator {
 		msg.current16 = mergeinfo.getRail16Current();
 		msg.voltage32 = mergeinfo.getRail32Voltage();
 		msg.current32 = mergeinfo.getRail32Current();
-		return msg;
 	}
 }
 
