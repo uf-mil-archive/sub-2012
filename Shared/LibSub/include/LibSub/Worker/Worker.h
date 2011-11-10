@@ -15,7 +15,8 @@ namespace subjugator {
 			const std::string &getName() const { return name; }
 			double getUpdateHz() const { return updatehz; }
 
-			WorkerSignal<std::pair<State, State> > statechangedsig;
+			typedef WorkerSignal<std::pair<State, State> > StateChangedSignal;
+			StateChangedSignal statechangedsig;
 			WorkerLogger logger;
 
 			const State &getState() const { return StateUpdaterContainer::getState(); }

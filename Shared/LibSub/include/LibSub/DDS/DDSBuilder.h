@@ -5,9 +5,15 @@
 #include "LibSub/DDS/Topic.h"
 #include "LibSub/DDS/Sender.h"
 #include "LibSub/DDS/Receiver.h"
-#include "LibSub/Worker/WorkerSignal.h"
+#include "LibSub/Worker/Worker.h"
+#include "LibSub/Messages/WorkerLogMessageSupport.h"
+#include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <utility>
+
+DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
+DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
 
 namespace subjugator {
 	template <class MessageT, typename DataT>
@@ -35,6 +41,10 @@ namespace subjugator {
 			template <class MessageT, typename DataT>
 			void receiver(WorkerMailbox<DataT> &mailbox, Topic<MessageT> &topic) {
 				objs.push_back(new MailboxReceiverObj<MessageT, DataT>(mailbox, topic, io));
+			}
+
+			void worker(Worker &worker) {
+				objs.push_back(new WorkerSenderObj(worker, topic<WorkerStateMessage>("WorkerStates"), topic<WorkerLogMessage>("WorkerLog")));
 			}
 
 		private:
@@ -90,6 +100,39 @@ namespace subjugator {
 				void writerCountCallback(int count) {
 					if (count == 0)
 						mailbox.clear();
+				}
+			};
+
+			struct WorkerSenderObj : public Obj {
+				Worker &worker;
+				Sender<WorkerStateMessage> statesender;
+				Sender<WorkerLogMessage> logsender;
+				Worker::StateChangedSignal::Connection stateconn;
+				WorkerLogger::Connection logconn;
+
+				WorkerSenderObj(Worker &worker, Topic<WorkerStateMessage> &statetopic, Topic<WorkerLogMessage> &logtopic)
+				: worker(worker),
+				  statesender(statetopic),
+				  logsender(logtopic),
+				  stateconn(worker.statechangedsig.connect(bind(&WorkerSenderObj::stateChangedCallback, this, _1))),
+				  logconn(worker.logger.connect(bind(&WorkerSenderObj::logCallback, this, _1))) { }
+
+				void stateChangedCallback(const std::pair<State, State> states) {
+					WorkerStateMessage msg;
+					msg.worker = const_cast<char *>(worker.getName().c_str());
+					msg.code = (WorkerStateCode)states.second.code;
+					msg.msg = const_cast<char *>(states.second.msg.c_str());
+					statesender.send(msg);
+				}
+
+				void logCallback(const WorkerLogEntry &entry) {
+					WorkerLogMessage msg;
+					msg.worker = const_cast<char *>(worker.getName().c_str());
+					msg.type = (WorkerLogType)entry.type;
+					msg.msg = const_cast<char *>(entry.msg.c_str());
+					tm t = to_tm(entry.time);
+					msg.time = mktime(&t);
+					logsender.send(msg);
 				}
 			};
 	};

@@ -27,7 +27,10 @@ endfunction()
 
 function(ndds_include_project_rtiddsgen_directories PROJECTNAME)
 	foreach(DIR ${ARGN})
-		include_directories("${${PROJECTNAME}_BINARY_DIR}/rtiddsgen_out/${DIR}")
+		set(dir ${${PROJECTNAME}_BINARY_DIR}/rtiddsgen_out/${DIR})
+		if(EXISTS ${dir})
+			include_directories(${dir})
+		endif()
 	endforeach()
 endfunction()
 

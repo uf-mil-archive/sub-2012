@@ -1,0 +1,13 @@
+enum WorkerLogType {
+	WORKERLOGTYPE_DEBUG,
+	WORKERLOGTYPE_INFO,
+	WORKERLOGTYPE_ERROR
+};
+
+struct WorkerLogMessage {
+	string worker;
+	WorkerLogType type;
+	string msg;
+	long time;
+};
+

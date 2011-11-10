@@ -1,0 +1,12 @@
+enum WorkerStateCode {
+	WORKERSTATECODE_ACTIVE,
+	WORKERSTATECODE_STANDBY,
+	WORKERSTATECODE_ERROR
+};
+
+struct WorkerStateMessage {
+	string worker; //@key
+	WorkerStateCode code;
+	string msg;
+};
+
