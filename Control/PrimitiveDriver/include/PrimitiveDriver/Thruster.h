@@ -1,8 +1,8 @@
 #ifndef PRIMITIVEDRIVER_THRUSTER_H
 #define PRIMITIVEDRIVER_THRUSTER_H
 
+#include "PrimitiveDriver/DataObjects/MotorDriverInfo.h"
 #include "HAL/HAL.h"
-#include "DataObjects/MotorDriver/MotorDriverInfo.h"
 #include "LibSub/State/StateUpdater.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
 

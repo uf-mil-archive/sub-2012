@@ -1,1 +1,1 @@
-sub_library(Sub DDS HAL DataObjects)
+sub_library(Sub DDS HAL)

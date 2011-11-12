@@ -1,9 +1,9 @@
 #include "PrimitiveDriver/Thruster.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
-#include "DataObjects/HeartBeat.h"
-#include "DataObjects/Embedded/StartPublishing.h"
-#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
-#include "DataObjects/MotorDriver/SetReference.h"
+#include "PrimitiveDriver/DataObjects/HeartBeat.h"
+#include "LibSub/DataObjects/StartPublishing.h"
+#include "PrimitiveDriver/DataObjects/MotorDriverDataObjectFormatter.h"
+#include "PrimitiveDriver/DataObjects/SetReference.h"
 #include <Eigen/Dense>
 #include <boost/lexical_cast.hpp>
 #include <boost/bind.hpp>

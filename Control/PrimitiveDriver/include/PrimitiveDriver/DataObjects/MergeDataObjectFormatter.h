@@ -1,9 +1,8 @@
 #ifndef DATAOBJECTS_MERGE_MERGEDATAOBJECTFORMATTER_H
 #define DATAOBJECTS_MERGE_MERGEDATAOBJECTFORMATTER_H
 
-#include "DataObjects/Embedded/EmbeddedDataObjectFormatter.h"
-#include "DataObjects/EmbeddedTypeCodes.h"
-#include "DataObjects/EmbeddedAddresses.h"
+#include "LibSub/DataObjects/EmbeddedDataObjectFormatter.h"
+#include "LibSub/DataObjects/EmbeddedTypeCodes.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {

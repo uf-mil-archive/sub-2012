@@ -1,9 +1,6 @@
 #include "PrimitiveDriver/PDWorker.h"
-#include "DataObjects/PD/PDWrench.h"
-#include "DataObjects/PD/PDInfo.h"
-#include "DataObjects/Actuator/SetActuator.h"
-#include "DataObjects/HeartBeat.h"
-#include "DataObjects/MotorDriver/MotorDriverDataObjectFormatter.h"
+#include "PrimitiveDriver/DataObjects/HeartBeat.h"
+#include "PrimitiveDriver/DataObjects/HeartBeatDataObjectFormatter.h"
 #include "HAL/format/Sub7EPacketFormatter.h"
 
 using namespace subjugator;
@@ -17,7 +14,7 @@ PDWorker::PDWorker(HAL &hal)
   actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
   hal(hal),
   heartbeatendpoint(
-    hal.openDataObjectEndpoint(255, new MotorDriverDataObjectFormatter(255, 21, HEARTBEAT), new Sub7EPacketFormatter()), "heartbeat",
+    hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()), "heartbeat",
   	WorkerEndpoint::InitializeCallback(),
   	true),
   thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),

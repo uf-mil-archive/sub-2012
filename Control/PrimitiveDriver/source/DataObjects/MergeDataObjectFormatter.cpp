@@ -1,5 +1,5 @@
-#include "DataObjects/Merge/MergeDataObjectFormatter.h"
-#include "DataObjects/Merge/MergeInfo.h"
+#include "PrimitiveDriver/DataObjects/MergeDataObjectFormatter.h"
+#include "PrimitiveDriver/DataObjects/MergeInfo.h"
 
 using namespace subjugator;
 using namespace boost;

@@ -1,6 +1,6 @@
-#include "DataObjects/Actuator/ActuatorDataObjectFormatter.h"
-#include "DataObjects/Actuator/LimitSwitchStatus.h"
-#include "DataObjects/Actuator/SetActuator.h"
+#include "PrimitiveDriver/DataObjects/ActuatorDataObjectFormatter.h"
+#include "PrimitiveDriver/DataObjects/LimitSwitchStatus.h"
+#include "PrimitiveDriver/DataObjects/SetActuator.h"
 #include <cassert>
 
 using namespace subjugator;

@@ -1,10 +1,10 @@
 #ifndef SUBMAIN_WORKERS_MERGEMANAGER_H
 #define SUBMAIN_WORKERS_MERGEMANAGER_H
 
+#include "PrimitiveDriver/DataObjects/MergeInfo.h"
 #include "LibSub/State/StateUpdater.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
 #include "HAL/HAL.h"
-#include "DataObjects/Merge/MergeInfo.h"
 
 namespace subjugator {
 	class MergeManager : public StateUpdaterContainer {
