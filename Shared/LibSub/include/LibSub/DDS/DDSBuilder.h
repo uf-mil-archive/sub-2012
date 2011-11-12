@@ -5,6 +5,7 @@
 #include "LibSub/DDS/Topic.h"
 #include "LibSub/DDS/Sender.h"
 #include "LibSub/DDS/Receiver.h"
+#include "LibSub/DDS/Conversions.h"
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
@@ -16,29 +17,6 @@ DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
 
 namespace subjugator {
-	template <class MessageT, typename DataT>
-	void to_dds(MessageT &msg, const DataT &data) { msg = static_cast<MessageT>(data); }
-
-	template <typename DataT, class MessageT>
-	void from_dds(DataT &data, const MessageT &msg) { msg = static_cast<DataT>(msg); }
-
-	template <>
-	void to_dds(char *&msg, const std::string &data) { msg = const_cast<char *>(data.c_str()); }
-
-	template <>
-	void from_dds(std::string &data, char *const &msg) { data = std::string(msg); }
-
-	template <>
-	void to_dds(DDS_UnsignedLong &msg, const boost::posix_time::ptime &data) {
-		tm t = boost::posix_time::to_tm(data);
-		msg = static_cast<DDS_UnsignedLong>(mktime(&t));
-	}
-
-	template <>
-	void from_dds(boost::posix_time::ptime &data, const DDS_UnsignedLong &msg) {
-		data = boost::posix_time::from_time_t(static_cast<time_t>(msg));
-	}
-
 	class DDSBuilder {
 		public:
 			DDSBuilder(boost::asio::io_service &io) : io(io) { }
@@ -61,7 +39,8 @@ namespace subjugator {
 			}
 
 			void worker(Worker &worker) {
-				objs.push_back(new WorkerSenderObj(worker, topic<WorkerStateMessage>("WorkerStates"), topic<WorkerLogMessage>("WorkerLog")));
+				sender(worker.logger, topic<WorkerLogMessage>("WorkerLog", TopicQOS::DEEP_PERSISTENT));
+				objs.push_back(new WorkerStateSenderObj(worker, topic<WorkerStateMessage>("WorkerStates")));
 			}
 
 		private:
@@ -124,35 +103,21 @@ namespace subjugator {
 				}
 			};
 
-			struct WorkerSenderObj : public Obj {
+			struct WorkerStateSenderObj : public Obj {
 				Worker &worker;
 				Sender<WorkerStateMessage> statesender;
-				Sender<WorkerLogMessage> logsender;
 				Worker::StateChangedSignal::Connection stateconn;
-				WorkerLogger::Connection logconn;
 
-				WorkerSenderObj(Worker &worker, Topic<WorkerStateMessage> &statetopic, Topic<WorkerLogMessage> &logtopic)
+				WorkerStateSenderObj(Worker &worker, Topic<WorkerStateMessage> &statetopic)
 				: worker(worker),
 				  statesender(statetopic),
-				  logsender(logtopic),
-				  stateconn(worker.statechangedsig.connect(bind(&WorkerSenderObj::stateChangedCallback, this, _1))),
-				  logconn(worker.logger.connect(bind(&WorkerSenderObj::logCallback, this, _1))) { }
+				  stateconn(worker.statechangedsig.connect(bind(&WorkerStateSenderObj::stateChangedCallback, this, _1))) { }
 
-				void stateChangedCallback(const std::pair<State, State> states) {
+				void stateChangedCallback(const State &state) {
 					WorkerStateMessage msg;
 					to_dds(msg.worker, worker.getName());
-					to_dds(msg.code, states.second.code);
-					to_dds(msg.msg, states.second.msg);
+					to_dds(msg.state, state);
 					statesender.send(msg);
-				}
-
-				void logCallback(const WorkerLogEntry &entry) {
-					WorkerLogMessage msg;
-					to_dds(msg.worker, worker.getName());
-					to_dds(msg.type, entry.type);
-					to_dds(msg.msg, entry.msg);
-					to_dds(msg.time, entry.time);
-					logsender.send(msg);
 				}
 			};
 	};

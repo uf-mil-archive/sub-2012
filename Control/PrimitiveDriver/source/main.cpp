@@ -28,9 +28,9 @@ int main(int argc, char **argv) {
 	// Get DDS up
 	DDSBuilder dds(io);
 	dds.worker(worker);
-	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench"));
-	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator"));
-	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus"));
+	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
+	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator", TopicQOS::LEGACY));
+	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
 
 	// Start the worker
 	workerrunner.start();

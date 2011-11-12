@@ -26,6 +26,11 @@ OStreamLog::OStreamLog(WorkerLogger &logger, std::ostream &out)
 }
 
 void OStreamLog::log(const WorkerLogEntry &entry) {
-	out << "[" << entry.time << "] " << entry.worker << ": " << entry.msg << endl;
+	out << entry << endl;
+}
+
+ostream &subjugator::operator<<(ostream &out, const WorkerLogEntry &entry) {
+	out << "[" << entry.time << "] " << entry.worker << ": " << entry.msg;
+	return out;
 }
 

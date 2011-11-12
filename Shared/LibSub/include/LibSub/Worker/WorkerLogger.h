@@ -26,6 +26,8 @@ namespace subjugator {
 		: type(type), msg(msg), worker(worker), time(time) { }
 	};
 
+	std::ostream &operator<<(std::ostream &out, const WorkerLogEntry &entry);
+
 	class WorkerLogger : public WorkerSignal<WorkerLogEntry> {
 		public:
 			WorkerLogger(const std::string &workername);

@@ -16,7 +16,7 @@ void Worker::update(double dt) {
 		else if (oldstate.code == State::ACTIVE)
 			leaveActive();
 
-		statechangedsig.emit(make_pair(oldstate, newstate));
+		statechangedsig.emit(newstate);
 
 		string logmsg = "State changed to " + lexical_cast<string>(newstate);
 		logger.log(logmsg, newstate.code == State::ERROR ? WorkerLogEntry::ERROR : WorkerLogEntry::INFO);

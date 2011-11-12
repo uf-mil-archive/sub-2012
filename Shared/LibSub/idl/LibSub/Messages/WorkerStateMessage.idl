@@ -4,9 +4,13 @@ enum WorkerStateCode {
 	WORKERSTATECODE_ERROR
 };
 
-struct WorkerStateMessage {
-	string worker; //@key
+struct StateMessage {
 	WorkerStateCode code;
 	string msg;
+};
+
+struct WorkerStateMessage {
+	string worker; //@key
+	StateMessage state;
 };
 
