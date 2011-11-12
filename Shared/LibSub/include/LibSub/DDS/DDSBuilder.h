@@ -43,6 +43,11 @@ namespace subjugator {
 				objs.push_back(new WorkerStateSenderObj(worker, topic<WorkerStateMessage>("WorkerStates")));
 			}
 
+			~DDSBuilder() {
+				while (objs.size())
+					objs.pop_back();
+			}
+
 		private:
 			boost::asio::io_service &io;
 			Participant participant;

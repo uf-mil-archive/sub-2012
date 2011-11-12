@@ -1,6 +1,7 @@
 #include "PrimitiveDriver/PDWorker.h"
 #include "HAL/SubHAL.h"
 #include "LibSub/Worker/WorkerRunner.h"
+#include "LibSub/Worker/SignalHandler.h"
 #include "LibSub/DDS/DDSBuilder.h"
 #include "DDSMessages/PDWrenchMessageSupport.h"
 #include "DDSMessages/PDActuatorMessageSupport.h"
@@ -24,6 +25,7 @@ int main(int argc, char **argv) {
 	PDWorker worker(hal);
 	OStreamLog(worker.logger, cout);
 	WorkerRunner workerrunner(worker, io);
+	SignalHandler sighandler(io);
 
 	// Get DDS up
 	DDSBuilder dds(io);

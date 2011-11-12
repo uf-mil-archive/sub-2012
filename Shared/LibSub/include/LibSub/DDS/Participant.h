@@ -10,6 +10,7 @@ namespace subjugator {
 	class Participant {
 		public:
 			Participant();
+			~Participant();
 
 			template <class Message>
 			void registerType() {

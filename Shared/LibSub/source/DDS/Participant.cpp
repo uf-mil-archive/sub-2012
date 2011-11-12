@@ -8,3 +8,8 @@ Participant::Participant() {
 		throw DDSException("Failed to create DDSDomainParticipant");
 }
 
+Participant::~Participant() {
+	DDSDomainParticipantFactory::get_instance()->delete_participant(ddsparticipant);
+	DDSDomainParticipantFactory::finalize_instance();
+}
+
