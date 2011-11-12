@@ -2,6 +2,7 @@
 #define LIBSUB_MATH_EIGENTYPEDEFS
 
 #include <Eigen/Dense>
+#include <istream>
 
 namespace subjugator {
 	// Common
@@ -30,6 +31,16 @@ namespace subjugator {
 	typedef Eigen::Matrix<double, 3,27> Matrix3x27d;
 	typedef Eigen::Matrix<double, 7, 27> Matrix7x27d;
 	typedef Eigen::Matrix<double, 7, 26> Matrix7x26d;
+}
+
+namespace Eigen {
+	template <typename T, int M, int N>
+	std::istream &operator>>(std::istream &in, Eigen::Matrix<T, M, N> &mat) {
+		for (int row=0; row<M; row++)
+			for (int col=0; col<N; col++)
+				in >> mat(row, col);
+		return in;
+	}
 }
 
 #endif

@@ -8,7 +8,8 @@
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
-#include "LibSub/Math/EigenTypedefs.h"
+#include "LibSub/Worker/WorkerConfigLoader.h"
+#include "LibSub/Math/EigenUtils.h"
 #include "HAL/HAL.h"
 #include "PrimitiveDriver/DataObjects/PDInfo.h"
 #include <Eigen/Dense>
@@ -17,7 +18,7 @@
 namespace subjugator {
 	class PDWorker : public Worker {
 		public:
-			PDWorker(HAL &hal);
+			PDWorker(HAL &hal, const WorkerConfigLoader &configloader);
 
 			WorkerMailbox<Vector6d> wrenchmailbox;
 			WorkerMailbox<int> actuatormailbox;
@@ -41,8 +42,7 @@ namespace subjugator {
 			ThrusterMapper thrustermapper;
 			MergeManager mergemanager;
 
-			typedef std::map<int, ThrusterMapper::Entry> ThrusterEntryMap;
-			ThrusterEntryMap thrusterentries;
+			std::vector<ThrusterMapper::Entry> thrusterentries;
 	};
 }
 

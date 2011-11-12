@@ -17,8 +17,9 @@ namespace subjugator {
 			};
 			typedef Eigen::Matrix<double, 6, 1> Vector6D;
 
-			ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries);
+			ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries=0);
 
+			void resize(int entries);
 			void setEntry(int num, const Entry &entry);
 			void clearEntry(int num);
 

@@ -13,6 +13,10 @@ ThrusterMapper::ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries)
   rsat(VectorXd::Ones(entries)),
   svdstale(true) { }
 
+void ThrusterMapper::resize(int entries) {
+	mapmatrix = MapMatrix::Zero(6, entries);
+}
+
 void ThrusterMapper::setEntry(int num, const Entry &entry) {
 	assert(num < entries);
 

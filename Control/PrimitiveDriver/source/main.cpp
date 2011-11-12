@@ -5,6 +5,7 @@
 #include "HAL/SubHAL.h"
 #include "LibSub/Worker/WorkerRunner.h"
 #include "LibSub/Worker/SignalHandler.h"
+#include "LibSub/Worker/WorkerConfigLoader.h"
 #include "LibSub/DDS/DDSBuilder.h"
 #include <boost/asio.hpp>
 #include <iostream>
@@ -22,7 +23,8 @@ int main(int argc, char **argv) {
 
 	// Get the worker up
 	SubHAL hal(io);
-	PDWorker worker(hal);
+	WorkerConfigLoader configloader;
+	PDWorker worker(hal, configloader);
 	OStreamLog(worker.logger, cout);
 	WorkerRunner workerrunner(worker, io);
 	SignalHandler sighandler(io);

@@ -6,9 +6,10 @@
 using namespace subjugator;
 using namespace Eigen;
 using namespace boost;
+using namespace boost::property_tree;
 using namespace std;
 
-PDWorker::PDWorker(HAL &hal)
+PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
 : Worker("PrimitiveDriver", 10),
   wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
   actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
@@ -18,24 +19,24 @@ PDWorker::PDWorker(HAL &hal)
   	WorkerEndpoint::InitializeCallback(),
   	true),
   thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
-  thrustermapper(Vector3d(0, 0, 0), 8),
+  thrustermapper(Vector3d(0, 0, 0)),
   mergemanager(hal) {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
 
-	// Insert configuration system here.
-	thrusterentries[0] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7103,  5.3754, -1.9677)*.0254, 500, 500); // FRV
-	thrusterentries[1] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d( 11.7125, -5.3754, -1.9677)*.0254, 500, 500); // FLV
-	thrusterentries[2] = ThrusterMapper::Entry(Vector3d(0, -1, 0), Vector3d( 22.3004,  1.8020,  1.9190)*.0254, 500, 500); // FS
-	thrusterentries[3] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7125, -5.3754, -1.9677)*.0254, 500, 500); // RLV
-	thrusterentries[4] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072, -4.5375, -2.4285)*.0254, 500, 500); // LFOR
-	thrusterentries[5] = ThrusterMapper::Entry(Vector3d(1, 0, 0),  Vector3d(-24.9072,  4.5375, -2.4285)*.0254, 500, 500); // RFOR
-	thrusterentries[6] = ThrusterMapper::Entry(Vector3d(0, 1, 0),  Vector3d(-20.8004, -1.8020,  2.0440)*.0254, 500, 500); // RS
-	thrusterentries[7] = ThrusterMapper::Entry(Vector3d(0, 0, 1),  Vector3d(-11.7147,  5.3754, -1.9677)*.0254, 500, 500); // RRV
+	ptree config = configloader.loadConfig(getName());
+	const ptree &thrusters = config.get_child("thrusters");
 
-	for (int i=30; i<=37;i++)
-		thrustermanager.addThruster(i);
+	thrustermapper.resize(thrusters.size());
+
+	for (ptree::const_iterator i = thrusters.begin(); i != thrusters.end(); ++i) {
+		const ptree &t = i->second;
+
+		ThrusterMapper::Entry entry(t.get<Vector3d>("lineofaction"), t.get<Vector3d>("position"), t.get<double>("fsat"), t.get<double>("rsat"));
+		thrusterentries.push_back(entry);
+		thrustermanager.addThruster(i->second.get<int>("id"));
+	}
 }
 
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
