@@ -18,10 +18,12 @@ void UDPEndpoint::configureCallbacks(const ReadCallback &readcallback, const Sta
 }
 
 UDPEndpoint::State UDPEndpoint::getState() const {
-	if (callbacks.getEndpointError().size())
+	if (!opened)
+		return CLOSED;
+	else if (callbacks.getEndpointError().size())
 		return ERROR;
 	else
-		return opened ? OPEN : CLOSED;
+		return OPEN;
 }
 
 const string &UDPEndpoint::getErrorMessage() const {

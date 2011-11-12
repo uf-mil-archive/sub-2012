@@ -50,6 +50,7 @@ void UDPTransport::endpointOpened(UDPEndpoint *endpoint) {
 	socket.bind(ip::udp::endpoint(ip::udp::v4(), port), error);
 
 	if (error) {
+		socket.close();
 		setError("UDPTransport failed to bind socket: " + error.message());
 		return;
 	}
@@ -57,6 +58,7 @@ void UDPTransport::endpointOpened(UDPEndpoint *endpoint) {
 	socket.set_option(socket_base::broadcast(true), error);
 
 	if (error) {
+		socket.close();
 		setError("UDPTransport failed to enable broadcast on socket: " + error.message());
 		return;
 	}
