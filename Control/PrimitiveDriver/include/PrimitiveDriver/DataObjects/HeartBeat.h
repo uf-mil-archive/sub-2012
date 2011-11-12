@@ -8,8 +8,6 @@ namespace subjugator {
 	class HeartBeat : public DataObject {
 		public:
 			HeartBeat() { }
-
-			enum { TypeCode = 100 };
 	};
 }
 

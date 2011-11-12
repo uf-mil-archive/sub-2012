@@ -24,6 +24,18 @@ namespace subjugator {
 			boost::uint16_t packetcount_out;
 			boost::uint16_t packetcount_in;
 	};
+
+	template <typename InfoT>
+	class SimpleEmbeddedDataObjectFormatter : public EmbeddedDataObjectFormatter {
+		public:
+			SimpleEmbeddedDataObjectFormatter(boost::uint8_t devaddress, boost::uint8_t pcaddress, EmbeddedTypeCode typecode)
+			: EmbeddedDataObjectFormatter(devaddress, pcaddress, typecode) { }
+
+		protected:
+			virtual DataObject *makeInfoDataObject(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
+				return new InfoT(begin, end);
+			}
+	};
 }
 
 #endif

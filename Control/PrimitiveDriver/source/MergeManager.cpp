@@ -14,7 +14,7 @@ using namespace boost;
 using namespace std;
 
 MergeManager::MergeManager(HAL &hal)
-: mergeendpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21), new Sub7EPacketFormatter()),
+: mergeendpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21, MERGEBOARD), new Sub7EPacketFormatter()),
                "merge",
                boost::bind(&MergeManager::mergeInitCallback, this),
                false, .5),
@@ -24,13 +24,6 @@ MergeManager::MergeManager(HAL &hal)
                    false, .5) {
 	registerStateUpdater(mergeendpoint);
 	registerStateUpdater(actuatorendpoint);
-}
-
-MergeInfo MergeManager::getMergeInfo() const {
-	MergeInfo info = *mergeendpoint.getDataObject<MergeInfo>(); // TODO this will get fixed up in the actuator overhaul
-	if (actuatorendpoint.getDataObject<LimitSwitchStatus>()->getStatus())
-		info.setFlags(info.getFlags() | (1 << 8));
-	return info;
 }
 
 void MergeManager::setActuators(int flags) {

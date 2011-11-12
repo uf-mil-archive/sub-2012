@@ -11,7 +11,7 @@ namespace subjugator {
 		public:
 			MergeManager(HAL &hal);
 
-			MergeInfo getMergeInfo() const;
+			const MergeInfo &getMergeInfo() const { return *mergeendpoint.getDataObject<MergeInfo>(); }
 			void setActuators(int flags);
 
 		private:
