@@ -1,11 +1,11 @@
 #include "PrimitiveDriver/PDWorker.h"
+#include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
+#include "PrimitiveDriver/Messages/PDActuatorMessageSupport.h"
+#include "PrimitiveDriver/Messages/PDStatusMessageSupport.h"
 #include "HAL/SubHAL.h"
 #include "LibSub/Worker/WorkerRunner.h"
 #include "LibSub/Worker/SignalHandler.h"
 #include "LibSub/DDS/DDSBuilder.h"
-#include "DDSMessages/PDWrenchMessageSupport.h"
-#include "DDSMessages/PDActuatorMessageSupport.h"
-#include "DDSMessages/PDStatusMessageSupport.h"
 #include <boost/asio.hpp>
 #include <iostream>
 

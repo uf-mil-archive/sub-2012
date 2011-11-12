@@ -1,0 +1,22 @@
+struct PDStatusMessage {
+	unsigned long long timestamp;
+	short state;
+	boolean estop;
+	double current[8];
+
+	unsigned long tickcount;
+	unsigned long flags;
+
+	double current16;
+	double voltage16;
+	double current32;
+	double voltage32;
+};
+
+const long PDSTATUSFLAG_GRABBERLEFT = 1<<13;
+const long PDSTATUSFLAG_GRABBERRIGHT = 1<<12;
+const long PDSTATUSFLAG_SHOOTERLEFT = 1<<11;
+const long PDSTATUSFLAG_SHOOTERRIGHT = 1<<10;
+const long PDSTATUSFLAG_BALLDROPPER = 1<<9;
+const long PDSTATUSFLAG_LIMITSWITCH = 1<<8;
+
