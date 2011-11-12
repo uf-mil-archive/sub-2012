@@ -53,7 +53,7 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 	else
 		thrustermapper.clearEntry(num);
 
-	wrenchSet(wrenchmailbox.get());
+	wrenchSet(wrenchmailbox.getOptional());
 
 	logger.log("Thruster " + lexical_cast<string>(num) + " changed state: " + lexical_cast<string>(state));
 }
