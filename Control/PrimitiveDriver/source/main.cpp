@@ -2,21 +2,12 @@
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDActuatorMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDStatusMessageSupport.h"
-#include "HAL/SubHAL.h"
-#include "LibSub/Worker/WorkerRunner.h"
-#include "LibSub/Worker/SignalHandler.h"
-#include "LibSub/Worker/WorkerConfigLoader.h"
 #include "LibSub/DDS/DDSBuilder.h"
+#include "LibSub/Worker/WorkerBuilder.h"
 #include <boost/asio.hpp>
-#include <boost/program_options.hpp>
-#include <boost/bind.hpp>
-#include <iostream>
-#include <algorithm>
-#include <vector>
 
 using namespace subjugator;
-using namespace boost;
-namespace po = boost::program_options;
+using namespace boost::asio;
 using namespace std;
 
 DECLARE_MESSAGE_TRAITS(PDWrenchMessage);
@@ -24,35 +15,16 @@ DECLARE_MESSAGE_TRAITS(PDStatusMessage);
 DECLARE_MESSAGE_TRAITS(PDActuatorMessage);
 
 int main(int argc, char **argv) {
-	// parse options
-	po::options_description desc("PrimitiveDriver options");
-	desc.add_options()
-		("help", "produce help message")
-		("overlays,o", po::value<vector<string> >(), "use configuration overlays")
-		("debug,d", "output debug log messages");
+	io_service io;
 
-	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
-	po::notify(vm);
-
-	if (vm.count("help")) {
-		cerr << desc;
+	// Parse options
+	WorkerBuilderOptions options("PrimitiveDriver");
+	if (!options.parse(argc, argv))
 		return 1;
-	}
 
-	asio::io_service io;
-
-	// Get the worker up
-	SubHAL hal(io);
-	WorkerConfigLoader configloader;
-	if (vm.count("overlays")) {
-		const vector<string> &overlays = vm["overlays"].as<vector<string> >();
-		for_each(overlays.begin(), overlays.end(), boost::bind(&WorkerConfigLoader::addOverlay, &configloader, _1));
-	}
-	PDWorker worker(hal, configloader);
-	OStreamLog(worker.logger, cout, vm.count("debug") ? WorkerLogEntry::DEBUG : WorkerLogEntry::INFO);
-	WorkerRunner workerrunner(worker, io);
-	SignalHandler sighandler(io);
+	// Build the worker from the options
+	WorkerBuilder<PDWorker, HALWorkerConstructionPolicy> builder(options, io);
+	PDWorker &worker = builder.getWorker();
 
 	// Get DDS up
 	DDSBuilder dds(io);
@@ -62,8 +34,7 @@ int main(int argc, char **argv) {
 	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
 
 	// Start the worker
-	workerrunner.start();
-	io.run();
+	builder.runWorker();
 }
 
 namespace subjugator {

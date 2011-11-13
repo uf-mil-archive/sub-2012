@@ -12,11 +12,15 @@ namespace subjugator {
 			SignalHandler(boost::asio::io_service &io, const ReconfigureCallback &reconfcallback=ReconfigureCallback());
 			~SignalHandler();
 
+			void start();
+			void stop();
+
 		private:
 			boost::asio::io_service &io;
 			ReconfigureCallback reconfcallback;
 			bool gotsigint;
 
+			void ioCallback(int signal);
 			void signalReceived(int signal);
 
 			static SignalHandler *globalptr;

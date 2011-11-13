@@ -10,7 +10,8 @@ namespace subjugator {
 		public:
 			WorkerConfigLoader() { }
 
-			void addOverlay(const std::string &overlay) { overlays.push_back(overlay); }
+			void setOverlays(const std::vector<std::string> &overlays) { this->overlays = overlays; }
+			void clearOverlays() { overlays.clear(); }
 
 			boost::property_tree::ptree loadConfig(const std::string &workername) const;
 
