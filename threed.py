@@ -140,6 +140,14 @@ class Sub(object):
                 glTranslate(-.2, 0, 0)
                 glColor3f(1, 0, 0)
                 gluSphere(q, 0.5, 40, 20)
+            with GLMatrix:
+                glTranslate(+.4, +.2, -.3)
+                glColor3f(0, 0, 0)
+                gluSphere(q, 0.1, 40, 20)
+            with GLMatrix:
+                glTranslate(+.4, -.2, -.3)
+                glColor3f(0, 0, 0)
+                gluSphere(q, 0.1, 40, 20)
             
             glDisable(GL_DEPTH_TEST)
             glBegin(GL_LINES)

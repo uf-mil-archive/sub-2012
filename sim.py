@@ -113,18 +113,22 @@ def world_tick():
     
     keys = pygame.key.get_pressed()
     for keycode, force in [
-        (pygame.K_o, v(0, 0, -1500)),
-        (pygame.K_m, v(0, 0, +1500)),
-        (pygame.K_i, v(+1500, 0, 0)),
         (pygame.K_k, v(-1500, 0, 0)),
+        (pygame.K_i, v(+1500, 0, 0)),
         (pygame.K_j, v(0, -1500, 0)),
         (pygame.K_l, v(0, +1500, 0)),
+        (pygame.K_o, v(0, 0, -1500)),
+        (pygame.K_m, v(0, 0, +1500)),
     ]:
         if keys[keycode]:
             body.addForce(force*(10 if keys[pygame.K_RSHIFT] else 1))
     for keycode, torque in [
-        (pygame.K_h, v(0, 0, -500)),
-        (pygame.K_SEMICOLON, v(0, 0, +500)),
+        (pygame.K_COMMA, v(-500, 0, 0)),
+        (pygame.K_u, v(+500, 0, 0)),
+        (pygame.K_h, v(0, -500, 0)),
+        (pygame.K_SEMICOLON, v(0, +500, 0)),
+        (pygame.K_0, v(0, 0, -500)),
+        (pygame.K_n, v(0, 0, +500)),
     ]:
         if keys[keycode]:
             body.addTorque(torque*(10 if keys[pygame.K_RSHIFT] else 1))
