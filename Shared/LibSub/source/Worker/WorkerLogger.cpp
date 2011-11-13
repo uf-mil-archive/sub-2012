@@ -20,13 +20,14 @@ const char *WorkerLogEntry::typeStr(WorkerLogEntry::Type type) {
 	return logstrs[type];
 }
 
-OStreamLog::OStreamLog(WorkerLogger &logger, std::ostream &out)
-: out(out), conn(logger.connect(bind(&OStreamLog::log, this, _1))) {
+OStreamLog::OStreamLog(WorkerLogger &logger, std::ostream &out, WorkerLogEntry::Type mintype)
+: out(out), mintype(mintype), conn(logger.connect(bind(&OStreamLog::log, this, _1))) {
 	out.imbue(std::locale(out.getloc(), new time_facet("%T")));
 }
 
 void OStreamLog::log(const WorkerLogEntry &entry) {
-	out << entry << endl;
+	if (entry.type >= mintype)
+		out << entry << endl;
 }
 
 ostream &subjugator::operator<<(ostream &out, const WorkerLogEntry &entry) {

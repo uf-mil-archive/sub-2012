@@ -7,18 +7,16 @@ using namespace std;
 
 ThrusterMapper::ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries)
 : centerofmass(centerofmass),
-  entries(entries),
-  mapmatrix(MapMatrix::Zero(6, entries)),
-  fsat(VectorXd::Ones(entries)),
-  rsat(VectorXd::Ones(entries)),
-  svdstale(true) { }
+  svdstale(true) { resize(entries); }
 
 void ThrusterMapper::resize(int entries) {
 	mapmatrix = MapMatrix::Zero(6, entries);
+	fsat = VectorXd::Ones(entries);
+	rsat = VectorXd::Ones(entries);
 }
 
 void ThrusterMapper::setEntry(int num, const Entry &entry) {
-	assert(num < entries);
+	assert(num < mapmatrix.cols());
 
 	Vector3d moment = (entry.position - centerofmass).cross(entry.lineofaction);
 
@@ -31,7 +29,7 @@ void ThrusterMapper::setEntry(int num, const Entry &entry) {
 }
 
 void ThrusterMapper::clearEntry(int num) {
-	assert(num < entries);
+	assert(num < mapmatrix.cols());
 
 	mapmatrix.col(num).fill(0);
 	svdstale = true;

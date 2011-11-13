@@ -40,12 +40,13 @@ namespace subjugator {
 
 	class OStreamLog {
 		public:
-			OStreamLog(WorkerLogger &logger, std::ostream &out);
+			OStreamLog(WorkerLogger &logger, std::ostream &out, WorkerLogEntry::Type mintype = WorkerLogEntry::INFO);
 
 		private:
 			void log(const WorkerLogEntry &entry);
 
 			std::ostream &out;
+			WorkerLogEntry::Type mintype;
 			WorkerLogger::Connection conn;
 	};
 }

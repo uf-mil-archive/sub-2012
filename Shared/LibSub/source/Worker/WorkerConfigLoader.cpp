@@ -2,16 +2,18 @@
 #include "config.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <stdexcept>
 
 using namespace subjugator;
 using namespace boost::property_tree;
+using namespace boost::algorithm;
 using namespace boost;
 using namespace std;
 
 ptree WorkerConfigLoader::loadConfig(const string &workername) const {
-	string jsonfile = workername + ".json";
+	string jsonfile = to_lower_copy(workername + ".json");
 	ptree config;
 	json_parser::read_json((filesystem::path(configPath) / jsonfile).string(), config);
 

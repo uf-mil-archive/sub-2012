@@ -29,7 +29,6 @@ namespace subjugator {
 			typedef Eigen::Matrix<double, 6, Eigen::Dynamic> MapMatrix;
 
 			Eigen::Vector3d centerofmass;
-			int entries;
 
 			MapMatrix mapmatrix;
 			Eigen::VectorXd fsat;
