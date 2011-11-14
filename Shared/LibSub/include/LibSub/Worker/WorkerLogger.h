@@ -7,6 +7,15 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace subjugator {
+	/**
+	\addtogroup LibSub
+	@{
+	*/
+
+	/**
+	\brief Time-stamped entry in a WorkerLogger consisting of a type and a message
+	*/
+
 	struct WorkerLogEntry {
 		enum Type {
 			DEBUG,
@@ -28,6 +37,10 @@ namespace subjugator {
 
 	std::ostream &operator<<(std::ostream &out, const WorkerLogEntry &entry);
 
+	/**
+	\brief A signal used for Logging
+	*/
+
 	class WorkerLogger : public WorkerSignal<WorkerLogEntry> {
 		public:
 			WorkerLogger(const std::string &workername);
@@ -37,6 +50,10 @@ namespace subjugator {
 		private:
 			std::string workername;
 	};
+
+	/**
+	\brief Logs from a WorkerLogger to an ostream
+	*/
 
 	class OStreamLog {
 		public:
@@ -49,6 +66,8 @@ namespace subjugator {
 			WorkerLogEntry::Type mintype;
 			WorkerLogger::Connection conn;
 	};
+
+	/** @} */
 }
 
 #endif
