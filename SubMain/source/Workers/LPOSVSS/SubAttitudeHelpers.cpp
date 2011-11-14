@@ -129,12 +129,7 @@ Vector4d AttitudeHelpers::RotationToQuaternion(const Matrix3d& R)
 				   es.eigenvectors().real()(2,maxIndex));*/
 
 	// return the inverse of the inverse rotation - Presto - the quaternion we wanted.
-	Vector4d q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatInverse(q_inv));
-
-	if(q(0) < 0)
-		q*=-1.0;
-
-	return q;
+	return MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatInverse(q_inv));
 }
 
 Matrix3d AttitudeHelpers::VectorSkew3(const Vector3d& vec)
