@@ -13,11 +13,13 @@
 #include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "DataObjects/TrackingController/TrackingControllerInfo.h"
 #include "DDSCommanders/LPOSVSSDDSReceiver.h"
+#include "DDSCommanders/TrackingControllerLogDDSReceiver.h"
 #include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
 #include "DDSMessages/SetWaypointMessage.h"
 #include "DDSMessages/SetWaypointMessageSupport.h"
 #include "DDSMessages/ControllerGainsMessage.h"
 #include "DDSMessages/ControllerGainsMessageSupport.h"
+#include "DDSMessages/TrackingControllerLogMessage.h"
 #include "DDSListeners/DDSSender.h"
 #include "SubMain/SubMILQuaternion.h"
 #include <ndds/ndds_cpp.h>
@@ -63,6 +65,7 @@ namespace subjugator
 
 		void TrajectoryDDSReadCallback(const TrajectoryMessage &msg);
 		void LPOSVSSDDSReadCallback(const LPOSVSSMessage &msg);
+		void TrackingControllerDDSReadCallback(const TrackingControllerLogMessage &msg);
 
 	private slots:
 		void on_actionRPY_Data_triggered();
@@ -74,13 +77,17 @@ namespace subjugator
 	    void on_btnCallUpdate_clicked();
 	    void onTrajectoryReceived();
 	    void onLPOSReceived();
+	    void onTrackingControllerReceived();
 	    void on_tabWidget_currentChanged(int index);
 	    void on_btnSubmitGains_clicked();
 	    void on_actionDesired_vs_Actual_x_and_y_triggered();
 	    void on_actionDesired_vs_Actual_z_and_yaw_triggered();
+	    void on_actionControl_triggered();
+	    void on_actionVW_triggered();
 
 	    signals:
 	    void trajectoryReceived();
+	    void trackingControllerReceived();
 	    void lposReceived();
 
 	private:
@@ -115,12 +122,16 @@ namespace subjugator
 		bool errrpyPlot;
 		bool compare1Plot;
 		bool compare2Plot;
+		bool controlPlot;
+		bool vwPlot;
 
 		TrajectoryDDSReceiver trajectoryreceiver;
 		LPOSVSSDDSReceiver lposvssreceiver;
+		TrackingControllerLogDDSReceiver trackingreceiver;
 
 		TrajectoryMessage trajectorymsg;
 		LPOSVSSMessage lposmsg;
+		TrackingControllerLogMessage trackingmsg;
 
 		DDSSender<SetWaypointMessage, SetWaypointMessageDataWriter, SetWaypointMessageTypeSupport> waypointddssender;
 		DDSSender<ControllerGainsMessage, ControllerGainsMessageDataWriter, ControllerGainsMessageTypeSupport> gainsddssender;

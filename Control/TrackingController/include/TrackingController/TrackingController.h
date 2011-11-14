@@ -65,7 +65,9 @@ namespace subjugator
 
 		Vector6d xd;
 		Vector6d xd_dot;
+		Vector6d xd_dot_prev;
 		Vector6d xd_dotdot;
+		Vector6d xd_dotdot_prev;
 		Vector6d xd_dotdotdot;
 
 		// The number of columns defines the number of hidden layer neurons in the controller, for now this is hardcoded at 5

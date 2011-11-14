@@ -223,6 +223,8 @@ void NavigationComputer::updateKalman(const boost::system::error_code& e)
 	{
 		attRefAvailable = false;
 		Vector4d tempQuat = MILQuaternionOps::QuatMultiply(MILQuaternionOps::QuatInverse(attRef), insdata->Quaternion);
+		if (tempQuat(0) < 0)
+			tempQuat *= -1;
 		z.block<3,1>(4,0) = tempQuat.block<3,1>(1,0);
 	}
 	if(depthRefAvailable)

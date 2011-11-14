@@ -78,10 +78,6 @@ void INS::Update(const IMUInfo& info)
     Vector4d r_k(a_c, a_s*sigma(0), a_s*sigma(1), a_s*sigma(2));
     q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatMultiply(q_prev, r_k));
 
-    // This handles sign problems that happen with the attitude helpers - something to do with Subrat its a little fuzzy now
-    if(q[0] < 0)
-    	q *= -1;
-
     // Integrate body forces
     Vector3d a_dif = (a_body - a_bias);
     Vector3d v_int = dt / 2.0 * (a_dif + a_body_prev);

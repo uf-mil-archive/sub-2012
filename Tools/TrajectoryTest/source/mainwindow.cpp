@@ -26,6 +26,9 @@ Vector3d Xpos;
 Vector4d Xquat;
 Vector3d Xvel;
 Vector3d Xangvel;
+VectorXd nncontrol(6);
+MatrixXd V_hat(19,5);
+MatrixXd W_hat(6,6);
 QVector<double> testPts;
 
 // Plot Actual Position.
@@ -241,6 +244,71 @@ static points PlotAngularVelocityError(int index, char c)
 	return pos;
 }
 
+static points PlotControlAcceleration(int index, char c)
+{
+	points pos;
+
+	pos.x = index;
+
+	if (c == 'x')
+		pos.y = poseList[index].nn_control(0);
+	else if (c == 'y')
+		pos.y = poseList[index].nn_control(1);
+	else
+		pos.y = poseList[index].nn_control(2);
+
+	return pos;
+}
+
+static points PlotControlMoment(int index, char c)
+{
+	points pos;
+
+	pos.x = index;
+
+	if (c == 'x')
+		pos.y = poseList[index].nn_control(3);
+	else if (c == 'y')
+		pos.y = poseList[index].nn_control(4);
+	else
+		pos.y = poseList[index].nn_control(5);
+
+	return pos;
+}
+
+static points PlotVEntries(int index, char c)
+{
+	points pos;
+
+	pos.x = index;
+
+	if (c == 'x')
+		pos.y = poseList[index].V_hat(0,0);
+	else if (c == 'y')
+		pos.y = poseList[index].V_hat(1,1);
+	else
+		pos.y = poseList[index].V_hat(2,2);
+
+	return pos;
+}
+
+static points PlotWEntries(int index, char c)
+{
+	points pos;
+
+	pos.x = index;
+
+	if (c == 'x')
+		pos.y = poseList[index].W_hat(0,0);
+	else if (c == 'y')
+		pos.y = poseList[index].W_hat(1,1);
+	else
+		pos.y = poseList[index].W_hat(2,2);
+
+	return pos;
+}
+
+
 // Class for building Synthetic Point Data for QWT Plots
 class FunctionData: public QwtSyntheticPointData
 {
@@ -275,8 +343,11 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 	errrpyPlot(false),
 	compare1Plot(false),
 	compare2Plot(false),
+	controlPlot(false),
+	vwPlot(false),
 	trajectoryreceiver(participant, "Trajectory", bind(&MainWindow::TrajectoryDDSReadCallback, this, _1)),
 	lposvssreceiver(participant, "LPOSVSS", bind(&MainWindow::LPOSVSSDDSReadCallback, this, _1)),
+	trackingreceiver(participant, "TrackingControllerLog", bind(&MainWindow::TrackingControllerDDSReadCallback, this, _1)),
 	waypointddssender(partSender, "SetWaypoint"),
 	gainsddssender(partSender, "ControllerGains")
 {
@@ -295,6 +366,7 @@ MainWindow::MainWindow(DDSDomainParticipant *participant, DDSDomainParticipant *
 
     connect(this, SIGNAL(trajectoryReceived()), this, SLOT(onTrajectoryReceived()));
     connect(this, SIGNAL(lposReceived()), this, SLOT(onLPOSReceived()));
+    connect(this, SIGNAL(trackingControllerReceived()), this, SLOT(onTrackingControllerReceived()));
 
     curve1_Plot1  = new QwtPlotCurve("Pos X");
     curve2_Plot1  = new QwtPlotCurve("Pos Y");
@@ -392,6 +464,20 @@ void MainWindow::onLPOSReceived()
 		Xangvel(i) = lposmsg.angularRate_BODY[i];
 }
 
+void MainWindow::onTrackingControllerReceived()
+{
+    for (int i=0;i<19;i++)
+		for (int j=0;j<5;j++)
+			V_hat(i,j) = trackingmsg.V_hat[i][j];
+
+	for (int i=0;i<6;i++)
+		for (int j=0;j<6;j++)
+			W_hat(i,j) = trackingmsg.W_hat[i][j];
+
+	for (int i=0;i<6;i++)
+		nncontrol(i) = trackingmsg.nn_control[i];
+}
+
 void MainWindow::onTrajectoryReceived()
 {
 	Vector6d x = Vector6d::Zero();
@@ -413,7 +499,13 @@ void MainWindow::onTrajectoryReceived()
 	for (int i=0; i<6; i++)
 			xd_dot(i) = trajectorymsg.xd_dot[i];
 
-	addPoint(TrackingControllerInfo(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot));
+	TrackingControllerInfo info(0,getTimestamp(), Matrix<double, 6, 1>::Zero(), x, x_dot, xd, xd_dot);
+
+	info.V_hat = V_hat;
+	info.W_hat = W_hat;
+	info.nn_control = nncontrol;
+
+	addPoint(info);
 
 	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
 	buffer1->update(poseList.size());
@@ -573,6 +665,29 @@ void MainWindow::onTrajectoryReceived()
 				maxValP2 = temp;
 		}
 	}
+	else if (vwPlot)
+	{
+		for (int j = 0; j < poseList.size(); j ++)
+		{
+			double temp = 0.0;
+
+			temp = (Vector3d(poseList[j].V_hat(0, 0), poseList[j].V_hat(1, 1), poseList[j].V_hat(2, 2))).minCoeff();
+			if (temp < minValP1)
+				minValP1 = temp;
+
+			temp = (Vector3d(poseList[j].V_hat(0, 0), poseList[j].V_hat(1, 1), poseList[j].V_hat(2, 2))).maxCoeff();
+			if (temp > maxValP1)
+				maxValP1 = temp;
+
+			temp = (Vector3d(poseList[j].W_hat(0, 0), poseList[j].W_hat(1, 1), poseList[j].W_hat(2, 2))).minCoeff();
+			if (temp < minValP2)
+				minValP2 = temp;
+
+			temp = (Vector3d(poseList[j].W_hat(0, 0), poseList[j].W_hat(1, 1), poseList[j].W_hat(2, 2))).maxCoeff();
+			if (temp > maxValP2)
+				maxValP2 = temp;
+		}
+	}
 
 	if (minValP1 > -1)
 		minValP1 = -1;
@@ -624,6 +739,16 @@ void MainWindow::onTrajectoryReceived()
 		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
 		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, (180/M_PI)*minValP2, (180/M_PI)*maxValP2);
 	}
+	else if (controlPlot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, -1000, 1000);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, -1000, 1000);
+	}
+	else if (vwPlot)
+	{
+		ui->qwtPlot1->setAxisScale(QwtPlot::yLeft, minValP1, maxValP1);
+		ui->qwtPlot2->setAxisScale(QwtPlot::yLeft, minValP2, maxValP2);
+	}
 
 	ui->qwtPlot1->replot();
 	ui->qwtPlot2->replot();
@@ -639,6 +764,12 @@ void MainWindow::TrajectoryDDSReadCallback(const TrajectoryMessage &msg)
 {
 	trajectorymsg = msg;
 	emit trajectoryReceived();
+}
+
+void MainWindow::TrackingControllerDDSReadCallback(const TrackingControllerLogMessage &msg)
+{
+	trackingmsg = msg;
+	emit trackingControllerReceived();
 }
 
 void MainWindow::addPoint(const TrackingControllerInfo& p)
@@ -735,6 +866,8 @@ void MainWindow::on_actionRPY_Data_triggered()
 	errrpyPlot = false;
 	compare1Plot = false;
 	compare2Plot = false;
+	controlPlot = false;
+	vwPlot = false;
 
 	ui->qwtPlot1->setTitle("Desired Pitch and Yaw");
 	ui->qwtPlot2->setTitle("Desired Angular Velocity");
@@ -780,6 +913,8 @@ void MainWindow::on_actionPOS_triggered()
 	errrpyPlot = false;
 	compare1Plot = false;
 	compare2Plot = false;
+	controlPlot = false;
+	vwPlot = false;
 
 	ui->qwtPlot1->setTitle("Desired Position");
 	ui->qwtPlot2->setTitle("Desired Velocity");
@@ -837,6 +972,8 @@ void MainWindow::on_actionPos_Vel_Error_triggered()
 	errrpyPlot = false;
 	compare1Plot = false;
 	compare2Plot = false;
+	controlPlot = false;
+	vwPlot = false;
 
 	ui->qwtPlot1->setTitle("Error in Position");
 	ui->qwtPlot2->setTitle("Error in Velocity");
@@ -893,6 +1030,8 @@ void MainWindow::on_actionActionErrorRPY_triggered()
 	errrpyPlot = true;
 	compare1Plot = false;
 	compare2Plot = false;
+	controlPlot = false;
+	vwPlot = false;
 
 	ui->qwtPlot1->setTitle("Error in Pitch and Yaw");
 	ui->qwtPlot2->setTitle("Error in Angular Velocity");
@@ -1067,6 +1206,8 @@ void MainWindow::on_actionDesired_vs_Actual_x_and_y_triggered()
 	errrpyPlot = false;
 	compare1Plot = true;
 	compare2Plot = false;
+	controlPlot = false;
+	vwPlot = false;
 
 	ui->qwtPlot1->setTitle("Desired vs Actual X");
 	ui->qwtPlot2->setTitle("Desired vs Actual Y");
@@ -1112,6 +1253,8 @@ void MainWindow::on_actionDesired_vs_Actual_z_and_yaw_triggered()
 	errrpyPlot = false;
 	compare1Plot = false;
 	compare2Plot = true;
+	controlPlot = false;
+	vwPlot = false;
 
 	ui->qwtPlot1->setTitle("Desired vs Actual Z");
 	ui->qwtPlot2->setTitle("Desired vs Actual Yaw");
@@ -1141,6 +1284,108 @@ void MainWindow::on_actionDesired_vs_Actual_z_and_yaw_triggered()
 	buffer5->fill(20.0, numOfPoints);
 
 	curve3_Plot2->setVisible(false);
+
+    ui->qwtPlot1->replot();
+    ui->qwtPlot2->replot();
+}
+
+void MainWindow::on_actionControl_triggered() {
+	ui->statusBar->showMessage("Plotting Control output");
+
+	posPlot = false;
+	rpyPlot = false;
+	errposPlot = false;
+	errrpyPlot = false;
+	compare1Plot = false;
+	compare2Plot = false;
+	controlPlot = true;
+	vwPlot = false;
+
+	ui->qwtPlot1->setTitle("Acceleration");
+	ui->qwtPlot2->setTitle("Moment");
+
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(PlotControlAcceleration);
+	buffer1->setComponent('x');
+	buffer1->fill(20.0, numOfPoints);
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->setFunction(PlotControlAcceleration);
+	buffer2->setComponent('y');
+	buffer2->fill(20.0, numOfPoints);
+
+	DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
+	buffer3->setFunction(PlotControlAcceleration);
+	buffer3->setComponent('z');
+	buffer3->fill(20.0, numOfPoints);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(PlotControlMoment);
+	buffer4->setComponent('x');
+	buffer4->fill(20.0, numOfPoints);
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->setFunction(PlotControlMoment);
+	buffer5->setComponent('y');
+	buffer5->fill(20.0, numOfPoints);
+
+	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+	buffer6->setFunction(PlotControlMoment);
+	buffer6->setComponent('z');
+	buffer6->fill(20.0, numOfPoints);
+
+    ui->qwtPlot1->replot();
+    ui->qwtPlot2->replot();
+}
+
+void MainWindow::on_actionVW_triggered() {
+	ui->statusBar->showMessage("Plotting Control output");
+
+	posPlot = false;
+	rpyPlot = false;
+	errposPlot = false;
+	errrpyPlot = false;
+	compare1Plot = false;
+	compare2Plot = false;
+	controlPlot = false;
+	vwPlot = true;
+
+	ui->qwtPlot1->setTitle("V diagonal");
+	ui->qwtPlot2->setTitle("W diagonal");
+
+	// Setup Plot 1 for RPY
+	DataSeries *buffer1 = (DataSeries *)curve1_Plot1->data();
+	buffer1->setFunction(PlotVEntries);
+	buffer1->setComponent('x');
+	buffer1->fill(20.0, numOfPoints);
+
+	DataSeries *buffer2 = (DataSeries *)curve2_Plot1->data();
+	buffer2->setFunction(PlotVEntries);
+	buffer2->setComponent('y');
+	buffer2->fill(20.0, numOfPoints);
+
+	DataSeries *buffer3 = (DataSeries *)curve3_Plot1->data();
+	buffer3->setFunction(PlotVEntries);
+	buffer3->setComponent('z');
+	buffer3->fill(20.0, numOfPoints);
+
+	// Setup Plot 2 for Desired Angular Velocity
+	DataSeries *buffer4 = (DataSeries *)curve1_Plot2->data();
+	buffer4->setFunction(PlotWEntries);
+	buffer4->setComponent('x');
+	buffer4->fill(20.0, numOfPoints);
+
+	DataSeries *buffer5 = (DataSeries *)curve2_Plot2->data();
+	buffer5->setFunction(PlotWEntries);
+	buffer5->setComponent('y');
+	buffer5->fill(20.0, numOfPoints);
+
+	DataSeries *buffer6 = (DataSeries *)curve3_Plot2->data();
+	buffer6->setFunction(PlotWEntries);
+	buffer6->setComponent('z');
+	buffer6->fill(20.0, numOfPoints);
 
     ui->qwtPlot1->replot();
     ui->qwtPlot2->replot();
