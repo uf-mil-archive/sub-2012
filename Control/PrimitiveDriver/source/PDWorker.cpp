@@ -37,6 +37,9 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
 		thrusterentries.push_back(entry);
 		thrustermanager.addThruster(i->second.get<int>("id"));
 	}
+
+	for(int i=0; i<thrustermanager.thrusterCount(); i++)
+		thrusterStateChanged(i, thrustermanager.getThruster(i).getState());
 }
 
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {

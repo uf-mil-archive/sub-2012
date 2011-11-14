@@ -43,9 +43,9 @@ namespace subjugator {
 	template <int fractional, typename IntT>
 	IntT toSignedFixedPoint(double d) {
 		BOOST_STATIC_ASSERT(!std::numeric_limits<IntT>::is_signed && std::numeric_limits<IntT>::is_integer);
-		const int sb = SignBitMask<IntT>::Mask;
+		const IntT sb = SignBitMask<IntT>::Mask;
 
-		IntT val = toFixedPoint<fractional, IntT>(val);
+		IntT val = toFixedPoint<fractional, IntT>(d);
 		if (d < 0.0)
 			val |= sb;
 		else
