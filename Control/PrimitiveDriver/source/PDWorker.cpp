@@ -33,7 +33,7 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
 	for (ptree::const_iterator i = thrusters.begin(); i != thrusters.end(); ++i) {
 		const ptree &t = i->second;
 
-		ThrusterMapper::Entry entry(t.get<Vector3d>("lineofaction"), t.get<Vector3d>("position"), t.get<double>("fsat"), t.get<double>("rsat"));
+		ThrusterMapper::Entry entry(t.get<Vector3d>("lineofaction"), t.get<Vector3d>("position")*.0254, t.get<double>("fsat"), t.get<double>("rsat"));
 		thrusterentries.push_back(entry);
 		thrustermanager.addThruster(i->second.get<int>("id"));
 	}
