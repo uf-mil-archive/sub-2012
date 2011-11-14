@@ -95,6 +95,8 @@ def world_tick():
     body.addTorque([random.gauss(0, 10) for i in xrange(3)])
     body.addTorque(-(200 if body.getPosition()[2] >= 0 else 20) * V(body.getAngularVel()))
     
+    #print thrusters
+    
     sub_model.vectors = []
     for i, (reldir, relpos, fwdforce, revforce) in enumerate([
         (v(0, 0, 1), v( 11.7103,  5.3754, -1.9677)*.0254, 500, 500), # FRV
@@ -113,25 +115,25 @@ def world_tick():
     
     keys = pygame.key.get_pressed()
     for keycode, force in [
-        (pygame.K_k, v(-1500, 0, 0)),
-        (pygame.K_i, v(+1500, 0, 0)),
-        (pygame.K_j, v(0, -1500, 0)),
-        (pygame.K_l, v(0, +1500, 0)),
-        (pygame.K_o, v(0, 0, -1500)),
-        (pygame.K_m, v(0, 0, +1500)),
+        (pygame.K_k, v(-1000, 0, 0)),
+        (pygame.K_i, v(+1000, 0, 0)),
+        (pygame.K_j, v(0, -1000, 0)),
+        (pygame.K_l, v(0, +1000, 0)),
+        (pygame.K_o, v(0, 0, -1000)),
+        (pygame.K_m, v(0, 0, +1000)),
     ]:
         if keys[keycode]:
-            body.addForce(force*(10 if keys[pygame.K_RSHIFT] else 1))
+            body.addRelForce(force*(10 if keys[pygame.K_RSHIFT] else 1))
     for keycode, torque in [
-        (pygame.K_COMMA, v(-500, 0, 0)),
-        (pygame.K_u, v(+500, 0, 0)),
-        (pygame.K_h, v(0, -500, 0)),
-        (pygame.K_SEMICOLON, v(0, +500, 0)),
-        (pygame.K_0, v(0, 0, -500)),
-        (pygame.K_n, v(0, 0, +500)),
+        (pygame.K_COMMA, v(-200, 0, 0)),
+        (pygame.K_u, v(+200, 0, 0)),
+        (pygame.K_h, v(0, -200, 0)),
+        (pygame.K_SEMICOLON, v(0, +200, 0)),
+        (pygame.K_0, v(0, 0, -200)),
+        (pygame.K_n, v(0, 0, +200)),
     ]:
         if keys[keycode]:
-            body.addTorque(torque*(10 if keys[pygame.K_RSHIFT] else 1))
+            body.addRelTorque(torque*(10 if keys[pygame.K_RSHIFT] else 1))
     
     last_vel = V(body.vectorFromWorld(body.getLinearVel()))
     
@@ -228,10 +230,10 @@ def merge_task():
         send_merge_update(
             tickcount=0,
             flags=0,
-            current16=10,
-            voltage16=16,
-            current32=10,
-            voltage32=32,
+            current16=random.gauss(10, 0.1),
+            voltage16=random.gauss(16, 0.1),
+            current32=random.gauss(10, 0.1),
+            voltage32=random.gauss(32, 0.1),
         )
     except:
         traceback.print_exc()

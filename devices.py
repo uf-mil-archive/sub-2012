@@ -4,7 +4,8 @@ import itertools
 import random
 import struct
 
-from twisted.internet import protocol
+from twisted.internet import protocol, task
+from twisted.python import log
 
 import datachunker
 
@@ -50,20 +51,33 @@ class EmbeddedProtocol(protocol.Protocol):
                     data.append(chr(ord((yield 1)) ^ 0x20))
                 else:
                     data.append(b)
-            data = ''.join(data)
+            data2 = ''.join(data)
             
-            if data[-2:] != struct.pack('<H', crc16(data[:-2])):
+            #print data2.encode('hex')
+            
+            if len(data2) < 2 or data2[-2:] != struct.pack('<H', crc16(data2[:-2])):
                 print 'embedded invalid', data.encode('hex')
                 continue
-            data = data[:-2]
+            data3 = data2[:-2]
             
-            (dest_address, src_address, packetcount), data = struct.unpack('BBH', data[:4]), data[4:]
-            
-            if dest_address != self.local_address or src_address != self.remote_address:
-                print 'embedded address mismatch', (dest_address, src_address), (self.local_address, self.remote_address)
-                continue
-            
-            self.packetReceived(data)
+            try:
+                (dest_address, src_address, packetcount), data4 = struct.unpack('BBH', data3[:4]), data3[4:]
+                
+                if dest_address != self.local_address or src_address != self.remote_address:
+                    print 'embedded address mismatch', (dest_address, src_address), (self.local_address, self.remote_address)
+                    continue
+                
+                if data4:
+                    (typecode,), data5 = struct.unpack('B', data4[:1]), data4[1:]
+                else:
+                    typecode, data5 = None, ''
+                
+                self.packetReceived(typecode, data5)
+            except:
+                print
+                print self, "Error handling packet:", data3.encode('hex')
+                log.err()
+                print
     
     def sendPacket(self, typecode, contents):
         data_pre = struct.pack('BBHB', self.remote_address, self.local_address, self.packet_count % 2**16, typecode) + contents
@@ -91,26 +105,48 @@ class ThrusterProtocol(EmbeddedProtocol):
         self.thrusters = thrusters
         
         self.remote_address = 30 + thruster_id
+        
+        self.update_task = task.LoopingCall(self.sendUpdate)
     
     def connectionMade(self):
         EmbeddedProtocol.connectionMade(self)
         print 'thruster', self.thruster_id, 'connection made'
+        self.update_task.start(.1)
     
-    def packetReceived(self, data):
-        if data.startswith('\x00\x03'):
-            x, = struct.unpack('<H', data[2:])
+    def sendUpdate(self):
+        tickcount = 0
+        flags = 1 # valid motor
+        refinput = self.thrusters[self.thruster_id] # ???
+        presentoutput = 0
+        railvoltage = 0
+        current = 0
+        data = struct.pack('HHHHHH',
+            tickcount,
+            flags,
+            (lambda x: 0x8000|-x if not 0 <= x < 0x8000 else x)(int(refinput * 2**8 + 0.5)),
+            int(presentoutput * 2**10 + 0.5),
+            int(railvoltage * 2**10 + 0.5),
+            int(current * 2**12 + 0.5),
+        )
+        assert len(data) == 12
+        self.sendPacket(0, data)
+    
+    def packetReceived(self, typecode, data):
+        if typecode == 0 and data[0] == '\x03':
+            x, = struct.unpack('<H', data[1:])
             if x & 0x8000:
                 x = x ^ 0x8000
             else:
                 x = -x
             x = x/100/2**8
-            #print self.thruster_id, x
+            #print self.thruster_id, data.encode('hex')
             self.thrusters[self.thruster_id] = x
         else:
-            print 'thruster', self.thruster_id, data.encode('hex')
+            print 'thruster', self.thruster_id, typecode, data.encode('hex')
     
     def connectionLost(self, reason):
-        print 'thruster', self.thruster_id, 'connection lost'
+        self.update_task.stop()
+        print 'thruster', self.thruster_id, 'connection lost', reason
 
 class IMUProtocol(protocol.Protocol):
     def __init__(self, listener_set):
@@ -151,11 +187,11 @@ class DepthProtocol(EmbeddedProtocol):
         print 'depth connection made'
         self.listener_set.add(self)
     
-    def packetReceived(self, data):
-        if data == '\x64':
-            pass
+    def packetReceived(self, typecode, data):
+        if typecode == 100:
+            assert not data, data.encode('hex')
         else:
-            print 'depth', data.encode('hex')
+            print 'depth', typecode, data.encode('hex')
     
     def sendUpdate(self, tickcount, flags, depth, thermister_temp, humidity, humidity_sensor_temp):
         data = struct.pack('<HBHHHH',
@@ -169,8 +205,12 @@ class DepthProtocol(EmbeddedProtocol):
         self.listener_set.remove(self)
 
 class ActuatorProtocol(protocol.Protocol):
+    def __init__(self):
+        self.update_task = task.LoopingCall(self.sendUpdate)
+    
     def connectionMade(self):
         print 'actuator connection made'
+        self.update_task.start(.1)
     
     def dataReceived(self, data):
         for byte in data:
@@ -178,6 +218,13 @@ class ActuatorProtocol(protocol.Protocol):
     
     def packetReceived(self, data):
         print 'actuator', data
+    
+    def sendUpdate(self):
+        self.transport.write('\x00')
+    
+    def connectionLost(self, reason):
+        self.update_task.stop()
+        print 'actuator connection lost'
 
 class DVLProtocol(protocol.Protocol):
     def __init__(self, listener_set):
@@ -231,8 +278,8 @@ class MergeProtocol(EmbeddedProtocol):
         print 'merge connection made'
         self.listener_set.add(self)
     
-    def packetReceived(self, data):
-        print "merge", data.encode('hex')
+    def packetReceived(self, typecode, data):
+        print "merge", typecode, data.encode('hex')
     
     def sendUpdate(self, tickcount, flags, current16, voltage16, current32, voltage32):
         data = struct.pack('<HBHHHH', tickcount, flags,
@@ -257,11 +304,13 @@ class HeartbeatProtocol(EmbeddedProtocol):
         EmbeddedProtocol.connectionMade(self)
         print 'heartbeat connection made'
     
-    def packetReceived(self, data):
-        if data == '\x64':
-            pass
+    def packetReceived(self, typecode, data):
+        if typecode is None:
+            return # XXX??
+        if typecode == 100:
+            assert not data
         else:
-            print "heartbeat", pcaddress, devaddress, packetcount, data.encode('hex')
+            print "heartbeat", typecode, data.encode('hex')
     
     def connectionLost(self, reason):
         print 'heartbeat connection lost'
