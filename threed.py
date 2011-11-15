@@ -168,6 +168,22 @@ class MeshDrawer(object):
         glColor3f(*self.color)
         self.mesh.draw()
 
+class VectorField(object):
+    def __init__(self, func):
+        self.func = func
+    
+    def draw(self):
+        glBegin(GL_LINES)
+        for x in xrange(-10, 10+1):
+            for y in xrange(-10, 10+1):
+                pos = v(x, y, 0)
+                vel = self.func(pos)
+                glColor3d(1, 0, 0)
+                glVertex3f(*pos-vel/2)
+                glColor3d(1, 1, 0)
+                glVertex3f(*pos+vel/2)
+        glEnd()
+
 def perspective(fovy, aspect, zNear):
     f = 1/math.tan(math.radians(fovy)/2)
     glMultMatrixf([

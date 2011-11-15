@@ -76,7 +76,7 @@ body = ode.Body(world)
 M = ode.Mass()
 M.setSphere(800, 0.5)
 body.setMass(M)
-body.setPosition((0, 0, -3))
+body.setPosition((3, 3, -3))
 
 space = ode.HashSpace()
 
@@ -86,11 +86,16 @@ body_geom.setBody(body)
 pool_mesh = threed.mesh_from_obj(open('scene/pool6_Scene.obj'))
 pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 
+def get_water_vel(pos):
+    return (pos % v(0, 0, 1))*math.e**(-pos.mag()/3)
+
 def world_tick():
     global world_time
     
+    water_vel = get_water_vel(V(body.getPosition()))
+    
     body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.5)), (0, 0, -.1))
-    body.addForce(-(1600 if body.getPosition()[2] >= 0 else 160) * V(body.getLinearVel()))
+    body.addForce(-(1600 if body.getPosition()[2] >= 0 else 160) * (V(body.getLinearVel())-water_vel))
     body.addForce([random.gauss(0, 1) for i in xrange(3)])
     body.addTorque([random.gauss(0, 10) for i in xrange(3)])
     body.addTorque(-(200 if body.getPosition()[2] >= 0 else 20) * V(body.getAngularVel()))
@@ -187,6 +192,7 @@ i.init()
 i.objs.append(threed.MeshDrawer(pool_mesh, (.4, .4, .4)))
 sub_model = threed.Sub(body)
 i.objs.append(sub_model)
+i.objs.append(threed.VectorField(get_water_vel))
 def _():
     try:
         i.step()
