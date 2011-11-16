@@ -60,6 +60,28 @@ if(NDDS_RTIDDSGEN)
 
 		set(${OUTPUT_SOURCES_VARNAME} ${OUTPUT_SOURCES} PARENT_SCOPE)
 	endfunction()
+	function(ndds_run_rtiddsgen_c OUTPUT_SOURCES_VARNAME)
+		foreach(IDLFILE ${ARGN})
+			set(OUTDIR ${CMAKE_CURRENT_BINARY_DIR}/rtiddsgen_out)
+			file(MAKE_DIRECTORY ${OUTDIR})
+
+			file(RELATIVE_PATH IDLFILE_REL ${CMAKE_CURRENT_SOURCE_DIR} ${IDLFILE})
+			set(SOURCENAME ${OUTDIR}/${IDLFILE_REL})
+			string(REPLACE .idl "" SOURCENAME ${SOURCENAME})
+			set(SOURCEFILES "${SOURCENAME}.c" "${SOURCENAME}Plugin.c" "${SOURCENAME}Support.c")
+
+			get_filename_component(SOURCEFILE_DIR ${SOURCENAME} PATH)
+			make_directory(${SOURCEFILE_DIR})
+
+			get_filename_component(IDLDIR ${IDLFILE} PATH)
+
+			add_custom_command(OUTPUT ${SOURCEFILES} DEPENDS "${IDLFILE}" COMMAND ${NDDS_RTIDDSGEN} -language C -inputIDL ${IDLFILE} -replace -d "${SOURCEFILE_DIR}" -I "${IDLDIR}")
+
+			set(OUTPUT_SOURCES ${OUTPUT_SOURCES} ${SOURCEFILES})
+		endforeach()
+
+		set(${OUTPUT_SOURCES_VARNAME} ${OUTPUT_SOURCES} PARENT_SCOPE)
+	endfunction()
 else()
 	set(ERR_MSG "${ERR_MSG}Failed to find rtiddsgen binary. ")
 endif()
