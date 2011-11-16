@@ -74,13 +74,13 @@ world, world_time = ode.World(), reactor.seconds()
 world.setGravity((0, 0, 9.81))
 body = ode.Body(world)
 M = ode.Mass()
-M.setSphere(800, 0.5)
+M.setSphere(800, 0.4)
 body.setMass(M)
 body.setPosition((3, 3, -3))
 
 space = ode.HashSpace()
 
-body_geom = ode.GeomSphere(space, 0.5)
+body_geom = ode.GeomSphere(space, 0.4)
 body_geom.setBody(body)
 
 pool_mesh = threed.mesh_from_obj(open('scene/pool6_Scene.obj'))
@@ -94,7 +94,7 @@ def world_tick():
     
     water_vel = get_water_vel(V(body.getPosition()))
     
-    body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.5)), (0, 0, -.1))
+    body.addForceAtRelPos((0, 0, -buoyancy_force(body.getPosition()[2], 0.4)), (0, 0, -.1))
     body.addForce(-(1600 if body.getPosition()[2] >= 0 else 160) * (V(body.getLinearVel())-water_vel))
     body.addForce([random.gauss(0, 1) for i in xrange(3)])
     body.addTorque([random.gauss(0, 10) for i in xrange(3)])
