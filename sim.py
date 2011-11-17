@@ -89,6 +89,8 @@ pool_geom = ode.GeomTriMesh(pool_mesh.ode_trimeshdata, space)
 def get_water_vel(pos):
     return (pos % v(0, 0, 1))*math.e**(-pos.mag()/3)
 
+imu_pos = v(0.43115992, 0.0, -0.00165058)
+
 def world_tick():
     global world_time
     
@@ -140,7 +142,7 @@ def world_tick():
         if keys[keycode]:
             body.addRelTorque(torque*(10 if keys[pygame.K_RSHIFT] else 1))
     
-    last_vel = V(body.vectorFromWorld(body.getLinearVel()))
+    last_vel = V(body.vectorFromWorld(body.getRelPointVel(imu_pos)))
     
     contactgroup = ode.JointGroup()
     near_pairs = []
@@ -158,7 +160,7 @@ def world_tick():
     
     contactgroup.empty()
     
-    a = (V(body.vectorFromWorld(body.getLinearVel())) - last_vel)/dt - V(body.vectorFromWorld(world.getGravity()))
+    a = (V(body.vectorFromWorld(body.getRelPointVel(imu_pos))) - last_vel)/dt - V(body.vectorFromWorld(world.getGravity()))
     
     imu_to_sub = v(0.012621022547474, 0.002181321593961, -0.004522523520991, 0.999907744947984)
     imu_gyro = imu_to_sub.conj().quat_rot(body.vectorFromWorld(body.getAngularVel()))
@@ -204,7 +206,7 @@ world_tick()
 
 def dvl_task():
     dvl_to_sub = v(0.0, 0.923879532511287, 0.382683432365090, 0.0)
-    dvl_vel = dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getLinearVel()))
+    dvl_vel = dvl_to_sub.conj().quat_rot(body.vectorFromWorld(body.getRelPointVel(imu_pos)))
     try:
         send_dvl_update(
             bottom_vel=list(dvl_vel) + [0.1], # XXX fourth is error(?)
@@ -222,7 +224,7 @@ def depth_task():
         send_depth_update(
             tickcount=0,
             flags=0,
-            depth=max(0, body.getPosition()[2]),
+            depth=max(0, body.getRelPointPos(imu_pos)[2]),
             thermister_temp=random.gauss(25, .1),
             humidity=random.gauss(10, .3),
             humidity_sensor_temp=random.gauss(25, .3),
