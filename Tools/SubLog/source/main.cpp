@@ -26,7 +26,7 @@ void sublog(WorkerLogEntry::Type mintype, const vector<string> &workernames, boo
 	BlockingReceiver<WorkerLogMessage> receiver(topic);
 
 	while (true) {
-		shared_ptr<WorkerLogMessage> msg;
+		boost::shared_ptr<WorkerLogMessage> msg;
 
 		while (msg = receiver.take()) {
 			WorkerLogEntry entry = from_dds<WorkerLogEntry>(*msg);

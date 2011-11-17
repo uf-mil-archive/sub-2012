@@ -10,7 +10,7 @@
 namespace subjugator {
 	class Worker : protected StateUpdaterContainer {
 		public:
-			Worker(const std::string &name, double updatehz) : logger(name), name(name), updatehz(updatehz) { }
+			Worker(const std::string &name, double updatehz);
 
 			const std::string &getName() const { return name; }
 			double getUpdateHz() const { return updatehz; }
@@ -25,14 +25,20 @@ namespace subjugator {
 			void update(double dt);
 
 		protected:
+			virtual void initialize();
 			virtual void work(double dt);
 
 			virtual void enterActive();
 			virtual void leaveActive();
+			
+			double getRunTime() const { return runtime; }
 
 		private:
 			std::string name;
 			double updatehz;
+			bool initialized;
+			
+			double runtime;
 	};
 }
 

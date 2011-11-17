@@ -17,8 +17,7 @@ WorkerEndpoint::WorkerEndpoint(DataObjectEndpoint *endpoint,
 	maxdobjage(maxdobjage),
 	receivecallback(receivecallback),
 	dobjage(0),
-	errorage(0),
-	state(State::STANDBY) {
+	errorage(0) {
 	endpoint->configureCallbacks(boost::bind(&WorkerEndpoint::halReceiveCallback, this, _1), boost::bind(&WorkerEndpoint::halStateChangeCallback, this));
 	endpoint->open();
 }

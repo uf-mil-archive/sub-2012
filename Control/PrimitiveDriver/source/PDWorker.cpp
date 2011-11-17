@@ -14,6 +14,7 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
   wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
   actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
   hal(hal),
+  configloader(configloader),
   heartbeatendpoint(
     hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()), "heartbeat",
   	WorkerEndpoint::InitializeCallback(),
@@ -24,7 +25,9 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
+}
 
+void PDWorker::initialize() {
 	ptree config = configloader.loadConfig(getName());
 	const ptree &thrusters = config.get_child("thrusters");
 

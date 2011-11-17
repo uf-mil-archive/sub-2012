@@ -27,6 +27,7 @@ namespace subjugator {
 			WorkerSignal<PDInfo> infosignal;
 
 		protected:
+			virtual void initialize();
 			virtual void work(double dt);
 
 		private:
@@ -37,6 +38,8 @@ namespace subjugator {
 			virtual void leaveActive();
 
 			HAL &hal;
+			const WorkerConfigLoader &configloader;
+
 			WorkerEndpoint heartbeatendpoint;
 			ThrusterManager thrustermanager;
 			ThrusterMapper thrustermapper;

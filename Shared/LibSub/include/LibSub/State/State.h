@@ -9,10 +9,11 @@ namespace subjugator {
 		enum Code {
 			ACTIVE,
 			STANDBY,
-			ERROR
+			ERROR,
+			UNINITIALIZED
 		};
 
-		State(Code code=ACTIVE, const std::string &msg="") : code(code), msg(msg) { }
+		State(Code code=UNINITIALIZED, const std::string &msg="") : code(code), msg(msg) { }
 
 		bool operator==(const State &state) const;
 		bool operator!=(const State &state) const { return !(*this == state); }
@@ -21,7 +22,7 @@ namespace subjugator {
 
 		template <typename InputIterator>
 		static State combineAll(InputIterator begin, InputIterator end) {
-			State result;
+			State result = *begin++;
 			for (; begin != end; ++begin)
 				result = result.combine(*begin);
 			return result;
