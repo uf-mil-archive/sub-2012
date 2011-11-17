@@ -14,14 +14,14 @@ using namespace boost;
 using namespace std;
 
 MergeManager::MergeManager(HAL &hal)
-: mergeendpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21, MERGEBOARD), new Sub7EPacketFormatter()),
-               "merge",
-               boost::bind(&MergeManager::mergeInitCallback, this),
-               false, .5),
-  actuatorendpoint(hal.openDataObjectEndpoint(61, new ActuatorDataObjectFormatter(), new BytePacketFormatter()),
-                   "actuator",
-                   boost::bind(&MergeManager::actuatorInitCallback, this),
-                   false, .5) {
+:	mergeendpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21, MERGEBOARD), new Sub7EPacketFormatter()),
+		"merge",
+		boost::bind(&MergeManager::mergeInitCallback, this),
+		false, .5),
+	actuatorendpoint(hal.openDataObjectEndpoint(61, new ActuatorDataObjectFormatter(), new BytePacketFormatter()),
+		"actuator",
+		boost::bind(&MergeManager::actuatorInitCallback, this),
+		false, .5) {
 	registerStateUpdater(mergeendpoint);
 	registerStateUpdater(actuatorendpoint);
 }

@@ -20,6 +20,7 @@ namespace subjugator {
 			ThrusterMapper(const Eigen::Vector3d &centerofmass, int entries=0);
 
 			void resize(int entries);
+			int getEntryCount() const { return mapmatrix.cols(); }
 			void setEntry(int num, const Entry &entry);
 			void clearEntry(int num);
 

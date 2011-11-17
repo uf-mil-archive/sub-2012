@@ -40,9 +40,6 @@ void PDWorker::initialize() {
 		thrusterentries.push_back(entry);
 		thrustermanager.addThruster(i->second.get<int>("id"));
 	}
-
-	for(int i=0; i<thrustermanager.thrusterCount(); i++)
-		thrusterStateChanged(i, thrustermanager.getThruster(i).getState());
 }
 
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
@@ -62,13 +59,14 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 
 	wrenchSet(wrenchmailbox.getOptional());
 
-	logger.log("Thruster " + lexical_cast<string>(num) + " changed state: " + lexical_cast<string>(state));
+	if (state.code != State::STANDBY)
+		logger.log("Thruster " + lexical_cast<string>(num) + " changed state: " + lexical_cast<string>(state));
 }
 
 void PDWorker::work(double dt) {
 	vector<double> currents(8);
 	for (int i=0; i<8; i++) {
-		shared_ptr<MotorDriverInfo> info = thrustermanager.getInfo(i);
+		boost::shared_ptr<MotorDriverInfo> info = thrustermanager.getInfo(i);
 		if (info)
 			currents[i] = info->getCurrent();
 		else
