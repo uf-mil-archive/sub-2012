@@ -10,14 +10,48 @@
 #include <ctime>
 
 namespace subjugator {
+	/**
+	\addtogroup LibSub
+	@{
+	*/
+
+	/**
+	\brief converts a data type to a DDS message
+
+	The unspecialized version simply performs a static_cast, which works well for primitive types,
+	but complex types will need to define their own specialized versions.
+	*/
+
 	template <class MessageT, typename DataT>
 	void to_dds(MessageT &msg, const DataT &data) { msg = static_cast<MessageT>(data); }
+
+	/**
+	\brief returns a DDS message from a data type.
+
+	This is a convenience wrapper for the two argument form.
+	It returns the DDS message instead of requiring one to be passed by reference.
+	It is defined in terms of the two argument form, so specializing the two argument form
+	will cause this form to function correctly.
+	*/
 
 	template <class MessageT, typename DataT>
 	MessageT to_dds(const DataT &data) { MessageT msg; from_dds(msg, data); return msg; }
 
+	/**
+	from_dds() is a template function converting any DDS message to any data type.
+	The unspecialized version simply performs a static_cast, which works well for primitive types,
+	but complex types will need to define their own specialized versions.
+	*/
+
 	template <typename DataT, class MessageT>
 	void from_dds(DataT &data, const MessageT &msg) { data = static_cast<DataT>(msg); }
+
+	/**
+	This overload of #from_dds is a convenience wrapper for the two argument form.
+	It returns the data type instead of requiring one to be passed by reference.
+	It is defined in terms of the two argument form, so specializing the two argument form
+	will cause this form to function correctly.
+	*/
 
 	template <typename DataT, class MessageT>
 	DataT from_dds(const MessageT &msg) { DataT data; from_dds(data, msg); return data; }
@@ -73,6 +107,8 @@ namespace subjugator {
 		from_dds(state.code, msg.code);
 		from_dds(state.msg, msg.msg);
 	}
+
+	/** @} */
 }
 
 #endif

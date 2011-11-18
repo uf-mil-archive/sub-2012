@@ -5,6 +5,17 @@
 #include <boost/function.hpp>
 
 namespace subjugator {
+	/**
+	\addtogroup LibSub
+	@{
+	*/
+
+	/**
+	SignalHandler implements signal handling for ASIO applications.
+	SIGINT stops the io_service, while SIGUSR1 causes the reconfigure callback to be invoked.
+	A second SIGINT terminates the program as a normal SIGINT would.
+	*/
+
 	class SignalHandler {
 		public:
 			typedef boost::function<void ()> ReconfigureCallback;
@@ -26,6 +37,8 @@ namespace subjugator {
 			static SignalHandler *globalptr;
 			static void globalptrAction(int signal);
 	};
+
+	/** @} */
 }
 
 #endif

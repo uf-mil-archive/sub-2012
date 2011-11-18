@@ -14,6 +14,7 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
   wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
   actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
   hal(hal),
+  configloader(configloader),
   heartbeatendpoint(
     hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()), "heartbeat",
   	WorkerEndpoint::InitializeCallback(),
@@ -24,7 +25,9 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
+}
 
+void PDWorker::initialize() {
 	ptree config = configloader.loadConfig(getName());
 	const ptree &thrusters = config.get_child("thrusters");
 
@@ -37,9 +40,6 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
 		thrusterentries.push_back(entry);
 		thrustermanager.addThruster(i->second.get<int>("id"));
 	}
-
-	for(int i=0; i<thrustermanager.thrusterCount(); i++)
-		thrusterStateChanged(i, thrustermanager.getThruster(i).getState());
 }
 
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
@@ -59,13 +59,14 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 
 	wrenchSet(wrenchmailbox.getOptional());
 
-	logger.log("Thruster " + lexical_cast<string>(num) + " changed state: " + lexical_cast<string>(state));
+	if (state.code != State::STANDBY)
+		logger.log("Thruster " + lexical_cast<string>(num) + " changed state: " + lexical_cast<string>(state));
 }
 
 void PDWorker::work(double dt) {
 	vector<double> currents(8);
 	for (int i=0; i<8; i++) {
-		shared_ptr<MotorDriverInfo> info = thrustermanager.getInfo(i);
+		boost::shared_ptr<MotorDriverInfo> info = thrustermanager.getInfo(i);
 		if (info)
 			currents[i] = info->getCurrent();
 		else

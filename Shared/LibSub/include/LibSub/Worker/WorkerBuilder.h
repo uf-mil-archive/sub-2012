@@ -11,6 +11,18 @@
 #include <boost/program_options.hpp>
 
 namespace subjugator {
+	/**
+	\addtogroup LibSub
+	@{
+	*/
+
+	/**
+	\brief Handles command line arguments for Worker binaries
+
+	Creates a WorkerConfigLoader and a log type from the command line arguments to be used
+	by the WorkerBuilder. New command line arguments can be added by extending the class
+	and adding new options to the options_description desc
+	*/
 	class WorkerBuilderOptions {
 		public:
 			WorkerBuilderOptions(const std::string &workername);
@@ -28,6 +40,10 @@ namespace subjugator {
 			WorkerLogEntry::Type logtype;
 	};
 
+	/**
+	\brief Construction policy template for WorkerBuilder suitable for constructing normal workers
+	*/
+
 	template <class WorkerT>
 	class DefaultWorkerConstructionPolicy {
 		public:
@@ -39,6 +55,12 @@ namespace subjugator {
 		private:
 			WorkerT worker;
 	};
+
+	/**
+	\brief Construction policy template for WorkerBuilder suitable for constructing HAL workers.
+
+	Adds a method getHAL() to the WorkerBuilder to get the worker's HAL object.
+	*/
 
 	template <class WorkerT>
 	class HALWorkerConstructionPolicy {
@@ -54,6 +76,13 @@ namespace subjugator {
 			WorkerT worker;
 	};
 
+	/**
+	\brief Base class for WorkerBuilder.
+
+	Creates arious objects that aid in running the worker. These
+	include an OStreamLog logging to cout, a WorkerRunner, and a SignalHandler
+	*/
+
 	class WorkerRuntime {
 		public:
 			WorkerRuntime(boost::asio::io_service &io, Worker &worker, const WorkerBuilderOptions &options);
@@ -68,6 +97,13 @@ namespace subjugator {
 			OStreamLog coutlog;
 	};
 
+	/**
+	\brief Utility class for constructing and running Workers.
+
+	The WorkerBuilder template handles all of the steps necessary to create and run an arbitrary Worker.
+	It uses a ConstructionPolicy to handle workers types with different constructors, such as workers which require a HAL.
+	*/
+
 	template <class WorkerT, template <class> class WorkerConstructionPolicy>
 	class WorkerBuilder : public WorkerConstructionPolicy<WorkerT>, public WorkerRuntime {
 		public:
@@ -77,6 +113,8 @@ namespace subjugator {
 
 			using WorkerConstructionPolicy<WorkerT>::getWorker;
 	};
+
+	/** @} */
 }
 
 #endif

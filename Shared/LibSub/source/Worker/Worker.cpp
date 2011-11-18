@@ -5,10 +5,22 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
+Worker::Worker(const std::string &name, double updatehz)
+: logger(name), name(name), updatehz(updatehz), initialized(false) { }
+
 void Worker::update(double dt) {
+	if (!initialized) {
+		initialize();
+		initialized = true;
+	}
+	
+	runtime += dt;
+
 	State oldstate = getState();
 	updateState(dt);
 	const State &newstate = getState();
+	
+	assert(newstate.code != State::UNINITIALIZED);
 
 	if (oldstate != newstate) {
 		if (newstate.code == State::ACTIVE)
@@ -25,6 +37,8 @@ void Worker::update(double dt) {
 	if (newstate.code == State::ACTIVE)
 		work(dt);
 }
+
+void Worker::initialize() { }
 
 void Worker::work(double dt) { }
 

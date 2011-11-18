@@ -32,7 +32,7 @@ find_package(NDDS REQUIRED)
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-find_package(Boost REQUIRED COMPONENTS system thread date_time regex program_options)
+find_package(Boost REQUIRED COMPONENTS system thread date_time regex program_options filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # add shared projects

@@ -17,9 +17,26 @@ DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
 
 namespace subjugator {
+	/**
+	\addtogroup LibSub
+	@{
+	*/
+
+	/**
+	DDSBuilder is a utility class for quickly setting up connections between DDS and a Worker.
+	It understands WorkerMailboxes and WorkerSignals, and can automatically set up Senders
+	and Receivers in a type safe fashion. It also automatically cleans up all DDS objects
+	it creates.
+	*/
+
 	class DDSBuilder {
 		public:
 			DDSBuilder(boost::asio::io_service &io) : io(io) { }
+
+			/**
+			#topic generates a topic with a given name and qos. DDSBuilder retains ownership
+			of the topic.
+			*/
 
 			template <class MessageT>
 			Topic<MessageT> &topic(const std::string &name, int qosflags = TopicQOS::DEFAULT) {
@@ -28,15 +45,30 @@ namespace subjugator {
 				return topic->t;
 			}
 
+			/**
+			#sender generates a Sender from a WorkerSignal, which will send to the given
+			topic. #to_dds must be specialized for MessageT and DataT.
+			*/
+
 			template <class MessageT, typename DataT>
 			void sender(WorkerSignal<DataT> &signal, Topic<MessageT> &topic) {
 				objs.push_back(new SignalSenderObj<MessageT, DataT>(signal, topic));
 			}
 
+			/**
+			#receiver generates a Receiver from a WorkerMailbox, which will receive from
+			a topic. #from_dds must be specialized for MessageT and DataT.
+			*/
+
 			template <class MessageT, typename DataT>
 			void receiver(WorkerMailbox<DataT> &mailbox, Topic<MessageT> &topic) {
 				objs.push_back(new MailboxReceiverObj<MessageT, DataT>(mailbox, topic, io));
 			}
+
+			/**
+			#worker automatically sets up all parts of DDS that are expected of any worker.
+			These are a sender for the WorkerLogger, and a sender for the Worker's state changed signal.
+			*/
 
 			void worker(Worker &worker) {
 				sender(worker.logger, topic<WorkerLogMessage>("WorkerLog", TopicQOS::DEEP_PERSISTENT));
