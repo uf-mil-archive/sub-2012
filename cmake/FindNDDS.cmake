@@ -62,7 +62,7 @@ if(NDDS_RTIDDSGEN)
 	endfunction()
 	function(ndds_run_rtiddsgen_c OUTPUT_SOURCES_VARNAME)
 		foreach(IDLFILE ${ARGN})
-			set(OUTDIR ${CMAKE_CURRENT_BINARY_DIR}/rtiddsgen_out)
+			set(OUTDIR ${CMAKE_CURRENT_BINARY_DIR}/rtiddsgen_out_c)
 			file(MAKE_DIRECTORY ${OUTDIR})
 
 			file(RELATIVE_PATH IDLFILE_REL ${CMAKE_CURRENT_SOURCE_DIR} ${IDLFILE})
