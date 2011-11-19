@@ -46,7 +46,6 @@ namespace subjugator {
 			*/
 
 			void set(const T& newdata) {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				datataken = false;
 				age = 0;
 				data.reset(newdata);
@@ -62,7 +61,6 @@ namespace subjugator {
 			*/
 
 			void clear() {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				datataken = false;
 				age = 0;
 				data.reset();
@@ -83,8 +81,7 @@ namespace subjugator {
 			\brief Gets the most recent data
 			*/
 
-			boost::optional<T> getOptional() const {
-				boost::lock_guard<boost::mutex> lock(mutex);
+			const boost::optional<T> &getOptional() const {
 				return data;
 			}
 
@@ -101,7 +98,6 @@ namespace subjugator {
 			*/
 
 			boost::optional<T> takeOptional() {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				if (datataken)
 					return boost::optional<T>();
 
@@ -112,7 +108,6 @@ namespace subjugator {
 			virtual const State &getState() const { return state; }
 
 			virtual void updateState(double dt) {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				if (data) {
 					age += dt;
 					if (age < maxage)
@@ -134,8 +129,6 @@ namespace subjugator {
 			bool datataken;
 
 			State state;
-
-			mutable boost::mutex mutex;
 	};
 
 	/** @} */
