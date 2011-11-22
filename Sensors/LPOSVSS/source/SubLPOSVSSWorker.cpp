@@ -137,11 +137,12 @@ void LPOSVSSWorker::allState()
 	// Get the data
 	boost::shared_ptr<LPOSVSSInfo> info(new LPOSVSSInfo(mStateManager.GetCurrentStateCode(), getTimestamp()));
 
-	if(navComputer->getInitialized())
+	if(navComputer->getInitialized()) {
 		navComputer->GetNavInfo(*info);
 
-	// Emit the LPOSInfo every iteration
-	onEmitting(info);
+		// Emit the LPOSInfo every iteration
+		onEmitting(info);
+	}
 }
 
 void LPOSVSSWorker::emergencyState()

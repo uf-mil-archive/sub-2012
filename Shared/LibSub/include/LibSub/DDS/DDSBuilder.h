@@ -7,10 +7,12 @@
 #include "LibSub/DDS/Receiver.h"
 #include "LibSub/DDS/Conversions.h"
 #include "LibSub/Worker/Worker.h"
+#include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 #include <utility>
 
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
