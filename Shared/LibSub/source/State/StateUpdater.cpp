@@ -8,16 +8,12 @@ using namespace std;
 const State &StateUpdaterContainer::getState() const { return state; }
 
 void StateUpdaterContainer::updateState(double dt) {
-	bool first=true;
-	
+	state = State::ACTIVE;
+
 	for (UpdaterVec::const_iterator i = updatervec.begin(); i != updatervec.end(); ++i) {
 		StateUpdater &updater = **i;
 		updater.updateState(dt);
-		
-		if (first)
-			state = updater.getState();
-		else
-			state = state.combine(updater.getState());
+		state = state.combine(updater.getState());
 	}
 }
 
