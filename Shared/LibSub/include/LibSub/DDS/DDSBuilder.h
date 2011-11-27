@@ -10,6 +10,7 @@
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
+#include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
@@ -50,8 +51,8 @@ namespace subjugator {
 					TopicObj<MessageT> &topic = dynamic_cast<TopicObj<MessageT> &>(*i->second);
 					return topic.t;
 				} else {
-					std::auto_ptr<TopicObj<MessageT> > topic(new TopicObj<MessageT>(participant, name, qosflags));
-					topicobjs.insert(name, topic);
+					TopicObj<MessageT> *topic = new TopicObj<MessageT>(participant, name, qosflags);
+					topicobjs.insert(name, std::auto_ptr<TopicObj<MessageT> >(topic));
 					return topic->t;
 				}
 			}
@@ -83,7 +84,7 @@ namespace subjugator {
 
 			void worker(Worker &worker) {
 				sender(worker.logger, topic<WorkerLogMessage>("WorkerLog", TopicQOS::DEEP_PERSISTENT));
-				objs.push_back(new WorkerStateSenderObj(worker, topic<WorkerStateMessage>("WorkerStates")));
+				objs.push_back(new WorkerStateSenderObj(worker, topic<WorkerStateMessage>("WorkerState", TopicQOS::PERSISTENT)));
 			}
 
 			~DDSBuilder() {

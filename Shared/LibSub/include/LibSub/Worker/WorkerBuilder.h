@@ -6,7 +6,6 @@
 #include "LibSub/Worker/WorkerRunner.h"
 #include "LibSub/Worker/WorkerLogger.h"
 #include "LibSub/Worker/SignalHandler.h"
-#include "HAL/SubHAL.h"
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 
@@ -62,6 +61,7 @@ namespace subjugator {
 	Adds a method getHAL() to the WorkerBuilder to get the worker's HAL object.
 	*/
 
+	#ifdef HAL_SUBHAL_H // HACK FIXME, refactor SubHAL into LibSub
 	template <class WorkerT>
 	class HALWorkerConstructionPolicy {
 		public:
@@ -75,6 +75,7 @@ namespace subjugator {
 			SubHAL hal;
 			WorkerT worker;
 	};
+	#endif
 
 	/**
 	\brief Base class for WorkerBuilder.

@@ -74,6 +74,7 @@ namespace subjugator {
 		std::string msg;
 	};
 
+	std::ostream &operator<<(std::ostream &out, State::Code code);
 	std::ostream &operator<<(std::ostream &out, const State &state);
 
 	/** @} */

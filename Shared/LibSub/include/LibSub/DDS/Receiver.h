@@ -2,6 +2,7 @@
 #define LIBSUB_DDS_RECEIVER_H
 
 #include "LibSub/DDS/DDSException.h"
+#include "LibSub/DDS/Topic.h"
 #include <ndds/ndds_cpp.h>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -39,6 +40,19 @@ namespace subjugator {
 		protected:
 			Topic<Message> &topic;
 			MessageDataReader *messagereader;
+
+			struct Loan {
+				MessageSeq &msgseq;
+				DDS_SampleInfoSeq &infoseq;
+				MessageDataReader *messagereader;
+
+				Loan(MessageSeq &msgseq, DDS_SampleInfoSeq &infoseq, MessageDataReader *messagereader) :
+				msgseq(msgseq), infoseq(infoseq), messagereader(messagereader) { }
+
+				~Loan() {
+					messagereader->return_loan(msgseq, infoseq);
+				}
+			};
 	};
 
 	template <class MessageT>
@@ -54,20 +68,18 @@ namespace subjugator {
 				typename BaseReceiver<MessageT>::MessageSeq messageseq;
 				DDS_SampleInfoSeq infoseq;
 
-				do {
+				while (true) {
 					DDS_ReturnCode_t code = messagereader->take(messageseq, infoseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE);
+					typename BaseReceiver<MessageT>::Loan loan(messageseq, infoseq, messagereader);
+
 					if (code == DDS_RETCODE_NO_DATA)
 						return boost::shared_ptr<MessageT>();
 					else if (code != DDS_RETCODE_OK)
 						throw DDSException("Failed to take from messagereader", code);
 
-					assert(messageseq.length() == 1);
-				} while (!infoseq[0].valid_data);
-
-				boost::shared_ptr<MessageT> msg = toSharedPtr(messageseq[0]);
-				messagereader->return_loan(messageseq, infoseq);
-
-				return msg;
+					if (infoseq[0].valid_data)
+						return toSharedPtr(messageseq[0]);
+				}
 			}
 
 			std::vector<boost::shared_ptr<MessageT> > readAll() {
@@ -76,9 +88,7 @@ namespace subjugator {
 				std::vector<boost::shared_ptr<MessageT> > outvec;
 
 				DDS_ReturnCode_t code = messagereader->read(messageseq, infoseq, DDS_LENGTH_UNLIMITED, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ALIVE_INSTANCE_STATE);
-				if (code == DDS_RETCODE_NO_DATA)
-					return outvec;
-				else if (code != DDS_RETCODE_OK)
+				if (code != DDS_RETCODE_OK && code != DDS_RETCODE_NO_DATA)
 					throw DDSException("Failed to read from messagereader", code);
 
 				outvec.resize(messageseq.length());

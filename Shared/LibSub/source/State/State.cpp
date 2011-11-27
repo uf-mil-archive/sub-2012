@@ -19,9 +19,14 @@ State State::combine(const State &other) const {
 	return combined;
 }
 
-ostream &subjugator::operator<<(ostream &out, const State &state) {
+ostream &subjugator::operator<<(ostream &out, State::Code code) {
 	static const char *strs[] = { "ACTIVE", "STANDBY", "ERROR" };
-	out << strs[state.code];
+	out << strs[code];
+	return out;
+}
+
+ostream &subjugator::operator<<(ostream &out, const State &state) {
+	out << state.code;
 	if (state.msg.size())
 		out << " (" << state.msg << ")";
 	return out;
