@@ -83,7 +83,6 @@ if(BUILD_PC)
 	add_subdirectory(Control/TrackingController)
 	add_subdirectory(Control/TrajectoryGenerator)
 	add_subdirectory(Control/EquTrajectoryGenerator)
-	add_subdirectory(Tools/SensorLogger)
 	add_subdirectory(Tools/SubLog)
 
 	if(OpenCV_FOUND AND FLYCAPTURE_FOUND)
