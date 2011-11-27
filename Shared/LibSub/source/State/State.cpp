@@ -20,7 +20,7 @@ State State::combine(const State &other) const {
 }
 
 ostream &subjugator::operator<<(ostream &out, State::Code code) {
-	static const char *strs[] = { "ACTIVE", "STANDBY", "ERROR" };
+	static const char *strs[] = { "ACTIVE", "STANDBY", "ERROR", "UNITIALIZED" };
 	out << strs[code];
 	return out;
 }

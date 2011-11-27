@@ -38,6 +38,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 # add shared projects
 add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/HAL)
+add_subdirectory(Shared/WorkerManager)
 
 # add legacy shared projects
 add_subdirectory(Legacy/DDS)
@@ -93,6 +94,7 @@ if(BUILD_PC)
 		add_subdirectory(Tools/MotorCalibrate)
 		add_subdirectory(Tools/DDSWatcher)
 		add_subdirectory(Tools/PDTest)
+		add_subdirectory(Tools/SubControl)
 		if(QWT_FOUND)
 			add_subdirectory(Tools/TrajectoryTest)
 		endif()
