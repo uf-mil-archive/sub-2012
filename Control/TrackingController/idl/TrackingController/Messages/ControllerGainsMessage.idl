@@ -1,0 +1,7 @@
+struct ControllerGainsMessage {
+	double k[6];
+	double ks[6];
+	double alpha[6];
+	double beta[6];
+};
+
