@@ -53,13 +53,15 @@ namespace subjugator {
 				typename BaseReceiver<MessageT>::MessageSeq messageseq;
 				DDS_SampleInfoSeq infoseq;
 
-				DDS_ReturnCode_t code = messagereader->take(messageseq, infoseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE);
-				if (code == DDS_RETCODE_NO_DATA)
-					return boost::shared_ptr<MessageT>();
-				else if (code != DDS_RETCODE_OK)
-					throw DDSException("Failed to take from messagereader", code);
+				do {
+					DDS_ReturnCode_t code = messagereader->take(messageseq, infoseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE);
+					if (code == DDS_RETCODE_NO_DATA)
+						return boost::shared_ptr<MessageT>();
+					else if (code != DDS_RETCODE_OK)
+						throw DDSException("Failed to take from messagereader", code);
 
-				assert(messageseq.length() == 1);
+					assert(messageseq.length() == 1);
+				} while (!infoseq[0].valid_data);
 
 				boost::shared_ptr<MessageT> msg(TypeSupport::create_data(), &TypeSupport::delete_data);
 				TypeSupport::copy_data(msg.get(), &messageseq[0]);
@@ -89,7 +91,6 @@ namespace subjugator {
 
 		private:
 			DDSWaitSet waitset;
-
 	};
 
 	template <class MessageT>
@@ -121,8 +122,10 @@ namespace subjugator {
 					throw DDSException("Failed to take from DataReader", code);
 
 				try {
-					for (int i=0; i<messageseq.length(); ++i)
-						receivecallback(messageseq[i]);
+					for (int i=0; i<messageseq.length(); ++i) {
+						if (infoseq[i].valid_data)
+							receivecallback(messageseq[i]);
+					}
 
 					messagereader->return_loan(messageseq, infoseq);
 				} catch (...) {
