@@ -14,14 +14,14 @@ using namespace Eigen;
 using namespace boost;
 using namespace std;
 
-Thruster::Thruster(HAL &hal, int address, int srcaddress)
-:	address(address),
-	endpoint(
-		hal.openDataObjectEndpoint(address, new MotorDriverDataObjectFormatter(address, srcaddress, BRUSHEDOPEN), new Sub7EPacketFormatter()),
-		"thruster" + lexical_cast<string>(address),
-		bind(&Thruster::endpointInitCallback, this),
-		false,
-		.2) { }
+Thruster::Thruster(HAL &hal, int address, int srcaddress) :
+address(address),
+endpoint(WorkerEndpoint::Args()
+	.setName("thruster" + lexical_cast<string>(address))
+	.setEndpoint(hal.openDataObjectEndpoint(address, new MotorDriverDataObjectFormatter(address, srcaddress, BRUSHEDOPEN), new Sub7EPacketFormatter()))
+	.setInitCallback(bind(&Thruster::endpointInitCallback, this))
+	.setMaxAge(.2)
+) { }
 
 shared_ptr<MotorDriverInfo> Thruster::getInfo() const {
 	return endpoint.getDataObject<MotorDriverInfo>();

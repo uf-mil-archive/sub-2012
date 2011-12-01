@@ -14,7 +14,6 @@ ThrusterManager::ThrusterManager(HAL &hal, int srcaddress, const ThrusterChangeC
 int ThrusterManager::addThruster(int address) {
 	int num = thrusters.size();
 	thrusters.push_back(new Thruster(hal, address, srcaddress));
-	Thruster &t = thrusters.back();
 
 	return num;
 }

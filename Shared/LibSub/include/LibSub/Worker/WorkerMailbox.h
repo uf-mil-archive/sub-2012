@@ -16,6 +16,47 @@ namespace subjugator {
 	*/
 
 	/**
+	\brief WorkerMailbox constructor arguments
+
+	Helper object for constructing \c WorkerMailbox, which allows for a named argument like syntax.
+	Usually referred through the typedef \c WorkerEndpoint::Args.
+
+	\arg \c name A name for the WorkerMailbox, which appears in the State messages
+	\arg \c maxage The maximum age of data in the mailbox, in seconds
+	\arg \c callback Called when new data is set
+
+	\see WorkerMailbox
+	*/
+
+	template <typename T>
+	class WorkerMailboxArgs {
+		public:
+			typedef boost::function<void (const boost::optional<T> &) > Callback;
+
+			WorkerMailboxArgs() : maxage(std::numeric_limits<double>::infinity()) { }
+
+			WorkerMailboxArgs &setName(const std::string &name) {
+				this->name = name;
+				return *this;
+			}
+
+			WorkerMailboxArgs &setMaxAge(double maxage) {
+				this->maxage = maxage;
+				return *this;
+			}
+
+			WorkerMailboxArgs &setCallback(const Callback &callback) {
+				this->callback = callback;
+				return *this;
+			}
+
+		protected:
+			std::string name;
+			double maxage;
+			Callback callback;
+	};
+
+	/**
 	\brief Input for a Worker
 
 	Receives incoming data for a Worker. Keeps track of how old the data is, and provides
@@ -23,19 +64,20 @@ namespace subjugator {
 	*/
 
 	template <typename T>
-	class WorkerMailbox : public StateUpdater {
+	class WorkerMailbox : public StateUpdater, private WorkerMailboxArgs<T> {
 		public:
-			typedef boost::function<void (const boost::optional<T> &) > Callback;
+			typedef WorkerMailboxArgs<T> Args;
 
 			/**
-			Configures and initializes a WorkerMailbox
+			\brief Constructs WorkerMailbox
 
-			\arg \c name A name for the WorkerMailbox, which appears in the State messages
-			\arg \c maxage The maximum age of data in the mailbox, in seconds
-			\arg \c callback Called when new data is set
+			Uses \c WorkerMailboxArgs to implement a named parameter like syntax.
+
+			\see WorkerMailboxArgs
 			*/
-			WorkerMailbox(const std::string &name, double maxage=std::numeric_limits<double>::infinity(), const Callback &callback=Callback())
-			: name(name), callback(callback), maxage(maxage), age(0), datataken(false) { }
+
+			WorkerMailbox(const Args &args)
+			: Args(args), age(0), datataken(false) { }
 
 			const std::string &getName() const { return name; }
 
@@ -120,9 +162,9 @@ namespace subjugator {
 			}
 
 		private:
-			std::string name;
-			Callback callback;
-			double maxage;
+			using Args::name;
+			using Args::maxage;
+			using Args::callback;
 			double age;
 
 			boost::optional<T> data;

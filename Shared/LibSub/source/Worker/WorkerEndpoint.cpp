@@ -1,25 +1,22 @@
 #include "LibSub/Worker/WorkerEndpoint.h"
 #include <boost/bind.hpp>
+#include <cassert>
 
 using namespace subjugator;
 using namespace boost;
 
-WorkerEndpoint::WorkerEndpoint(DataObjectEndpoint *endpoint,
-                               const std::string &name,
-                               const InitializeCallback &initcallback,
-                               bool outgoingonly,
-                               double maxdobjage,
-                               const ReceiveCallback &callback)
-:	endpoint(endpoint),
- 	name(name),
-	initcallback(initcallback),
-	outgoingonly(outgoingonly),
-	maxdobjage(maxdobjage),
-	receivecallback(receivecallback),
-	dobjage(0),
-	errorage(0) {
+WorkerEndpoint::WorkerEndpoint(const Args &args) :
+Args(args),
+dobjage(0),
+errorage(0) {
+	assertValidArgs();
 	endpoint->configureCallbacks(boost::bind(&WorkerEndpoint::halReceiveCallback, this, _1), boost::bind(&WorkerEndpoint::halStateChangeCallback, this));
 	endpoint->open();
+}
+
+void WorkerEndpointArgs::assertValidArgs() {
+	assert(name.size());
+	assert(endpoint);
 }
 
 void WorkerEndpoint::updateState(double dt) {
@@ -32,7 +29,7 @@ void WorkerEndpoint::updateState(double dt) {
 		case Endpoint::OPEN:
 			if (outgoingonly) // if we're only concerned with the ability to send messages (outgoingonly)
 				state = State::ACTIVE; // then having an open endpoint is enough to consider us active
-			else if (dobj && dobjage < maxdobjage)
+			else if (dobj && dobjage < maxage)
 				state = State::ACTIVE;
 			else if (!dobj)
 				state = State(State::STANDBY, "Waiting for data on " + name + " endpoint");

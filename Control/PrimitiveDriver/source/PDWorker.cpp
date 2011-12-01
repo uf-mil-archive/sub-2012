@@ -9,19 +9,26 @@ using namespace boost;
 using namespace boost::property_tree;
 using namespace std;
 
-PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
-: Worker("PrimitiveDriver", 10),
-  wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
-  actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
-  hal(hal),
-  configloader(configloader),
-  heartbeatendpoint(
-    hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()), "heartbeat",
-  	WorkerEndpoint::InitializeCallback(),
-  	true),
-  thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
-  thrustermapper(Vector3d(0, 0, 0)),
-  mergemanager(hal) {
+PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
+Worker("PrimitiveDriver", 10),
+wrenchmailbox(WorkerMailbox<Vector6d>::Args()
+	.setName("wrench")
+	.setCallback(boost::bind(&PDWorker::wrenchSet, this, _1))
+),
+actuatormailbox(WorkerMailbox<int>::Args()
+	.setName("actuator")
+	.setCallback(boost::bind(&PDWorker::actuatorSet, this, _1))
+),
+hal(hal),
+configloader(configloader),
+heartbeatendpoint(WorkerEndpoint::Args()
+	.setName("heartbeat")
+	.setEndpoint(hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()))
+	.setOutgoingOnly()
+),
+thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
+thrustermapper(Vector3d(0, 0, 0)),
+mergemanager(hal) {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
