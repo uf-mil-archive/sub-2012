@@ -8,6 +8,7 @@
 #include <boost/function.hpp>
 #include <boost/pointer_cast.hpp>
 #include <limits>
+#include <cassert>
 
 namespace subjugator {
 	/**
@@ -51,6 +52,10 @@ namespace subjugator {
 			}
 
 		protected:
+			void assertValidArgs() {
+				assert(name.size());
+			}
+
 			std::string name;
 			double maxage;
 			Callback callback;
@@ -77,7 +82,7 @@ namespace subjugator {
 			*/
 
 			WorkerMailbox(const Args &args)
-			: Args(args), age(0), datataken(false) { }
+			: Args(args), age(0), datataken(false) { WorkerMailboxArgs<T>::assertValidArgs(); }
 
 			const std::string &getName() const { return name; }
 
