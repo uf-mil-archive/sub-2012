@@ -12,8 +12,10 @@
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/ptr_container/ptr_map.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <utility>
+#include <memory>
 
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
@@ -42,9 +44,16 @@ namespace subjugator {
 
 			template <class MessageT>
 			Topic<MessageT> &topic(const std::string &name, int qosflags = TopicQOS::DEFAULT) {
-				TopicObj<MessageT> *topic = new TopicObj<MessageT>(participant, name, qosflags);
-				objs.push_back(topic);
-				return topic->t;
+				TopicMap::iterator i = topicobjs.find(name);
+
+				if (i != topicobjs.end()) {
+					TopicObj<MessageT> &topic = dynamic_cast<TopicObj<MessageT> &>(*i->second);
+					return topic.t;
+				} else {
+					std::auto_ptr<TopicObj<MessageT> > topic(new TopicObj<MessageT>(participant, name, qosflags));
+					topicobjs.insert(name, topic);
+					return topic->t;
+				}
 			}
 
 			/**
@@ -90,7 +99,10 @@ namespace subjugator {
 				virtual ~Obj() { }
 			};
 
+			typedef boost::ptr_map<std::string, Obj> TopicMap;
+			TopicMap topicobjs;
 			boost::ptr_vector<Obj> objs;
+
 
 			template <class Message>
 			struct TopicObj : public Obj {
