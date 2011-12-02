@@ -5,6 +5,7 @@
 #include <ndds/ndds_cpp.h>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
 namespace subjugator {
 	template <class MessageT>
@@ -63,11 +64,37 @@ namespace subjugator {
 					assert(messageseq.length() == 1);
 				} while (!infoseq[0].valid_data);
 
-				boost::shared_ptr<MessageT> msg(TypeSupport::create_data(), &TypeSupport::delete_data);
-				TypeSupport::copy_data(msg.get(), &messageseq[0]);
+				boost::shared_ptr<MessageT> msg = toSharedPtr(messageseq[0]);
 				messagereader->return_loan(messageseq, infoseq);
 
 				return msg;
+			}
+
+			std::vector<boost::shared_ptr<MessageT> > readAll() {
+				typename BaseReceiver<MessageT>::MessageSeq messageseq;
+				DDS_SampleInfoSeq infoseq;
+				std::vector<boost::shared_ptr<MessageT> > outvec;
+
+				DDS_ReturnCode_t code = messagereader->read(messageseq, infoseq, DDS_LENGTH_UNLIMITED, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ALIVE_INSTANCE_STATE);
+				if (code == DDS_RETCODE_NO_DATA)
+					return outvec;
+				else if (code != DDS_RETCODE_OK)
+					throw DDSException("Failed to read from messagereader", code);
+
+				outvec.resize(messageseq.length());
+				for (int i=0; i<messageseq.length(); ++i) {
+					outvec[i] = toSharedPtr(messageseq[i]);
+				}
+
+				messagereader->return_loan(messageseq, infoseq);
+				return outvec;
+			}
+
+		private:
+			boost::shared_ptr<MessageT> toSharedPtr(const MessageT &msg) {
+				boost::shared_ptr<MessageT> ptr(TypeSupport::create_data(), &TypeSupport::delete_data);
+				TypeSupport::copy_data(ptr.get(), &msg);
+				return ptr;
 			}
 	};
 
