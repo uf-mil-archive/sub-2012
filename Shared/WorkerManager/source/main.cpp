@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 	DDSBuilder dds(io);
 	dds.worker(worker);
 	dds.receiver(worker.commandmailbox, dds.topic<WorkerManagerCommandMessage>("WorkerManagerCommand", TopicQOS::RELIABLE));
-	dds.sender(worker.statusupdatesignal, dds.topic<WorkerManagerStatusMessage>("WorkerManagerStatus", TopicQOS::PERSISTENT));
+	dds.sender(worker.statusupdatesignal, dds.topic<WorkerManagerStatusMessage>("WorkerManagerStatus", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS));
 
 	// Start the worker
 	builder.runWorker();

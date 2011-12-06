@@ -84,7 +84,7 @@ namespace subjugator {
 
 			void worker(Worker &worker) {
 				sender(worker.logger, topic<WorkerLogMessage>("WorkerLog", TopicQOS::DEEP_PERSISTENT));
-				objs.push_back(new WorkerStateSenderObj(worker, topic<WorkerStateMessage>("WorkerState", TopicQOS::PERSISTENT)));
+				objs.push_back(new WorkerStateSenderObj(worker, topic<WorkerStateMessage>("WorkerState", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS)));
 			}
 
 			~DDSBuilder() {

@@ -12,11 +12,11 @@ using namespace std;
 MainWindow::MainWindow() :
 timer(this),
 updating(false),
-statustopic(part, "WorkerManagerStatus", TopicQOS::PERSISTENT),
+statustopic(part, "WorkerManagerStatus", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
 statusreceiver(statustopic),
 commandtopic(part, "WorkerManagerCommand", TopicQOS::RELIABLE),
 commandsender(commandtopic),
-statetopic(part, "WorkerState", TopicQOS::PERSISTENT),
+statetopic(part, "WorkerState", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
 statereceiver(statetopic),
 logtopic(part, "WorkerLog", TopicQOS::DEEP_PERSISTENT),
 logreceiver(logtopic)
