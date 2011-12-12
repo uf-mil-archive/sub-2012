@@ -1,9 +1,0 @@
-#ifndef HYDROPHONE_CONFIG_H
-#define HYDROPHONE_CONFIG_H
-
-namespace subjugator {
-	static const char configPath[] = "${SUBJUGATOR_RUNTIME_INSTALL_PREFIX}/${SUBJUGATOR_CONFIG_DIRECTORY}";
-}
-
-#endif
-

@@ -15,28 +15,30 @@ data = zeros(datasize);
 hamming_coefs = hamming(datasize);
 
 fd = fopen('hydrophone.config', 'w');
-fprintf(fd, '<scalefact>%d</scalefact>\n', scalefact);
-fprintf(fd, '<samplingrate>%d</samplingrate>\n', samplingrate);
-fprintf(fd, '<soundvelocity>%d</soundvelocity>\n', soundvelocity);
-fprintf(fd, '<disth>%e</disth>\n', disth);
-fprintf(fd, '<disth4>%e</disth4>\n', disth4);
+fprintf(fd, '{\n')
+fprintf(fd, '"scalefact": %d,\n', scalefact);
+fprintf(fd, '"samplingrate": %d,\n', samplingrate);
+fprintf(fd, '"soundvelocity": %d,\n', soundvelocity);
+fprintf(fd, '"disth": %e,\n', disth);
+fprintf(fd, '"disth4": %e,\n', disth4);
 
-fprintf(fd, '<bandpass>\n');
+fprintf(fd, '"bandpass": "');
 for i=1:length(bandpass_coefs)
     fprintf(fd, '%.16e ', bandpass_coefs(i));
 end
-fprintf(fd, '\n</bandpass>\n');
+fprintf(fd, '",\n');
 
-fprintf(fd, '<upsample>\n');
+fprintf(fd, '"upsample>": "');
 for i=1:length(upsample_coefs)
     fprintf(fd, '%.16e ', upsample_coefs(i));
 end
-fprintf(fd, '\n</upsample>\n');
+fprintf(fd, '",\n');
 
-fprintf(fd, '<hamming>\n');
+fprintf(fd, '"hamming": "');
 for i=1:length(hamming_coefs)
     fprintf(fd, '%.16e ', hamming_coefs(i));
 end
-fprintf(fd, '\n</hamming>\n');
+fprintf(fd, '"\n');
+fprintf(fd, '}\n');
 fclose(fd);
 

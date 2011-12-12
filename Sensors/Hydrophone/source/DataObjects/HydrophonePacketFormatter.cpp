@@ -1,4 +1,4 @@
-#include "DataObjects/Hydrophone/HydrophonePacketFormatter.h"
+#include "Hydrophone/DataObjects/HydrophonePacketFormatter.h"
 #include <algorithm>
 
 using namespace subjugator;
@@ -8,15 +8,15 @@ HydrophonePacketFormatter::HydrophonePacketFormatter() { }
 
 #define PACKETSIZE 2048
 
-vector<Packet> HydrophonePacketFormatter::parsePackets(const ByteVec &data) {
-	buf.insert(buf.end(), data.begin(), data.end());
+vector<Packet> HydrophonePacketFormatter::parsePackets(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
+	buf.insert(buf.end(), begin, end);
 
 	vector<Packet> packets;
 	ByteVec::iterator pos = buf.begin();
 	while (true) {
 		static const uint8_t receive_header[] = { 0xFE, 0xFE };
 		pos = search(pos, buf.end(), receive_header, receive_header + sizeof(receive_header)); // consume until just before the receive header
-		if (pos == data.end()) // consumed everything?
+		if (pos == buf.end()) // consumed everything?
 			break; // no more packets
 
 		ByteVec::iterator datastart = pos + sizeof(receive_header); // data starts after the header

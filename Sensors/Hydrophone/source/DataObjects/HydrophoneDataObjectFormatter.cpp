@@ -1,6 +1,6 @@
-#include "DataObjects/Hydrophone/HydrophoneDataObjectFormatter.h"
-#include "DataObjects/Hydrophone/HydrophoneSamples.h"
-#include "DataObjects/Hydrophone/HydrophoneStart.h"
+#include "Hydrophone/DataObjects/HydrophoneDataObjectFormatter.h"
+#include "Hydrophone/DataObjects/HydrophoneSamples.h"
+#include "Hydrophone/DataObjects/HydrophoneStart.h"
 
 using namespace subjugator;
 using namespace boost;

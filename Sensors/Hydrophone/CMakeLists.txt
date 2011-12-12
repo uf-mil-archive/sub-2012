@@ -1,3 +1,3 @@
 add_definitions(-ffast-math)
 
-sub_executable(Hydrophone LegacyDDS LegacyHAL DataObjects SubMain)
+sub_executable(Hydrophone DDS HAL Sub)

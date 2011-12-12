@@ -21,11 +21,6 @@ namespace subjugator {
 				Eigen::VectorXd bandpass_fircoefs;
 				Eigen::VectorXd upsample_fircoefs;
 				Eigen::VectorXd hamming_fircoefs;
-
-				void load(const std::string &filename);
-
-				private:
-					static Eigen::VectorXd strToVec(const std::string &str);
 			};
 
 			HydrophoneDataProcessor(const Data &rawdata, const Config &config);

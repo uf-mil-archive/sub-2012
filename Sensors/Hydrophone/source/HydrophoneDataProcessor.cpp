@@ -217,38 +217,3 @@ VectorXd HydrophoneDataProcessor::upsample(const VectorXd &in, int p, const Vect
 	int delay = (int)ceil((filter_coefs.rows()-1)/2); // compute the delay of the filter
 	return out.segment(delay, in.rows()*p); // and return the correct amount of data taking the delay into account
 }
-
-void HydrophoneDataProcessor::Config::load(const string &filename) {
-	ptree pt;
-	read_xml(filename, pt);
-
-	scalefact = pt.get<int>("scalefact");
-	samplingrate = pt.get<int>("samplingrate");
-	soundvelocity = pt.get<double>("soundvelocity");
-	disth = pt.get<double>("disth");
-	disth4 = pt.get<double>("disth4");
-	bandpass_fircoefs = strToVec(pt.get<string>("bandpass"));
-	upsample_fircoefs = strToVec(pt.get<string>("upsample"));
-	hamming_fircoefs = strToVec(pt.get<string>("hamming"));
-}
-
-// kind of stumped on a better way to make this work
-Eigen::VectorXd HydrophoneDataProcessor::Config::strToVec(const std::string &str) {
-	vector<double> vals; // using a STL vector to get power of 2 resizing
-	stringstream ss(str);
-	while (true) {
-		double val;
-		ss >> val;
-		if (ss.eof())
-			break;
-		vals.push_back(val);
-	}
-
-	VectorXd vec(vals.size()); // no good way to go STL -> Eigen?
-	for (unsigned int i=0; i < vals.size(); i++)
-		vec[i] = vals[i];
-
-	return vec;
-}
-
-
