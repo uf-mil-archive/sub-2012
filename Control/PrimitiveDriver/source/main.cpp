@@ -5,6 +5,7 @@
 #include "HAL/SubHAL.h"
 #include "LibSub/DDS/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
+#include "LibSub/Messages/WorkerKillMessageSupport.h"
 #include <boost/asio.hpp>
 
 using namespace subjugator;
@@ -32,7 +33,10 @@ int main(int argc, char **argv) {
 	dds.worker(worker);
 	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
 	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator", TopicQOS::LEGACY));
+	dds.map(worker.killmon, dds.topic<WorkerKillMessage>("WorkerKill", TopicQOS::PERSISTENT));
+
 	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
+	dds.sender(worker.estopsignal, dds.topic<WorkerKillMessage>("WorkerKill", TopicQOS::PERSISTENT));
 
 	// Start the worker
 	builder.runWorker();

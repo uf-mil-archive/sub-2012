@@ -10,8 +10,10 @@ killname(killname),
 desc(desc) { }
 
 void WorkerKillSignal::setKill(bool kill) {
-	if (isKilled() != kill)
-		emit(WorkerKill(killname, desc, kill));
+	if (getData() && getData()->killed == kill)
+		return;
+
+	emit(WorkerKill(killname, desc, kill));
 }
 
 WorkerKillMonitor::WorkerKillMonitor(const std::string &selfkillname) :

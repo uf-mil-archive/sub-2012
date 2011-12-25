@@ -10,6 +10,7 @@
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
+#include "LibSub/Messages/WorkerKillMessageSupport.h"
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -20,6 +21,7 @@
 
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
+DECLARE_MESSAGE_TRAITS(WorkerKillMessage);
 
 namespace subjugator {
 	/**
@@ -77,6 +79,11 @@ namespace subjugator {
 				objs.push_back(new MailboxReceiverObj<MessageT, DataT>(mailbox, topic, io));
 			}
 
+			template <class MessageT, typename KeyT, typename ValueT>
+			void map(WorkerMap<KeyT, ValueT> &map, Topic<MessageT> &topic) {
+				objs.push_back(new MapReceiverObj<MessageT, KeyT, ValueT>(map, topic, io));
+			}
+
 			/**
 			#worker automatically sets up all parts of DDS that are expected of any worker.
 			These are a sender for the WorkerLogger, and a sender for the Worker's state changed signal.
@@ -108,8 +115,8 @@ namespace subjugator {
 			template <class Message>
 			struct TopicObj : public Obj {
 				Topic<Message> t;
-				TopicObj(Participant &participant, const std::string &name, int qosflags)
-				: t(participant, name, qosflags) { }
+				TopicObj(Participant &participant, const std::string &name, int qosflags) :
+				t(participant, name, qosflags) { }
 			};
 
 			template <class MessageT, typename DataT>
@@ -119,9 +126,9 @@ namespace subjugator {
 				typename WorkerSignal<DataT>::Connection conn;
 				Sender<MessageT> sender;
 
-				SignalSenderObj(WorkerSignal<DataT> &signal, Topic<MessageT> &topic)
-				: conn(signal.connect(boost::bind(&Self::callback, this, _1))),
-				  sender(topic) { }
+				SignalSenderObj(WorkerSignal<DataT> &signal, Topic<MessageT> &topic) :
+				conn(signal.connect(boost::bind(&Self::callback, this, _1))),
+				sender(topic) { }
 
 				void callback(const DataT &obj) {
 					MessageT msg;
@@ -138,10 +145,10 @@ namespace subjugator {
 				Receiver<MessageT> receiver;
 				boost::asio::io_service &io;
 
-				MailboxReceiverObj(WorkerMailbox<DataT> &mailbox, Topic<MessageT> &topic, boost::asio::io_service &io)
-				: mailbox(mailbox),
-				  receiver(topic, boost::bind(&Self::receiveCallback, this, _1), boost::bind(&Self::writerCountCallback, this, _1)),
-				  io(io) { }
+				MailboxReceiverObj(WorkerMailbox<DataT> &mailbox, Topic<MessageT> &topic, boost::asio::io_service &io) :
+				mailbox(mailbox),
+				receiver(topic, boost::bind(&Self::receiveCallback, this, _1), boost::bind(&Self::writerCountCallback, this, _1)),
+				io(io) { }
 
 				void receiveCallback(const MessageT &msg) {
 					DataT data;
@@ -155,15 +162,38 @@ namespace subjugator {
 				}
 			};
 
+			template <class MessageT, typename KeyT, typename ValueT>
+			struct MapReceiverObj : public Obj {
+				typedef MapReceiverObj<MessageT, KeyT, ValueT> Self;
+
+				WorkerMap<KeyT, ValueT> &map;
+				Receiver<MessageT> receiver;
+				boost::asio::io_service &io;
+
+				MapReceiverObj(WorkerMap<KeyT, ValueT> &map, Topic<MessageT> &topic, boost::asio::io_service &io) :
+				map(map),
+				receiver(topic, boost::bind(&Self::receiveCallback, this, _1), boost::bind(&Self::writerCountCallback, this, _1)),
+				io(io) { }
+
+				void receiveCallback(const MessageT &msg) {
+					ValueT data;
+					from_dds(data, msg);
+					io.dispatch(boost::bind(&WorkerMap<KeyT, ValueT>::update, &map, data));
+				}
+
+				void writerCountCallback(int count) {
+				}
+			};
+
 			struct WorkerStateSenderObj : public Obj {
 				Worker &worker;
 				Sender<WorkerStateMessage> statesender;
 				Worker::StateChangedSignal::Connection stateconn;
 
-				WorkerStateSenderObj(Worker &worker, Topic<WorkerStateMessage> &statetopic)
-				: worker(worker),
-				  statesender(statetopic),
-				  stateconn(worker.statechangedsig.connect(bind(&WorkerStateSenderObj::stateChangedCallback, this, _1))) { }
+				WorkerStateSenderObj(Worker &worker, Topic<WorkerStateMessage> &statetopic) :
+				worker(worker),
+				statesender(statetopic),
+				stateconn(worker.statechangedsig.connect(bind(&WorkerStateSenderObj::stateChangedCallback, this, _1))) { }
 
 				void stateChangedCallback(const State &state) {
 					WorkerStateMessage msg;

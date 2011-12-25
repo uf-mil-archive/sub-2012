@@ -11,7 +11,7 @@ namespace subjugator {
 	class WorkerMapArguments {
 		public:
 			typedef boost::function<KeyT (const ValueT &)> KeyCallback;
-			typedef boost::function<void (ValueT &val)> UpdateCallback;
+			typedef boost::function<void (const ValueT &val)> UpdateCallback;
 
 			WorkerMapArguments() { }
 

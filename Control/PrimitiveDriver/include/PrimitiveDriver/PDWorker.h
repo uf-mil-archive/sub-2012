@@ -9,6 +9,7 @@
 #include "LibSub/Worker/WorkerSignal.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
 #include "LibSub/Worker/WorkerConfigLoader.h"
+#include "LibSub/Worker/WorkerKill.h"
 #include "LibSub/Math/EigenUtils.h"
 #include "HAL/HAL.h"
 #include "PrimitiveDriver/DataObjects/PDInfo.h"
@@ -22,9 +23,11 @@ namespace subjugator {
 
 			WorkerMailbox<Vector6d> wrenchmailbox;
 			WorkerMailbox<int> actuatormailbox;
+			WorkerKillMonitor killmon;
 
 			WorkerSignal<std::vector<double> > currentsignal;
 			WorkerSignal<PDInfo> infosignal;
+			WorkerKillSignal estopsignal;
 
 		protected:
 			virtual void initialize();
