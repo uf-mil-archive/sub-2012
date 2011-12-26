@@ -147,7 +147,7 @@ namespace subjugator {
 
 				MailboxReceiverObj(WorkerMailbox<DataT> &mailbox, Topic<MessageT> &topic, boost::asio::io_service &io) :
 				mailbox(mailbox),
-				receiver(topic, boost::bind(&Self::receiveCallback, this, _1), boost::bind(&Self::writerCountCallback, this, _1)),
+				receiver(topic, boost::bind(&Self::receiveCallback, this, _1), boost::bind(&Self::messageLostCallback, this, _1)),
 				io(io) { }
 
 				void receiveCallback(const MessageT &msg) {
@@ -156,9 +156,8 @@ namespace subjugator {
 					io.dispatch(boost::bind(&WorkerMailbox<DataT>::set, &mailbox, data));
 				}
 
-				void writerCountCallback(int count) {
-					if (count == 0)
-						io.dispatch(boost::bind(&WorkerMailbox<DataT>::clear, &mailbox));
+				void messageLostCallback(const MessageT &msg) {
+					io.dispatch(boost::bind(&WorkerMailbox<DataT>::clear, &mailbox));
 				}
 			};
 
@@ -172,7 +171,7 @@ namespace subjugator {
 
 				MapReceiverObj(WorkerMap<KeyT, ValueT> &map, Topic<MessageT> &topic, boost::asio::io_service &io) :
 				map(map),
-				receiver(topic, boost::bind(&Self::receiveCallback, this, _1), boost::bind(&Self::writerCountCallback, this, _1)),
+				receiver(topic, boost::bind(&Self::receiveCallback, this, _1), boost::bind(&Self::messageLostCallback, this, _1)),
 				io(io) { }
 
 				void receiveCallback(const MessageT &msg) {
@@ -181,7 +180,10 @@ namespace subjugator {
 					io.dispatch(boost::bind(&WorkerMap<KeyT, ValueT>::update, &map, data));
 				}
 
-				void writerCountCallback(int count) {
+				void messageLostCallback(const MessageT &msg) {
+					ValueT data;
+					from_dds(data, msg);
+					io.dispatch(boost::bind(&WorkerMap<KeyT, ValueT>::remove, &map, data));
 				}
 			};
 

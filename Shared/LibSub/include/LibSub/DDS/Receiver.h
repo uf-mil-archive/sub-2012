@@ -136,18 +136,18 @@ namespace subjugator {
 
 		public:
 			typedef boost::function<void (const MessageT &)> ReceiveCallback;
-			typedef boost::function<void (int)> WriterCountCallback;
+			typedef boost::function<void (const MessageT &)> MessageLostCallback;
 
-			Receiver(Topic<MessageT> &topic, const ReceiveCallback &receivecallback, const WriterCountCallback &writercountcallback)
-			: BaseReceiver<MessageT>(topic), receivecallback(receivecallback), writercountcallback(writercountcallback) {
-				DDS_ReturnCode_t code = messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS | DDS_LIVELINESS_CHANGED_STATUS);
+			Receiver(Topic<MessageT> &topic, const ReceiveCallback &receivecallback, const MessageLostCallback &messagelostcallback) :
+			BaseReceiver<MessageT>(topic), receivecallback(receivecallback), messagelostcallback(messagelostcallback) {
+				DDS_ReturnCode_t code = messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS);
 				if (code != DDS_RETCODE_OK)
 					throw DDSException("Failed to set listener on the MessageDataReader", code);
 			}
 
 		private:
 			ReceiveCallback receivecallback;
-			WriterCountCallback writercountcallback;
+			MessageLostCallback messagelostcallback;
 
 			virtual void on_data_available(DDSDataReader *unused) {
 				typename BaseReceiver<MessageT>::MessageSeq messageseq;
@@ -162,6 +162,8 @@ namespace subjugator {
 					for (int i=0; i<messageseq.length(); ++i) {
 						if (infoseq[i].valid_data)
 							receivecallback(messageseq[i]);
+						else if (infoseq[i].instance_state != DDS_ALIVE_INSTANCE_STATE)
+							messagelostcallback(messageseq[i]);
 					}
 
 					messagereader->return_loan(messageseq, infoseq);
@@ -169,10 +171,6 @@ namespace subjugator {
 					messagereader->return_loan(messageseq, infoseq);
 					throw;
 				}
-			}
-
-			virtual void on_liveliness_changed(DDSDataReader *unused, const DDS_LivelinessChangedStatus &status) {
-				writercountcallback(status.alive_count);
 			}
 	};
 }
