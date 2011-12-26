@@ -5,6 +5,7 @@
 #include "WorkerManager/Messages/WorkerManagerCommandMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
+#include "LibSub/Messages/WorkerKillMessageSupport.h"
 #include "LibSub/State/State.h"
 #include "LibSub/DDS/Participant.h"
 #include "LibSub/DDS/Receiver.h"
@@ -19,6 +20,7 @@ DECLARE_MESSAGE_TRAITS(WorkerManagerStatusMessage);
 DECLARE_MESSAGE_TRAITS(WorkerManagerCommandMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
+DECLARE_MESSAGE_TRAITS(WorkerKillMessage);
 
 namespace subjugator {
 	enum CombinedState {
@@ -40,6 +42,8 @@ namespace subjugator {
 		private slots:
 			void update();
 			void cellChanged(int row, int col);
+			void killClicked();
+			void unkillClicked();
 
 		private:
 			Ui::MainWindow ui;
@@ -55,11 +59,18 @@ namespace subjugator {
 			PollingReceiver<WorkerStateMessage> statereceiver;
 			Topic<WorkerLogMessage> logtopic;
 			PollingReceiver<WorkerLogMessage> logreceiver;
+			Topic<WorkerKillMessage> killtopic;
+			PollingReceiver<WorkerKillMessage> killreceiver;
+			Sender<WorkerKillMessage> killsender;
 
 			void updateWorkers();
+			void updateKill();
 			void updateLog();
 
 			void addWorker(const std::string &name, CombinedState state, bool checkable, const std::string &msg);
+			void addKill(const std::string &name, bool kill, const std::string &desc);
+
+			void sendKill(bool killed);
 	};
 
 	std::ostream &operator<<(std::ostream &out, CombinedState state);

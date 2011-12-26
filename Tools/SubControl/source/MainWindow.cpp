@@ -19,20 +19,32 @@ commandsender(commandtopic),
 statetopic(part, "WorkerState", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
 statereceiver(statetopic),
 logtopic(part, "WorkerLog", TopicQOS::DEEP_PERSISTENT),
-logreceiver(logtopic)
+logreceiver(logtopic),
+killtopic(part, "WorkerKill", TopicQOS::PERSISTENT),
+killreceiver(killtopic),
+killsender(killtopic)
 {
 	ui.setupUi(this);
 	ui.workerStatusTable->setHorizontalHeaderLabels(QStringList() << "En" << "Worker" << "Status" << "Message");
 	ui.workerStatusTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
 
+	ui.killStatusTable->setHorizontalHeaderLabels(QStringList() << "Name" << "Status" << "Description");
+	ui.killStatusTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+
+	ui.unkillButton->setVisible(false);
+
 	connect(&timer, SIGNAL(timeout()), this, SLOT(update()));
 	connect(ui.workerStatusTable, SIGNAL(cellChanged(int, int)), this, SLOT(cellChanged(int, int)));
+	connect(ui.killButton, SIGNAL(clicked()), this, SLOT(killClicked()));
+	connect(ui.unkillButton, SIGNAL(clicked()), this, SLOT(unkillClicked()));
+	connect(ui.runButton, SIGNAL(clicked()), this, SLOT(unkillClicked()));
 	timer.start(100);
 }
 
 void MainWindow::update() {
 	updating = true;
 	updateWorkers();
+	updateKill();
 	updateLog();
 	updating = false;
 }
@@ -48,8 +60,14 @@ void MainWindow::cellChanged(int row, int col) {
 	to_dds(cmd.workername, workername);
 	to_dds(cmd.start, start);
 	commandsender.send(cmd);
+}
 
-	cout << "Clicked " << workername << endl;
+void MainWindow::killClicked() {
+	sendKill(true);
+}
+
+void MainWindow::unkillClicked() {
+	sendKill(false);
 }
 
 namespace {
@@ -150,6 +168,61 @@ void MainWindow::addWorker(const std::string &name, CombinedState state, bool ch
 	table.setItem(row, 3, msgitem);
 }
 
+void MainWindow::updateKill() {
+	ui.killStatusTable->setRowCount(0);
+
+	vector<shared_ptr<WorkerKillMessage> > killmessages = killreceiver.readAll();
+
+	bool otherkilled = false; // whether somebody other than us has the sub killed
+	bool selfkilled = false; // wether we're killing the sub
+
+	for (unsigned int i=0; i<killmessages.size(); ++i) {
+		const WorkerKillMessage &msg = *killmessages[i];
+
+		string name = from_dds<string>(msg.name);
+		addKill(name, msg.killed, from_dds<string>(msg.desc));
+
+		if (msg.killed) {
+			if (name != "SubControl")
+				otherkilled = true;
+			else
+				selfkilled = true;
+		}
+	}
+
+	ui.unkillButton->setVisible(otherkilled);
+	ui.runButton->setVisible(!otherkilled);
+
+	if (selfkilled) {
+		ui.killStatusLabel->setText("Sub status: <span style=\"color: red\">killed</span>");
+	} else if (otherkilled) {
+		ui.killStatusLabel->setText("Sub status: <span style=\"color: darkgoldenrod\">killed</span>");
+	} else {
+		ui.killStatusLabel->setText("Sub status: <span style=\"color: green\">running</span>");
+	}
+}
+
+void MainWindow::addKill(const std::string &name, bool kill, const std::string &desc) {
+	QTableWidget &table = *ui.killStatusTable;
+
+	int row = table.rowCount();
+	table.setRowCount(row+1);
+
+	QColor color(kill ? Qt::red : Qt::green);
+
+	QTableWidgetItem *nameitem = new QTableWidgetItem(QString::fromStdString(name));
+	nameitem->setBackground(color);
+	table.setItem(row, 0, nameitem);
+
+	QTableWidgetItem *killitem = new QTableWidgetItem(kill ? "Killed" : "Unkilled");
+	killitem->setBackground(color);
+	table.setItem(row, 1, killitem);
+
+	QTableWidgetItem *descitem = new QTableWidgetItem(QString::fromStdString(desc));
+	descitem->setBackground(color);
+	table.setItem(row, 2, descitem);
+}
+
 void MainWindow::updateLog() {
 	while (true) {
 		shared_ptr<WorkerLogMessage> msgptr = logreceiver.take();
@@ -158,6 +231,14 @@ void MainWindow::updateLog() {
 
 		ui.logTextEdit->appendPlainText(QString::fromStdString(lexical_cast<string>(from_dds<WorkerLogEntry>(*msgptr))));
 	}
+}
+
+void MainWindow::sendKill(bool killed) {
+	WorkerKillMessage msg;
+	msg.name = const_cast<char *>("SubControl");
+	msg.desc = const_cast<char *>("SubControl GUI kill button");
+	msg.killed = killed;
+	killsender.send(msg);
 }
 
 ostream &subjugator::operator<<(ostream &out, CombinedState state) {
