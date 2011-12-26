@@ -27,24 +27,21 @@ TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &con
 }
 
 void TrackingControllerWorker::enterActive() {
+	// reset controller
 	controllerptr.reset(new TrackingController());
 
-	const LPOSVSSInfo &lpos = *lposvssmailbox.getOptional();
+	// set waypoint to current position
+	const LPOSVSSInfo &lpos = *lposvssmailbox;
 	Vector6d traj;
 	traj.head<3>() = lpos.getPosition_NED();
 	traj(3) = traj(4) = 0;
 	traj(5) = MILQuaternionOps::Quat2Euler(lpos.getQuat_NED_B())(2);
-
 	trajectorymailbox.set(TrajectoryInfo(getTimestamp(), traj, Vector6d::Zero()));
 }
 
 void TrackingControllerWorker::work(double dt) {
-	// Protect against debugger and non-monotonic time
-	if (dt <= 0 || dt > .150)
-		return;
-
 	TrackingControllerInfo info(getState().code, getTimestamp());
-	controllerptr->Update(dt, *trajectorymailbox.getOptional(), *lposvssmailbox.getOptional(), info);
+	controllerptr->Update(dt, *trajectorymailbox, *lposvssmailbox, info);
 
 	// Emit every iteration
 	wrenchsignal.emit(info.Wrench);

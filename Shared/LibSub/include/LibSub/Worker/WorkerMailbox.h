@@ -125,11 +125,19 @@ namespace subjugator {
 			}
 
 			/**
-			\brief Gets the most recent data
+			\brief Gets the most recent data, or boost::none if no data is set.
 			*/
 
 			const boost::optional<T> &getOptional() const {
 				return data;
+			}
+
+			/**
+			\brief Gets the data in the mailbox. Mailbox must have data set.
+			*/
+
+			const T &operator*() const {
+				return *data;
 			}
 
 			/**
