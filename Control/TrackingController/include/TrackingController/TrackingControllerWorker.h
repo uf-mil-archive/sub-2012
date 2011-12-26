@@ -11,8 +11,8 @@
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
 #include "LibSub/Worker/WorkerKill.h"
-
 #include "TrackingController/TrackingController.h"
+#include <boost/scoped_ptr.hpp>
 
 namespace subjugator
 {
@@ -33,13 +33,8 @@ namespace subjugator
 		void work(double dt);
 
 	private:
-		std::auto_ptr<TrackingController> trackingController;
+		boost::scoped_ptr<TrackingController> controllerptr;
 
-		std::auto_ptr<TrajectoryInfo> trajInfo;
-
-		boost::mutex lock;
-
-		void setTrajectoryInfo(const boost::optional<TrajectoryInfo> &info);
 		void setControllerGains(const boost::optional<TrackingControllerGains> &gains);
 	};
 }
