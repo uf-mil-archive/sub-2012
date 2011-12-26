@@ -13,6 +13,73 @@ namespace subjugator {
 	*/
 
 	/**
+	\brief WorkerEndpoint constructor arguments
+
+	Helper object for constructing \c WorkerEndpoint, which allows for a named argument like syntax.
+	Usually referred through the typedef \c WorkerEndpoint::Args.
+
+	\arg \c endpoint        The DataObjectEndpoint to be managed
+	\arg \c name            A name that appears in log messages
+	\arg \c initcallback    Called to initialize the endpoint on startup and to attempt error recovery
+	\arg \c outgoingonly    A flag indicating that the WorkerEndpoint should not
+	                        expect data to continually arrive from the Endpoint
+	\arg \c maxdobjage      The amount of time in seconds before the WorkerEndpoint considers
+	                        a DataObject stale and atempts to re-initialize the endpoint
+	\arg \c receivecallback Called whenever a DataObject is received
+
+	\see WorkerEndpoint
+	*/
+
+	class WorkerEndpointArgs {
+		public:
+			typedef boost::function<void (DataObjectEndpoint&)> InitializeCallback;
+			typedef boost::function<void (const boost::shared_ptr<DataObject> &)> ReceiveCallback;
+
+			WorkerEndpointArgs() :
+			endpoint(NULL), outgoingonly(false), maxage(std::numeric_limits<double>::infinity()) { }
+
+			WorkerEndpointArgs &setEndpoint(DataObjectEndpoint *endpoint) {
+				this->endpoint = endpoint;
+				return *this;
+			}
+
+			WorkerEndpointArgs &setName(const std::string &name) {
+				this->name = name;
+				return *this;
+			}
+
+			WorkerEndpointArgs &setInitCallback(const InitializeCallback &initcallback) {
+				this->initcallback = initcallback;
+				return *this;
+			}
+
+			WorkerEndpointArgs &setReceiveCallback(const ReceiveCallback &receivecallback) {
+				this->receivecallback = receivecallback;
+				return *this;
+			}
+
+			WorkerEndpointArgs &setOutgoingOnly(bool outgoingonly=true) {
+				this->outgoingonly = outgoingonly;
+				return *this;
+			}
+
+			WorkerEndpointArgs &setMaxAge(double maxage) {
+				this->maxage = maxage;
+				return *this;
+			}
+
+		protected:
+			void assertValidArgs();
+
+			DataObjectEndpoint *endpoint;
+			std::string name;
+			InitializeCallback initcallback;
+			ReceiveCallback receivecallback;
+			bool outgoingonly;
+			double maxage;
+	};
+
+	/**
 	\brief Worker utility for managing a HAL Endpoint
 
 	WorkerEndpoint is a utility class for managing a HAL DataObjectEndpoint. It is a StateUpdater,
@@ -23,30 +90,19 @@ namespace subjugator {
 	and a callback passed in the constructor.
 	*/
 
-	class WorkerEndpoint : public StateUpdater {
+	class WorkerEndpoint : public StateUpdater, private WorkerEndpointArgs {
 		public:
-			typedef boost::function<void (DataObjectEndpoint&)> InitializeCallback;
-			typedef boost::function<void (const boost::shared_ptr<DataObject> &)> ReceiveCallback;
+			typedef WorkerEndpointArgs Args;
 
 			/**
-			Constructs the WorkerEndpoint.
+			\brief Constructs WorkerEndpointArgs
 
-			\arg \c endpoint        The DataObjectEndpoint to be managed
-			\arg \c name            A name that appears in log messages
-			\arg \c initcallback    Called to initialize the endpoint on startup and to attempt error recovery
-			\arg \c outgoingonly    A flag indicating that the WorkerEndpoint should not
-			                        expect data to continually arrive from the Endpoint
-			\arg \c maxdobjage      The amount of time in seconds before the WorkerEndpoint considers
-			                        a DataObject stale and atempts to re-initialize the endpoint
-			\arg \c receivecallback Called whenever a DataObject is received
+			Uses \c WorkerEndpointArgs to implement a named parameter like syntax.
+
+			\see WorkerEndpointArgs
 			*/
 
-			WorkerEndpoint(DataObjectEndpoint *endpoint,
-			               const std::string &name,
-			               const InitializeCallback &initcallback = InitializeCallback(),
-			               bool outgoingonly = false,
-			               double maxdobjage = std::numeric_limits<double>::infinity(),
-			               const ReceiveCallback &receivecallback = ReceiveCallback());
+			WorkerEndpoint(const Args &args);
 
 			DataObjectEndpoint &getEndpoint() { return *endpoint; }
 			const DataObjectEndpoint &getEndpoint() const { return *endpoint; }
@@ -68,13 +124,6 @@ namespace subjugator {
 			virtual void updateState(double dt);
 
 		private:
-			boost::scoped_ptr<DataObjectEndpoint> endpoint;
-			std::string name;
-			InitializeCallback initcallback;
-			bool outgoingonly;
-			double maxdobjage;
-			ReceiveCallback receivecallback;
-
 			boost::shared_ptr<DataObject> dobj;
 			double dobjage;
 			double errorage;

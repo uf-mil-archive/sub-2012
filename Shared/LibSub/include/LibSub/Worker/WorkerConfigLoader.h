@@ -1,5 +1,5 @@
-#ifndef LIBSUB_CONFIG_CONFIGLOADER_H
-#define LIBSUB_CONFIG_CONFIGLOADER_H
+#ifndef LIBSUB_WORKER_CONFIGLOADER_H
+#define LIBSUB_WORKER_CONFIGLOADER_H
 
 #include <string>
 #include <boost/property_tree/ptree.hpp>

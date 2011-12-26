@@ -5,6 +5,8 @@
 #include "LibSub/Worker/WorkerLogger.h"
 #include "LibSub/Messages/WorkerStateMessage.h"
 #include "LibSub/State/State.h"
+#include "LibSub/Messages/WorkerKillMessage.h"
+#include "LibSub/Worker/WorkerKill.h"
 #include <ndds/ndds_cpp.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <ctime>
@@ -106,6 +108,22 @@ namespace subjugator {
 	void from_dds(State &state, const StateMessage &msg) {
 		from_dds(state.code, msg.code);
 		from_dds(state.msg, msg.msg);
+	}
+
+	// WorkerKill
+
+	template <>
+	void to_dds(WorkerKillMessage &msg, const WorkerKill &kill) {
+		to_dds(msg.name, kill.name);
+		to_dds(msg.desc, kill.desc);
+		to_dds(msg.killed, kill.killed);
+	}
+
+	template <>
+	void from_dds(WorkerKill &kill, const WorkerKillMessage &msg) {
+		from_dds(kill.name, msg.name);
+		from_dds(kill.desc, msg.desc);
+		from_dds(kill.killed, msg.killed);
 	}
 
 	/** @} */

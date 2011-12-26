@@ -2,9 +2,11 @@
 #define LIBSUB_DDS_RECEIVER_H
 
 #include "LibSub/DDS/DDSException.h"
+#include "LibSub/DDS/Topic.h"
 #include <ndds/ndds_cpp.h>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
 namespace subjugator {
 	template <class MessageT>
@@ -38,6 +40,19 @@ namespace subjugator {
 		protected:
 			Topic<Message> &topic;
 			MessageDataReader *messagereader;
+
+			struct Loan {
+				MessageSeq &msgseq;
+				DDS_SampleInfoSeq &infoseq;
+				MessageDataReader *messagereader;
+
+				Loan(MessageSeq &msgseq, DDS_SampleInfoSeq &infoseq, MessageDataReader *messagereader) :
+				msgseq(msgseq), infoseq(infoseq), messagereader(messagereader) { }
+
+				~Loan() {
+					messagereader->return_loan(msgseq, infoseq);
+				}
+			};
 	};
 
 	template <class MessageT>
@@ -53,19 +68,43 @@ namespace subjugator {
 				typename BaseReceiver<MessageT>::MessageSeq messageseq;
 				DDS_SampleInfoSeq infoseq;
 
-				DDS_ReturnCode_t code = messagereader->take(messageseq, infoseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE);
-				if (code == DDS_RETCODE_NO_DATA)
-					return boost::shared_ptr<MessageT>();
-				else if (code != DDS_RETCODE_OK)
-					throw DDSException("Failed to take from messagereader", code);
+				while (true) {
+					DDS_ReturnCode_t code = messagereader->take(messageseq, infoseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE);
+					typename BaseReceiver<MessageT>::Loan loan(messageseq, infoseq, messagereader);
 
-				assert(messageseq.length() == 1);
+					if (code == DDS_RETCODE_NO_DATA)
+						return boost::shared_ptr<MessageT>();
+					else if (code != DDS_RETCODE_OK)
+						throw DDSException("Failed to take from messagereader", code);
 
-				boost::shared_ptr<MessageT> msg(TypeSupport::create_data(), &TypeSupport::delete_data);
-				TypeSupport::copy_data(msg.get(), &messageseq[0]);
+					if (infoseq[0].valid_data)
+						return toSharedPtr(messageseq[0]);
+				}
+			}
+
+			std::vector<boost::shared_ptr<MessageT> > readAll() {
+				typename BaseReceiver<MessageT>::MessageSeq messageseq;
+				DDS_SampleInfoSeq infoseq;
+				std::vector<boost::shared_ptr<MessageT> > outvec;
+
+				DDS_ReturnCode_t code = messagereader->read(messageseq, infoseq, DDS_LENGTH_UNLIMITED, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ALIVE_INSTANCE_STATE);
+				if (code != DDS_RETCODE_OK && code != DDS_RETCODE_NO_DATA)
+					throw DDSException("Failed to read from messagereader", code);
+
+				outvec.resize(messageseq.length());
+				for (int i=0; i<messageseq.length(); ++i) {
+					outvec[i] = toSharedPtr(messageseq[i]);
+				}
+
 				messagereader->return_loan(messageseq, infoseq);
+				return outvec;
+			}
 
-				return msg;
+		private:
+			boost::shared_ptr<MessageT> toSharedPtr(const MessageT &msg) {
+				boost::shared_ptr<MessageT> ptr(TypeSupport::create_data(), &TypeSupport::delete_data);
+				TypeSupport::copy_data(ptr.get(), &msg);
+				return ptr;
 			}
 	};
 
@@ -89,7 +128,6 @@ namespace subjugator {
 
 		private:
 			DDSWaitSet waitset;
-
 	};
 
 	template <class MessageT>
@@ -98,18 +136,18 @@ namespace subjugator {
 
 		public:
 			typedef boost::function<void (const MessageT &)> ReceiveCallback;
-			typedef boost::function<void (int)> WriterCountCallback;
+			typedef boost::function<void (const MessageT &)> MessageLostCallback;
 
-			Receiver(Topic<MessageT> &topic, const ReceiveCallback &receivecallback, const WriterCountCallback &writercountcallback)
-			: BaseReceiver<MessageT>(topic), receivecallback(receivecallback), writercountcallback(writercountcallback) {
-				DDS_ReturnCode_t code = messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS | DDS_LIVELINESS_CHANGED_STATUS);
+			Receiver(Topic<MessageT> &topic, const ReceiveCallback &receivecallback, const MessageLostCallback &messagelostcallback) :
+			BaseReceiver<MessageT>(topic), receivecallback(receivecallback), messagelostcallback(messagelostcallback) {
+				DDS_ReturnCode_t code = messagereader->set_listener(this, DDS_DATA_AVAILABLE_STATUS);
 				if (code != DDS_RETCODE_OK)
 					throw DDSException("Failed to set listener on the MessageDataReader", code);
 			}
 
 		private:
 			ReceiveCallback receivecallback;
-			WriterCountCallback writercountcallback;
+			MessageLostCallback messagelostcallback;
 
 			virtual void on_data_available(DDSDataReader *unused) {
 				typename BaseReceiver<MessageT>::MessageSeq messageseq;
@@ -121,18 +159,18 @@ namespace subjugator {
 					throw DDSException("Failed to take from DataReader", code);
 
 				try {
-					for (int i=0; i<messageseq.length(); ++i)
-						receivecallback(messageseq[i]);
+					for (int i=0; i<messageseq.length(); ++i) {
+						if (infoseq[i].valid_data)
+							receivecallback(messageseq[i]);
+						else if (infoseq[i].instance_state != DDS_ALIVE_INSTANCE_STATE)
+							messagelostcallback(messageseq[i]);
+					}
 
 					messagereader->return_loan(messageseq, infoseq);
 				} catch (...) {
 					messagereader->return_loan(messageseq, infoseq);
 					throw;
 				}
-			}
-
-			virtual void on_liveliness_changed(DDSDataReader *unused, const DDS_LivelinessChangedStatus &status) {
-				writercountcallback(status.alive_count);
 			}
 	};
 }

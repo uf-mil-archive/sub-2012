@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 		return 1;
 
 	// Build the worker from the options
-	WorkerBuilder<TrackingControllerWorker, HALWorkerConstructionPolicy> builder(options, io);
+	WorkerBuilder<TrackingControllerWorker, DefaultWorkerConstructionPolicy> builder(options, io);
 	TrackingControllerWorker &worker = builder.getWorker();
 
 	// Get DDS up

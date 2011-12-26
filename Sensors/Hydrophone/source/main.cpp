@@ -19,7 +19,7 @@ using namespace subjugator;
 using namespace boost;
 using namespace Eigen;
 
-static Eigen::Matrix<double, Eigen::Dynamic, 5> parseCSV(const string &filename);
+//static Eigen::Matrix<double, Eigen::Dynamic, 5> parseCSV(const string &filename);
 
 int main(int argc, char **argv)
 {
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
 
 	cout << maxindex/2048.0*200000 << endl;
 }*/
-
+/*
 static Eigen::Matrix<double, Eigen::Dynamic, 5> parseCSV(const string &filename) {
 	ifstream in(filename.c_str());
 	vector<vector<double> > datavec;
@@ -136,4 +136,4 @@ static Eigen::Matrix<double, Eigen::Dynamic, 5> parseCSV(const string &filename)
 
 	return data;
 }
-
+*/

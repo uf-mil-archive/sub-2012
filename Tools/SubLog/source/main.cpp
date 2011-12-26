@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	if (vm.count("workers") && vm.count("exclude-workers")) {
-		std::cerr << "Incompatible options --workers and --exclude-workers" << endl;
+		cerr << "Incompatible options --workers and --exclude-workers" << endl;
 		cerr << desc << endl;
 		return 1;
 	}

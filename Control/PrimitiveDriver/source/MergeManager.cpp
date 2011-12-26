@@ -13,15 +13,19 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-MergeManager::MergeManager(HAL &hal)
-:	mergeendpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21, MERGEBOARD), new Sub7EPacketFormatter()),
-		"merge",
-		boost::bind(&MergeManager::mergeInitCallback, this),
-		false, .5),
-	actuatorendpoint(hal.openDataObjectEndpoint(61, new ActuatorDataObjectFormatter(), new BytePacketFormatter()),
-		"actuator",
-		boost::bind(&MergeManager::actuatorInitCallback, this),
-		false, .5) {
+MergeManager::MergeManager(HAL &hal) :
+mergeendpoint(WorkerEndpoint::Args()
+	.setName("merge")
+	.setEndpoint(hal.openDataObjectEndpoint(60, new MergeDataObjectFormatter(60, 21, MERGEBOARD), new Sub7EPacketFormatter()))
+	.setInitCallback(boost::bind(&MergeManager::mergeInitCallback, this))
+	.setMaxAge(.5)
+),
+actuatorendpoint(WorkerEndpoint::Args()
+	.setName("actuator")
+	.setEndpoint(hal.openDataObjectEndpoint(61, new ActuatorDataObjectFormatter(), new BytePacketFormatter()))
+	.setInitCallback(boost::bind(&MergeManager::actuatorInitCallback, this))
+	.setMaxAge(.5)
+) {
 	registerStateUpdater(mergeendpoint);
 	registerStateUpdater(actuatorendpoint);
 }

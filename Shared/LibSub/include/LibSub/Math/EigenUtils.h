@@ -1,5 +1,5 @@
-#ifndef LIBSUB_MATH_EIGENTYPEDEFS
-#define LIBSUB_MATH_EIGENTYPEDEFS
+#ifndef LIBSUB_MATH_EIGENUTILS_H
+#define LIBSUB_MATH_EIGENUTILS_H
 
 #include <Eigen/Dense>
 #include <istream>

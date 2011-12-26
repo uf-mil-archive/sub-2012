@@ -1,0 +1,11 @@
+enum WorkerManagerProcessStatus {
+	STOPPED,
+	STARTED,
+	STOPPING
+};
+
+struct WorkerManagerStatusMessage {
+	string workername; //@key
+	WorkerManagerProcessStatus status;
+};
+

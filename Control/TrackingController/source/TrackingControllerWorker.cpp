@@ -11,12 +11,19 @@ using namespace subjugator;
 
 static boost::int64_t getTimestamp(void);
 
-TrackingControllerWorker::TrackingControllerWorker(HAL &hal, const WorkerConfigLoader &configloader) :
+TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &configloader) :
 	Worker("TrackingController", 50),
-	lposvssmailbox("LPOSVSS", 1),
-	hardwarekilledmailbox("PDStatus", numeric_limits<double>::infinity()),
-	trajectorymailbox("Trajectory", numeric_limits<double>::infinity(), bind(&TrackingControllerWorker::setTrajectoryInfo, this, _1)),
-	gainsmailbox("ControllerGains", numeric_limits<double>::infinity(), bind(&TrackingControllerWorker::setControllerGains, this, _1)),
+	lposvssmailbox(WorkerMailbox<LPOSVSSInfo>::Args()
+		.setName("LPOSVSS")
+		.setMaxAge(.2)),
+	hardwarekilledmailbox(WorkerMailbox<bool>::Args()
+		.setName("PDStatus")),
+	trajectorymailbox(WorkerMailbox<TrajectoryInfo>::Args()
+		.setName("Trajectory")
+		.setCallback(bind(&TrackingControllerWorker::setTrajectoryInfo, this, _1))),
+	gainsmailbox(WorkerMailbox<TrackingControllerGains>::Args()
+		.setName("ControllerGains")
+		.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1))),
 	hardwarekilledchecker(&hardwarekilledmailbox)
 {
 	registerStateUpdater(lposvssmailbox);

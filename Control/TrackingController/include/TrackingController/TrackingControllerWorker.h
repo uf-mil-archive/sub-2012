@@ -34,7 +34,7 @@ namespace subjugator
 
 	class TrackingControllerWorker : public Worker {
 	public:
-		TrackingControllerWorker(HAL &hal, const WorkerConfigLoader &configloader);
+		TrackingControllerWorker(const WorkerConfigLoader &configloader);
 
 		WorkerMailbox<LPOSVSSInfo> lposvssmailbox;
 		WorkerMailbox<bool> hardwarekilledmailbox;

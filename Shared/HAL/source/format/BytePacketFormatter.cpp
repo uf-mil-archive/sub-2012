@@ -12,7 +12,7 @@ std::vector<Packet> BytePacketFormatter::parsePackets(const ByteVec &newdata) {
 	std::vector<Packet> out;
 	out.resize(newdata.size(), Packet(1));
 
-	for (int i=0; i<newdata.size(); i++) {
+	for (unsigned int i=0; i<newdata.size(); i++) {
 		out[i][0] = newdata[i];
 	}
 

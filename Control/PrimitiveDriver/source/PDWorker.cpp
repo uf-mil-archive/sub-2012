@@ -9,25 +9,37 @@ using namespace boost;
 using namespace boost::property_tree;
 using namespace std;
 
-PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader)
-: Worker("PrimitiveDriver", 10),
-  wrenchmailbox("wrench", numeric_limits<double>::infinity(), boost::bind(&PDWorker::wrenchSet, this, _1)),
-  actuatormailbox("actuator", numeric_limits<double>::infinity(), boost::bind(&PDWorker::actuatorSet, this, _1)),
-  hal(hal),
-  configloader(configloader),
-  heartbeatendpoint(
-    hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()), "heartbeat",
-  	WorkerEndpoint::InitializeCallback(),
-  	true),
-  thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
-  thrustermapper(Vector3d(0, 0, 0)),
-  mergemanager(hal) {
+PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
+Worker("PrimitiveDriver", 50),
+wrenchmailbox(WorkerMailbox<Vector6d>::Args()
+	.setName("wrench")
+	.setCallback(boost::bind(&PDWorker::wrenchSet, this, _1))
+),
+actuatormailbox(WorkerMailbox<int>::Args()
+	.setName("actuator")
+	.setCallback(boost::bind(&PDWorker::actuatorSet, this, _1))
+),
+killmon("EStop"),
+estopsignal("EStop", "Magnetic EStop switch on the mergeboard"),
+hal(hal),
+configloader(configloader),
+heartbeatendpoint(WorkerEndpoint::Args()
+	.setName("heartbeat")
+	.setEndpoint(hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()))
+	.setOutgoingOnly()
+),
+thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
+thrustermapper(Vector3d(0, 0, 0)),
+mergemanager(hal) {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
+	registerStateUpdater(killmon);
 }
 
 void PDWorker::initialize() {
+	estopsignal.setKill(false);
+
 	ptree config = configloader.loadConfig(getName());
 	const ptree &thrusters = config.get_child("thrusters");
 
@@ -76,6 +88,9 @@ void PDWorker::work(double dt) {
 
 	// TODO rework timestamps at worker level
 	infosignal.emit(PDInfo(0, 0, currents, mergemanager.getMergeInfo()));
+
+	// TODO use callback to make this instantaneous, and to allow ESTOP to be updated even when we are killed for some other reason
+	estopsignal.setKill(mergemanager.getMergeInfo().getESTOP());
 
 	heartbeatendpoint.write(HeartBeat());
 }

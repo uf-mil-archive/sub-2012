@@ -20,11 +20,13 @@ SignalHandler::~SignalHandler() {
 
 void SignalHandler::start() {
 	signal(SIGINT, globalptrAction);
+	signal(SIGTERM, globalptrAction);
 	signal(SIGUSR1, globalptrAction);
 }
 
 void SignalHandler::stop() {
 	signal(SIGINT, SIG_DFL);
+	signal(SIGTERM, SIG_DFL);
 	signal(SIGUSR1, SIG_DFL);
 }
 
@@ -35,13 +37,15 @@ void SignalHandler::globalptrAction(int sig) {
 
 void SignalHandler::signalReceived(int sig) {
 	io.post(bind(&SignalHandler::ioCallback, this, sig));
-	if (sig == SIGINT)
-		stop(); // let the second SIGINT kill is immediately
+	if (sig == SIGINT || sig == SIGTERM)
+		stop(); // let the second SIGINT/SIGTERM kill immediately
 }
 
 void SignalHandler::ioCallback(int sig) {
 	if (sig == SIGINT) {
 		cerr << endl;
+		io.stop();
+	} else if (sig == SIGTERM) {
 		io.stop();
 	} else if (sig == SIGUSR1) {
 		if (reconfcallback)

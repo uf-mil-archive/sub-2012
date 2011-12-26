@@ -1,0 +1,6 @@
+struct WorkerKillMessage {
+	string name; //@key
+	string desc;
+	boolean killed;
+};
+

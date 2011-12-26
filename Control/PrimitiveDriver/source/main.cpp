@@ -2,8 +2,10 @@
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDActuatorMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDStatusMessageSupport.h"
+#include "HAL/SubHAL.h"
 #include "LibSub/DDS/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
+#include "LibSub/Messages/WorkerKillMessageSupport.h"
 #include <boost/asio.hpp>
 
 using namespace subjugator;
@@ -29,6 +31,9 @@ int main(int argc, char **argv) {
 	// Get DDS up
 	DDSBuilder dds(io);
 	dds.worker(worker);
+	dds.killMonitor(worker.killmon);
+	dds.killSignal(worker.estopsignal);
+
 	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
 	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator", TopicQOS::LEGACY));
 	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
