@@ -16,19 +16,15 @@ TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &con
 	lposvssmailbox(WorkerMailbox<LPOSVSSInfo>::Args()
 		.setName("LPOSVSS")
 		.setMaxAge(.2)),
-	hardwarekilledmailbox(WorkerMailbox<bool>::Args()
-		.setName("PDStatus")),
 	trajectorymailbox(WorkerMailbox<TrajectoryInfo>::Args()
 		.setName("Trajectory")
 		.setCallback(bind(&TrackingControllerWorker::setTrajectoryInfo, this, _1))),
 	gainsmailbox(WorkerMailbox<TrackingControllerGains>::Args()
 		.setName("ControllerGains")
-		.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1))),
-	hardwarekilledchecker(&hardwarekilledmailbox)
+		.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1)))
 {
 	registerStateUpdater(lposvssmailbox);
-	registerStateUpdater(hardwarekilledmailbox);
-	registerStateUpdater(hardwarekilledchecker);
+	registerStateUpdater(killmon);
 }
 
 void TrackingControllerWorker::enterActive() {

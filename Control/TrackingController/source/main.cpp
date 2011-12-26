@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
 	// Get DDS up
 	DDSBuilder dds(io);
 	dds.worker(worker);
+	dds.killMonitor(worker.killmon);
 
 	dds.receiver(worker.lposvssmailbox, dds.topic<LPOSVSSMessage>("LPOSVSS", TopicQOS::LEGACY));
-	dds.receiver(worker.hardwarekilledmailbox, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
 	dds.receiver(worker.trajectorymailbox, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
 	dds.receiver(worker.gainsmailbox, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::LEGACY));
 

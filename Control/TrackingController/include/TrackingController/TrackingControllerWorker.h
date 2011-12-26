@@ -10,36 +10,20 @@
 #include "LibSub/Worker/WorkerConfigLoader.h"
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
+#include "LibSub/Worker/WorkerKill.h"
 
 #include "TrackingController/TrackingController.h"
 
 namespace subjugator
 {
-	class HardwareKilledChecker : public StateUpdater {
-	public:
-		HardwareKilledChecker(WorkerMailbox<bool> *mailbox) : mailbox(mailbox) {};
-
-		virtual const State &getState() const {
-			return state;
-		}
-
-		virtual void updateState(double dt) {
-			state = mailbox->get(true) ? State(State::STANDBY, "Waiting to be unkilled") : State(State::ACTIVE);
-		}
-
-	private:
-		WorkerMailbox<bool> *mailbox;
-		State state;
-	};
-
 	class TrackingControllerWorker : public Worker {
 	public:
 		TrackingControllerWorker(const WorkerConfigLoader &configloader);
 
 		WorkerMailbox<LPOSVSSInfo> lposvssmailbox;
-		WorkerMailbox<bool> hardwarekilledmailbox;
 		WorkerMailbox<TrajectoryInfo> trajectorymailbox;
 		WorkerMailbox<TrackingControllerGains> gainsmailbox;
+		WorkerKillMonitor killmon;
 
 		WorkerSignal<Vector6d> wrenchsignal;
 		WorkerSignal<TrackingControllerInfo> infosignal;
@@ -54,8 +38,6 @@ namespace subjugator
 		std::auto_ptr<TrajectoryInfo> trajInfo;
 
 		boost::mutex lock;
-
-		HardwareKilledChecker hardwarekilledchecker;
 
 		void setTrajectoryInfo(const boost::optional<TrajectoryInfo> &info);
 		void setControllerGains(const boost::optional<TrackingControllerGains> &gains);
