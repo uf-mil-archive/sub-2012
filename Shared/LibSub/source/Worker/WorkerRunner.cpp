@@ -24,7 +24,7 @@ void WorkerRunner::tick(const system::error_code& error) {
 	posix_time::time_duration dt = curtime - prevtime;
 	prevtime = curtime;
 
-	if (!dt.is_negative() && dt < timer_period * 10) // protect against debugger or non-monotomic time
+	if (!dt.is_negative() && dt < timer_period * 10) // protect against debugger or non-monotonic time
 		worker.update(dt.total_microseconds() * 1E6);
 
 	curtime = posix_time::microsec_clock::local_time();
