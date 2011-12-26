@@ -151,7 +151,7 @@ namespace subjugator {
 
 				void writerCountCallback(int count) {
 					if (count == 0)
-						mailbox.clear();
+						io.dispatch(boost::bind(&WorkerMailbox<DataT>::clear, &mailbox));
 				}
 			};
 
