@@ -39,7 +39,8 @@ namespace subjugator {
 			typedef MessageT Message;
 			typedef typename MessageTraits<MessageT>::TypeSupport TypeSupport;
 
-			Topic(Participant &participant, const std::string &name, int qosflags = TopicQOS::DEFAULT) : participant(participant) {
+			Topic(Participant &participant, const std::string &name, int qosflags = TopicQOS::DEFAULT) :
+			participant(participant), qosflags(qosflags) {
 				participant.registerType<Message>();
 
 				DDS_TopicQos qos;
@@ -72,12 +73,14 @@ namespace subjugator {
 
 			Participant &getParticipant() { return participant; }
 			std::string getName() const { return ddstopic->get_name(); }
+			int getQOSFlags() const { return qosflags; }
 
 			DDSTopic &getDDS() { return *ddstopic; }
 
 		private:
 			Participant &participant;
 			DDSTopic *ddstopic;
+			int qosflags;
 	};
 }
 

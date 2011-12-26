@@ -18,6 +18,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <utility>
 #include <memory>
+#include <cassert>
 
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
@@ -51,6 +52,7 @@ namespace subjugator {
 
 				if (i != topicobjs.end()) {
 					TopicObj<MessageT> &topic = dynamic_cast<TopicObj<MessageT> &>(*i->second);
+					assert(topic.t.getQOSFlags() == qosflags);
 					return topic.t;
 				} else {
 					TopicObj<MessageT> *topic = new TopicObj<MessageT>(participant, name, qosflags);
@@ -79,6 +81,11 @@ namespace subjugator {
 				objs.push_back(new MailboxReceiverObj<MessageT, DataT>(mailbox, topic, io));
 			}
 
+			/**
+			#map generates a Receiver from a WorkerMap, which will receive from a topic
+			and group the received messages by its key callback. #from_dds must be specialized for ValueT and MessageT.
+			*/
+
 			template <class MessageT, typename KeyT, typename ValueT>
 			void map(WorkerMap<KeyT, ValueT> &map, Topic<MessageT> &topic) {
 				objs.push_back(new MapReceiverObj<MessageT, KeyT, ValueT>(map, topic, io));
@@ -94,9 +101,25 @@ namespace subjugator {
 				objs.push_back(new WorkerStateSenderObj(worker, topic<WorkerStateMessage>("WorkerState", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS)));
 			}
 
+			/**
+			#killSignal automatically sets up a sender for a WorkerKillSignal, using the correct topic and TopicQOS.
+			*/
+
+			void killSignal(WorkerKillSignal &killsig) {
+				sender(killsig, topic<WorkerKillMessage>("WorkerKill", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS));
+			}
+
+			/**
+			#killSignal automatically sets up a receiver for a WorkerKillMonitor, using the correct topic and TopicQOS.
+			*/
+
+			void killMonitor(WorkerKillMonitor &killmon) {
+				map(killmon, topic<WorkerKillMessage>("WorkerKill", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS));
+			}
+
 			~DDSBuilder() {
 				while (objs.size())
-					objs.pop_back();
+					objs.pop_back(); // ensure destructors are invoked in reverse order of construction
 			}
 
 		private:

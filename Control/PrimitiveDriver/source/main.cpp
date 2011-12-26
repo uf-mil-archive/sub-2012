@@ -31,12 +31,12 @@ int main(int argc, char **argv) {
 	// Get DDS up
 	DDSBuilder dds(io);
 	dds.worker(worker);
+	dds.killMonitor(worker.killmon);
+	dds.killSignal(worker.estopsignal);
+
 	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
 	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator", TopicQOS::LEGACY));
-	dds.map(worker.killmon, dds.topic<WorkerKillMessage>("WorkerKill", TopicQOS::PERSISTENT));
-
 	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
-	dds.sender(worker.estopsignal, dds.topic<WorkerKillMessage>("WorkerKill", TopicQOS::PERSISTENT));
 
 	// Start the worker
 	builder.runWorker();
