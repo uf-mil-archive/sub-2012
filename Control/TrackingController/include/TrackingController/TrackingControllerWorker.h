@@ -22,20 +22,27 @@ namespace subjugator
 
 		WorkerMailbox<LPOSVSSInfo> lposvssmailbox;
 		WorkerMailbox<TrajectoryInfo> trajectorymailbox;
-		WorkerMailbox<TrackingControllerGains> gainsmailbox;
+		WorkerMailbox<TrackingController::Gains> gainsmailbox;
 		WorkerKillMonitor killmon;
 
 		WorkerSignal<Vector6d> wrenchsignal;
 		WorkerSignal<TrackingControllerInfo> infosignal;
 
 	protected:
-		void enterActive();
-		void work(double dt);
+		virtual void enterActive();
+		virtual void work(double dt);
 
 	private:
-		boost::scoped_ptr<TrackingController> controllerptr;
+		const WorkerConfigLoader &configloader;
 
-		void setControllerGains(const boost::optional<TrackingControllerGains> &gains);
+		boost::scoped_ptr<TrackingController> controllerptr;
+		TrackingController::Config controllerconfig;
+
+		void setControllerGains(const boost::optional<TrackingController::Gains> &gains);
+
+		void loadConfig();
+		void resetController();
+		void setCurrentPosWaypoint();
 	};
 }
 

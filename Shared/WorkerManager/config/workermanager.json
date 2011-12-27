@@ -1,6 +1,7 @@
 {
 	"workers": [
-		{"name": "PrimitiveDriver"}
+		{"name": "PrimitiveDriver"},
+		{"name": "TrackingController"}
 	]
 }
 

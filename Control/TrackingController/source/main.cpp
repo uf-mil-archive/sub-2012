@@ -67,7 +67,7 @@ namespace subjugator {
 	}
 
 	template <>
-	void from_dds(TrackingControllerGains &new_gains, const ControllerGainsMessage &gains)
+	void from_dds(TrackingController::Gains &new_gains, const ControllerGainsMessage &gains)
 	{
 		for (int i=0; i<6; i++)
 			new_gains.k(i) = gains.k[i];

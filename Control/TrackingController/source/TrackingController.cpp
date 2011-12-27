@@ -1,39 +1,28 @@
+#include "TrackingController/TrackingController.h"
 #include "SubMain/SubAttitudeHelpers.h"
 #include "SubMain/SubMILQuaternion.h"
 #include "SubMain/SubPrerequisites.h"
+#include <boost/algorithm/string.hpp>
 
-#include "TrackingController/TrackingController.h"
-
-using namespace std;
-using namespace Eigen;
 using namespace subjugator;
+using namespace boost::algorithm;
+using namespace Eigen;
+using namespace std;
 
 static Matrix6d GetJacobian(const Vector6d& x);
 static Matrix6d GetJacobianInverse(const Vector6d& x);
 static Vector6d GetSigns(const Vector6d& x);
 
-TrackingController::TrackingController() : rise_on(true), nn_on(false) {
-	// Default gains. TODO: load these from a file
-	gains.k << 20.0, 20.0, 70.0, 15.0, 50.0, 20.0;
-	gains.ks << 220.0, 200.0, 150.0, 40.0, 60.0, 100.0;
-	gains.alpha << 0.1, 0.1, 0.05, 0.005, 0.1, 0.1;
-	gains.beta << 15.0, 10.0, 15.0, 5.0, 10.0, 10.0;
+TrackingController::TrackingController(const Config &config) :
+config(config),
+rise_term_prev(Vector6d::Zero()),
+rise_term_int_prev(Vector6d::Zero()),
+V_hat_dot_prev(Matrix19x5d::Zero()),
+V_hat_prev(Matrix19x5d::Random()),
+W_hat_dot_prev(Matrix6d::Zero()),
+W_hat_prev(Matrix6d::Zero()) { }
 
-	gains.gamma1 << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
-	gains.gamma1 *= 30;
-	gains.gamma2 << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
-	gains.gamma2 *= 5;
-
-	rise_term_prev = Vector6d::Zero();
-	rise_term_int_prev = Vector6d::Zero();
-
-	V_hat_dot_prev = Matrix19x5d::Zero();
-	V_hat_prev = Matrix19x5d::Random();
-	W_hat_dot_prev = Matrix6d::Zero();
-	W_hat_prev = Matrix6d::Zero();
-}
-
-void TrackingController::Update(double dt, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo, TrackingControllerInfo& info) {
+void TrackingController::update(double dt, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo, TrackingControllerInfo &info) {
 	// NED Position
 	Vector6d x;
 	x << lposInfo.getPosition_NED(),
@@ -62,23 +51,22 @@ void TrackingController::Update(double dt, const TrajectoryInfo& traj, const LPO
 	     AttitudeHelpers::DAngleDiff(x(4), xd(4)),
 	     AttitudeHelpers::DAngleDiff(x(5), xd(5));
 
-	Vector6d vbd = J_inv * (gains.k.asDiagonal() * e + xd_dot);
+	Vector6d vbd = J_inv * (config.gains.k.asDiagonal() * e + xd_dot);
 	Vector6d e2 = vbd - vb;
 
-	Vector6d currentControl;
-	Vector6d pd_control = Vector6d::Zero();
-	Vector6d rise_control = Vector6d::Zero();
-	Vector6d nn_control = Vector6d::Zero();
-	if(!rise_on) {
-		currentControl = pd_control = PDFeedback(dt, e2);
-	} else {
-		currentControl = rise_control = RiseFeedbackNoAccel(dt, e2);
+	Vector6d control = Vector6d::Zero();
+	Vector6d pd_control = PDFeedback(dt, e2);
+	Vector6d rise_control = RiseFeedbackNoAccel(dt, e2);
+	Vector6d nn_control = NNFeedForward(dt, e2, xd, xd_dot);
 
-		if(nn_on) // Only allow nn to be added if rise is used
-			currentControl += nn_control = NNFeedForward(dt, e2, xd, xd_dot);
-	}
+	if (config.mode & TERM_PD)
+		control += pd_control;
+	if (config.mode & TERM_RISE)
+		control += rise_control;
+	if (config.mode & TERM_NN)
+		control += nn_control;
 
-	info.Wrench = currentControl;
+	info.Wrench = control;
 	info.X = x;
 	info.X_dot = x_dot;
 	info.Xd = xd;
@@ -91,9 +79,11 @@ void TrackingController::Update(double dt, const TrajectoryInfo& traj, const LPO
 }
 
 Vector6d TrackingController::RiseFeedbackNoAccel(double dt, Vector6d e2) {
-	Matrix6d ksPlus1 = (Matrix6d)gains.ks.asDiagonal() + Matrix6d::Identity();
+	const Gains &g = config.gains;
 
-	Vector6d rise_term_int = ksPlus1*gains.alpha.asDiagonal()*e2 + gains.beta.asDiagonal()*GetSigns(e2);
+	Matrix6d ksPlus1 = (Matrix6d)g.ks.asDiagonal() + Matrix6d::Identity();
+
+	Vector6d rise_term_int = ksPlus1*g.alpha.asDiagonal()*e2 + g.beta.asDiagonal()*GetSigns(e2);
 
 	Vector6d rise_term = rise_term_prev + dt / 2.0 * (rise_term_int + rise_term_int_prev);
 
@@ -107,10 +97,12 @@ Vector6d TrackingController::RiseFeedbackNoAccel(double dt, Vector6d e2) {
 }
 
 Vector6d TrackingController::PDFeedback(double dt, Vector6d e2) {
-	return gains.ks.asDiagonal() * e2;
+	return config.gains.ks.asDiagonal() * e2;
 }
 
 Vector6d TrackingController::NNFeedForward(double dt, Vector6d e2, Vector6d xd, Vector6d xd_dot) {
+	const Gains &g = config.gains;
+
 	Vector6d xd_dotdot = (xd_dot - xd_dot_prev) / dt;
 	xd_dot_prev = xd_dot;
 	Vector6d xd_dotdotdot = (xd_dotdot - xd_dotdot_prev) / dt;
@@ -142,8 +134,8 @@ Vector6d TrackingController::NNFeedForward(double dt, Vector6d e2, Vector6d xd, 
 	sigma_hat_prime.fill(0.0);
 	sigma_hat_prime.block(1, 0, sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols()) = sigma_hat_prime_term;
 
-	Matrix6d W_hat_dot = gains.gamma1.asDiagonal() * sigma_hat_prime * V_hat_prev.transpose() * xd_nn_dot * e2.transpose();
-	Matrix19x5d V_hat_dot = gains.gamma2.asDiagonal() * xd_nn_dot * (sigma_hat_prime.transpose() * W_hat_prev * e2).transpose();
+	Matrix6d W_hat_dot = g.gamma1.asDiagonal() * sigma_hat_prime * V_hat_prev.transpose() * xd_nn_dot * e2.transpose();
+	Matrix19x5d V_hat_dot = g.gamma2.asDiagonal() * xd_nn_dot * (sigma_hat_prime.transpose() * W_hat_prev * e2).transpose();
 
 	// integrate W_hat_dot and V_hat_dot
 	Matrix6d W_hat = W_hat_prev + dt / 2.0 * (W_hat_dot + W_hat_dot_prev);
@@ -179,26 +171,24 @@ static Matrix6d GetJacobian(const Vector6d& x) {
 	double cpsi = cos(x(5));
 
 	Matrix6d J = Matrix6d::Zero();
-	J.block<3,3>(0,0) <<
-			cpsi * ctheta,
-			-spsi * cphi + cpsi * stheta * sphi,
-			spsi * sphi + cpsi * cphi * stheta,
-			spsi * ctheta,
-			cpsi * cphi + sphi * stheta * spsi,
-			-cpsi * sphi + stheta * spsi * cphi,
-			-stheta,
-			ctheta * sphi,
-			ctheta * cphi;
-	J.block<3,3>(3,3) <<
-			1,
-			sphi * tantheta,
-			cphi * tantheta,
-			0,
-			cphi,
-			-sphi,
-			0,
-			sphi / ctheta,
-			cphi / ctheta;
+	J.block<3,3>(0,0) << cpsi * ctheta,
+	                     -spsi * cphi + cpsi * stheta * sphi,
+	                     spsi * sphi + cpsi * cphi * stheta,
+	                     spsi * ctheta,
+	                     cpsi * cphi + sphi * stheta * spsi,
+	                     -cpsi * sphi + stheta * spsi * cphi,
+	                     -stheta,
+	                     ctheta * sphi,
+	                     ctheta * cphi;
+	J.block<3,3>(3,3) << 1,
+	                     sphi * tantheta,
+	                     cphi * tantheta,
+	                     0,
+	                     cphi,
+	                     -sphi,
+	                     0,
+	                     sphi / ctheta,
+	                     cphi / ctheta;
 	return J;
 }
 
@@ -238,11 +228,10 @@ static Matrix6d GetJacobianInverse(const Vector6d& x) {
 static Vector6d GetSigns(const Vector6d& x) {
 	Vector6d signs;
 
-	for(int i = 0; i < 6; i++)
-	{
-		if(x(i) > 0)
+	for (int i = 0; i < 6; i++) {
+		if (x(i) > 0)
 			signs(i) = 1.0;
-		else if(x(i) < 0)
+		else if (x(i) < 0)
 			signs(i) = -1.0;
 		else
 			signs(i) = 0.0;
@@ -251,6 +240,19 @@ static Vector6d GetSigns(const Vector6d& x) {
 	return signs;
 }
 
-void TrackingController::SetGains(TrackingControllerGains new_gains) {
-	gains = new_gains;
+istream &subjugator::operator>>(istream &in, TrackingController::Mode &mode) {
+	string str;
+	in >> str;
+
+	if (iequals(str, "pd"))
+		mode = TrackingController::MODE_PD;
+	else if (iequals(str, "rise"))
+		mode = TrackingController::MODE_RISE;
+	else if (iequals(str, "rise_nn"))
+		mode = TrackingController::MODE_RISE_NN;
+	else
+		in.setstate(istream::badbit);
+
+	return in;
 }
+

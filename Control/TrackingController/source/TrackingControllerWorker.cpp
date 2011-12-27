@@ -1,13 +1,13 @@
-#include <time.h>
-
+#include "TrackingController/TrackingControllerWorker.h"
 #include "SubMain/SubAttitudeHelpers.h"
 #include "SubMain/SubPrerequisites.h"
+#include <time.h>
 
-#include "TrackingController/TrackingControllerWorker.h"
-
-using namespace std;
-using namespace Eigen;
 using namespace subjugator;
+using namespace Eigen;
+using namespace boost;
+using namespace boost::property_tree;
+using namespace std;
 
 static boost::int64_t getTimestamp(void);
 
@@ -18,34 +18,63 @@ TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &con
 		.setMaxAge(.2)),
 	trajectorymailbox(WorkerMailbox<TrajectoryInfo>::Args()
 		.setName("Trajectory")),
-	gainsmailbox(WorkerMailbox<TrackingControllerGains>::Args()
+	gainsmailbox(WorkerMailbox<TrackingController::Gains>::Args()
 		.setName("ControllerGains")
-		.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1)))
+		.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1))),
+	configloader(configloader)
 {
 	registerStateUpdater(lposvssmailbox);
 	registerStateUpdater(killmon);
+
+	loadConfig();
 }
 
 void TrackingControllerWorker::enterActive() {
-	// reset controller
-	controllerptr.reset(new TrackingController());
+	setCurrentPosWaypoint();
+	resetController();
+}
 
-	// set waypoint to current position
+void TrackingControllerWorker::work(double dt) {
+	TrackingControllerInfo info(getState().code, getTimestamp());
+	controllerptr->update(dt, *trajectorymailbox, *lposvssmailbox, info);
+
+	// Emit every iteration
+	wrenchsignal.emit(info.Wrench);
+	infosignal.emit(info);
+}
+
+void TrackingControllerWorker::setControllerGains(const boost::optional<TrackingController::Gains> &new_gains) {
+	if (new_gains && controllerptr) {
+		controllerconfig.gains = *new_gains;
+		resetController();
+	}
+}
+
+void TrackingControllerWorker::loadConfig() {
+	ptree config = configloader.loadConfig(getName());
+	controllerconfig.mode = config.get<TrackingController::Mode>("mode");
+
+	TrackingController::Gains &g = controllerconfig.gains;
+	const ptree &pt = config.get_child("gains");
+	g.k = pt.get<Vector6d>("k");
+	g.ks = pt.get<Vector6d>("ks");
+	g.alpha = pt.get<Vector6d>("alpha");
+	g.beta = pt.get<Vector6d>("beta");
+	g.gamma1 = pt.get<Vector6d>("gamma1");
+	g.gamma2 = pt.get<Vector19d>("gamma2");
+}
+
+void TrackingControllerWorker::resetController() {
+	controllerptr.reset(new TrackingController(controllerconfig));
+}
+
+void TrackingControllerWorker::setCurrentPosWaypoint() {
 	const LPOSVSSInfo &lpos = *lposvssmailbox;
 	Vector6d traj;
 	traj.head<3>() = lpos.getPosition_NED();
 	traj(3) = traj(4) = 0;
 	traj(5) = MILQuaternionOps::Quat2Euler(lpos.getQuat_NED_B())(2);
 	trajectorymailbox.set(TrajectoryInfo(getTimestamp(), traj, Vector6d::Zero()));
-}
-
-void TrackingControllerWorker::work(double dt) {
-	TrackingControllerInfo info(getState().code, getTimestamp());
-	controllerptr->Update(dt, *trajectorymailbox, *lposvssmailbox, info);
-
-	// Emit every iteration
-	wrenchsignal.emit(info.Wrench);
-	infosignal.emit(info);
 }
 
 static boost::int64_t getTimestamp(void) {
@@ -55,7 +84,4 @@ static boost::int64_t getTimestamp(void) {
 	return ((long long int)t.tv_sec * 1e9) + t.tv_nsec;
 }
 
-void TrackingControllerWorker::setControllerGains(const boost::optional<TrackingControllerGains> &new_gains) {
-	if (new_gains && controllerptr)
-		controllerptr->SetGains(*new_gains);
-}
+
