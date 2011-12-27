@@ -1,8 +1,8 @@
 #include "TrackingController/TrackingController.h"
-#include "SubMain/SubAttitudeHelpers.h"
-#include "SubMain/SubMILQuaternion.h"
-#include "SubMain/SubPrerequisites.h"
+#include "LibSub/Math/AttitudeHelpers.h"
+#include "LibSub/Math/Quaternion.h"
 #include <boost/algorithm/string.hpp>
+#include <iostream>
 
 using namespace subjugator;
 using namespace boost::algorithm;

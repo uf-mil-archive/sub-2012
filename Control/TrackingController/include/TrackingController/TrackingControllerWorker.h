@@ -1,15 +1,14 @@
 #ifndef _TRACKINGCONTROLLERWORKER_H__
 #define _TRACKINGCONTROLLERWORKER_H__
 
-#include "HAL/HAL.h"
-#include "LibSub/Math/EigenUtils.h"
-#include "LibSub/State/State.h"
+#include "TrackingController/TrackingController.h"
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerConfigLoader.h"
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
 #include "LibSub/Worker/WorkerKill.h"
-#include "TrackingController/TrackingController.h"
+#include "LibSub/Math/EigenUtils.h"
+#include "LibSub/State/State.h"
 #include <boost/scoped_ptr.hpp>
 
 namespace subjugator {

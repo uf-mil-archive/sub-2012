@@ -1,6 +1,5 @@
 #include "TrackingController/TrackingControllerWorker.h"
-#include "SubMain/SubAttitudeHelpers.h"
-#include "SubMain/SubPrerequisites.h"
+#include "LibSub/Math/AttitudeHelpers.h"
 #include <time.h>
 
 using namespace subjugator;
