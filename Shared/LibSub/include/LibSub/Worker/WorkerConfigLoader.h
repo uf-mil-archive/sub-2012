@@ -22,13 +22,19 @@ namespace subjugator {
 		public:
 			WorkerConfigLoader() { }
 
-			void setOverlays(const std::vector<std::string> &overlays) { this->overlays = overlays; }
+			void addOverlay(const std::string &o) { overlays.push_back(o); }
+			void addOverlays(const std::vector<std::string> &os) { overlays.insert(overlays.end(), os.begin(), os.end()); }
 			void clearOverlays() { overlays.clear(); }
 
 			/**
 			\brief Loads configuration file for a worker
 			*/
 			boost::property_tree::ptree loadConfig(const std::string &workername) const;
+
+			/**
+			\brief Saves configuration data to the local overlay for a worker
+			*/
+			void writeLocalConfig(const std::string &workername, const boost::property_tree::ptree &config) const;
 
 		private:
 			std::vector<std::string> overlays;

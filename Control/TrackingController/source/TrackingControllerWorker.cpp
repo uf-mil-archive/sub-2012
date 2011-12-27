@@ -52,12 +52,16 @@ void TrackingControllerWorker::work(double dt) {
 }
 
 void TrackingControllerWorker::setControllerGains(const boost::optional<TrackingController::Gains> &new_gains) {
+	if (!new_gains)
+		return;
+
 	logger.log("Updating gains");
 
-	if (new_gains && controllerptr) {
-		controllerconfig.gains = *new_gains;
+	controllerconfig.gains = *new_gains;
+	saveConfigGains();
+
+	if (controllerptr)
 		resetController();
-	}
 }
 
 void TrackingControllerWorker::loadConfig() {
@@ -72,6 +76,20 @@ void TrackingControllerWorker::loadConfig() {
 	g.beta = pt.get<Vector6d>("beta");
 	g.gamma1 = pt.get<Vector6d>("gamma1");
 	g.gamma2 = pt.get<Vector19d>("gamma2");
+}
+
+void TrackingControllerWorker::saveConfigGains() const {
+	ptree config;
+	const TrackingController::Gains &g = controllerconfig.gains;
+
+	config.put("gains.k", g.k);
+	config.put("gains.ks", g.ks);
+	config.put("gains.alpha", g.alpha);
+	config.put("gains.beta", g.beta);
+	config.put("gains.gamma1", g.gamma1);
+	config.put("gains.gamma2", g.gamma2);
+
+	configloader.writeLocalConfig(getName(), config);
 }
 
 void TrackingControllerWorker::resetController() {

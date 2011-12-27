@@ -51,6 +51,7 @@ namespace subjugator {
 			void setControllerGains(const boost::optional<TrackingController::Gains> &gains);
 
 			void loadConfig();
+			void saveConfigGains() const;
 			void resetController();
 			void setCurrentPosWaypoint();
 	};
