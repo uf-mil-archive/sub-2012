@@ -3,6 +3,8 @@
 
 #include "DataObjects/TrackingController/ControllerGains.h"
 #include "DataObjects/TrackingController/TrackingControllerInfo.h"
+#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
+#include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "HAL/HAL.h"
 #include "LibSub/Math/EigenUtils.h"
 #include "LibSub/State/State.h"

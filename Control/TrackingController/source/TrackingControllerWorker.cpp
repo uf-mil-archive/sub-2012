@@ -35,11 +35,36 @@ void TrackingControllerWorker::enterActive() {
 }
 
 void TrackingControllerWorker::work(double dt) {
+	const LPOSVSSInfo &lpos = *lposvssmailbox;
+	const TrajectoryInfo &traj = *trajectorymailbox;
+
+	TrackingController::State state;
+	state.x <<  lpos.getPosition_NED(),
+	            MILQuaternionOps::Quat2Euler(lpos.getQuat_NED_B());
+	state.vb << MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lpos.getQuat_NED_B()), lpos.getVelocity_NED()),
+	            lpos.getAngularRate_BODY();
+
+	TrackingController::TrajectoryPoint tp;
+	tp.xd = traj.getTrajectory();
+	tp.xd_dot = traj.getTrajectory_dot();
+
+	TrackingController::Output out = controllerptr->update(dt, tp, state);
+
 	TrackingControllerInfo info(getState().code, getTimestamp());
-	controllerptr->update(dt, *trajectorymailbox, *lposvssmailbox, info);
+	info.Wrench = out.control;
+	info.X = state.x;
+	info.X_dot << lpos.getVelocity_NED(),
+	              MILQuaternionOps::QuatRotate(lpos.getQuat_NED_B(), lpos.getAngularRate_BODY());
+	info.Xd = tp.xd;
+	info.Xd_dot = tp.xd_dot;
+	info.V_hat = controllerptr->getVHat();
+	info.W_hat = controllerptr->getWHat();
+	info.pd_control = out.control_pd;
+	info.rise_control = out.control_rise;
+	info.nn_control = out.control_nn;
 
 	// Emit every iteration
-	wrenchsignal.emit(info.Wrench);
+	wrenchsignal.emit(out.control);
 	infosignal.emit(info);
 }
 

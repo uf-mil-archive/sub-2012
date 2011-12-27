@@ -1,9 +1,6 @@
 #ifndef SUBTRACKINGCONTROLLER_H
 #define SUBTRACKINGCONTROLLER_H
 
-#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
-#include "DataObjects/TrackingController/TrackingControllerInfo.h"
-#include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "LibSub/Math/EigenUtils.h"
 #include <istream>
 
@@ -37,7 +34,29 @@ namespace subjugator {
 			};
 
 			TrackingController(const Config &config);
-			void update(double dt, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo, TrackingControllerInfo &info);
+
+			struct State {
+				Vector6d x;
+				Vector6d vb;
+			};
+
+			struct TrajectoryPoint {
+				Vector6d xd;
+				Vector6d xd_dot;
+			};
+
+			struct Output {
+				Vector6d control;
+
+				Vector6d control_pd;
+				Vector6d control_rise;
+				Vector6d control_nn;
+			};
+
+			Output update(double dt, const TrajectoryPoint &t, const State &s);
+
+			const Matrix19x5d &getVHat() const { return V_hat_prev; }
+			const Matrix6d &getWHat() const { return W_hat_prev; }
 
 		private:
 			const Config config;
@@ -56,9 +75,9 @@ namespace subjugator {
 			Matrix6d W_hat_dot_prev;
 			Matrix6d W_hat_prev;
 
-			Vector6d RiseFeedbackNoAccel(double dt, Vector6d e2);
-			Vector6d NNFeedForward(double dt, Vector6d e2, Vector6d xd, Vector6d xd_dot);
-			Vector6d PDFeedback(double dt, Vector6d e2);
+			Vector6d RiseFeedbackNoAccel(double dt, const Vector6d &e2);
+			Vector6d NNFeedForward(double dt, const Vector6d &e2, const TrajectoryPoint &t);
+			Vector6d PDFeedback(double dt, const Vector6d &e2);
 	};
 
 	std::istream &operator>>(std::istream &in, TrackingController::Mode &mode);

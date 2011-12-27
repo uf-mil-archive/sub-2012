@@ -22,63 +22,38 @@ V_hat_prev(Matrix19x5d::Random()),
 W_hat_dot_prev(Matrix6d::Zero()),
 W_hat_prev(Matrix6d::Zero()) { }
 
-void TrackingController::update(double dt, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo, TrackingControllerInfo &info) {
-	// NED Position
-	Vector6d x;
-	x << lposInfo.getPosition_NED(),
-	     MILQuaternionOps::Quat2Euler(lposInfo.getQuat_NED_B());
-
-	// NED Velocity
-	Vector6d x_dot;
-	x_dot << lposInfo.getVelocity_NED(),
-	         MILQuaternionOps::QuatRotate(lposInfo.getQuat_NED_B(), lposInfo.getAngularRate_BODY());
-
-	// Body Velocity
-	Vector6d vb;
-	vb << MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo.getQuat_NED_B()), lposInfo.getVelocity_NED()),
-	      lposInfo.getAngularRate_BODY();
-
-	// Save the relevant trajectory data
-	Vector6d xd = traj.getTrajectory();
-	Vector6d xd_dot = traj.getTrajectory_dot();
-
-	Matrix6d J_inv = GetJacobianInverse(x);
-	//Matrix6d J = GetJacobian(x);
+TrackingController::Output TrackingController::update(double dt, const TrajectoryPoint &t, const State &s) {
+	// calculate some shared constants
+	Matrix6d J_inv = GetJacobianInverse(s.x);
 
 	Vector6d e;
-	e << xd.block<3,1>(0,0) - x.block<3,1>(0,0),
-	     AttitudeHelpers::DAngleDiff(x(3), xd(3)),
-	     AttitudeHelpers::DAngleDiff(x(4), xd(4)),
-	     AttitudeHelpers::DAngleDiff(x(5), xd(5));
+	e << t.xd.block<3,1>(0,0) - s.x.block<3,1>(0,0),
+	     AttitudeHelpers::DAngleDiff(s.x(3), t.xd(3)),
+	     AttitudeHelpers::DAngleDiff(s.x(4), t.xd(4)),
+	     AttitudeHelpers::DAngleDiff(s.x(5), t.xd(5));
 
-	Vector6d vbd = J_inv * (config.gains.k.asDiagonal() * e + xd_dot);
-	Vector6d e2 = vbd - vb;
+	Vector6d vbd = J_inv * (config.gains.k.asDiagonal() * e + t.xd_dot);
+	Vector6d e2 = vbd - s.vb;
 
-	Vector6d control = Vector6d::Zero();
-	Vector6d pd_control = PDFeedback(dt, e2);
-	Vector6d rise_control = RiseFeedbackNoAccel(dt, e2);
-	Vector6d nn_control = NNFeedForward(dt, e2, xd, xd_dot);
+	// compute each term
+	Output out;
+	out.control_pd = PDFeedback(dt, e2);
+	out.control_rise = RiseFeedbackNoAccel(dt, e2);
+	out.control_nn = NNFeedForward(dt, e2, t);
 
+	// sum the active terms to get the combined output
+	out.control = Vector6d::Zero();
 	if (config.mode & TERM_PD)
-		control += pd_control;
+		out.control += out.control_pd;
 	if (config.mode & TERM_RISE)
-		control += rise_control;
+		out.control += out.control_rise;
 	if (config.mode & TERM_NN)
-		control += nn_control;
+		out.control += out.control_nn;
 
-	info.Wrench = control;
-	info.X = x;
-	info.X_dot = x_dot;
-	info.Xd = xd;
-	info.Xd_dot = xd_dot;
-	info.V_hat = V_hat_prev;
-	info.W_hat = W_hat_prev;
-	info.pd_control = pd_control;
-	info.rise_control = rise_control;
-	info.nn_control = nn_control;
+	return out;
 }
 
-Vector6d TrackingController::RiseFeedbackNoAccel(double dt, Vector6d e2) {
+Vector6d TrackingController::RiseFeedbackNoAccel(double dt, const Vector6d &e2) {
 	const Gains &g = config.gains;
 
 	Matrix6d ksPlus1 = (Matrix6d)g.ks.asDiagonal() + Matrix6d::Identity();
@@ -96,23 +71,23 @@ Vector6d TrackingController::RiseFeedbackNoAccel(double dt, Vector6d e2) {
 	return rise_control;
 }
 
-Vector6d TrackingController::PDFeedback(double dt, Vector6d e2) {
+Vector6d TrackingController::PDFeedback(double dt, const Vector6d &e2) {
 	return config.gains.ks.asDiagonal() * e2;
 }
 
-Vector6d TrackingController::NNFeedForward(double dt, Vector6d e2, Vector6d xd, Vector6d xd_dot) {
+Vector6d TrackingController::NNFeedForward(double dt, const Vector6d &e2, const TrajectoryPoint &t) {
 	const Gains &g = config.gains;
 
-	Vector6d xd_dotdot = (xd_dot - xd_dot_prev) / dt;
-	xd_dot_prev = xd_dot;
+	Vector6d xd_dotdot = (t.xd_dot - xd_dot_prev) / dt;
+	xd_dot_prev = t.xd_dot;
 	Vector6d xd_dotdotdot = (xd_dotdot - xd_dotdot_prev) / dt;
 	xd_dotdot_prev = xd_dotdot;
 
-	VectorXd xd_nn(xd.rows()*3+1, 1); // xd_nn = [1 ; xd; xd_dot; xd_dotdot];
-	xd_nn << 1, xd, xd_dot, xd_dotdot;
+	VectorXd xd_nn(t.xd.rows()*3+1, 1); // xd_nn = [1 ; xd; xd_dot; xd_dotdot];
+	xd_nn << 1, t.xd, t.xd_dot, xd_dotdot;
 
-	VectorXd xd_nn_dot(xd.rows()*3+1, 1); // xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
-	xd_nn_dot << 0, xd_dot, xd_dotdot, xd_dotdotdot;
+	VectorXd xd_nn_dot(t.xd.rows()*3+1, 1); // xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
+	xd_nn_dot << 0, t.xd_dot, xd_dotdot, xd_dotdotdot;
 
 	//VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
 	VectorXd one = VectorXd::Ones(V_hat_prev.cols(), 1); // not sure why I need the matrix form of ::Ones here, the vector form hits a static assert
