@@ -20,7 +20,7 @@ statetopic(part, "WorkerState", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
 statereceiver(statetopic),
 logtopic(part, "WorkerLog", TopicQOS::DEEP_PERSISTENT),
 logreceiver(logtopic),
-killtopic(part, "WorkerKill", TopicQOS::PERSISTENT),
+killtopic(part, "WorkerKill", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
 killreceiver(killtopic),
 killsender(killtopic)
 {
