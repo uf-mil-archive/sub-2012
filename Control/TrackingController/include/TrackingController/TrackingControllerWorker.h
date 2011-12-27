@@ -1,10 +1,6 @@
 #ifndef _TRACKINGCONTROLLERWORKER_H__
 #define _TRACKINGCONTROLLERWORKER_H__
 
-#include "DataObjects/TrackingController/ControllerGains.h"
-#include "DataObjects/TrackingController/TrackingControllerInfo.h"
-#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
-#include "DataObjects/Trajectory/TrajectoryInfo.h"
 #include "HAL/HAL.h"
 #include "LibSub/Math/EigenUtils.h"
 #include "LibSub/State/State.h"
@@ -16,35 +12,53 @@
 #include "TrackingController/TrackingController.h"
 #include <boost/scoped_ptr.hpp>
 
-namespace subjugator
-{
+namespace subjugator {
 	class TrackingControllerWorker : public Worker {
-	public:
-		TrackingControllerWorker(const WorkerConfigLoader &configloader);
+		public:
+			struct LPOSVSSInfo {
+				Vector3d position_ned;
+				Vector4d quaternion_ned_b;
+				Vector3d velocity_ned;
+				Vector3d angularrate_body;
+			};
 
-		WorkerMailbox<LPOSVSSInfo> lposvssmailbox;
-		WorkerMailbox<TrajectoryInfo> trajectorymailbox;
-		WorkerMailbox<TrackingController::Gains> gainsmailbox;
-		WorkerKillMonitor killmon;
+			struct LogData {
+				Vector6d x;
+				Vector6d x_dot;
+				Vector6d xd;
+				Vector6d xd_dot;
 
-		WorkerSignal<Vector6d> wrenchsignal;
-		WorkerSignal<TrackingControllerInfo> infosignal;
+				Matrix19x5d v_hat;
+				Matrix6d w_hat;
 
-	protected:
-		virtual void enterActive();
-		virtual void work(double dt);
+				TrackingController::Output out;
+			};
 
-	private:
-		const WorkerConfigLoader &configloader;
+			TrackingControllerWorker(const WorkerConfigLoader &configloader);
 
-		boost::scoped_ptr<TrackingController> controllerptr;
-		TrackingController::Config controllerconfig;
+			WorkerMailbox<LPOSVSSInfo> lposvssmailbox;
+			WorkerMailbox<TrackingController::TrajectoryPoint> trajectorymailbox;
+			WorkerMailbox<TrackingController::Gains> gainsmailbox;
+			WorkerKillMonitor killmon;
 
-		void setControllerGains(const boost::optional<TrackingController::Gains> &gains);
+			WorkerSignal<Vector6d> wrenchsignal;
+			WorkerSignal<LogData> logsignal;
 
-		void loadConfig();
-		void resetController();
-		void setCurrentPosWaypoint();
+		protected:
+			virtual void enterActive();
+			virtual void work(double dt);
+
+		private:
+			const WorkerConfigLoader &configloader;
+
+			boost::scoped_ptr<TrackingController> controllerptr;
+			TrackingController::Config controllerconfig;
+
+			void setControllerGains(const boost::optional<TrackingController::Gains> &gains);
+
+			void loadConfig();
+			void resetController();
+			void setCurrentPosWaypoint();
 	};
 }
 

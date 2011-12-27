@@ -1,15 +1,13 @@
-#include <boost/asio.hpp>
-
+#include "TrackingController/Messages/ControllerGainsMessageSupport.h"
+#include "TrackingController/Messages/TrackingControllerLogMessageSupport.h"
+#include "TrackingController/Messages/TrajectoryMessageSupport.h"
+#include "TrackingController/TrackingControllerWorker.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
 #include "DDSMessages/PDStatusMessageSupport.h"
 #include "DDSMessages/PDWrenchMessageSupport.h"
 #include "LibSub/DDS/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
-
-#include "TrackingController/Messages/ControllerGainsMessageSupport.h"
-#include "TrackingController/Messages/TrackingControllerLogMessageSupport.h"
-#include "TrackingController/Messages/TrajectoryMessageSupport.h"
-#include "TrackingController/TrackingControllerWorker.h"
+#include <boost/asio.hpp>
 
 using namespace std;
 using namespace boost::asio;
@@ -44,7 +42,7 @@ int main(int argc, char **argv) {
 	dds.receiver(worker.gainsmailbox, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::LEGACY));
 
 	dds.sender(worker.wrenchsignal, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
-	dds.sender(worker.infosignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog", TopicQOS::LEGACY));
+	dds.sender(worker.logsignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog", TopicQOS::LEGACY));
 
 	// Start the worker
 	builder.runWorker();
@@ -52,8 +50,11 @@ int main(int argc, char **argv) {
 
 namespace subjugator {
 	template <>
-	void from_dds(LPOSVSSInfo &res, const LPOSVSSMessage &msg) {
-		res = LPOSVSSInfo(msg.state, msg.timestamp, Vector3d(msg.position_NED), Vector4d(msg.quaternion_NED_B), Vector3d(msg.velocity_NED), Vector3d(msg.angularRate_BODY), Vector3d(msg.acceleration_BODY));
+	void from_dds(TrackingControllerWorker::LPOSVSSInfo &lpos, const LPOSVSSMessage &msg) {
+		from_dds(lpos.position_ned, msg.position_NED);
+		from_dds(lpos.quaternion_ned_b, msg.quaternion_NED_B);
+		from_dds(lpos.velocity_ned, msg.velocity_NED);
+		from_dds(lpos.angularrate_body, msg.angularRate_BODY);
 	}
 
 	template <>
@@ -62,21 +63,17 @@ namespace subjugator {
 	}
 
 	template <>
-	void from_dds(TrajectoryInfo &res, const TrajectoryMessage &msg) {
-		res = TrajectoryInfo(msg.timestamp, TrajectoryInfo::Vector6d(msg.xd), TrajectoryInfo::Vector6d(msg.xd_dot));
+	void from_dds(TrackingController::TrajectoryPoint &tp, const TrajectoryMessage &msg) {
+		from_dds(tp.xd, msg.xd);
+		from_dds(tp.xd_dot, msg.xd_dot);
 	}
 
 	template <>
-	void from_dds(TrackingController::Gains &new_gains, const ControllerGainsMessage &gains)
-	{
-		for (int i=0; i<6; i++)
-			new_gains.k(i) = gains.k[i];
-		for (int i=0; i<6; i++)
-			new_gains.ks(i) = gains.ks[i];
-		for (int i=0; i<6; i++)
-			new_gains.alpha(i) = gains.alpha[i];
-		for (int i=0; i<6; i++)
-			new_gains.beta(i) = gains.beta[i];
+	void from_dds(TrackingController::Gains &gains, const ControllerGainsMessage &msg) {
+		from_dds(gains.k, msg.k);
+		from_dds(gains.ks, msg.ks);
+		from_dds(gains.alpha, msg.alpha);
+		from_dds(gains.beta, msg.beta);
 	}
 
 	template <>
@@ -88,20 +85,20 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(TrackingControllerLogMessage &logmessage, const TrackingControllerInfo &info) {
+	void to_dds(TrackingControllerLogMessage &logmessage, const TrackingControllerWorker::LogData &data) {
 		for (int i=0;i<6;i++) {
-			logmessage.control[i] = info.Wrench[i];
-			logmessage.pd_control[i] = info.pd_control[i];
-			logmessage.rise_control[i] = info.rise_control[i];
-			logmessage.nn_control[i] = info.nn_control[i];
+			logmessage.control[i] = data.out.control[i];
+			logmessage.pd_control[i] = data.out.control_pd[i];
+			logmessage.rise_control[i] = data.out.control_rise[i];
+			logmessage.nn_control[i] = data.out.control_nn[i];
 		}
 
 		for (int i=0;i<19;i++)
 			for (int j=0;j<5;j++)
-				logmessage.V_hat[i][j] = info.V_hat(i,j);
+				logmessage.V_hat[i][j] = data.v_hat(i,j);
 
 		for (int i=0;i<6;i++)
 			for (int j=0;j<6;j++)
-				logmessage.W_hat[i][j] = info.W_hat(i,j);
+				logmessage.W_hat[i][j] = data.w_hat(i,j);
 	}
 }

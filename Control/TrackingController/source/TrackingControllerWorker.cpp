@@ -16,7 +16,7 @@ TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &con
 	lposvssmailbox(WorkerMailbox<LPOSVSSInfo>::Args()
 		.setName("LPOSVSS")
 		.setMaxAge(.2)),
-	trajectorymailbox(WorkerMailbox<TrajectoryInfo>::Args()
+	trajectorymailbox(WorkerMailbox<TrackingController::TrajectoryPoint>::Args()
 		.setName("Trajectory")),
 	gainsmailbox(WorkerMailbox<TrackingController::Gains>::Args()
 		.setName("ControllerGains")
@@ -35,37 +35,29 @@ void TrackingControllerWorker::enterActive() {
 }
 
 void TrackingControllerWorker::work(double dt) {
+	// lpos -> state glue math
 	const LPOSVSSInfo &lpos = *lposvssmailbox;
-	const TrajectoryInfo &traj = *trajectorymailbox;
-
 	TrackingController::State state;
-	state.x <<  lpos.getPosition_NED(),
-	            MILQuaternionOps::Quat2Euler(lpos.getQuat_NED_B());
-	state.vb << MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lpos.getQuat_NED_B()), lpos.getVelocity_NED()),
-	            lpos.getAngularRate_BODY();
+	state.x <<  lpos.position_ned,
+	            MILQuaternionOps::Quat2Euler(lpos.quaternion_ned_b);
+	state.vb << MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lpos.quaternion_ned_b), lpos.velocity_ned),
+	            lpos.angularrate_body;
 
-	TrackingController::TrajectoryPoint tp;
-	tp.xd = traj.getTrajectory();
-	tp.xd_dot = traj.getTrajectory_dot();
-
-	TrackingController::Output out = controllerptr->update(dt, tp, state);
-
-	TrackingControllerInfo info(getState().code, getTimestamp());
-	info.Wrench = out.control;
-	info.X = state.x;
-	info.X_dot << lpos.getVelocity_NED(),
-	              MILQuaternionOps::QuatRotate(lpos.getQuat_NED_B(), lpos.getAngularRate_BODY());
-	info.Xd = tp.xd;
-	info.Xd_dot = tp.xd_dot;
-	info.V_hat = controllerptr->getVHat();
-	info.W_hat = controllerptr->getWHat();
-	info.pd_control = out.control_pd;
-	info.rise_control = out.control_rise;
-	info.nn_control = out.control_nn;
-
-	// Emit every iteration
+	// update controller
+	TrackingController::Output out = controllerptr->update(dt, *trajectorymailbox, state);
 	wrenchsignal.emit(out.control);
-	infosignal.emit(info);
+
+	// output additional data for logging/debug purposes
+	LogData data;
+	data.x = state.x;
+	data.x_dot << lpos.velocity_ned,
+	              MILQuaternionOps::QuatRotate(lpos.quaternion_ned_b, lpos.angularrate_body);
+	data.xd = trajectorymailbox->xd;
+	data.xd_dot = trajectorymailbox->xd_dot;
+	data.v_hat = controllerptr->getVHat();
+	data.w_hat = controllerptr->getWHat();
+	data.out = out;
+	logsignal.emit(data);
 }
 
 void TrackingControllerWorker::setControllerGains(const boost::optional<TrackingController::Gains> &new_gains) {
@@ -94,12 +86,13 @@ void TrackingControllerWorker::resetController() {
 }
 
 void TrackingControllerWorker::setCurrentPosWaypoint() {
-	const LPOSVSSInfo &lpos = *lposvssmailbox;
-	Vector6d traj;
-	traj.head<3>() = lpos.getPosition_NED();
-	traj(3) = traj(4) = 0;
-	traj(5) = MILQuaternionOps::Quat2Euler(lpos.getQuat_NED_B())(2);
-	trajectorymailbox.set(TrajectoryInfo(getTimestamp(), traj, Vector6d::Zero()));
+	TrackingController::TrajectoryPoint tp;
+	tp.xd << lposvssmailbox->position_ned,
+	         0,
+	         0,
+	         MILQuaternionOps::Quat2Euler(lposvssmailbox->quaternion_ned_b)(2);
+	tp.xd_dot = Vector6d::Zero();
+	trajectorymailbox.set(tp);
 }
 
 static boost::int64_t getTimestamp(void) {
