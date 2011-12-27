@@ -1,5 +1,5 @@
-#ifndef SUBTRACKINGCONTROLLER_H
-#define SUBTRACKINGCONTROLLER_H
+#ifndef TRACKINGCONTROLLER_TRACKINGCONTROLLER_H
+#define TRACKINGCONTROLLER_TRACKINGCONTROLLER_H
 
 #include "LibSub/Math/EigenUtils.h"
 #include <istream>
@@ -75,12 +75,16 @@ namespace subjugator {
 			Matrix6d W_hat_dot_prev;
 			Matrix6d W_hat_prev;
 
-			Vector6d RiseFeedbackNoAccel(double dt, const Vector6d &e2);
-			Vector6d NNFeedForward(double dt, const Vector6d &e2, const TrajectoryPoint &t);
-			Vector6d PDFeedback(double dt, const Vector6d &e2);
+			Vector6d riseFeedbackNoAccel(double dt, const Vector6d &e2);
+			Vector6d nnFeedForward(double dt, const Vector6d &e2, const TrajectoryPoint &t);
+			Vector6d pdFeedback(double dt, const Vector6d &e2);
+
+			static Matrix6d jacobian(const Vector6d &x);
+			static Matrix6d jacobianInverse(const Vector6d &x);
 	};
 
 	std::istream &operator>>(std::istream &in, TrackingController::Mode &mode);
 }
 
-#endif /* SUBTrackingController_H */
+#endif
+

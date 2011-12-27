@@ -1,10 +1,9 @@
+#include "TrackingController/TrackingControllerWorker.h"
 #include "TrackingController/Messages/ControllerGainsMessageSupport.h"
 #include "TrackingController/Messages/TrackingControllerLogMessageSupport.h"
 #include "TrackingController/Messages/TrajectoryMessageSupport.h"
-#include "TrackingController/TrackingControllerWorker.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
-#include "DDSMessages/PDStatusMessageSupport.h"
-#include "DDSMessages/PDWrenchMessageSupport.h"
+#include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
 #include "LibSub/DDS/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
 #include <boost/asio.hpp>
@@ -15,7 +14,6 @@ using namespace subjugator;
 
 DECLARE_MESSAGE_TRAITS(ControllerGainsMessage);
 DECLARE_MESSAGE_TRAITS(LPOSVSSMessage);
-DECLARE_MESSAGE_TRAITS(PDStatusMessage);
 DECLARE_MESSAGE_TRAITS(PDWrenchMessage);
 DECLARE_MESSAGE_TRAITS(TrackingControllerLogMessage);
 DECLARE_MESSAGE_TRAITS(TrajectoryMessage);
@@ -55,11 +53,6 @@ namespace subjugator {
 		from_dds(lpos.quaternion_ned_b, msg.quaternion_NED_B);
 		from_dds(lpos.velocity_ned, msg.velocity_NED);
 		from_dds(lpos.angularrate_body, msg.angularRate_BODY);
-	}
-
-	template <>
-	void from_dds(bool &hardwareKilled, const PDStatusMessage &pdstatus) {
-		hardwareKilled = (pdstatus.flags & (1 << 2)) != 0;
 	}
 
 	template <>

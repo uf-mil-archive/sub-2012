@@ -1,5 +1,5 @@
-#ifndef _TRACKINGCONTROLLERWORKER_H__
-#define _TRACKINGCONTROLLERWORKER_H__
+#ifndef TRACKINGCONTROLLER_TRACKINGCONTROLLERWORKER_H
+#define TRACKINGCONTROLLER_TRACKINGCONTROLLERWORKER_H
 
 #include "TrackingController/TrackingController.h"
 #include "LibSub/Worker/Worker.h"
@@ -22,11 +22,6 @@ namespace subjugator {
 			};
 
 			struct LogData {
-				Vector6d x;
-				Vector6d x_dot;
-				Vector6d xd;
-				Vector6d xd_dot;
-
 				Matrix19x5d v_hat;
 				Matrix6d w_hat;
 
@@ -62,3 +57,4 @@ namespace subjugator {
 }
 
 #endif
+

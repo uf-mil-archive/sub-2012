@@ -1,14 +1,11 @@
 #include "TrackingController/TrackingControllerWorker.h"
 #include "LibSub/Math/AttitudeHelpers.h"
-#include <time.h>
 
 using namespace subjugator;
 using namespace Eigen;
 using namespace boost;
 using namespace boost::property_tree;
 using namespace std;
-
-static boost::int64_t getTimestamp(void);
 
 TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &configloader) :
 	Worker("TrackingController", 50),
@@ -48,11 +45,6 @@ void TrackingControllerWorker::work(double dt) {
 
 	// output additional data for logging/debug purposes
 	LogData data;
-	data.x = state.x;
-	data.x_dot << lpos.velocity_ned,
-	              MILQuaternionOps::QuatRotate(lpos.quaternion_ned_b, lpos.angularrate_body);
-	data.xd = trajectorymailbox->xd;
-	data.xd_dot = trajectorymailbox->xd_dot;
 	data.v_hat = controllerptr->getVHat();
 	data.w_hat = controllerptr->getWHat();
 	data.out = out;
@@ -60,6 +52,8 @@ void TrackingControllerWorker::work(double dt) {
 }
 
 void TrackingControllerWorker::setControllerGains(const boost::optional<TrackingController::Gains> &new_gains) {
+	logger.log("Updating gains");
+
 	if (new_gains && controllerptr) {
 		controllerconfig.gains = *new_gains;
 		resetController();
@@ -81,10 +75,14 @@ void TrackingControllerWorker::loadConfig() {
 }
 
 void TrackingControllerWorker::resetController() {
+	logger.log("Resetting controller", WorkerLogEntry::DEBUG);
+
 	controllerptr.reset(new TrackingController(controllerconfig));
 }
 
 void TrackingControllerWorker::setCurrentPosWaypoint() {
+	logger.log("Setting waypoint to current position", WorkerLogEntry::DEBUG);
+
 	TrackingController::TrajectoryPoint tp;
 	tp.xd << lposvssmailbox->position_ned,
 	         0,
@@ -93,12 +91,4 @@ void TrackingControllerWorker::setCurrentPosWaypoint() {
 	tp.xd_dot = Vector6d::Zero();
 	trajectorymailbox.set(tp);
 }
-
-static boost::int64_t getTimestamp(void) {
-	timespec t;
-	clock_gettime(CLOCK_MONOTONIC, &t);
-
-	return ((long long int)t.tv_sec * 1e9) + t.tv_nsec;
-}
-
 
