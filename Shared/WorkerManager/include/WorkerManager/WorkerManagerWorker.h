@@ -22,7 +22,7 @@ namespace subjugator {
 				Process::State state;
 			};
 
-			WorkerManagerWorker(const WorkerConfigLoader &configloader);
+			WorkerManagerWorker(const std::string &suffix, const WorkerConfigLoader &configloader);
 
 			WorkerMailbox<Command> commandmailbox;
 			WorkerSignal<StatusUpdate> statusupdatesignal;

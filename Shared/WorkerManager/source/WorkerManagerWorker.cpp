@@ -8,8 +8,8 @@ using namespace boost::property_tree;
 using namespace boost::algorithm;
 using namespace std;
 
-WorkerManagerWorker::WorkerManagerWorker(const WorkerConfigLoader &configloader) :
-Worker("WorkerManager", 2),
+WorkerManagerWorker::WorkerManagerWorker(const string &suffix, const WorkerConfigLoader &configloader) :
+Worker("WorkerManager" + (suffix.size() ? "_" + suffix : ""), 2),
 commandmailbox(WorkerMailbox<Command>::Args()
 	.setName("command")
 	.setCallback(bind(&WorkerManagerWorker::commandSet, this, _1))

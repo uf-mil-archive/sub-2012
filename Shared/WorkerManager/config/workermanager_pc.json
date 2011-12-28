@@ -1,13 +1,7 @@
 {
 	"workers": [
-		{"name": "DVL"},
-		{"name": "IMU"},
-		{"name": "Depth"},
-		{"name": "LPOSVSS"},
-
 		{"name": "PrimitiveDriver"},
 		{"name": "TrackingController"},
 		{"name": "TrajectoryGenerator"}
 	]
 }
-

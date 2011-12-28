@@ -34,6 +34,8 @@ namespace subjugator {
 		protected:
 			boost::program_options::options_description desc;
 
+			virtual bool setVariables(const boost::program_options::variables_map &vm) { return true; }
+
 		private:
 			WorkerConfigLoader configloader;
 			WorkerLogEntry::Type logtype;
@@ -46,11 +48,12 @@ namespace subjugator {
 	template <class WorkerT>
 	class DefaultWorkerConstructionPolicy {
 		public:
-			DefaultWorkerConstructionPolicy(boost::asio::io_service &io, const WorkerBuilderOptions &options)
+			struct ExtraArg {};
+
+			DefaultWorkerConstructionPolicy(boost::asio::io_service &io, const WorkerBuilderOptions &options, const ExtraArg &ignored)
 			: worker(options.getConfigLoader()) { }
 
 			WorkerT &getWorker() { return worker; }
-
 		private:
 			WorkerT worker;
 	};
@@ -65,17 +68,34 @@ namespace subjugator {
 	template <class WorkerT>
 	class HALWorkerConstructionPolicy {
 		public:
-			HALWorkerConstructionPolicy(boost::asio::io_service &io, const WorkerBuilderOptions &options)
+			struct ExtraArg {};
+
+			HALWorkerConstructionPolicy(boost::asio::io_service &io, const WorkerBuilderOptions &options, const ExtraArg &ignored)
 			: hal(io), worker(hal, options.getConfigLoader()) { }
 
 			HAL &getHal() { return hal; }
 			WorkerT &getWorker() { return worker; }
-
 		private:
 			SubHAL hal;
 			WorkerT worker;
 	};
 	#endif
+
+	template <typename ExtraArgT>
+	struct ArgumentWorkerConstructionPolicy {
+		template <class WorkerT>
+		class Type {
+			public:
+				typedef ExtraArgT ExtraArg;
+
+				Type(boost::asio::io_service &io, const WorkerBuilderOptions &options, const ExtraArg &arg)
+				: worker(arg, options.getConfigLoader()) { }
+
+				WorkerT &getWorker() { return worker; }
+			private:
+				WorkerT worker;
+		};
+	};
 
 	/**
 	\brief Base class for WorkerBuilder.
@@ -107,9 +127,11 @@ namespace subjugator {
 
 	template <class WorkerT, template <class> class WorkerConstructionPolicy>
 	class WorkerBuilder : public WorkerConstructionPolicy<WorkerT>, public WorkerRuntime {
+		typedef WorkerConstructionPolicy<WorkerT> WCPolicy;
+
 		public:
-			WorkerBuilder(const WorkerBuilderOptions &options, boost::asio::io_service &io)
-			: WorkerConstructionPolicy<WorkerT>(io, options),
+			WorkerBuilder(const WorkerBuilderOptions &options, boost::asio::io_service &io, const typename WCPolicy::ExtraArg &ea=typename WCPolicy::ExtraArg())
+			: WCPolicy(io, options, ea),
 			  WorkerRuntime(io, getWorker(), options) { }
 
 			using WorkerConstructionPolicy<WorkerT>::getWorker;

@@ -29,6 +29,9 @@ bool WorkerBuilderOptions::parse(int argc, char **argv) {
 		return false;
 	}
 
+	if (!setVariables(vm))
+		return false;
+
 	if (vm.count("config-overlays"))
 		configloader.setOverlays(vm["config-overlays"].as<vector<string> >());
 	else
