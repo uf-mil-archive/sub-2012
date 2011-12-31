@@ -1,1 +1,1 @@
-sub_library(Sub DDS HAL)
+sub_library(Sub DDS LegacyHAL)

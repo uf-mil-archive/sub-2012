@@ -1,1 +1,1 @@
-sub_executable(MotorCalibrate Qt LegacyDDS HAL DataObjects)
+sub_executable(MotorCalibrate Qt LegacyDDS LegacyHAL DataObjects)

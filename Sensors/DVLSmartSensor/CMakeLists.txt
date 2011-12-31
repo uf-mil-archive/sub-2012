@@ -1,1 +1,1 @@
-sub_executable(DVLSmartSensor LegacyDDS HAL DataObjects SubMain)
+sub_executable(DVLSmartSensor LegacyDDS LegacyHAL DataObjects SubMain)

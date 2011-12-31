@@ -1,1 +1,1 @@
-sub_executable(IMUSmartSensor LegacyDDS SubMain HAL DataObjects)
+sub_executable(IMUSmartSensor LegacyDDS SubMain LegacyHAL DataObjects)

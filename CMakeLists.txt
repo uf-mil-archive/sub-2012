@@ -36,11 +36,12 @@ find_package(Boost REQUIRED COMPONENTS system thread date_time regex program_opt
 include_directories(${Boost_INCLUDE_DIRS})
 
 # add shared projects
-add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/HAL)
+add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/WorkerManager)
 
 # add legacy shared projects
+add_subdirectory(Legacy/HAL)
 add_subdirectory(Legacy/DDS)
 add_subdirectory(Legacy/DataObjects)
 add_subdirectory(Legacy/SubMain)

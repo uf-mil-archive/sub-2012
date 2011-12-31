@@ -1,1 +1,1 @@
-sub_executable(MissionPlanner LegacyDDS SubMain HAL DataObjects)
+sub_executable(MissionPlanner LegacyDDS SubMain LegacyHAL DataObjects)
