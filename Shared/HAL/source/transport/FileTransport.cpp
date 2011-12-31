@@ -5,9 +5,10 @@
 
 using namespace subjugator;
 using namespace boost;
+using namespace boost::asio;
 using namespace std;
 
-FileTransport::FileTransport() { }
+FileTransport::FileTransport(io_service &io) : io(io) { }
 
 const string &FileTransport::getName() const {
 	static const string name = "file";
@@ -15,6 +16,6 @@ const string &FileTransport::getName() const {
 }
 
 Endpoint *FileTransport::makeEndpoint(const std::string &address, const ParamMap &params) {
-	return new FileEndpoint(address);
+	return new FileEndpoint(address, io);
 }
 

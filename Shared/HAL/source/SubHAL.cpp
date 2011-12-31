@@ -11,6 +11,6 @@ SubHAL::SubHAL(io_service &ioservice) {
 	addTransport(new TCPTransport(ioservice));
 	addTransport(new UDPTransport(ioservice));
 	addTransport(new SerialTransport(ioservice));
-	addTransport(new FileTransport());
+	addTransport(new FileTransport(ioservice));
 }
 
