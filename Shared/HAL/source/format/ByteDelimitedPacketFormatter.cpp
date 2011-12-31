@@ -11,10 +11,10 @@ ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(boost::uint8_t flagby
 	buf.reserve(4096);
 }
 
-vector<Packet> ByteDelimitedPacketFormatter::parsePackets(const ByteVec &newdata) {
+vector<Packet> ByteDelimitedPacketFormatter::parsePackets(ByteVec::const_iterator i, ByteVec::const_iterator end) {
 	vector<Packet> packets;
 
-	for (ByteVec::const_iterator i = newdata.begin(); i != newdata.end(); ++i) { // go through each byte
+	for (; i != end; ++i) { // go through each byte
 		switch (state) {
 			case STATE_NOPACKET:
 				if (*i == flagbyte)
