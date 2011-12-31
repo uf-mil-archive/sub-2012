@@ -58,13 +58,9 @@ namespace subjugator {
 			void updateKills();
 			void updateLog();
 
-			struct Entry {
-				boost::optional<WorkerManagerProcessStatus> status;
-				boost::optional<State> state;
-			};
-
-			void updateWorker(int row, const std::string &name, const Entry &entry);
+			void updateWorker(int row, const std::string &name, const boost::optional<WorkerManagerProcessStatus> &status, const boost::optional<State> &state);
 			void updateKill(int row, const WorkerKillMessage &msg);
+			static void updateTableItem(QTableWidget &table, int row, int col, const QColor &color, const std::string &str);
 
 			void sendKill(bool killed);
 	};
@@ -80,6 +76,19 @@ namespace subjugator {
 	};
 
 	std::ostream &operator<<(std::ostream &out, CombinedState state);
+
+	struct DisableSorting {
+		DisableSorting(QTableWidget &table) : sorted(table.isSortingEnabled()), table(table) {
+			table.setSortingEnabled(false);
+		}
+
+		~DisableSorting() {
+			table.setSortingEnabled(sorted);
+		}
+
+		bool sorted;
+		QTableWidget &table;
+	};
 }
 
 #endif
