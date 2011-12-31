@@ -44,7 +44,7 @@ killsender(killtopic)
 void MainWindow::update() {
 	updating = true;
 	updateWorkers();
-	updateKill();
+	updateKills();
 	updateLog();
 	updating = false;
 }
@@ -70,16 +70,7 @@ void MainWindow::unkillClicked() {
 	sendKill(false);
 }
 
-namespace {
-	struct Entry {
-		boost::optional<WorkerManagerProcessStatus> status;
-		boost::optional<State> state;
-	};
-}
-
 void MainWindow::updateWorkers() {
-	ui.workerStatusTable->setRowCount(0);
-
 	vector<shared_ptr<WorkerManagerStatusMessage> > statusmessages = statusreceiver.readAll();
 	vector<shared_ptr<WorkerStateMessage> > statemessages = statereceiver.readAll();
 
@@ -90,11 +81,7 @@ void MainWindow::updateWorkers() {
 		const WorkerManagerStatusMessage &msg = *statusmessages[pos];
 		string name = from_dds<string>(msg.workername);
 
-		EntryMap::iterator i = entrymap.find(name);
-		if (i == entrymap.end())
-			i = entrymap.insert(make_pair(name, Entry())).first;
-
-		i->second.status = msg.status;
+		entrymap[name].status = msg.status;
 	}
 
 	for (unsigned int pos=0; pos<statemessages.size(); ++pos) {
@@ -102,39 +89,45 @@ void MainWindow::updateWorkers() {
 		string name = from_dds<string>(msg.worker);
 		State state = from_dds<State>(msg.state);
 
-		EntryMap::iterator i = entrymap.find(name);
-		if (i == entrymap.end())
-			i = entrymap.insert(make_pair(name, Entry())).first;
-
-		i->second.state = state;
+		entrymap[name].state = state;
 	}
 
-	for (EntryMap::const_iterator i = entrymap.begin(); i != entrymap.end(); ++i) {
-		const string &name = i->first;
-		const Entry &entry = i->second;
-		bool checkable=false;
-		CombinedState state=STOPPED;
-		string msg;
+	QTableWidget &table = *ui.workerStatusTable;
+	for (int row=0; row<table.rowCount();) {
+		string name = table.item(row, 1)->text().toStdString();
 
-		if (entry.status) {
-			checkable = true;
-			state = static_cast<CombinedState>(*entry.status);
+		EntryMap::iterator i = entrymap.find(name);
+		if (i != entrymap.end()) {
+			updateWorker(row, name, i->second);
+			row++;
+			entrymap.erase(i);	
+		} else {
+			table.removeRow(row);
 		}
-		if (entry.state) {
-			state = static_cast<CombinedState>(entry.state->code + 3);
-			msg = entry.state->msg;
-		}
+	}
 
-		addWorker(name, state, checkable, msg);
+	for (EntryMap::iterator i = entrymap.begin(); i != entrymap.end(); ++i) {
+		int row = table.rowCount();
+		table.setRowCount(row+1);
+		updateWorker(row, i->first, i->second);
 	}
 }
 
-void MainWindow::addWorker(const std::string &name, CombinedState state, bool checkable, const std::string &msg) {
+void MainWindow::updateWorker(int row, const std::string &name, const Entry &entry) {
+	bool checkable=false;
+	CombinedState state=STOPPED;
+	string msg;
+
+	if (entry.status) {
+		checkable = true;
+		state = static_cast<CombinedState>(*entry.status);
+	}
+	if (entry.state) {
+		state = static_cast<CombinedState>(entry.state->code + 3);
+		msg = entry.state->msg;
+	}
+	
 	QTableWidget &table = *ui.workerStatusTable;
-
-	int row = table.rowCount();
-	table.setRowCount(row+1);
-
 	static const QColor statecolors[] = {
 		Qt::white,
 		Qt::white,
@@ -168,22 +161,39 @@ void MainWindow::addWorker(const std::string &name, CombinedState state, bool ch
 	table.setItem(row, 3, msgitem);
 }
 
-void MainWindow::updateKill() {
-	ui.killStatusTable->setRowCount(0);
-
+void MainWindow::updateKills() {
+	typedef std::map<std::string, shared_ptr<WorkerKillMessage> > KillMap;
+	KillMap killmap;
+	
 	vector<shared_ptr<WorkerKillMessage> > killmessages = killreceiver.readAll();
+	for (unsigned int i=0; i<killmessages.size(); i++) {
+		killmap[killmessages[i]->name] = killmessages[i];
+	}
+
+	QTableWidget &table = *ui.killStatusTable;
+	for (int row=0; row<table.rowCount();) {
+		string name = table.item(row, 0)->text().toStdString();
+		KillMap::iterator i = killmap.find(name);
+		if (i != killmap.end()) {
+			updateKill(row, *i->second);
+			row++;
+			killmap.erase(i);
+		} else {
+			table.removeRow(row);
+		}
+	}
+
+	for (KillMap::iterator i = killmap.begin(); i != killmap.end(); ++i) {
+		int row = table.rowCount();
+		table.setRowCount(row+1);
+		updateKill(row, *i->second);
+	}
 
 	bool otherkilled = false; // whether somebody other than us has the sub killed
 	bool selfkilled = false; // wether we're killing the sub
-
 	for (unsigned int i=0; i<killmessages.size(); ++i) {
-		const WorkerKillMessage &msg = *killmessages[i];
-
-		string name = from_dds<string>(msg.name);
-		addKill(name, msg.killed, from_dds<string>(msg.desc));
-
-		if (msg.killed) {
-			if (name != "SubControl")
+		if (killmessages[i]->killed) {
+			if (string(killmessages[i]->name) != "SubControl")
 				otherkilled = true;
 			else
 				selfkilled = true;
@@ -193,32 +203,32 @@ void MainWindow::updateKill() {
 	ui.unkillButton->setVisible(otherkilled);
 	ui.runButton->setVisible(!otherkilled);
 
+	ostringstream text;
+	text << "Sub status: ";
 	if (selfkilled) {
-		ui.killStatusLabel->setText("Sub status: <span style=\"color: red\">killed</span>");
+		text << "<span style=\"color: red\">killed</span>";
 	} else if (otherkilled) {
-		ui.killStatusLabel->setText("Sub status: <span style=\"color: darkgoldenrod\">killed</span>");
+		text << "<span style=\"color: darkgoldenrod\">killed</span>";
 	} else {
-		ui.killStatusLabel->setText("Sub status: <span style=\"color: green\">running</span>");
+		text << "<span style=\"color: green\">running</span>";
 	}
+	ui.killStatusLabel->setText(QString::fromStdString(text.str()));
 }
 
-void MainWindow::addKill(const std::string &name, bool kill, const std::string &desc) {
+void MainWindow::updateKill(int row, const WorkerKillMessage &msg) {
 	QTableWidget &table = *ui.killStatusTable;
 
-	int row = table.rowCount();
-	table.setRowCount(row+1);
+	QColor color(msg.killed ? Qt::red : Qt::green);
 
-	QColor color(kill ? Qt::red : Qt::green);
-
-	QTableWidgetItem *nameitem = new QTableWidgetItem(QString::fromStdString(name));
+	QTableWidgetItem *nameitem = new QTableWidgetItem(QString(msg.name));
 	nameitem->setBackground(color);
 	table.setItem(row, 0, nameitem);
 
-	QTableWidgetItem *killitem = new QTableWidgetItem(kill ? "Killed" : "Unkilled");
+	QTableWidgetItem *killitem = new QTableWidgetItem(msg.killed ? "Killed" : "Unkilled");
 	killitem->setBackground(color);
 	table.setItem(row, 1, killitem);
 
-	QTableWidgetItem *descitem = new QTableWidgetItem(QString::fromStdString(desc));
+	QTableWidgetItem *descitem = new QTableWidgetItem(QString(msg.desc));
 	descitem->setBackground(color);
 	table.setItem(row, 2, descitem);
 }

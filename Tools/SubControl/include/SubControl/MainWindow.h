@@ -15,6 +15,7 @@
 #include <QTimer>
 #include "ui_mainwindow.h"
 #include <string>
+#include <boost/optional.hpp>
 
 DECLARE_MESSAGE_TRAITS(WorkerManagerStatusMessage);
 DECLARE_MESSAGE_TRAITS(WorkerManagerCommandMessage);
@@ -23,16 +24,6 @@ DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerKillMessage);
 
 namespace subjugator {
-	enum CombinedState {
-		STOPPED,
-		STARTED,
-		STOPPING,
-
-		ACTIVE,
-		STANDBY,
-		ERROR,
-	};
-
 	class MainWindow : public QMainWindow {
 		Q_OBJECT
 
@@ -64,13 +55,28 @@ namespace subjugator {
 			Sender<WorkerKillMessage> killsender;
 
 			void updateWorkers();
-			void updateKill();
+			void updateKills();
 			void updateLog();
 
-			void addWorker(const std::string &name, CombinedState state, bool checkable, const std::string &msg);
-			void addKill(const std::string &name, bool kill, const std::string &desc);
+			struct Entry {
+				boost::optional<WorkerManagerProcessStatus> status;
+				boost::optional<State> state;
+			};
+
+			void updateWorker(int row, const std::string &name, const Entry &entry);
+			void updateKill(int row, const WorkerKillMessage &msg);
 
 			void sendKill(bool killed);
+	};
+	
+	enum CombinedState {
+		STOPPED,
+		STARTED,
+		STOPPING,
+
+		ACTIVE,
+		STANDBY,
+		ERROR,
 	};
 
 	std::ostream &operator<<(std::ostream &out, CombinedState state);
