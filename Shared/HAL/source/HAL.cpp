@@ -4,20 +4,21 @@
 #include <stdexcept>
 
 using namespace subjugator;
+using namespace boost::asio;
 using namespace boost;
 using namespace std;
 
-HAL::HAL() { }
+BaseHAL::BaseHAL() { }
 
-void HAL::addTransport(Transport *transport) {
+void BaseHAL::addTransport(Transport *transport) {
 	transports.push_back(transport);
 }
 
-void HAL::clearTransports() {
+void BaseHAL::clearTransports() {
 	transports.clear();
 }
 
-Endpoint *HAL::openEndpoint(const EndpointConfiguration &conf) {
+Endpoint *BaseHAL::makeEndpoint(const EndpointConfiguration &conf) {
 	TransportVec::iterator i;
 	for (i = transports.begin(); i != transports.end(); ++i) {
 		if (i->getName() == conf.protocol)
@@ -25,16 +26,16 @@ Endpoint *HAL::openEndpoint(const EndpointConfiguration &conf) {
 	}
 
 	if (i == transports.end())
-		throw runtime_error("HAL unable to open endpoint because no Transport provides required protocol " + conf.protocol);
+		throw runtime_error("HAL unable to make endpoint because no Transport provides required protocol " + conf.protocol);
 
 	return i->makeEndpoint(conf.protoaddress, conf.params);
 }
 
-DataObjectEndpoint *HAL::openDataObjectEndpoint(const EndpointConfiguration &conf, DataObjectFormatter *dobjformat, PacketFormatter *packetformat) {
-	return new DataObjectEndpoint(openEndpoint(conf), dobjformat, packetformat);
+DataObjectEndpoint *BaseHAL::makeDataObjectEndpoint(const EndpointConfiguration &conf, DataObjectFormatter *dobjformat, PacketFormatter *packetformat) {
+	return new DataObjectEndpoint(makeEndpoint(conf), dobjformat, packetformat);
 }
 
-HAL::EndpointConfiguration::EndpointConfiguration(const std::string &confstr) {
+BaseHAL::EndpointConfiguration::EndpointConfiguration(const std::string &confstr) {
 	static const regex entryreg("(\\w+)\\s*(\\S+)\\s*(.*)"); // parse the protocol, protocol address, and parameters
 
 	smatch match;
@@ -54,4 +55,16 @@ HAL::EndpointConfiguration::EndpointConfiguration(const std::string &confstr) {
 			params.insert(make_pair(match[1], match[2]));
 		}
 	}
+}
+
+#include "HAL/transport/TCPTransport.h"
+#include "HAL/transport/UDPTransport.h"
+#include "HAL/transport/SerialTransport.h"
+#include "HAL/transport/FileTransport.h"
+
+HAL::HAL(io_service &io) {
+	addTransport(new TCPTransport(io));
+	addTransport(new UDPTransport(io));
+	addTransport(new SerialTransport(io));
+	addTransport(new FileTransport(io));
 }

@@ -5,9 +5,10 @@
 #include "HAL/transport/Endpoint.h"
 #include "HAL/format/DataObjectEndpoint.h"
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/asio.hpp>
 
 namespace subjugator {
-	class HAL {
+	class BaseHAL {
 		public:
 			struct EndpointConfiguration {
 				std::string protocol;
@@ -18,17 +19,22 @@ namespace subjugator {
 				EndpointConfiguration(const std::string &confstr);
 			};
 		
-			HAL();
+			BaseHAL();
 
 			void addTransport(Transport *transport);
 			void clearTransports();
 
-			Endpoint *openEndpoint(const EndpointConfiguration &conf);
-			DataObjectEndpoint *openDataObjectEndpoint(const EndpointConfiguration &conf, DataObjectFormatter *dobjformat, PacketFormatter *packetformat);
+			Endpoint *makeEndpoint(const EndpointConfiguration &conf);
+			DataObjectEndpoint *makeDataObjectEndpoint(const EndpointConfiguration &conf, DataObjectFormatter *dobjformat, PacketFormatter *packetformat);
 
 		private:
 			typedef boost::ptr_vector<Transport> TransportVec;
 			TransportVec transports;
+	};
+
+	class HAL : public BaseHAL {
+		public:
+			HAL(boost::asio::io_service &io);
 	};
 }
 
