@@ -8,12 +8,13 @@ using namespace std;
 
 BytePacketFormatter::BytePacketFormatter() { }
 
-std::vector<Packet> BytePacketFormatter::parsePackets(const ByteVec &newdata) {
+std::vector<Packet> BytePacketFormatter::parsePackets(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
+	unsigned int size = end-begin;
 	std::vector<Packet> out;
-	out.resize(newdata.size(), Packet(1));
+	out.resize(size, Packet(1));
 
-	for (unsigned int i=0; i<newdata.size(); i++) {
-		out[i][0] = newdata[i];
+	for (unsigned int i=0; i<size; i++) {
+		out[i][0] = begin[i];
 	}
 
 	return out;
