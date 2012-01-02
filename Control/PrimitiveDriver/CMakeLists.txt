@@ -1,2 +1,2 @@
-sub_executable(PrimitiveDriver DDS Sub LegacyHAL)
+sub_executable(PrimitiveDriver DDS Sub HAL)
 

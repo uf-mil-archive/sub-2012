@@ -2,7 +2,7 @@
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDActuatorMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDStatusMessageSupport.h"
-#include "HAL/SubHAL.h"
+#include "HAL/HAL.h"
 #include "LibSub/DDS/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
 #include "LibSub/Messages/WorkerKillMessageSupport.h"

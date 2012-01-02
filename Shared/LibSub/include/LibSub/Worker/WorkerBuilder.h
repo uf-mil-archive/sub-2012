@@ -64,7 +64,7 @@ namespace subjugator {
 	Adds a method getHAL() to the WorkerBuilder to get the worker's HAL object.
 	*/
 
-	#ifdef HAL_SUBHAL_H // HACK FIXME, refactor SubHAL into LibSub
+	#ifdef HAL_HAL_H // HACK FIXME
 	template <class WorkerT>
 	class HALWorkerConstructionPolicy {
 		public:
@@ -76,7 +76,7 @@ namespace subjugator {
 			HAL &getHal() { return hal; }
 			WorkerT &getWorker() { return worker; }
 		private:
-			SubHAL hal;
+			HAL hal;
 			WorkerT worker;
 	};
 	#endif

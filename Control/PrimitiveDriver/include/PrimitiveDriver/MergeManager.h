@@ -9,7 +9,7 @@
 namespace subjugator {
 	class MergeManager : public StateUpdaterContainer {
 		public:
-			MergeManager(HAL &hal);
+			MergeManager(HAL &hal, const std::string &mergeendpointconf, const std::string &actuatorendpointconf);
 
 			const MergeInfo &getMergeInfo() const { return *mergeendpoint.getDataObject<MergeInfo>(); }
 			void setActuators(int flags);

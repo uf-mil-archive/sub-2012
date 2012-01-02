@@ -25,12 +25,20 @@ hal(hal),
 configloader(configloader),
 heartbeatendpoint(WorkerEndpoint::Args()
 	.setName("heartbeat")
-	.setEndpoint(hal.openDataObjectEndpoint(255, new HeartBeatDataObjectFormatter(21), new Sub7EPacketFormatter()))
+	.setEndpoint(hal.makeDataObjectEndpoint(
+		configloader.loadConfig(getName()).get<std::string>("heartbeat_endpoint"),
+		new HeartBeatDataObjectFormatter(21),
+		new Sub7EPacketFormatter()
+	))
 	.setOutgoingOnly()
 ),
 thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
 thrustermapper(Vector3d(0, 0, 0)),
-mergemanager(hal) {
+mergemanager(
+	hal,
+	configloader.loadConfig(getName()).get<std::string>("mergeboard_endpoint"),
+	configloader.loadConfig(getName()).get<std::string>("actuator_endpoint")
+) {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
@@ -50,7 +58,7 @@ void PDWorker::initialize() {
 
 		ThrusterMapper::Entry entry(t.get<Vector3d>("lineofaction"), t.get<Vector3d>("position")*.0254, t.get<double>("fsat"), t.get<double>("rsat"));
 		thrusterentries.push_back(entry);
-		thrustermanager.addThruster(i->second.get<int>("id"));
+		thrustermanager.addThruster(i->first, t.get<string>("endpoint"), t.get<int>("address"));
 	}
 }
 
@@ -98,4 +106,3 @@ void PDWorker::work(double dt) {
 void PDWorker::leaveActive() {
 	thrustermanager.zeroEfforts();
 }
-
