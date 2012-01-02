@@ -7,7 +7,7 @@
 namespace subjugator {
 	class SubHAL : public HAL {
 		public:
-			SubHAL(boost::asio::io_service &ioservice);
+			SubHAL(boost::asio::io_service &io);
 	};
 }
 

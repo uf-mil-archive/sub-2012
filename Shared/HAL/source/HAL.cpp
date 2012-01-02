@@ -43,7 +43,7 @@ HAL::EndpointConfiguration::EndpointConfiguration(const std::string &confstr) {
 
 	protocol = match[1];
 	protoaddress = match[2];
-	
+
 	const string &paramstr = match[3];
 	if (paramstr.size() > 0) {
 		static const regex paramreg("(\\w+)\\s*=\\s*(\\w+)\\s*");

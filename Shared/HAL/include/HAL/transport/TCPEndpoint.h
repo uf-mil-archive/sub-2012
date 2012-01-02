@@ -6,7 +6,7 @@
 namespace subjugator {
 	class TCPEndpoint : public BaseStreamEndpoint<boost::asio::ip::tcp::socket> {
 		public:
-			TCPEndpoint(const boost::asio::ip::tcp::endpoint &endpoint, boost::asio::io_service &ioservice);
+			TCPEndpoint(const boost::asio::ip::tcp::endpoint &endpoint, boost::asio::io_service &io);
 
 			virtual void open();
 

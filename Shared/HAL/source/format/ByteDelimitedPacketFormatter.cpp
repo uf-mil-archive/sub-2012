@@ -6,8 +6,8 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(boost::uint8_t flagbyte, boost::uint8_t escapebyte, boost::uint8_t maskbyte, Checksum *checksum)
-: flagbyte(flagbyte), escapebyte(escapebyte), maskbyte(maskbyte), checksum(checksum), state(STATE_NOPACKET) {
+ByteDelimitedPacketFormatter::ByteDelimitedPacketFormatter(boost::uint8_t flagbyte, boost::uint8_t escapebyte, boost::uint8_t maskbyte, Checksum *checksum) :
+flagbyte(flagbyte), escapebyte(escapebyte), maskbyte(maskbyte), checksum(checksum), state(STATE_NOPACKET) {
 	buf.reserve(4096);
 }
 
@@ -45,6 +45,11 @@ vector<Packet> ByteDelimitedPacketFormatter::parsePackets(ByteVec::const_iterato
 		}
 	}
 
+	if (buf.size() > 16*1024) {
+		buf.clear();
+		state = STATE_NOPACKET;
+	}
+
 	return packets;
 }
 
@@ -80,4 +85,3 @@ ByteVec ByteDelimitedPacketFormatter::formatPacket(const Packet &packet) const {
 
 	return out;
 }
-

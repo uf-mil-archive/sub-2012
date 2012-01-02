@@ -5,8 +5,8 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-DataObjectEndpoint::DataObjectEndpoint(Endpoint *endpoint, DataObjectFormatter *dobjformat, PacketFormatter *packetformat)
-: endpoint(endpoint), dobjformat(dobjformat), packetformat(packetformat) {
+DataObjectEndpoint::DataObjectEndpoint(Endpoint *endpoint, DataObjectFormatter *dobjformat, PacketFormatter *packetformat) :
+endpoint(endpoint), dobjformat(dobjformat), packetformat(packetformat) {
 	endpoint->configureCallbacks(boost::bind(&DataObjectEndpoint::endpointReadCallback, this, _1, _2), boost::bind(&DataObjectEndpoint::endpointStateChangeCallback, this));
 }
 

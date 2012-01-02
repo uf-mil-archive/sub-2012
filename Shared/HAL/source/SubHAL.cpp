@@ -7,10 +7,10 @@
 using namespace subjugator;
 using namespace boost::asio;
 
-SubHAL::SubHAL(io_service &ioservice) {
-	addTransport(new TCPTransport(ioservice));
-	addTransport(new UDPTransport(ioservice));
-	addTransport(new SerialTransport(ioservice));
-	addTransport(new FileTransport(ioservice));
+SubHAL::SubHAL(io_service &io) {
+	addTransport(new TCPTransport(io));
+	addTransport(new UDPTransport(io));
+	addTransport(new SerialTransport(io));
+	addTransport(new FileTransport(io));
 }
 

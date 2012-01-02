@@ -5,8 +5,8 @@ using namespace boost;
 using namespace boost::asio;
 using namespace std;
 
-UDPEndpoint::UDPEndpoint(const ip::udp::endpoint &endpoint, TransportCallbacks &callbacks)
-: endpoint(endpoint), callbacks(callbacks), opened(false) { }
+UDPEndpoint::UDPEndpoint(const ip::udp::endpoint &endpoint, TransportCallbacks &callbacks) :
+endpoint(endpoint), callbacks(callbacks), opened(false) { }
 
 UDPEndpoint::~UDPEndpoint() {
 	callbacks.endpointDeleted(this);
