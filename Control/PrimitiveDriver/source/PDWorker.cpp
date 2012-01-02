@@ -10,7 +10,7 @@ using namespace boost::property_tree;
 using namespace std;
 
 PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
-Worker("PrimitiveDriver", 50),
+Worker("PrimitiveDriver", 50, configloader),
 wrenchmailbox(WorkerMailbox<Vector6d>::Args()
 	.setName("wrench")
 	.setCallback(boost::bind(&PDWorker::wrenchSet, this, _1))
@@ -22,11 +22,10 @@ actuatormailbox(WorkerMailbox<int>::Args()
 killmon("EStop"),
 estopsignal("EStop", "Magnetic EStop switch on the mergeboard"),
 hal(hal),
-configloader(configloader),
 heartbeatendpoint(WorkerEndpoint::Args()
 	.setName("heartbeat")
 	.setEndpoint(hal.makeDataObjectEndpoint(
-		configloader.loadConfig(getName()).get<std::string>("heartbeat_endpoint"),
+		getConfig().get<std::string>("heartbeat_endpoint"),
 		new HeartBeatDataObjectFormatter(21),
 		new Sub7EPacketFormatter()
 	))
@@ -36,8 +35,8 @@ thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
 thrustermapper(Vector3d(0, 0, 0)),
 mergemanager(
 	hal,
-	configloader.loadConfig(getName()).get<std::string>("mergeboard_endpoint"),
-	configloader.loadConfig(getName()).get<std::string>("actuator_endpoint")
+	getConfig().get<std::string>("mergeboard_endpoint"),
+	getConfig().get<std::string>("actuator_endpoint")
 ) {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
@@ -48,9 +47,7 @@ mergemanager(
 void PDWorker::initialize() {
 	estopsignal.setKill(false);
 
-	ptree config = configloader.loadConfig(getName());
-	const ptree &thrusters = config.get_child("thrusters");
-
+	const ptree &thrusters = getConfig().get_child("thrusters");
 	thrustermapper.resize(thrusters.size());
 
 	for (ptree::const_iterator i = thrusters.begin(); i != thrusters.end(); ++i) {

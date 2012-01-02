@@ -41,7 +41,6 @@ namespace subjugator {
 			virtual void leaveActive();
 
 			HAL &hal;
-			const WorkerConfigLoader &configloader;
 
 			WorkerEndpoint heartbeatendpoint;
 			ThrusterManager thrustermanager;

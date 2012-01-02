@@ -5,8 +5,12 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-Worker::Worker(const std::string &name, double updatehz)
-: logger(name), name(name), updatehz(updatehz), initialized(false) { }
+Worker::Worker(const std::string &name, double updatehz, const WorkerConfigLoader &configloader) :
+logger(name),
+name(name),
+updatehz(updatehz),
+config(configloader.loadConfig(name)),
+initialized(false) { }
 
 void Worker::update(double dt) {
 	if (!initialized) {

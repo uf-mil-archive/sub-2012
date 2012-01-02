@@ -37,7 +37,6 @@ namespace subjugator {
 			virtual void workerManagerAction(WorkerManager &wm);
 
 			WorkerManagerList workerlist;
-			const WorkerConfigLoader &configloader;
 	};
 }
 

@@ -5,6 +5,7 @@
 #include "LibSub/State/StateUpdater.h"
 #include "LibSub/Worker/WorkerSignal.h"
 #include "LibSub/Worker/WorkerLogger.h"
+#include "LibSub/Worker/WorkerConfigLoader.h"
 #include <utility>
 
 namespace subjugator {
@@ -22,7 +23,7 @@ namespace subjugator {
 
 	class Worker : protected StateUpdaterContainer {
 		public:
-			Worker(const std::string &name, double updatehz);
+			Worker(const std::string &name, double updatehz, const WorkerConfigLoader &configloader);
 
 			const std::string &getName() const { return name; }
 			double getUpdateHz() const { return updatehz; }
@@ -59,11 +60,15 @@ namespace subjugator {
 
 			double getRunTime() const { return runtime; }
 
+		protected:
+			const boost::property_tree::ptree &getConfig() const { return config; }
+
 		private:
 			std::string name;
 			double updatehz;
+			boost::property_tree::ptree config;
+			
 			bool initialized;
-
 			double runtime;
 	};
 
