@@ -36,7 +36,8 @@ thrustermapper(Vector3d(0, 0, 0)),
 mergemanager(
 	hal,
 	getConfig().get<std::string>("mergeboard_endpoint"),
-	getConfig().get<std::string>("actuator_endpoint")
+	getConfig().get<std::string>("actuator_endpoint"),
+	bind(&PDWorker::estopChanged, this, _1)
 ) {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
@@ -80,6 +81,11 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 		logger.log("Thruster " + lexical_cast<string>(num) + " changed state: " + lexical_cast<string>(state));
 }
 
+void PDWorker::estopChanged(bool estop) {
+	estopsignal.setKill(estop);
+	logger.log(string("ESTOP ") + (estop ? "active" : "inactive"));
+}
+
 void PDWorker::work(double dt) {
 	vector<double> currents(8);
 	for (int i=0; i<8; i++) {
@@ -93,9 +99,6 @@ void PDWorker::work(double dt) {
 
 	// TODO rework timestamps at worker level
 	infosignal.emit(PDInfo(0, 0, currents, mergemanager.getMergeInfo()));
-
-	// TODO use callback to make this instantaneous, and to allow ESTOP to be updated even when we are killed for some other reason
-	estopsignal.setKill(mergemanager.getMergeInfo().getESTOP());
 
 	heartbeatendpoint.write(HeartBeat());
 }
