@@ -15,7 +15,7 @@ using namespace std;
 template <typename T>
 T handleErrno(T result) {
 	if (result == -1)
-		throw system_error(errno, system_category);
+		throw system_error(errno, system_category());
 	return result;
 }
 

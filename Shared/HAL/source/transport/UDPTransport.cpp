@@ -12,8 +12,8 @@ using namespace boost::asio;
 using namespace boost::system;
 using namespace std;
 
-UDPTransport::UDPTransport(io_service &ioservice, int port)
-: port(port), socket(ioservice), recvbuffer(4096) { }
+UDPTransport::UDPTransport(io_service &io, int port) :
+port(port), socket(io), recvbuffer(4096) { }
 
 const string &UDPTransport::getName() const {
 	static const string name = "udp";

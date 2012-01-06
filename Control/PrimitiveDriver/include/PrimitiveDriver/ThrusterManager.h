@@ -13,7 +13,7 @@ namespace subjugator {
 
 			ThrusterManager(HAL &hal, int srcaddress, const ThrusterChangeCallback &callback);
 
-			int addThruster(int address); // returns the thrusters number
+			int addThruster(const std::string &name, const std::string &endpointconf, int address); // returns the thrusters number
 			int thrusterCount() const { return thrusters.size(); }
 			Thruster &getThruster(int num) { return thrusters[num]; }
 			const Thruster &getThruster(int num) const { return thrusters[num]; }

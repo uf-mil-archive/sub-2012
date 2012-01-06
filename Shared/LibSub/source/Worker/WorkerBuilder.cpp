@@ -30,6 +30,9 @@ bool WorkerBuilderOptions::parse(int argc, char **argv) {
 		return false;
 	}
 
+	if (!setVariables(vm))
+		return false;
+
 	if (vm.count("config-overlays"))
 		configloader.addOverlays(vm["config-overlays"].as<vector<string> >());
 	if (!vm.count("no-local-overlay"))

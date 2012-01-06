@@ -32,16 +32,15 @@ namespace subjugator {
 		protected:
 			virtual void initialize();
 			virtual void work(double dt);
+			virtual void leaveActive();
 
 		private:
 			void wrenchSet(const boost::optional<Vector6d> &wrench);
 			void actuatorSet(const boost::optional<int> &actuators);
 			void thrusterStateChanged(int num, const State &state);
-
-			virtual void leaveActive();
+			void estopChanged(bool estop);
 
 			HAL &hal;
-			const WorkerConfigLoader &configloader;
 
 			WorkerEndpoint heartbeatendpoint;
 			ThrusterManager thrustermanager;

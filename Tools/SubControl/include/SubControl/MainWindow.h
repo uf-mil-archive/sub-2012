@@ -15,6 +15,7 @@
 #include <QTimer>
 #include "ui_mainwindow.h"
 #include <string>
+#include <boost/optional.hpp>
 
 DECLARE_MESSAGE_TRAITS(WorkerManagerStatusMessage);
 DECLARE_MESSAGE_TRAITS(WorkerManagerCommandMessage);
@@ -23,16 +24,6 @@ DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerKillMessage);
 
 namespace subjugator {
-	enum CombinedState {
-		STOPPED,
-		STARTED,
-		STOPPING,
-
-		ACTIVE,
-		STANDBY,
-		ERROR,
-	};
-
 	class MainWindow : public QMainWindow {
 		Q_OBJECT
 
@@ -64,16 +55,40 @@ namespace subjugator {
 			Sender<WorkerKillMessage> killsender;
 
 			void updateWorkers();
-			void updateKill();
+			void updateKills();
 			void updateLog();
 
-			void addWorker(const std::string &name, CombinedState state, bool checkable, const std::string &msg);
-			void addKill(const std::string &name, bool kill, const std::string &desc);
+			void updateWorker(int row, const std::string &name, const boost::optional<WorkerManagerProcessStatus> &status, const boost::optional<State> &state);
+			void updateKill(int row, const WorkerKillMessage &msg);
+			static void updateTableItem(QTableWidget &table, int row, int col, const QColor &color, const std::string &str);
 
 			void sendKill(bool killed);
 	};
+	
+	enum CombinedState {
+		STOPPED,
+		STARTED,
+		STOPPING,
+
+		ACTIVE,
+		STANDBY,
+		ERROR,
+	};
 
 	std::ostream &operator<<(std::ostream &out, CombinedState state);
+
+	struct DisableSorting {
+		DisableSorting(QTableWidget &table) : sorted(table.isSortingEnabled()), table(table) {
+			table.setSortingEnabled(false);
+		}
+
+		~DisableSorting() {
+			table.setSortingEnabled(sorted);
+		}
+
+		bool sorted;
+		QTableWidget &table;
+	};
 }
 
 #endif

@@ -43,8 +43,6 @@ namespace subjugator {
 			virtual void work(double dt);
 
 		private:
-			const WorkerConfigLoader &configloader;
-
 			boost::scoped_ptr<TrackingController> controllerptr;
 			TrackingController::Config controllerconfig;
 

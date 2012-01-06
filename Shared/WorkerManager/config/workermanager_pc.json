@@ -1,0 +1,7 @@
+{
+	"workers": [
+		{"name": "PrimitiveDriver"},
+		{"name": "TrackingController"},
+		{"name": "TrajectoryGenerator"}
+	]
+}

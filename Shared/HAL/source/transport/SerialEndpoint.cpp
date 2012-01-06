@@ -7,8 +7,8 @@ using namespace boost::system;
 using namespace boost::asio;
 using namespace std;
 
-SerialEndpoint::SerialEndpoint(const std::string &devicename, int baud, boost::asio::io_service &ioservice)
-: BaseStreamEndpoint<serial_port>(ioservice), devicename(devicename), baud(baud) { }
+SerialEndpoint::SerialEndpoint(const std::string &devicename, int baud, boost::asio::io_service &io) :
+BaseStreamEndpoint<serial_port>(io), devicename(devicename), baud(baud) { }
 
 void SerialEndpoint::open() {
 	assert(getState() == CLOSED);

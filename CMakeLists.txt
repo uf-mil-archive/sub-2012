@@ -32,15 +32,16 @@ find_package(NDDS REQUIRED)
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-find_package(Boost REQUIRED COMPONENTS system thread date_time regex program_options filesystem)
+find_package(Boost 1.36 REQUIRED COMPONENTS system thread date_time regex program_options filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # add shared projects
-add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/HAL)
+add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/WorkerManager)
 
 # add legacy shared projects
+add_subdirectory(Legacy/HAL)
 add_subdirectory(Legacy/DDS)
 add_subdirectory(Legacy/DataObjects)
 add_subdirectory(Legacy/SubMain)

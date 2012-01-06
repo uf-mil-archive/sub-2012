@@ -8,16 +8,15 @@ using namespace boost::property_tree;
 using namespace std;
 
 TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &configloader) :
-	Worker("TrackingController", 50),
-	lposvssmailbox(WorkerMailbox<LPOSVSSInfo>::Args()
-		.setName("LPOSVSS")
-		.setMaxAge(.2)),
-	trajectorymailbox(WorkerMailbox<TrackingController::TrajectoryPoint>::Args()
-		.setName("Trajectory")),
-	gainsmailbox(WorkerMailbox<TrackingController::Gains>::Args()
-		.setName("ControllerGains")
-		.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1))),
-	configloader(configloader)
+Worker("TrackingController", 50, configloader),
+lposvssmailbox(WorkerMailbox<LPOSVSSInfo>::Args()
+	.setName("LPOSVSS")
+	.setMaxAge(.2)),
+trajectorymailbox(WorkerMailbox<TrackingController::TrajectoryPoint>::Args()
+	.setName("Trajectory")),
+gainsmailbox(WorkerMailbox<TrackingController::Gains>::Args()
+	.setName("ControllerGains")
+	.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1)))
 {
 	registerStateUpdater(lposvssmailbox);
 	registerStateUpdater(killmon);
@@ -65,7 +64,7 @@ void TrackingControllerWorker::setControllerGains(const boost::optional<Tracking
 }
 
 void TrackingControllerWorker::loadConfig() {
-	ptree config = configloader.loadConfig(getName());
+	const ptree &config = getConfig();
 	controllerconfig.mode = config.get<TrackingController::Mode>("mode");
 
 	TrackingController::Gains &g = controllerconfig.gains;
@@ -89,7 +88,7 @@ void TrackingControllerWorker::saveConfigGains() const {
 	config.put("gains.gamma1", g.gamma1);
 	config.put("gains.gamma2", g.gamma2);
 
-	configloader.writeLocalConfig(getName(), config);
+	saveConfig(config);
 }
 
 void TrackingControllerWorker::resetController() {

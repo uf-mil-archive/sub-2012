@@ -3,10 +3,15 @@
 
 using namespace subjugator;
 using namespace boost;
+using namespace boost::property_tree;
 using namespace std;
 
-Worker::Worker(const std::string &name, double updatehz)
-: logger(name), name(name), updatehz(updatehz), initialized(false) { }
+Worker::Worker(const std::string &name, double updatehz, const WorkerConfigLoader &configloader) :
+logger(name),
+name(name),
+updatehz(updatehz),
+configloader(configloader),
+initialized(false) { }
 
 void Worker::update(double dt) {
 	if (!initialized) {
@@ -46,3 +51,8 @@ void Worker::enterActive() { }
 
 void Worker::leaveActive() { }
 
+const ptree &Worker::getConfig() const {
+	if (!configcache)
+		configcache = configloader.loadConfig(getName());
+	return *configcache;
+}

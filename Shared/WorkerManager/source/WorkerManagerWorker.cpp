@@ -8,21 +8,19 @@ using namespace boost::property_tree;
 using namespace boost::algorithm;
 using namespace std;
 
-WorkerManagerWorker::WorkerManagerWorker(const WorkerConfigLoader &configloader) :
-Worker("WorkerManager", 2),
+WorkerManagerWorker::WorkerManagerWorker(const string &suffix, const WorkerConfigLoader &configloader) :
+Worker("WorkerManager" + (suffix.size() ? "_" + suffix : ""), 2, configloader),
 commandmailbox(WorkerMailbox<Command>::Args()
 	.setName("command")
 	.setCallback(bind(&WorkerManagerWorker::commandSet, this, _1))
 ),
-workerlist(*this),
-configloader(configloader)
+workerlist(*this)
 {
 	registerStateUpdater(workerlist);
 }
 
 void WorkerManagerWorker::initialize() {
-	ptree config = configloader.loadConfig(getName());
-	const ptree &workers = config.get_child("workers");
+	const ptree &workers = getConfig().get_child("workers");
 
 	for (ptree::const_iterator i = workers.begin(); i != workers.end(); ++i) {
 		const ptree &t = i->second;

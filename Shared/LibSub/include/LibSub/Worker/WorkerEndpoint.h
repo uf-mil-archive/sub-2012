@@ -106,6 +106,7 @@ namespace subjugator {
 
 			DataObjectEndpoint &getEndpoint() { return *endpoint; }
 			const DataObjectEndpoint &getEndpoint() const { return *endpoint; }
+			const std::string &getName() { return name; }
 
 			boost::shared_ptr<DataObject> get() const { return dobj; }
 			void write(const DataObject &dobj) { return endpoint->write(dobj); }

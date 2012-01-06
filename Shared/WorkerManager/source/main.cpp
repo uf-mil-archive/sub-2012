@@ -7,21 +7,46 @@
 
 using namespace subjugator;
 using namespace boost::asio;
+namespace po = boost::program_options;
 using namespace std;
 
 DECLARE_MESSAGE_TRAITS(WorkerManagerCommandMessage);
 DECLARE_MESSAGE_TRAITS(WorkerManagerStatusMessage);
 
+namespace {
+	class CustomOptions : public WorkerBuilderOptions {
+		public:
+			CustomOptions(const std::string &name)
+			: WorkerBuilderOptions(name) {
+				desc.add_options()
+					("suffix,s", po::value<string>(), "give workermanager a suffix to identify multiple instances");
+			}
+
+			const string &getSuffix() const { return suffix; }
+
+		protected:
+			virtual bool setVariables(const po::variables_map &vm) {
+				if (vm.count("suffix"))
+					suffix = vm["suffix"].as<string>();
+
+				return true;
+			}
+
+		private:
+			string suffix;
+	};
+}
+
 int main(int argc, char **argv) {
 	io_service io;
 
 	// Parse options
-	WorkerBuilderOptions options("WorkerManager");
+	CustomOptions options("WorkerManager");
 	if (!options.parse(argc, argv))
 		return 1;
 
 	// Build the worker from the options
-	WorkerBuilder<WorkerManagerWorker, DefaultWorkerConstructionPolicy> builder(options, io);
+	WorkerBuilder<WorkerManagerWorker, ArgumentWorkerConstructionPolicy<string>::Type> builder(options, io, options.getSuffix());
 	WorkerManagerWorker &worker = builder.getWorker();
 
 	// Get DDS up

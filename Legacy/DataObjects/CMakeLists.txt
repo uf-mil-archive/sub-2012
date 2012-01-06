@@ -1,1 +1,1 @@
-sub_library(DataObjects HAL)
+sub_library(DataObjects LegacyHAL)
