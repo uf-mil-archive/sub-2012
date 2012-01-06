@@ -153,7 +153,7 @@ function(sub_executable projectname)
 	endif()
 
 	# Boost comes last, since flycapture depends on it
-	set(libraries ${libraries} ${Boost_LIBRARIES})
+	set(libraries ${libraries} ${Boost_LIBRARIES} pthread rt)
 
 	# Define executable
 	string(TOLOWER ${projectname} exename)

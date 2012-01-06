@@ -4,6 +4,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <map>
+#include <vector>
 
 using namespace subjugator;
 using namespace boost;
@@ -71,10 +72,10 @@ void MainWindow::unkillClicked() {
 }
 
 void MainWindow::updateWorkers() {	
-	vector<shared_ptr<WorkerManagerStatusMessage> > statusmessages = statusreceiver.readAll();
-	vector<shared_ptr<WorkerStateMessage> > statemessages = statereceiver.readAll();
+	vector<boost::shared_ptr<WorkerManagerStatusMessage> > statusmessages = statusreceiver.readAll();
+	vector<boost::shared_ptr<WorkerStateMessage> > statemessages = statereceiver.readAll();
 
-	typedef pair<boost::optional<WorkerManagerProcessStatus>, boost::optional<State> > Entry;
+	typedef pair<optional<WorkerManagerProcessStatus>, optional<State> > Entry;
 	typedef map<string, Entry> EntryMap;
 	EntryMap entrymap;
 
@@ -161,10 +162,10 @@ void MainWindow::updateWorker(int row, const std::string &name, const boost::opt
 }
 
 void MainWindow::updateKills() {
-	typedef std::map<std::string, shared_ptr<WorkerKillMessage> > KillMap;
+	typedef map<string, boost::shared_ptr<WorkerKillMessage> > KillMap;
 	KillMap killmap;
 	
-	vector<shared_ptr<WorkerKillMessage> > killmessages = killreceiver.readAll();
+	vector<boost::shared_ptr<WorkerKillMessage> > killmessages = killreceiver.readAll();
 	for (unsigned int i=0; i<killmessages.size(); i++) {
 		killmap[killmessages[i]->name] = killmessages[i];
 	}
@@ -226,7 +227,7 @@ void MainWindow::updateKill(int row, const WorkerKillMessage &msg) {
 
 void MainWindow::updateLog() {
 	while (true) {
-		shared_ptr<WorkerLogMessage> msgptr = logreceiver.take();
+		boost::shared_ptr<WorkerLogMessage> msgptr = logreceiver.take();
 		if (!msgptr)
 			break;
 
