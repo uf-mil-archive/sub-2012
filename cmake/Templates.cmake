@@ -79,12 +79,12 @@ function(sub_executable projectname)
 		endif()
 
 		if(ref STREQUAL LegacyDDS)
-			ndds_include_project_rtiddsgen_directories(LegacyDDS idl) # Put our DDS project's IDLs on the include path
+			ndds_include_project_rtiddsgen_directories(LegacyDDS C++ idl) # Put our DDS project's IDLs on the include path
 			include_directories(${LegacyDDS_SOURCE_DIR}/include) # Put its regular headers on the include path
 			set(libraries ${libraries} legacydds) # link to its libraries
 
 		elseif(ref STREQUAL DDS)
-			ndds_include_project_rtiddsgen_directories(DDS idl) # Put our DDS project's IDLs on the include path
+			ndds_include_project_rtiddsgen_directories(DDS C++ idl) # Put our DDS project's IDLs on the include path
 			include_directories(${DDS_SOURCE_DIR}/include) # Put its regular headers on the include path
 			set(libraries ${libraries} dds) # link to its libraries
 
