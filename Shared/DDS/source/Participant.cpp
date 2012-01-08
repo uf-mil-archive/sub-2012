@@ -1,4 +1,4 @@
-#include "LibSub/DDS/Participant.h"
+#include "DDS/Participant.h"
 
 using namespace subjugator;
 

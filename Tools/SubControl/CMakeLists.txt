@@ -1,2 +1,2 @@
-sub_executable(SubControl Qt DDS Sub WorkerManager)
+sub_executable(SubControl Qt DDS Sub)
 

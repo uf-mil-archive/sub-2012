@@ -1,8 +1,8 @@
 #ifndef LIBSUB_DDS_RECEIVER_H
 #define LIBSUB_DDS_RECEIVER_H
 
-#include "LibSub/DDS/DDSException.h"
-#include "LibSub/DDS/Topic.h"
+#include "DDS/DDSException.h"
+#include "DDS/Topic.h"
 #include <ndds/ndds_cpp.h>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>

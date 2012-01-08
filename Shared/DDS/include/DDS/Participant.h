@@ -1,8 +1,8 @@
 #ifndef LIBSUB_DDS_PARTICIPANT
 #define LIBSUB_DDS_PARTICIPANT
 
-#include "LibSub/DDS/DDSException.h"
-#include "LibSub/DDS/Traits.h"
+#include "DDS/DDSException.h"
+#include "DDS/Traits.h"
 #include <ndds/ndds_cpp.h>
 #include <string>
 

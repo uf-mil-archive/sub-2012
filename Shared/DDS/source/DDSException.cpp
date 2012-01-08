@@ -1,4 +1,4 @@
-#include "LibSub/DDS/DDSException.h"
+#include "DDS/DDSException.h"
 
 using namespace subjugator;
 using namespace std;

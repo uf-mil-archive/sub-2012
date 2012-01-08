@@ -4,7 +4,7 @@
 #include "TrackingController/Messages/TrajectoryMessageSupport.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
-#include "LibSub/DDS/DDSBuilder.h"
+#include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
 #include <boost/asio.hpp>
 

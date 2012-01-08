@@ -84,15 +84,9 @@ function(sub_executable projectname)
 			set(libraries ${libraries} legacydds) # link to its libraries
 
 		elseif(ref STREQUAL DDS)
-			file(GLOB_RECURSE interfaces "idl/*.idl") # check for IDL files
-			if (interfaces)
-				ndds_include_rtiddsgen_directories("idl") # put idl directory's generated headers on include path
-				ndds_run_rtiddsgen(interfaces_sources ${interfaces}) # generate sources
-				string(TOLOWER ${projectname} ddslibname) # name the library
-				set(ddslibname ${ddslibname}_dds)
-				add_library(${ddslibname} ${interfaces_sources}) # add a library of DDS stuff
-				set(libraries ${libraries} ${ddslibname}) # link this library to our executable
-			endif()
+			ndds_include_project_rtiddsgen_directories(DDS idl) # Put our DDS project's IDLs on the include path
+			include_directories(${DDS_SOURCE_DIR}/include) # Put its regular headers on the include path
+			set(libraries ${libraries} dds) # link to its libraries
 
 		elseif(ref STREQUAL Qt)
 			set(QT_USE_QTOPENGL TRUE)
@@ -129,19 +123,9 @@ function(sub_executable projectname)
 			include_directories(${FLYCAPTURE_INCLUDES})
 
 		elseif(${ref}_SOURCE_DIR)
-			string(TOLOWER ${ref} targetname)
-			get_target_property(targettype ${targetname} TYPE)
-			if(targettype STREQUAL EXECUTABLE)
-				set(libname ${targetname}_dds)
-			else()
-				set(libname ${targetname})
-			endif()
-
+			string(TOLOWER ${ref} libname)
 			set(libraries ${libraries} ${libname})
 			include_directories(${${ref}_SOURCE_DIR}/include)
-			if(have_dds)
-				ndds_include_project_rtiddsgen_directories(${ref} idl)
-			endif()
 		else()
 			message(SEND_ERROR "Executable ${projectname} has unknown reference ${ref}")
 		endif()
@@ -201,14 +185,7 @@ function(sub_library projectname)
 
 	foreach(ref ${ARGN})
 		if(ref STREQUAL DDS)
-			include_directories(${NDDS_INCLUDE_DIRS})
-
-			file(GLOB_RECURSE interfaces "idl/*.idl") # check for IDL files
-			if (interfaces)
-				ndds_include_rtiddsgen_directories("idl") # put idl directory's generated headers on include path
-				ndds_run_rtiddsgen(interfaces_sources ${interfaces}) # generate sources
-				set(sources ${sources} ${interfaces_sources}) # put those sources in the library
-			endif()
+			include_directories(${NDDS_INCLUDE_DIRS} ${DDS_SOURCE_DIR})
 
 		elseif(${ref}_SOURCE_DIR)
 			include_directories(${${ref}_SOURCE_DIR}/include)

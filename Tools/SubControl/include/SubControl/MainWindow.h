@@ -7,10 +7,10 @@
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerKillMessageSupport.h"
 #include "LibSub/State/State.h"
-#include "LibSub/DDS/Participant.h"
-#include "LibSub/DDS/Receiver.h"
-#include "LibSub/DDS/Sender.h"
-#include "LibSub/DDS/Topic.h"
+#include "DDS/Participant.h"
+#include "DDS/Receiver.h"
+#include "DDS/Sender.h"
+#include "DDS/Topic.h"
 #include <QMainWindow>
 #include <QTimer>
 #include "ui_mainwindow.h"

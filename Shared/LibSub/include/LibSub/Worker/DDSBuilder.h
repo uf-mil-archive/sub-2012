@@ -1,11 +1,11 @@
 #ifndef LIBSUB_DDS_DDSBUILDER_H
 #define LIBSUB_DDS_DDSBUILDER_H
 
-#include "LibSub/DDS/Participant.h"
-#include "LibSub/DDS/Topic.h"
-#include "LibSub/DDS/Sender.h"
-#include "LibSub/DDS/Receiver.h"
-#include "LibSub/DDS/Conversions.h"
+#include "DDS/Participant.h"
+#include "DDS/Topic.h"
+#include "DDS/Sender.h"
+#include "DDS/Receiver.h"
+#include "DDS/Conversions.h"
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"

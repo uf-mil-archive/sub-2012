@@ -37,6 +37,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 # add shared projects
 add_subdirectory(Shared/HAL)
+add_subdirectory(Shared/DDS)
 add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/WorkerManager)
 

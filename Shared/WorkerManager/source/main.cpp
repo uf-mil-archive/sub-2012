@@ -1,7 +1,7 @@
 #include "WorkerManager/WorkerManagerWorker.h"
 #include "WorkerManager/Messages/WorkerManagerCommandMessageSupport.h"
 #include "WorkerManager/Messages/WorkerManagerStatusMessageSupport.h"
-#include "LibSub/DDS/DDSBuilder.h"
+#include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
 #include <boost/asio.hpp>
 

@@ -1,4 +1,4 @@
-#include "LibSub/DDS/Conversions.h"
+#include "DDS/Conversions.h"
 #include "SubControl/MainWindow.h"
 #include <iostream>
 #include <boost/lexical_cast.hpp>

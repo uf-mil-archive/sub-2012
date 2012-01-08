@@ -1,7 +1,7 @@
 #ifndef LIBSUB_DDS_SENDER_H
 #define LIBSUB_DDS_SENDER_H
 
-#include "LibSub/DDS/Traits.h"
+#include "DDS/Traits.h"
 #include <ndds/ndds_cpp.h>
 
 namespace subjugator {
