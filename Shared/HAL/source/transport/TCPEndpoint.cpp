@@ -6,8 +6,8 @@ using namespace boost;
 using namespace boost::asio;
 using namespace std;
 
-TCPEndpoint::TCPEndpoint(const ip::tcp::endpoint &endpoint, io_service &ioservice)
-: BaseStreamEndpoint<ip::tcp::socket>(ioservice), endpoint(endpoint) { }
+TCPEndpoint::TCPEndpoint(const ip::tcp::endpoint &endpoint, io_service &io) :
+BaseStreamEndpoint<ip::tcp::socket>(io), endpoint(endpoint) { }
 
 void TCPEndpoint::open() {
 	assert(getState() == CLOSED);

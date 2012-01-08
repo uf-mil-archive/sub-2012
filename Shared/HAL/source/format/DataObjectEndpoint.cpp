@@ -5,8 +5,8 @@ using namespace subjugator;
 using namespace boost;
 using namespace std;
 
-DataObjectEndpoint::DataObjectEndpoint(Endpoint *endpoint, DataObjectFormatter *dobjformat, PacketFormatter *packetformat)
-: endpoint(endpoint), dobjformat(dobjformat), packetformat(packetformat) {
+DataObjectEndpoint::DataObjectEndpoint(Endpoint *endpoint, DataObjectFormatter *dobjformat, PacketFormatter *packetformat) :
+endpoint(endpoint), dobjformat(dobjformat), packetformat(packetformat) {
 	endpoint->configureCallbacks(boost::bind(&DataObjectEndpoint::endpointReadCallback, this, _1, _2), boost::bind(&DataObjectEndpoint::endpointStateChangeCallback, this));
 }
 
@@ -23,8 +23,7 @@ void DataObjectEndpoint::write(const DataObject &dobj) {
 }
 
 void DataObjectEndpoint::endpointReadCallback(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
-	ByteVec bytes(begin, end); // TODO eliminate this unnecessary copy by making PacketFormatters operate on a pair of iterators
-	vector<Packet> packets = packetformat->parsePackets(bytes); // parse packets from the new data
+	vector<Packet> packets = packetformat->parsePackets(begin, end); // parse packets from the new data
 
 	for (vector<Packet>::iterator i = packets.begin(); i != packets.end(); ++i) { // for each packet
 		auto_ptr<DataObject> dobj(dobjformat->toDataObject(*i)); // attempt to convert it to a data object
@@ -39,5 +38,3 @@ void DataObjectEndpoint::endpointStateChangeCallback() {
 	if (statechangecallback)
 		statechangecallback();
 }
-
-

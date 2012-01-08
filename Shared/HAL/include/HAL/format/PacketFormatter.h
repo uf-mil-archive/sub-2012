@@ -24,7 +24,7 @@ namespace subjugator {
 
 			Returns a vector containing zero or more packets successfully extracted from the data.
 			It is up to the PacketFormatter to buffer data internally that may represent an incomplete packet. */
-			virtual std::vector<Packet> parsePackets(const ByteVec &data) = 0;
+			virtual std::vector<Packet> parsePackets(ByteVec::const_iterator begin, ByteVec::const_iterator end) = 0;
 
 			/** \brief Format a packet for transmission.
 

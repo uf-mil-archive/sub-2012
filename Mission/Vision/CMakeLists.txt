@@ -1,1 +1,1 @@
-sub_executable(Vision FlyCapture OpenCV LegacyDDS SubMain DataObjects HAL)
+sub_executable(Vision FlyCapture OpenCV LegacyDDS SubMain DataObjects LegacyHAL)

@@ -1,4 +1,6 @@
 #include "PrimitiveDriver/ThrusterManager.h"
+#include "PrimitiveDriver/DataObjects/MotorDriverDataObjectFormatter.h"
+#include "HAL/format/Sub7EPacketFormatter.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/bind.hpp>
 #include <string>
@@ -11,10 +13,11 @@ using namespace std;
 ThrusterManager::ThrusterManager(HAL &hal, int srcaddress, const ThrusterChangeCallback &callback)
 : hal(hal), srcaddress(srcaddress), callback(callback) { }
 
-int ThrusterManager::addThruster(int address) {
+int ThrusterManager::addThruster(const std::string &name, const std::string &endpointconf, int address) {
 	int num = thrusters.size();
-	thrusters.push_back(new Thruster(hal, address, srcaddress));
-	Thruster &t = thrusters.back();
+
+	DataObjectEndpoint *endpoint = hal.makeDataObjectEndpoint(endpointconf, new MotorDriverDataObjectFormatter(address, srcaddress, BRUSHEDOPEN), new Sub7EPacketFormatter());
+	thrusters.push_back(new Thruster(name, endpoint, srcaddress));
 
 	return num;
 }

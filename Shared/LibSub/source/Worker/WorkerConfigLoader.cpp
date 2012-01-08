@@ -29,6 +29,15 @@ ptree WorkerConfigLoader::loadConfig(const string &workername) const {
 	return config;
 }
 
+void WorkerConfigLoader::writeLocalConfig(const string &workername, const ptree &config) const {
+	filesystem::path localoverlay = filesystem::path(configPath) / "local";
+	if (!exists(localoverlay))
+		filesystem::create_directory(localoverlay);
+
+	string jsonfile = to_lower_copy(workername + ".json");
+	json_parser::write_json((localoverlay / jsonfile).string(), config);
+}
+
 void subjugator::merge(ptree &dest, const ptree &src) {
 	dest.data() = src.data();
 

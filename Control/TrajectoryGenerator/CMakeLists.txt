@@ -1,1 +1,1 @@
-sub_executable(TrajectoryGenerator LegacyDDS SubMain HAL DataObjects)
+sub_executable(TrajectoryGenerator LegacyDDS SubMain LegacyHAL DataObjects)

@@ -13,7 +13,7 @@ namespace subjugator {
 	template <class StreamType> // designed to be either a tcp::socket or a serial_port
 	class BaseStreamEndpoint : public BaseEndpoint {
 		public:
-			BaseStreamEndpoint(boost::asio::io_service &ioservice) : stream(ioservice) {
+			BaseStreamEndpoint(boost::asio::io_service &io) : stream(io) {
 				pendingsendbuf.reserve(4096);
 				outgoingsendbuf.reserve(4096);
 				recvbuf.resize(4096);

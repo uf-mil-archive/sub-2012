@@ -1,73 +1,97 @@
-#include <ndds/ndds_cpp.h>
 #include "TrackingController/TrackingControllerWorker.h"
-#include "TrackingController/TrackingControllerDDSCommander.h"
-#include "TrackingController/TrackingControllerDDSListener.h"
-#include "DDSMessages/SetWaypointMessage.h"
-#include "DDSMessages/SetWaypointMessageSupport.h"
-
-#include "DDSMessages/LPOSVSSMessage.h"
+#include "TrackingController/Messages/ControllerGainsMessageSupport.h"
+#include "TrackingController/Messages/TrackingControllerLogMessageSupport.h"
+#include "TrackingController/Messages/TrajectoryMessageSupport.h"
 #include "DDSMessages/LPOSVSSMessageSupport.h"
-#include "DDSMessages/TrackingControllerLogMessage.h"
-#include "DDSMessages/TrackingControllerLogMessageSupport.h"
-
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread.hpp>
+#include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
+#include "LibSub/Worker/DDSBuilder.h"
+#include "LibSub/Worker/WorkerBuilder.h"
 #include <boost/asio.hpp>
 
-#include <iostream>
-#include <fstream>
-
-#include <Eigen/Dense>
-
-using namespace subjugator;
-using namespace boost;
 using namespace std;
-using namespace Eigen;
+using namespace boost::asio;
+using namespace subjugator;
 
-int main(int argc, char **argv)
-{
-	boost::asio::io_service io;
+DECLARE_MESSAGE_TRAITS(ControllerGainsMessage);
+DECLARE_MESSAGE_TRAITS(LPOSVSSMessage);
+DECLARE_MESSAGE_TRAITS(PDWrenchMessage);
+DECLARE_MESSAGE_TRAITS(TrackingControllerLogMessage);
+DECLARE_MESSAGE_TRAITS(TrajectoryMessage);
 
-	// We need a worker
-	TrackingControllerWorker worker(io, 50);
-	if(!worker.Startup())
-		throw new runtime_error("Failed to start TrackingController Worker!");
+int main(int argc, char **argv) {
+	io_service io;
 
-	// Now we need a DDS listener to push all the data up
-	DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->create_participant(0, DDS_PARTICIPANT_QOS_DEFAULT, NULL, DDS_STATUS_MASK_NONE);
-	if (!participant)
-		throw runtime_error("Failed to create DDSDomainParticipant");
+	// Parse options
+	WorkerBuilderOptions options("TrackingController");
+	if (!options.parse(argc, argv))
+		return 1;
 
-	if (SetWaypointMessageTypeSupport::register_type(participant, SetWaypointMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-		throw runtime_error("Failed to register type");
+	// Build the worker from the options
+	WorkerBuilder<TrackingControllerWorker, DefaultWorkerConstructionPolicy> builder(options, io);
+	TrackingControllerWorker &worker = builder.getWorker();
 
-	if (PDWrenchMessageTypeSupport::register_type(participant, PDWrenchMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-			throw runtime_error("Failed to register type");
+	// Get DDS up
+	DDSBuilder dds(io);
+	dds.worker(worker);
+	dds.killMonitor(worker.killmon);
 
-	if (TrajectoryMessageTypeSupport::register_type(participant, TrajectoryMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-				throw runtime_error("Failed to register type");
+	dds.receiver(worker.lposvssmailbox, dds.topic<LPOSVSSMessage>("LPOSVSS", TopicQOS::LEGACY));
+	dds.receiver(worker.trajectorymailbox, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
+	dds.receiver(worker.gainsmailbox, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::LEGACY));
 
-	if (LPOSVSSMessageTypeSupport::register_type(participant, LPOSVSSMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-					throw runtime_error("Failed to register type");
-
-	if (PDStatusMessageTypeSupport::register_type(participant, PDStatusMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-					throw runtime_error("Failed to register type");
-
-	if (ControllerGainsMessageTypeSupport::register_type(participant, ControllerGainsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-						throw runtime_error("Failed to register type");
-
-	if (TrackingControllerLogMessageTypeSupport::register_type(participant, TrackingControllerLogMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
-						throw runtime_error("Failed to register type");
-
-	TrackingControllerDDSCommander commander(worker, participant);
-
-	TrackingControllerDDSListener listener(worker, participant);
-
+	dds.sender(worker.wrenchsignal, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
+	dds.sender(worker.logsignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog", TopicQOS::LEGACY));
 
 	// Start the worker
-	io.run();
-
-	// Cleanly shutdown the worker
-	worker.Shutdown();
+	builder.runWorker();
 }
 
+namespace subjugator {
+	template <>
+	void from_dds(TrackingControllerWorker::LPOSVSSInfo &lpos, const LPOSVSSMessage &msg) {
+		from_dds(lpos.position_ned, msg.position_NED);
+		from_dds(lpos.quaternion_ned_b, msg.quaternion_NED_B);
+		from_dds(lpos.velocity_ned, msg.velocity_NED);
+		from_dds(lpos.angularrate_body, msg.angularRate_BODY);
+	}
+
+	template <>
+	void from_dds(TrackingController::TrajectoryPoint &tp, const TrajectoryMessage &msg) {
+		from_dds(tp.xd, msg.xd);
+		from_dds(tp.xd_dot, msg.xd_dot);
+	}
+
+	template <>
+	void from_dds(TrackingController::Gains &gains, const ControllerGainsMessage &msg) {
+		from_dds(gains.k, msg.k);
+		from_dds(gains.ks, msg.ks);
+		from_dds(gains.alpha, msg.alpha);
+		from_dds(gains.beta, msg.beta);
+	}
+
+	template <>
+	void to_dds(PDWrenchMessage &msg, const Vector6d &vec) {
+		for (int i=0; i<3; i++)
+			msg.linear[i] = vec(i);
+		for (int i=0; i<3; i++)
+			msg.moment[i] = vec(i+3);
+	}
+
+	template <>
+	void to_dds(TrackingControllerLogMessage &logmessage, const TrackingControllerWorker::LogData &data) {
+		for (int i=0;i<6;i++) {
+			logmessage.control[i] = data.out.control[i];
+			logmessage.pd_control[i] = data.out.control_pd[i];
+			logmessage.rise_control[i] = data.out.control_rise[i];
+			logmessage.nn_control[i] = data.out.control_nn[i];
+		}
+
+		for (int i=0;i<19;i++)
+			for (int j=0;j<5;j++)
+				logmessage.V_hat[i][j] = data.v_hat(i,j);
+
+		for (int i=0;i<6;i++)
+			for (int j=0;j<6;j++)
+				logmessage.W_hat[i][j] = data.w_hat(i,j);
+	}
+}

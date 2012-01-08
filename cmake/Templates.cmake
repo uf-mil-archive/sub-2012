@@ -79,20 +79,14 @@ function(sub_executable projectname)
 		endif()
 
 		if(ref STREQUAL LegacyDDS)
-			ndds_include_project_rtiddsgen_directories(LegacyDDS idl) # Put our DDS project's IDLs on the include path
+			ndds_include_project_rtiddsgen_directories(LegacyDDS C++ idl) # Put our DDS project's IDLs on the include path
 			include_directories(${LegacyDDS_SOURCE_DIR}/include) # Put its regular headers on the include path
 			set(libraries ${libraries} legacydds) # link to its libraries
 
 		elseif(ref STREQUAL DDS)
-			file(GLOB_RECURSE interfaces "idl/*.idl") # check for IDL files
-			if (interfaces)
-				ndds_include_rtiddsgen_directories("idl") # put idl directory's generated headers on include path
-				ndds_run_rtiddsgen(interfaces_sources ${interfaces}) # generate sources
-				string(TOLOWER ${projectname} ddslibname) # name the library
-				set(ddslibname ${ddslibname}_dds)
-				add_library(${ddslibname} ${interfaces_sources}) # add a library of DDS stuff
-				set(libraries ${libraries} ${ddslibname}) # link this library to our executable
-			endif()
+			ndds_include_project_rtiddsgen_directories(DDS C++ idl) # Put our DDS project's IDLs on the include path
+			include_directories(${DDS_SOURCE_DIR}/include) # Put its regular headers on the include path
+			set(libraries ${libraries} dds) # link to its libraries
 
 		elseif(ref STREQUAL Qt)
 			set(QT_USE_QTOPENGL TRUE)
@@ -132,9 +126,6 @@ function(sub_executable projectname)
 			string(TOLOWER ${ref} libname)
 			set(libraries ${libraries} ${libname})
 			include_directories(${${ref}_SOURCE_DIR}/include)
-			if(have_dds)
-				ndds_include_project_rtiddsgen_directories(${ref} idl)
-			endif()
 		else()
 			message(SEND_ERROR "Executable ${projectname} has unknown reference ${ref}")
 		endif()
@@ -146,7 +137,7 @@ function(sub_executable projectname)
 	endif()
 
 	# Boost comes last, since flycapture depends on it
-	set(libraries ${libraries} ${Boost_LIBRARIES})
+	set(libraries ${libraries} ${Boost_LIBRARIES} pthread rt)
 
 	# Define executable
 	string(TOLOWER ${projectname} exename)
@@ -194,14 +185,7 @@ function(sub_library projectname)
 
 	foreach(ref ${ARGN})
 		if(ref STREQUAL DDS)
-			include_directories(${NDDS_INCLUDE_DIRS})
-
-			file(GLOB_RECURSE interfaces "idl/*.idl") # check for IDL files
-			if (interfaces)
-				ndds_include_rtiddsgen_directories("idl") # put idl directory's generated headers on include path
-				ndds_run_rtiddsgen(interfaces_sources ${interfaces}) # generate sources
-				set(sources ${sources} ${interfaces_sources}) # put those sources in the library
-			endif()
+			include_directories(${NDDS_INCLUDE_DIRS} ${DDS_SOURCE_DIR})
 
 		elseif(${ref}_SOURCE_DIR)
 			include_directories(${${ref}_SOURCE_DIR}/include)
@@ -218,13 +202,3 @@ function(sub_library projectname)
 	file(GLOB_RECURSE configs "config/*")
 	install(FILES ${configs} DESTINATION ${SUBJUGATOR_CONFIG_DIRECTORY})
 endfunction()
-
-# Apparently -fPIC is recommended for any build on 64 bit linux.
-if (NOT CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		add_definitions(-fPIC)
-	else()
-		message(WARNING "Don't know how to force -fPIC on x64 with this compiler") # don't feed -fPIC to somebody other than GCC, it'll probably cause errors
-	endif()
-endif()
-

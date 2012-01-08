@@ -1,13 +1,17 @@
 {
-	"thrusters": [
-		{"id": 30, "lineofaction": "0  0  1", "position": " 11.7103  5.3754 -1.9677", "fsat": 500, "rsat": 500},
-		{"id": 31, "lineofaction": "0  0  1", "position": " 11.7103 -5.3754 -1.9677", "fsat": 500, "rsat": 500},
-		{"id": 32, "lineofaction": "0 -1  0", "position": " 22.3004  1.8020 -1.9190", "fsat": 500, "rsat": 500},
-		{"id": 33, "lineofaction": "0  0  1", "position": "-11.7103 -5.3754 -1.9677", "fsat": 500, "rsat": 500},
-		{"id": 34, "lineofaction": "1  0  0", "position": "-24.9072 -4.5375 -2.4285", "fsat": 500, "rsat": 500},
-		{"id": 35, "lineofaction": "1  0  0", "position": "-24.9072  4.5375 -2.4285", "fsat": 500, "rsat": 500},
-		{"id": 36, "lineofaction": "0  1  0", "position": "-20.8004 -1.8020  2.0440", "fsat": 500, "rsat": 500},
-		{"id": 37, "lineofaction": "0  0  1", "position": "-11.7147  5.3754 -1.9677", "fsat": 500, "rsat": 500}
-	]
+	"mergeboard_endpoint": "udp 192.168.1.60:50000",
+	"actuator_endpoint": "serial /dev/ttyActuator baud=115200",
+	"heartbeat_endpoint": "udp 255.255.255.255:50000",
+
+	"thrusters": {
+		"FRV":  {"address": 30, "lineofaction": "0  0  1", "position": " 11.7103  5.3754 -1.9677", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.30:50000"},
+		"FLV":  {"address": 31, "lineofaction": "0  0  1", "position": " 11.7103 -5.3754 -1.9677", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.31:50000"},
+		"FS":   {"address": 32, "lineofaction": "0 -1  0", "position": " 22.3004  1.8020 -1.9190", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.32:50000"},
+		"RLV":  {"address": 33, "lineofaction": "0  0  1", "position": "-11.7103 -5.3754 -1.9677", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.33:50000"},
+		"LFOR": {"address": 34, "lineofaction": "1  0  0", "position": "-24.9072 -4.5375 -2.4285", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.34:50000"},
+		"RFOR": {"address": 35, "lineofaction": "1  0  0", "position": "-24.9072  4.5375 -2.4285", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.35:50000"},
+		"RS":   {"address": 36, "lineofaction": "0  1  0", "position": "-20.8004 -1.8020  2.0440", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.36:50000"},
+		"RRV":  {"address": 37, "lineofaction": "0  0  1", "position": "-11.7147  5.3754 -1.9677", "fsat": 500, "rsat": 500, "endpoint": "udp 192.168.1.37:50000"}
+	}
 }
 

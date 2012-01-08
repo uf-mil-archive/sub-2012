@@ -20,8 +20,7 @@ void ThrusterMapper::setEntry(int num, const Entry &entry) {
 
 	Vector3d moment = (entry.position - centerofmass).cross(entry.lineofaction);
 
-	mapmatrix.block<3, 1>(0, num) = entry.lineofaction;
-	mapmatrix.block<3, 1>(3, num) = moment;
+	mapmatrix.col(num) << entry.lineofaction, moment;
 	fsat[num] = entry.fsat;
 	rsat[num] = entry.rsat;
 

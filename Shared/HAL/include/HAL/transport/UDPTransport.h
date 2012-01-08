@@ -14,7 +14,7 @@
 namespace subjugator {
 	class UDPTransport : public Transport, UDPEndpoint::TransportCallbacks {
 		public:
-			UDPTransport(boost::asio::io_service &ioservice, int port=50000);
+			UDPTransport(boost::asio::io_service &io, int port=50000);
 
 			virtual const std::string &getName() const;
 			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);

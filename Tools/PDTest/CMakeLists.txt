@@ -1,1 +1,1 @@
-sub_executable(PDTest Qt LegacyDDS HAL)
+sub_executable(PDTest Qt LegacyDDS LegacyHAL)

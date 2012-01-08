@@ -1,11 +1,14 @@
-#ifndef LIBSUB_MATH_EIGENTYPEDEFS
-#define LIBSUB_MATH_EIGENTYPEDEFS
+#ifndef LIBSUB_MATH_EIGENUTILS_H
+#define LIBSUB_MATH_EIGENUTILS_H
 
 #include <Eigen/Dense>
 #include <istream>
 
 namespace subjugator {
 	// Common
+	using Eigen::Vector2d;
+	using Eigen::Vector3d;
+	using Eigen::Vector4d;
 	typedef Eigen::Matrix<double, 6, 1> Vector6d;
 
 	// Controller
@@ -31,7 +34,30 @@ namespace subjugator {
 	typedef Eigen::Matrix<double, 3,27> Matrix3x27d;
 	typedef Eigen::Matrix<double, 7, 27> Matrix7x27d;
 	typedef Eigen::Matrix<double, 7, 26> Matrix7x26d;
+
+	template <typename T>
+	inline T sign(T x) {
+		if (x > 0)
+			return 1;
+		else if (x < 0)
+			return -1;
+		else
+			return 0;
+	}
+
+	template <typename Derived>
+	Eigen::MatrixXd signs(const Eigen::MatrixBase<Derived> &x) {
+		Eigen::MatrixXd out(x.rows(), x.cols());
+
+		for (int i=0; i<x.rows(); i++)
+			for (int j=0; j<x.cols(); j++)
+				out(i, j) = sign(x(i, j));
+
+		return out;
+	}
 }
+
+
 
 namespace Eigen {
 	template <typename T, int M, int N>

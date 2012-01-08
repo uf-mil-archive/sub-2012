@@ -8,12 +8,58 @@
 #include <boost/function.hpp>
 #include <boost/pointer_cast.hpp>
 #include <limits>
+#include <cassert>
 
 namespace subjugator {
 	/**
 	\addtogroup LibSub
 	@{
 	*/
+
+	/**
+	\brief WorkerMailbox constructor arguments
+
+	Helper object for constructing \c WorkerMailbox, which allows for a named argument like syntax.
+	Usually referred through the typedef \c WorkerEndpoint::Args.
+
+	\arg \c name A name for the WorkerMailbox, which appears in the State messages
+	\arg \c maxage The maximum age of data in the mailbox, in seconds
+	\arg \c callback Called when new data is set
+
+	\see WorkerMailbox
+	*/
+
+	template <typename T>
+	class WorkerMailboxArgs {
+		public:
+			typedef boost::function<void (const boost::optional<T> &) > Callback;
+
+			WorkerMailboxArgs() : maxage(std::numeric_limits<double>::infinity()) { }
+
+			WorkerMailboxArgs &setName(const std::string &name) {
+				this->name = name;
+				return *this;
+			}
+
+			WorkerMailboxArgs &setMaxAge(double maxage) {
+				this->maxage = maxage;
+				return *this;
+			}
+
+			WorkerMailboxArgs &setCallback(const Callback &callback) {
+				this->callback = callback;
+				return *this;
+			}
+
+		protected:
+			void assertValidArgs() {
+				assert(name.size());
+			}
+
+			std::string name;
+			double maxage;
+			Callback callback;
+	};
 
 	/**
 	\brief Input for a Worker
@@ -23,19 +69,20 @@ namespace subjugator {
 	*/
 
 	template <typename T>
-	class WorkerMailbox : public StateUpdater {
+	class WorkerMailbox : public StateUpdater, private WorkerMailboxArgs<T> {
 		public:
-			typedef boost::function<void (const boost::optional<T> &) > Callback;
+			typedef WorkerMailboxArgs<T> Args;
 
 			/**
-			Configures and initializes a WorkerMailbox
+			\brief Constructs WorkerMailbox
 
-			\arg \c name A name for the WorkerMailbox, which appears in the State messages
-			\arg \c maxage The maximum age of data in the mailbox, in seconds
-			\arg \c callback Called when new data is set
+			Uses \c WorkerMailboxArgs to implement a named parameter like syntax.
+
+			\see WorkerMailboxArgs
 			*/
-			WorkerMailbox(const std::string &name, double maxage=std::numeric_limits<double>::infinity(), const Callback &callback=Callback())
-			: name(name), callback(callback), maxage(maxage), age(0), datataken(false) { }
+
+			WorkerMailbox(const Args &args)
+			: Args(args), age(0), datataken(false) { WorkerMailboxArgs<T>::assertValidArgs(); }
 
 			const std::string &getName() const { return name; }
 
@@ -46,7 +93,6 @@ namespace subjugator {
 			*/
 
 			void set(const T& newdata) {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				datataken = false;
 				age = 0;
 				data.reset(newdata);
@@ -62,7 +108,6 @@ namespace subjugator {
 			*/
 
 			void clear() {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				datataken = false;
 				age = 0;
 				data.reset();
@@ -80,12 +125,23 @@ namespace subjugator {
 			}
 
 			/**
-			\brief Gets the most recent data
+			\brief Gets the most recent data, or boost::none if no data is set.
 			*/
 
-			boost::optional<T> getOptional() const {
-				boost::lock_guard<boost::mutex> lock(mutex);
+			const boost::optional<T> &getOptional() const {
 				return data;
+			}
+
+			/**
+			\brief Gets the data in the mailbox. Mailbox must have data set.
+			*/
+
+			const T &operator*() const {
+				return *data;
+			}
+
+			const T *operator->() const {
+				return &*data;
 			}
 
 			/**
@@ -101,7 +157,6 @@ namespace subjugator {
 			*/
 
 			boost::optional<T> takeOptional() {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				if (datataken)
 					return boost::optional<T>();
 
@@ -112,7 +167,6 @@ namespace subjugator {
 			virtual const State &getState() const { return state; }
 
 			virtual void updateState(double dt) {
-				boost::lock_guard<boost::mutex> lock(mutex);
 				if (data) {
 					age += dt;
 					if (age < maxage)
@@ -125,17 +179,15 @@ namespace subjugator {
 			}
 
 		private:
-			std::string name;
-			Callback callback;
-			double maxage;
+			using Args::name;
+			using Args::maxage;
+			using Args::callback;
 			double age;
 
 			boost::optional<T> data;
 			bool datataken;
 
 			State state;
-
-			mutable boost::mutex mutex;
 	};
 
 	/** @} */

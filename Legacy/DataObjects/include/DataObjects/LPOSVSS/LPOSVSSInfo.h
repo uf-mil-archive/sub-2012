@@ -12,6 +12,7 @@ using namespace Eigen;
 namespace subjugator {
 	class LPOSVSSInfo : public DataObject {
 		public:
+			LPOSVSSInfo() {}
 			LPOSVSSInfo(int state, boost::int64_t timestamp):state(state), timestamp(timestamp){}
 			LPOSVSSInfo(int state, boost::int64_t timestamp, const Vector3d& position_NED,
 					const Vector4d& quaternion_NED_B, const Vector3d& velocity_NED,

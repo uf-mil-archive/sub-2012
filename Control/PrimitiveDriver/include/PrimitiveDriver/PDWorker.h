@@ -9,6 +9,7 @@
 #include "LibSub/Worker/WorkerSignal.h"
 #include "LibSub/Worker/WorkerEndpoint.h"
 #include "LibSub/Worker/WorkerConfigLoader.h"
+#include "LibSub/Worker/WorkerKill.h"
 #include "LibSub/Math/EigenUtils.h"
 #include "HAL/HAL.h"
 #include "PrimitiveDriver/DataObjects/PDInfo.h"
@@ -22,23 +23,24 @@ namespace subjugator {
 
 			WorkerMailbox<Vector6d> wrenchmailbox;
 			WorkerMailbox<int> actuatormailbox;
+			WorkerKillMonitor killmon;
 
 			WorkerSignal<std::vector<double> > currentsignal;
 			WorkerSignal<PDInfo> infosignal;
+			WorkerKillSignal estopsignal;
 
 		protected:
 			virtual void initialize();
 			virtual void work(double dt);
+			virtual void leaveActive();
 
 		private:
 			void wrenchSet(const boost::optional<Vector6d> &wrench);
 			void actuatorSet(const boost::optional<int> &actuators);
 			void thrusterStateChanged(int num, const State &state);
-
-			virtual void leaveActive();
+			void estopChanged(bool estop);
 
 			HAL &hal;
-			const WorkerConfigLoader &configloader;
 
 			WorkerEndpoint heartbeatendpoint;
 			ThrusterManager thrustermanager;

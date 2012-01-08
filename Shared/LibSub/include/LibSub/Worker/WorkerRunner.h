@@ -23,13 +23,15 @@ namespace subjugator {
 			bool isRunning() const { return running; }
 
 		private:
-			boost::posix_time::time_duration getDuration() const;
 			void tick(const boost::system::error_code& error);
 
 			Worker &worker;
+			const boost::posix_time::time_duration timer_period;
 			boost::asio::deadline_timer timer;
 			boost::posix_time::ptime prevtime;
 			bool running;
+
+			static boost::posix_time::time_duration calculatePeriod(const Worker &worker);
 	};
 }
 

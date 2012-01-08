@@ -1,189 +1,111 @@
 #include "TrackingController/TrackingControllerWorker.h"
+#include "LibSub/Math/AttitudeHelpers.h"
 
 using namespace subjugator;
-using namespace std;
 using namespace Eigen;
+using namespace boost;
+using namespace boost::property_tree;
+using namespace std;
 
-
-TrackingControllerWorker::TrackingControllerWorker(boost::asio::io_service& io, int64_t rate)
-	: Worker(io, rate), inReady(false), hardwareKilled(true)
+TrackingControllerWorker::TrackingControllerWorker(const WorkerConfigLoader &configloader) :
+Worker("TrackingController", 50, configloader),
+lposvssmailbox(WorkerMailbox<LPOSVSSInfo>::Args()
+	.setName("LPOSVSS")
+	.setMaxAge(.2)),
+trajectorymailbox(WorkerMailbox<TrackingController::TrajectoryPoint>::Args()
+	.setName("Trajectory")),
+gainsmailbox(WorkerMailbox<TrackingController::Gains>::Args()
+	.setName("ControllerGains")
+	.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1)))
 {
-	mStateManager.SetStateCallback(SubStates::INITIALIZE,
-			STATE_INITIALIZE_STRING,
-			boost::bind(&TrackingControllerWorker::initializeState, this));
-	mStateManager.SetStateCallback(SubStates::READY,
-			STATE_READY_STRING,
-			boost::bind(&TrackingControllerWorker::readyState, this));
-	mStateManager.SetStateCallback(SubStates::STANDBY,
-			STATE_STANDBY_STRING,
-			boost::bind(&TrackingControllerWorker::standbyState, this));
-	mStateManager.SetStateCallback(SubStates::EMERGENCY,
-			STATE_EMERGENCY_STRING,
-			boost::bind(&TrackingControllerWorker::emergencyState, this));
-	mStateManager.SetStateCallback(SubStates::ALL,
-			STATE_ALL_STRING,
-			boost::bind(&TrackingControllerWorker::allState, this));
+	registerStateUpdater(lposvssmailbox);
+	registerStateUpdater(killmon);
 
-	setControlToken((int)TrackingControllerWorkerCommands::SetLPOSVSSInfo, boost::bind(&TrackingControllerWorker::setLPOSVSSInfo, this, _1));
-	setControlToken((int)TrackingControllerWorkerCommands::SetPDInfo, boost::bind(&TrackingControllerWorker::setPDInfo, this, _1));
-	setControlToken((int)TrackingControllerWorkerCommands::SetTrajectoryInfo, boost::bind(&TrackingControllerWorker::setTrajectoryInfo, this, _1));
-	setControlToken((int)TrackingControllerWorkerCommands::SetControllerGains, boost::bind(&TrackingControllerWorker::setControllerGains, this, _1));
+	loadConfig();
 }
 
-bool TrackingControllerWorker::Startup()
-{
-	mStateManager.ChangeState(SubStates::INITIALIZE);
-	return true;
+void TrackingControllerWorker::enterActive() {
+	setCurrentPosWaypoint();
+	resetController();
 }
 
-void TrackingControllerWorker::readyState()
-{
-	boost::int64_t t = getTimestamp();
+void TrackingControllerWorker::work(double dt) {
+	// lpos -> state glue math
+	const LPOSVSSInfo &lpos = *lposvssmailbox;
+	TrackingController::State state;
+	state.x <<  lpos.position_ned,
+	            MILQuaternionOps::Quat2Euler(lpos.quaternion_ned_b);
+	state.vb << MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lpos.quaternion_ned_b), lpos.velocity_ned),
+	            lpos.angularrate_body;
 
-	// The first ready function call initializes the timers correctly
-	if(!inReady)
-	{
-		trackingController->InitTimer(t);
-		inReady = true;
+	// update controller
+	TrackingController::Output out = controllerptr->update(dt, *trajectorymailbox, state);
+	wrenchsignal.emit(out.control);
 
-		return;
-	}
-
-	lock.lock();
-	LPOSVSSInfo lInfo = *lposInfo;
-	TrajectoryInfo tInfo = *trajInfo;
-	lock.unlock();
-
-	trackingController->Update(t, tInfo, lInfo);
-
-	// Get the data
-	boost::shared_ptr<TrackingControllerInfo> info(new TrackingControllerInfo(mStateManager.GetCurrentStateCode(), getTimestamp()));
-
-	trackingController->GetWrench(*info);
-
-	// Emit every iteration
-	onEmitting(info);
+	// output additional data for logging/debug purposes
+	LogData data;
+	data.v_hat = controllerptr->getVHat();
+	data.w_hat = controllerptr->getWHat();
+	data.out = out;
+	logsignal.emit(data);
 }
 
-void TrackingControllerWorker::initializeState()
-{
-	inReady = false;
-
-	if(lposInfo.get() == NULL)
+void TrackingControllerWorker::setControllerGains(const boost::optional<TrackingController::Gains> &new_gains) {
+	if (!new_gains)
 		return;
 
-	trackingController.reset();
+	logger.log("Updating gains");
 
-	mStateManager.ChangeState(SubStates::STANDBY);
+	controllerconfig.gains = *new_gains;
+	saveConfigGains();
+
+	if (controllerptr)
+		resetController();
 }
 
-void TrackingControllerWorker::standbyState()
-{
-	inReady = false;
-	if(!hardwareKilled && lposInfo.get())
-	{
-		trackingController = std::auto_ptr<TrackingController>(new TrackingController());
+void TrackingControllerWorker::loadConfig() {
+	const ptree &config = getConfig();
+	controllerconfig.mode = config.get<TrackingController::Mode>("mode");
 
-		Vector6d traj;
-		traj.head<3>() = lposInfo->getPosition_NED();
-		traj.tail<3>() = MILQuaternionOps::Quat2Euler(lposInfo->getQuat_NED_B());
-		traj(3) = traj(4) = 0;
-		trajInfo = auto_ptr<TrajectoryInfo>(new TrajectoryInfo(getTimestamp(), traj, Vector6d::Zero()));
-
-		mStateManager.ChangeState(SubStates::READY);
-
-	}
+	TrackingController::Gains &g = controllerconfig.gains;
+	const ptree &pt = config.get_child("gains");
+	g.k = pt.get<Vector6d>("k");
+	g.ks = pt.get<Vector6d>("ks");
+	g.alpha = pt.get<Vector6d>("alpha");
+	g.beta = pt.get<Vector6d>("beta");
+	g.gamma1 = pt.get<Vector6d>("gamma1");
+	g.gamma2 = pt.get<Vector19d>("gamma2");
 }
 
-void TrackingControllerWorker::emergencyState()
-{
-	inReady = false;
+void TrackingControllerWorker::saveConfigGains() const {
+	ptree config;
+	const TrackingController::Gains &g = controllerconfig.gains;
+
+	config.put("gains.k", g.k);
+	config.put("gains.ks", g.ks);
+	config.put("gains.alpha", g.alpha);
+	config.put("gains.beta", g.beta);
+	config.put("gains.gamma1", g.gamma1);
+	config.put("gains.gamma2", g.gamma2);
+
+	saveConfig(config);
 }
 
-void TrackingControllerWorker::allState()
-{
+void TrackingControllerWorker::resetController() {
+	logger.log("Resetting controller", WorkerLogEntry::DEBUG);
+
+	controllerptr.reset(new TrackingController(controllerconfig));
 }
 
-boost::int64_t TrackingControllerWorker::getTimestamp(void)
-{
-	timespec t;
-	clock_gettime(CLOCK_MONOTONIC, &t);
+void TrackingControllerWorker::setCurrentPosWaypoint() {
+	logger.log("Setting waypoint to current position", WorkerLogEntry::DEBUG);
 
-	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
-}
-
-void TrackingControllerWorker::Shutdown()
-{
-	shutdown = true;
-}
-
-void TrackingControllerWorker::setLPOSVSSInfo(const DataObject& dobj)
-{
-	const LPOSVSSInfo *info = dynamic_cast<const LPOSVSSInfo *>(&dobj);
-	if(!info)
-		return;
-
-	lock.lock();
-
-	lposInfo = std::auto_ptr<LPOSVSSInfo>(new LPOSVSSInfo(*info));
-
-	lock.unlock();
-}
-
-void TrackingControllerWorker::setPDInfo(const DataObject& dobj)
-{
-	bool newState;
-
-	const PDInfo *info = dynamic_cast<const PDInfo *>(&dobj);
-	if(!info)
-		return;
-
-	lock.lock();
-
-	newState = info->getMergeInfo().getESTOP();
-
-	if(hardwareKilled == newState) {
-		lock.unlock();
-		return;
-	}
-
-	hardwareKilled = newState;
-
-	if(hardwareKilled)
-		mStateManager.ChangeState(SubStates::INITIALIZE);
-
-	lock.unlock();
-}
-
-void TrackingControllerWorker::setTrajectoryInfo(const DataObject &dobj) {
-	const TrajectoryInfo *info = dynamic_cast<const TrajectoryInfo *>(&dobj);
-	if(!info)
-		return;
-
-	lock.lock();
-	trajInfo = std::auto_ptr<TrajectoryInfo>(new TrajectoryInfo(*info));
-	lock.unlock();
-}
-
-void TrackingControllerWorker::setControllerGains(const DataObject& dobj)
-{
-	lock.lock();
-
-	if(trackingController.get() == NULL)
-	{
-		lock.unlock();
-		return;
-	}
-
-	const ControllerGains *info = dynamic_cast<const ControllerGains *>(&dobj);
-	if(!info)
-	{
-		lock.unlock();
-		return;
-	}
-
-	trackingController->SetGainsTemp(info->k, info->ks, info->alpha, info->beta);
-
-	lock.unlock();
+	TrackingController::TrajectoryPoint tp;
+	tp.xd << lposvssmailbox->position_ned,
+	         0,
+	         0,
+	         MILQuaternionOps::Quat2Euler(lposvssmailbox->quaternion_ned_b)(2);
+	tp.xd_dot = Vector6d::Zero();
+	trajectorymailbox.set(tp);
 }
 

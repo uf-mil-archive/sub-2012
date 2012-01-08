@@ -1,7 +1,7 @@
-#include "LibSub/DDS/Participant.h"
-#include "LibSub/DDS/Topic.h"
-#include "LibSub/DDS/Receiver.h"
-#include "LibSub/DDS/Conversions.h"
+#include "DDS/Participant.h"
+#include "DDS/Topic.h"
+#include "DDS/Receiver.h"
+#include "DDS/Conversions.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	if (vm.count("workers") && vm.count("exclude-workers")) {
-		std::cerr << "Incompatible options --workers and --exclude-workers" << endl;
+		cerr << "Incompatible options --workers and --exclude-workers" << endl;
 		cerr << desc << endl;
 		return 1;
 	}

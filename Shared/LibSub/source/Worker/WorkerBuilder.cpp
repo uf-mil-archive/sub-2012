@@ -13,6 +13,7 @@ WorkerBuilderOptions::WorkerBuilderOptions(const std::string &workername) : desc
 	desc.add_options()
 		("help", "produce help message")
 		("config-overlays,o", po::value<vector<string> >(), "use configuration overlays")
+		("no-local-overlay,L", "disable the local overlay")
 		("print-debug,d", "output debug log messages");
 }
 
@@ -29,10 +30,13 @@ bool WorkerBuilderOptions::parse(int argc, char **argv) {
 		return false;
 	}
 
+	if (!setVariables(vm))
+		return false;
+
 	if (vm.count("config-overlays"))
-		configloader.setOverlays(vm["config-overlays"].as<vector<string> >());
-	else
-		configloader.clearOverlays();
+		configloader.addOverlays(vm["config-overlays"].as<vector<string> >());
+	if (!vm.count("no-local-overlay"))
+		configloader.addOverlay("local");
 
 	logtype = vm.count("print-debug") ? WorkerLogEntry::DEBUG : WorkerLogEntry::INFO;
 

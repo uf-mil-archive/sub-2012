@@ -10,13 +10,13 @@
 namespace subjugator {
 	class TCPTransport : public Transport {
 		public:
-			TCPTransport(boost::asio::io_service &ioservice);
+			TCPTransport(boost::asio::io_service &io);
 
 			virtual const std::string &getName() const;
 			virtual Endpoint *makeEndpoint(const std::string &address, const ParamMap &params);
 
 		private:
-			boost::asio::io_service &ioservice;
+			boost::asio::io_service &io;
 	};
 }
 

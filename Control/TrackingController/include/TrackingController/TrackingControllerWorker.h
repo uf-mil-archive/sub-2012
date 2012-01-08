@@ -1,70 +1,59 @@
-#ifndef _TRACKINGCONTROLLERWORKER_H__
-#define _TRACKINGCONTROLLERWORKER_H__
+#ifndef TRACKINGCONTROLLER_TRACKINGCONTROLLERWORKER_H
+#define TRACKINGCONTROLLER_TRACKINGCONTROLLERWORKER_H
 
-#include "SubMain/Workers/SubWorker.h"
-#include "SubMain/SubPrerequisites.h"
-#include "SubMain/SubAttitudeHelpers.h"
 #include "TrackingController/TrackingController.h"
-#include "DataObjects/Waypoint/Waypoint.h"
-#include "DataObjects/PD/PDInfo.h"
-#include "DataObjects/TrackingController/ControllerGains.h"
-#include "DataObjects/TrackingController/TrackingControllerInfo.h"
+#include "LibSub/Worker/Worker.h"
+#include "LibSub/Worker/WorkerConfigLoader.h"
+#include "LibSub/Worker/WorkerMailbox.h"
+#include "LibSub/Worker/WorkerSignal.h"
+#include "LibSub/Worker/WorkerKill.h"
+#include "LibSub/Math/EigenUtils.h"
+#include "LibSub/State/State.h"
+#include <boost/scoped_ptr.hpp>
 
-#include <Eigen/Dense>
+namespace subjugator {
+	class TrackingControllerWorker : public Worker {
+		public:
+			struct LPOSVSSInfo {
+				Vector3d position_ned;
+				Vector4d quaternion_ned_b;
+				Vector3d velocity_ned;
+				Vector3d angularrate_body;
+			};
 
-#include <time.h>
+			struct LogData {
+				Matrix19x5d v_hat;
+				Matrix6d w_hat;
 
-using namespace Eigen;
+				TrackingController::Output out;
+			};
 
-namespace subjugator
-{
-	class TrackingControllerWorkerCommands
-	{
-	public:
-		enum LPOSVSSWorkerCommandCode
-		{
-			SetLPOSVSSInfo = 0,
-			SetPDInfo = 1,
-			SetTrajectoryInfo = 2,
-			SetControllerGains = 3,
-		};
-	};
+			TrackingControllerWorker(const WorkerConfigLoader &configloader);
 
-	class TrackingControllerWorker : public Worker
-	{
-	public:
-		typedef Matrix<double, 6, 1> Vector6d;
-		typedef Matrix<double, 6, 6> Matrix6d;
+			WorkerMailbox<LPOSVSSInfo> lposvssmailbox;
+			WorkerMailbox<TrackingController::TrajectoryPoint> trajectorymailbox;
+			WorkerMailbox<TrackingController::Gains> gainsmailbox;
+			WorkerKillMonitor killmon;
 
-		TrackingControllerWorker(boost::asio::io_service& io, int64_t rate);
-		bool Startup();
-		void Shutdown();
+			WorkerSignal<Vector6d> wrenchsignal;
+			WorkerSignal<LogData> logsignal;
 
-	protected:
-		void allState();
-		void readyState();
-		void initializeState();
-		void emergencyState();
-		void standbyState();
+		protected:
+			virtual void enterActive();
+			virtual void work(double dt);
 
-	private:
-		std::auto_ptr<TrackingController> trackingController;
+		private:
+			boost::scoped_ptr<TrackingController> controllerptr;
+			TrackingController::Config controllerconfig;
 
-		std::auto_ptr<TrajectoryInfo> trajInfo;
-		std::auto_ptr<LPOSVSSInfo> lposInfo;
+			void setControllerGains(const boost::optional<TrackingController::Gains> &gains);
 
-		boost::mutex lock;
-
-		boost::int64_t getTimestamp(void);
-
-		bool inReady;
-		bool hardwareKilled;
-
-		void setLPOSVSSInfo(const DataObject& dobj);
-		void setPDInfo(const DataObject& dobj);
-		void setTrajectoryInfo(const DataObject &dobj);
-		void setControllerGains(const DataObject& dobj);
+			void loadConfig();
+			void saveConfigGains() const;
+			void resetController();
+			void setCurrentPosWaypoint();
 	};
 }
 
 #endif
+

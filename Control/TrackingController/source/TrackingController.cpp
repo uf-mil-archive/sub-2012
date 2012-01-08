@@ -1,134 +1,64 @@
 #include "TrackingController/TrackingController.h"
+#include "LibSub/Math/AttitudeHelpers.h"
+#include "LibSub/Math/Quaternion.h"
+#include <boost/algorithm/string.hpp>
+#include <iostream>
 
 using namespace subjugator;
+using namespace boost::algorithm;
 using namespace Eigen;
 using namespace std;
 
-typedef Matrix<double, 6, 1> Vector6d;
+TrackingController::TrackingController(const Config &config) :
+config(config),
+rise_term_prev(Vector6d::Zero()),
+rise_term_int_prev(Vector6d::Zero()),
+V_hat_dot_prev(Matrix19x5d::Zero()),
+V_hat_prev(Matrix19x5d::Random()),
+W_hat_dot_prev(Matrix6d::Zero()),
+W_hat_prev(Matrix6d::Zero()) { }
 
-TrackingController::TrackingController()
-{
-	// Default gains. TODO: load these from a file
-	ktemp <<    20.0, 20.0, 70.0,15.0,50.0,20.0;
-	kstemp <<  220.0,200.0,150.0,40.0,60.0,100.0;
-	alphatemp << 0.1,  0.1, 0.05,0.005, 0.1,0.1;
-	betatemp << 15.0, 10.0, 15.0, 5.0,10.0,10.0;
+TrackingController::Output TrackingController::update(double dt, const TrajectoryPoint &t, const State &s) {
+	// calculate some shared constants
+	Matrix6d J_inv = jacobianInverse(s.x);
 
-	gamma1temp << 1.0, 1.0, 1.0, 1.0,1.0,1.0;
-	gamma1temp *= 30;
-	gamma2temp << 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0;
-	gamma2temp *= 5;
+	Vector6d e;
+	e << t.xd.block<3,1>(0,0) - s.x.block<3,1>(0,0),
+	     AttitudeHelpers::DAngleDiff(s.x(3), t.xd(3)),
+	     AttitudeHelpers::DAngleDiff(s.x(4), t.xd(4)),
+	     AttitudeHelpers::DAngleDiff(s.x(5), t.xd(5));
 
-	pd_on = false;
-	rise_on = true;
-	nn_on = true;
+	Vector6d vbd = J_inv * (config.gains.k.asDiagonal() * e + t.xd_dot);
+	Vector6d e2 = vbd - s.vb;
 
-	rise_term_prev = Vector6d::Zero();
-	rise_term = Vector6d::Zero();
-	rise_term_int_prev = Vector6d::Zero();
-	rise_term_int = Vector6d::Zero();
+	// compute each term
+	Output out;
+	out.control_pd = pdFeedback(dt, e2);
+	out.control_rise = riseFeedbackNoAccel(dt, e2);
+	out.control_nn = nnFeedForward(dt, e2, t);
 
-	x = Vector6d::Zero();
-	x_dot = Vector6d::Zero();
-	xd = Vector6d::Zero();
-	xd_dot = Vector6d::Zero();
+	// sum the active terms to get the combined output
+	out.control = Vector6d::Zero();
+	if (config.mode & TERM_PD)
+		out.control += out.control_pd;
+	if (config.mode & TERM_RISE)
+		out.control += out.control_rise;
+	if (config.mode & TERM_NN)
+		out.control += out.control_nn;
 
-	vb = Vector6d::Zero();
-
-	// NN stuff
-	xd = Vector6d::Zero();
-	xd_dot = Vector6d::Zero();
-	xd_dotdot = Vector6d::Zero();
-	xd_dotdotdot = Vector6d::Zero();
-
-	V_hat_dot = Matrix19x5d::Zero();
-	V_hat_dot_prev = Matrix19x5d::Zero();
-	V_hat = Matrix19x5d::Random();
-	cout << "V_hat initial: " << V_hat << endl;
-	V_hat_prev = V_hat;
-	W_hat_dot = Matrix6d::Zero();
-    W_hat_dot_prev = Matrix6d::Zero();
-    W_hat = Matrix6d::Zero();
-    W_hat_prev = Matrix6d::Zero();
-
-	currentControl = Vector6d::Zero();
-
-	J = Matrix6d::Zero();
-	J_inv = Matrix6d::Zero();
+	return out;
 }
 
-// We cheat here and copy the current data to common class level variables so multiple controllers
-// theoretically could be run in parallel.
-void TrackingController::Update(boost::int64_t currentTick, const TrajectoryInfo& traj, const LPOSVSSInfo& lposInfo)
-{
-    // Update dt
-    double dt = (currentTick - previousTime)*SECPERNANOSEC;
-    previousTime = currentTick;
+Vector6d TrackingController::riseFeedbackNoAccel(double dt, const Vector6d &e2) {
+	const Gains &g = config.gains;
 
-    //Protect the INS against the debugger and non monotonic time
-    if((dt <= 0) || (dt > .150))
-    	return;
+	Matrix6d ksPlus1 = (Matrix6d)g.ks.asDiagonal() + Matrix6d::Identity();
 
-    // NED Position
-    x.block<3,1>(0,0) = lposInfo.getPosition_NED();
-    x.block<3,1>(3,0) = MILQuaternionOps::Quat2Euler(lposInfo.getQuat_NED_B());
+	Vector6d rise_term_int = ksPlus1*g.alpha.asDiagonal()*e2 + g.beta.asDiagonal()*signs(e2);
 
-    // NED Velocity
-    x_dot.block<3,1>(0,0) = lposInfo.getVelocity_NED();
-    x_dot.block<3,1>(3,0) = MILQuaternionOps::QuatRotate(lposInfo.getQuat_NED_B(), lposInfo.getAngularRate_BODY());
+	Vector6d rise_term = rise_term_prev + dt / 2.0 * (rise_term_int + rise_term_int_prev);
 
-    // Body Velocity
-    vb.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lposInfo.getQuat_NED_B()), lposInfo.getVelocity_NED());
-    vb.block<3,1>(3,0) = lposInfo.getAngularRate_BODY();
-
-    // Save the relevant trajectory data
-    xd = traj.getTrajectory();
-    xd_dot = traj.getTrajectory_dot();
-    //xd_dotdot = traj.getTrajectory_dotdot();	// Needed by neural network
-    //xd_dotdotdot = traj.getTrajectory_dotdotdot(); // Needed by neural network
-
-    UpdateJacobianInverse(x);
-	//UpdateJacobian(x);
-
-	// Set gains (these will be rotated from body to NED frame also inside this function)
-	SetGains(ktemp, kstemp, alphatemp, betatemp, lposInfo);
-
-    lock.lock();
-
-	currentControl = Vector6d::Zero();
-	if(pd_on)
-		currentControl += PDFeedback(dt);
-	if(rise_on && !pd_on)	// only allow rise to be on if pd is off
-		currentControl += RiseFeedbackNoAccel(dt);
-	if(nn_on && rise_on && !pd_on) { // Only allow nn to be added if rise is used
-		currentControl += NNFeedForward(dt);
-		//NNFeedForward(dt);
-	}
-
-	// We think there's supposed to be a possible transformation here, the math supports it but the sub does not like it. May need to look at this further.
-	//currentControl = J*currentControl;
-
-    lock.unlock();
-}
-
-Vector6d TrackingController::RiseFeedbackNoAccel(double dt)
-{
-	e = Vector6d::Zero();
-	e.block<3,1>(0,0) = xd.block<3,1>(0,0) - x.block<3,1>(0,0);
-	e(3) = AttitudeHelpers::DAngleDiff(x(3), xd(3)); // This does b-a ( or xd-x)
-	e(4) = AttitudeHelpers::DAngleDiff(x(4), xd(4));
-	e(5) = AttitudeHelpers::DAngleDiff(x(5), xd(5));
-
-	Vector6d vbd = J_inv * (k * e + xd_dot);
-	e2 = vbd - vb;
-
-	Vector6d sign_term = GetSigns(e);
-
-	rise_term_int = ksPlus1*alpha*e2 + beta*sign_term;
-
-	rise_term = rise_term_prev + dt / 2.0 * (rise_term_int + rise_term_int_prev);
-
-	rise_control = ksPlus1 * e2 + rise_term;
+	Vector6d rise_control = ksPlus1 * e2 + rise_term;
 
 	// Save previous values
 	rise_term_prev = rise_term;
@@ -137,95 +67,70 @@ Vector6d TrackingController::RiseFeedbackNoAccel(double dt)
 	return rise_control;
 }
 
-Vector6d TrackingController::PDFeedback(double dt)
-{
-//	cout << "GAINS" << endl;
-//	cout << "K x: " << k(0) << " y: " << k(1) << " z: " << k(2) << " roll: " << k(3) << " pitch: " << k(4) << " yaw: " << k(5);
-//	cout << "Ks x: " << ks(0) << " y: " << ks(1) << " z: " << ks(2) << " roll: " << ks(3) << " pitch: " << ks(4) << " yaw: " << ks(5);
-//	cout << "A x: " << alpha(0) << " y: " << alpha(1) << " z: " << alpha(2) << " roll: " << alpha(3) << " pitch: " << alpha(4) << " yaw: " << alpha(5);
-//	cout << "B x: " << beta(0) << " y: " << beta(1) << " z: " << beta(2) << " roll: " << beta(3) << " pitch: " << beta(4) << " yaw: " << beta(5);
-
-	e = Vector6d::Zero();
-	e.block<3,1>(0,0) = xd.block<3,1>(0,0) - x.block<3,1>(0,0);
-	e(3) = AttitudeHelpers::DAngleDiff(x(3), xd(3));
-	e(4) = AttitudeHelpers::DAngleDiff(x(4), xd(4));
-	e(5) = AttitudeHelpers::DAngleDiff(x(5), xd(5));
-
-	Vector6d vbd = J_inv * (k * e + xd_dot);
-	e2 = vbd - vb;
-
-	pd_control = ks * e2;
-
-	return pd_control;
+Vector6d TrackingController::pdFeedback(double dt, const Vector6d &e2) {
+	return config.gains.ks.asDiagonal() * e2;
 }
 
-Vector6d TrackingController::NNFeedForward(double dt)
-{
-	xd_dotdot = (xd_dot - xd_dot_prev) / dt;
-	xd_dot_prev = xd_dot;
-	xd_dotdotdot = (xd_dotdot - xd_dotdot_prev) / dt;
+Vector6d TrackingController::nnFeedForward(double dt, const Vector6d &e2, const TrajectoryPoint &t) {
+	const Gains &g = config.gains;
+
+	Vector6d xd_dotdot = (t.xd_dot - xd_dot_prev) / dt;
+	xd_dot_prev = t.xd_dot;
+	Vector6d xd_dotdotdot = (xd_dotdot - xd_dotdot_prev) / dt;
 	xd_dotdot_prev = xd_dotdot;
 
-    VectorXd xd_nn(xd.rows()*3+1, 1); 		// xd_nn = [1 ; xd; xd_dot; xd_dotdot];
-    xd_nn(0) = 1.0;
-    xd_nn.block(1, 0, 6, 1) = xd;
-    xd_nn.block(7, 0, 6, 1) = xd_dot;
-    xd_nn.block(13, 0, 6, 1) = xd_dotdot;
+	VectorXd xd_nn(t.xd.rows()*3+1, 1); // xd_nn = [1 ; xd; xd_dot; xd_dotdot];
+	xd_nn << 1, t.xd, t.xd_dot, xd_dotdot;
 
-    VectorXd xd_nn_dot(xd.rows()*3+1, 1);	// xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
-	xd_nn_dot(0) = 0.0;
-    xd_nn_dot.block(1, 0, 6, 1) = xd_dot;
-    xd_nn_dot.block(7, 0, 6, 1) = xd_dotdot;
-    xd_nn_dot.block(13, 0, 6, 1) = xd_dotdotdot;
+	VectorXd xd_nn_dot(t.xd.rows()*3+1, 1); // xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
+	xd_nn_dot << 0, t.xd_dot, xd_dotdot, xd_dotdotdot;
 
-    //VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
-	VectorXd one = VectorXd::Ones(V_hat.cols(), 1); // not sure why I need the matrix form of ::Ones here, the vector form hits a static assert
+	//VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
+	VectorXd one = VectorXd::Ones(V_hat_prev.cols(), 1); // not sure why I need the matrix form of ::Ones here, the vector form hits a static assert
 	cout << one << endl;
 	cout << "before sigma" << endl;
-	VectorXd sigma = one.cwiseQuotient(one + (-V_hat.transpose() * xd_nn).array().exp().matrix());
+	VectorXd sigma = one.cwiseQuotient(one + (-V_hat_prev.transpose() * xd_nn).array().exp().matrix());
 
 	cout << "sigma: " << sigma << endl;
 
-    VectorXd sigma_hat(1+sigma.rows(),1);          //sigma_hat = [1; sigma];
-    sigma_hat(0,0) = 1.0;
-    sigma_hat.block(1,0,sigma.rows(),1) = sigma;
+	VectorXd sigma_hat(1+sigma.rows(),1); //sigma_hat = [1; sigma];
+	sigma_hat << 1, sigma;
 
-	//VectorXd tempProd = V_hat.transpose() * xd_nn;	// 2 * Sech((V_hat.Transpose() * xd_nn).^2);
-    //MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
-    //MatrixXd sigma_hat_prime_term = AttitudeHelpers::DiagMatrixFromVector(inner);
-    MatrixXd sigma_hat_prime_term = AttitudeHelpers::DiagMatrixFromVector(sigma) * (MatrixXd::Identity(sigma.rows(), sigma.rows()) - AttitudeHelpers::DiagMatrixFromVector(sigma));
-    //sigma_hat_prime = [zeros(1,length(sigma_hat_prime_term));sigma_hat_prime_term];
-    MatrixXd sigma_hat_prime(1+sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols());
-    sigma_hat_prime.fill(0.0);
-    sigma_hat_prime.block(1, 0, sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols()) = sigma_hat_prime_term;
+	//VectorXd tempProd = V_hat_prev.transpose() * xd_nn; // 2 * Sech((V_hat.Transpose() * xd_nn).^2);
+	//MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
+	//MatrixXd sigma_hat_prime_term = inner.asDiagonal();
+	MatrixXd sigma_hat_prime_term = sigma.asDiagonal() * (MatrixXd::Identity(sigma.rows(), sigma.rows()) - (MatrixXd)sigma.asDiagonal());
+	//sigma_hat_prime = [zeros(1,length(sigma_hat_prime_term));sigma_hat_prime_term];
+	MatrixXd sigma_hat_prime(1+sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols());
+	sigma_hat_prime.fill(0.0);
+	sigma_hat_prime.block(1, 0, sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols()) = sigma_hat_prime_term;
 
-    W_hat_dot = gamma1 * sigma_hat_prime * V_hat.transpose() * xd_nn_dot * e2.transpose();
-    V_hat_dot = gamma2 * xd_nn_dot * (sigma_hat_prime.transpose() * W_hat * e2).transpose();
+	Matrix6d W_hat_dot = g.gamma1.asDiagonal() * sigma_hat_prime * V_hat_prev.transpose() * xd_nn_dot * e2.transpose();
+	Matrix19x5d V_hat_dot = g.gamma2.asDiagonal() * xd_nn_dot * (sigma_hat_prime.transpose() * W_hat_prev * e2).transpose();
 
-    // integrate W_hat_dot and V_hat_dot
-    W_hat = W_hat_prev + dt / 2.0 * (W_hat_dot + W_hat_dot_prev);
-    V_hat = V_hat_prev + dt / 2.0 * (V_hat_dot + V_hat_dot_prev);
+	// integrate W_hat_dot and V_hat_dot
+	Matrix6d W_hat = W_hat_prev + dt / 2.0 * (W_hat_dot + W_hat_dot_prev);
+	Matrix19x5d V_hat = V_hat_prev + dt / 2.0 * (V_hat_dot + V_hat_dot_prev);
 
-    nn_control = W_hat.transpose() * sigma_hat;
+	Vector6d nn_control = W_hat.transpose() * sigma_hat;
 
-    // save previous values
-    W_hat_prev = W_hat;
-    W_hat_dot_prev = W_hat_dot;
-    V_hat_prev = V_hat;
-    V_hat_dot_prev = V_hat_dot;
+	// save previous values
+	W_hat_prev = W_hat;
+	W_hat_dot_prev = W_hat_dot;
+	V_hat_prev = V_hat;
+	V_hat_dot_prev = V_hat_dot;
 
 /*	cout << "xd_nn_dot=======" << endl << xd_nn_dot << endl;
 	cout << "V_hat_dot=======" << endl << V_hat_dot << endl;
 	cout << "W_hat_dot=======" << endl << W_hat_dot << endl;
-	cout << "gamma1==========" << endl << gamma1 << endl;*/
+	cout << "gamma1==========" << endl << gamma1 << endl;
 	cout << "V_hat===========" << endl << V_hat << endl;
-	cout << "W_hat===========" << endl << W_hat << endl;
+	cout << "W_hat===========" << endl << W_hat << endl;*/
 
 	return nn_control;
 }
 
-void TrackingController::UpdateJacobian(const Vector6d& x)
-{
+Matrix6d TrackingController::jacobian(const Vector6d& x) {
 	double sphi = sin(x(3));
 	double cphi = cos(x(3));
 
@@ -236,31 +141,29 @@ void TrackingController::UpdateJacobian(const Vector6d& x)
 	double spsi = sin(x(5));
 	double cpsi = cos(x(5));
 
-	J.block<3,3>(0,0) <<
-            cpsi * ctheta,
-            -spsi * cphi + cpsi * stheta * sphi,
-            spsi * sphi + cpsi * cphi * stheta,
-            spsi * ctheta,
-            cpsi * cphi + sphi * stheta * spsi,
-            -cpsi * sphi + stheta * spsi * cphi,
-            -stheta,
-            ctheta * sphi,
-            ctheta * cphi;
-
-    J.block<3,3>(3,3) <<
-            1,
-            sphi * tantheta,
-            cphi * tantheta,
-            0,
-            cphi,
-            -sphi,
-            0,
-            sphi / ctheta,
-            cphi / ctheta;
+	Matrix6d J = Matrix6d::Zero();
+	J.block<3,3>(0,0) << cpsi * ctheta,
+	                     -spsi * cphi + cpsi * stheta * sphi,
+	                     spsi * sphi + cpsi * cphi * stheta,
+	                     spsi * ctheta,
+	                     cpsi * cphi + sphi * stheta * spsi,
+	                     -cpsi * sphi + stheta * spsi * cphi,
+	                     -stheta,
+	                     ctheta * sphi,
+	                     ctheta * cphi;
+	J.block<3,3>(3,3) << 1,
+	                     sphi * tantheta,
+	                     cphi * tantheta,
+	                     0,
+	                     cphi,
+	                     -sphi,
+	                     0,
+	                     sphi / ctheta,
+	                     cphi / ctheta;
+	return J;
 }
 
-void TrackingController::UpdateJacobianInverse(const Vector6d& x)
-{
+Matrix6d TrackingController::jacobianInverse(const Vector6d& x) {
 	double sphi = sin(x(3));
 	double cphi = cos(x(3));
 
@@ -270,114 +173,42 @@ void TrackingController::UpdateJacobianInverse(const Vector6d& x)
 	double spsi = sin(x(5));
 	double cpsi = cos(x(5));
 
-	J_inv.block<3,3>(0,0) <<
-            cpsi * ctheta,
-            spsi * ctheta,
-            -stheta,
-            -spsi * cphi + cpsi * stheta * sphi,
-            cpsi * cphi + sphi * stheta * spsi,
-            ctheta * sphi,
-            spsi * sphi + cpsi * cphi * stheta,
-            -cpsi * sphi + stheta * spsi * cphi,
-            ctheta * cphi;
+	Matrix6d J_inv = Matrix6d::Zero();
+	J_inv.block<3,3>(0,0) << cpsi * ctheta,
+	                         spsi * ctheta,
+	                         -stheta,
+	                         -spsi * cphi + cpsi * stheta * sphi,
+	                         cpsi * cphi + sphi * stheta * spsi,
+	                         ctheta * sphi,
+	                         spsi * sphi + cpsi * cphi * stheta,
+	                         -cpsi * sphi + stheta * spsi * cphi,
+	                         ctheta * cphi;
 
-    J_inv.block<3,3>(3,3) <<
-            1,
-            0,
-            -stheta,
-            0,
-            cphi,
-            ctheta * sphi,
-            0,
-            -sphi,
-            ctheta*cphi;
+	J_inv.block<3,3>(3,3) << 1,
+	                         0,
+	                         -stheta,
+	                         0,
+	                         cphi,
+	                         ctheta * sphi,
+	                         0,
+	                         -sphi,
+	                         ctheta*cphi;
+	return J_inv;
 }
 
-Vector6d TrackingController::GetSigns(const Vector6d& x)
-{
-	Vector6d signs = Vector6d::Ones();
+istream &subjugator::operator>>(istream &in, TrackingController::Mode &mode) {
+	string str;
+	in >> str;
 
-	for(int i = 0; i < 6; i++)
-	{
-		if(x(i) > 0)
-			signs(i) = 1.0;
-		else if(x(i) < 0)
-			signs(i) = -1.0;
-		else
-			signs(i) = 0.0;
-	}
+	if (iequals(str, "pd"))
+		mode = TrackingController::MODE_PD;
+	else if (iequals(str, "rise"))
+		mode = TrackingController::MODE_RISE;
+	else if (iequals(str, "rise_nn"))
+		mode = TrackingController::MODE_RISE_NN;
+	else
+		in.setstate(istream::badbit);
 
-	return signs;
+	return in;
 }
 
-void TrackingController::InitTimer(boost::int64_t currentTickCount)
-{
-	previousTime = currentTickCount;
-}
-
-void TrackingController::GetWrench(TrackingControllerInfo& info)
-{
-	lock.lock();
-
-	info.Wrench = currentControl;
-	info.X = x;
-	info.X_dot = x_dot;
-	info.Xd = xd;
-	info.Xd_dot = xd_dot;
-	info.V_hat = V_hat;
-	info.W_hat = W_hat;
-	info.pd_control = pd_control;
-	info.rise_control = rise_control;
-	info.nn_control = nn_control;
-
-	lock.unlock();
-}
-
-void TrackingController::SetGains(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV, const LPOSVSSInfo& lposInfo)
-{
-	Vector4d lposQuatNEDBody = lposInfo.getQuat_NED_B();
-	Vector3d euler = MILQuaternionOps::Quat2Euler(lposQuatNEDBody);
-	double yaw = euler(2);
-
-	bool gainrotate = false;
-	if (gainrotate) {
-		Vector6d kV_temp = kV;
-		kV(0) = abs(kV_temp(0)-kV_temp(1))/2.0*cos(2*yaw)+(kV_temp(0)+kV_temp(1))/2.0;
-		kV(1) = -abs(kV_temp(0)-kV_temp(1))/2.0*cos(2*yaw)+(kV_temp(0)+kV_temp(1))/2.0;
-
-		Vector6d ksV_temp = ksV;
-		ksV(0) = abs(ksV_temp(0)-ksV_temp(1))/2.0*cos(2*yaw)+(ksV_temp(0)+ksV_temp(1))/2.0;
-		ksV(1) = -abs(ksV_temp(0)-ksV_temp(1))/2.0*cos(2*yaw)+(ksV_temp(0)+ksV_temp(1))/2.0;
-
-		Vector6d alphaV_temp = alphaV;
-		alphaV(0) = abs(alphaV_temp(0)-alphaV_temp(1))/2.0*cos(2*yaw)+(alphaV_temp(0)+alphaV_temp(1))/2.0;
-		alphaV(1) = -abs(alphaV_temp(0)-alphaV_temp(1))/2.0*cos(2*yaw)+(alphaV_temp(0)+alphaV_temp(1))/2.0;
-
-		Vector6d betaV_temp = betaV;
-		betaV(0) = abs(betaV_temp(0)-betaV_temp(1))/2.0*cos(2*yaw)+(betaV_temp(0)+betaV_temp(1))/2.0;
-		betaV(1) = -abs(betaV_temp(0)-betaV_temp(1))/2.0*cos(2*yaw)+(betaV_temp(0)+betaV_temp(1))/2.0;
-	}
-
-/*	// Rotate x,y,z gains from Body into NED
-
-	kV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, kV.block<3,1>(0,0));
-	ksV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, ksV.block<3,1>(0,0));
-	alphaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, alphaV.block<3,1>(0,0));
-	betaV.block<3,1>(0,0) = MILQuaternionOps::QuatRotate(lposQuatNEDBody, betaV.block<3,1>(0,0));*/
-
-	k = AttitudeHelpers::DiagMatrixFromVector(kV);
-	ks = AttitudeHelpers::DiagMatrixFromVector(ksV);
-	alpha = AttitudeHelpers::DiagMatrixFromVector(alphaV);
-	beta = AttitudeHelpers::DiagMatrixFromVector(betaV);
-	ksPlus1 = ks + Matrix<double,6,6>::Identity();
-
-	gamma1 = AttitudeHelpers::DiagMatrixFromVector(gamma1temp);
-	gamma2 = AttitudeHelpers::DiagMatrixFromVector(gamma2temp);
-}
-
-void TrackingController::SetGainsTemp(Vector6d kV, Vector6d ksV, Vector6d alphaV, Vector6d betaV) {
-	ktemp = kV;
-	kstemp = ksV;
-	alphatemp = alphaV;
-	betatemp = betaV;
-}

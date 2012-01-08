@@ -9,7 +9,7 @@
 namespace subjugator {
 	class Thruster : public StateUpdater {
 		public:
-			Thruster(HAL &hal, int address, int srcaddress);
+			Thruster(const std::string &name, DataObjectEndpoint *endpoint, int srcaddress);
 
 			boost::shared_ptr<MotorDriverInfo> getInfo() const;
 			void setEffort(double effort);
@@ -18,7 +18,6 @@ namespace subjugator {
 			virtual const State &getState() const { return state; }
 
 		private:
-			int address;
 			WorkerEndpoint endpoint;
 
 			State state;
