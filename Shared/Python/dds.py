@@ -137,7 +137,7 @@ class DDSType(object):
             return m
         # make structs dynamically present bound methods
         contents.__getattr__ = g
-        
+
         # take advantage of POINTERs being cached to make type pointers do the same
         ctypes.POINTER(contents).__getattr__ = g
 
@@ -561,23 +561,19 @@ class Topic(object):
             0,
         )
 
-        self._writer = self._dds._participant.create_datawriter(
-            self._topic,
-            get('DATAWRITER_QOS_USE_TOPIC_QOS', DDSType.DataWriterQos),
-            None,
-            0,
-        )
-        self._dyn_narrowed_writer = DDSFunc.DynamicDataWriter_narrow(self._writer)
-
-        self._reader = self._dds._participant.create_datareader(
-            self._topic.as_topicdescription(),
-            get('DATAREADER_QOS_USE_TOPIC_QOS', DDSType.DataReaderQos),
-            None,
-            0,
-        )
-        self._dyn_narrowed_reader = DDSFunc.DynamicDataReader_narrow(self._reader)
+        self._writer = None
+        self._reader = None
 
     def send(self, msg):
+        if self._writer is None:
+            self._writer = self._dds._participant.create_datawriter(
+                self._topic,
+                get('DATAWRITER_QOS_USE_TOPIC_QOS', DDSType.DataWriterQos),
+                None,
+                0,
+            )
+            self._dyn_narrowed_writer = DDSFunc.DynamicDataWriter_narrow(self._writer)
+
         sample = self._support.create_data()
 
         try:
@@ -587,6 +583,15 @@ class Topic(object):
             self._support.delete_data(sample)
 
     def take(self):
+        if self._reader is None:
+            self._reader = self._dds._participant.create_datareader(
+                self._topic.as_topicdescription(),
+                get('DATAREADER_QOS_USE_TOPIC_QOS', DDSType.DataReaderQos),
+                None,
+                0,
+            )
+            self._dyn_narrowed_reader = DDSFunc.DynamicDataReader_narrow(self._reader)
+
         data_seq = DDSType.DynamicDataSeq()
         data_seq.initialize()
         info_seq = DDSType.SampleInfoSeq()
