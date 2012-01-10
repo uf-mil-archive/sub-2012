@@ -2,11 +2,12 @@ import time
 import ctypes
 
 import dds
+from subjugator import qos
 
 d = dds.DDS()
 l = dds.Library('libdds_c.so')
 
-log_topic = d.get_topic('WorkerLog', l.WorkerLogMessage, dds.Qos.DEEP_PERSISTENT)
+log_topic = d.get_topic('WorkerLog', l.WorkerLogMessage, qos.topic(d, qos.DEEP_PERSISTENT))
 
 while True:
     msg = dict(

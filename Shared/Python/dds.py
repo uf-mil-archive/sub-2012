@@ -522,39 +522,13 @@ def unpack_dd(dd):
     else:
         raise NotImplementedError(kind)
 
-class Qos:
-    LEGACY = ['legacy']
-    UNRELIABLE = []
-    RELIABLE = ['reliable']
-    EXCLUSIVE = ['exclusive']
-    LIVELINESS = ['liveliness']
-    PERSISTENT = ['reliable', 'persistent']
-    DEEP_PERSISTENT = ['reliable', 'persistent', 'deep_history']
-    DEFAULT = ['reliable', 'exclusive', 'liveliness']
-
 class Topic(object):
-    def __init__(self, dds, name, data_type, qoslist=Qos.DEFAULT):
+    def __init__(self, dds, name, data_type, qos=None):
         self._dds = dds
         self.name = name
         self.data_type = data_type
-        self.qoslist = qoslist
-        del dds, name, data_type, qoslist
-
-        qos = self._dds.get_default_topic_qos()
-        if 'legacy' not in self.qoslist:
-            qos.destination_order.kind = DestinationOrderQosPolicyKind.BY_SOURCE_TIMESTAMP
-
-            if 'reliable' in self.qoslist:
-                qos.reliability.kind = ReliabilityQosPolicyKind.RELIABLE
-            if 'exclusive' in self.qoslist:
-                qos.ownership.kind = OwnershipQosPolicyKind.EXCLUSIVE
-            if 'persistent' in self.qoslist:
-                if 'deep_history' in self.qoslist:
-                    qos.history.kind = HistoryQosPolicyKind.KEEP_ALL
-                qos.durability.kind = DurabilityQosPolicyKind.TRANSIENT_LOCAL
-            if 'liveliness' in self.qoslist:
-                qos.livelines.lease_duration.sec = 0
-                qos.livelines.lease_duration.nanosec = 500E6
+        self.qos = qos if qos is not None else d.get_default_topic_qos()
+        del dds, name, data_type, qos
 
         self._support = DDSFunc.DynamicDataTypeSupport_new(self.data_type._get_typecode(), get('DYNAMIC_DATA_TYPE_PROPERTY_DEFAULT', DDSType.DynamicDataTypeProperty_t))
         self._support.register_type(self._dds._participant, self.data_type.name)
@@ -562,7 +536,7 @@ class Topic(object):
         self._topic = self._dds._participant.create_topic(
             self.name,
             self.data_type.name,
-            qos,
+            self.qos,
             None,
             0,
         )
