@@ -17,5 +17,17 @@ while True:
         time=42
     )
     log_topic.send(msg)
+    print "send"
+
+    while True:
+        try:
+            msg = log_topic.take()
+            
+            print "received %r" % msg
+        except dds.Error, e:
+            if e.message == 'no data':
+                break
+            else:
+                raise
 
     time.sleep(1)

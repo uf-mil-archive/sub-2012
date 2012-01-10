@@ -169,16 +169,30 @@ DDSType.InstanceHandle_t._fields_ = [
 ]
 DDS_HANDLE_NIL = DDSType.InstanceHandle_t((ctypes.c_byte * 16)(*[0]*16), 16, False)
 
-DDSType.Duration_t._fields_ = [
+DDSType.Duration_t._fields_ = DDSType.Time_t._fields_ = [
     ('sec', DDS_Long),
-    ('nanosec', DDS_UnsignedLong)
+    ('nanosec', DDS_UnsignedLong),
 ]
-'''
+
+DDSType.SequenceNumber_t._fields_ = [
+    ('high', DDS_Long),
+    ('low', DDS_UnsignedLong),
+]
+
+DDSType.GUID_t._fields_ = [
+    ('value', DDS_Octet * 16)
+]
+
+class InstanceState:
+    ALIVE = (1 << 0)
+    DISPOSED = (1 << 1)
+    NO_WRITERS = (1 << 2)
+
 DDSType.SampleInfo._fields_ = [
     ('sample_state', DDS_Enum),
     ('view_state', DDS_Enum),
     ('instance_state', DDS_Enum),
-    ('source_timestamp', DDS_Time_t),
+    ('source_timestamp', DDSType.Time_t),
     ('instance_handle', DDSType.InstanceHandle_t),
     ('publication_handle', DDSType.InstanceHandle_t),
     ('disposed_generation_count', DDS_Long),
@@ -187,15 +201,14 @@ DDSType.SampleInfo._fields_ = [
     ('generation_rank', DDS_Long),
     ('absolute_generation_rank', DDS_Long),
     ('valid_data', DDS_Boolean),
-    ('reception_timestamp', DDS_Time_t),
-    ('publication_sequence_number', DDS_SequenceNumber_t),
-    ('reception_sequence_number', DDS_SequenceNumber_t),
-    ('publication_virtual_guid', DDS_GUID_t),
-    ('publication_virtual_sequence_number', DDS_SequenceNumber_t),
-    ('original_publication_virtual_guid', DDS_GUID_t),
-    ('original_publication_virtual_sequence_number', DDS_SequenceNumber_t),
+    ('reception_timestamp', DDSType.Time_t),
+    ('publication_sequence_number', DDSType.SequenceNumber_t),
+    ('reception_sequence_number', DDSType.SequenceNumber_t),
+    ('publication_virtual_guid', DDSType.GUID_t),
+    ('publication_virtual_sequence_number', DDSType.SequenceNumber_t),
+    ('original_publication_virtual_guid', DDSType.GUID_t),
+    ('original_publication_virtual_sequence_number', DDSType.SequenceNumber_t),
 ]
-'''
 
 DDSType.TopicDataQosPolicy._fields_ = [
     ('value', DDSType.OctetSeq),
@@ -502,6 +515,13 @@ def unpack_dd_member(dd, member_name=None, member_id=DDS_DYNAMIC_DATA_MEMBER_ID_
             return inner.value
         finally:
             DDSFunc.Wstring_free(inner)
+    elif kind == TCKind.ENUM:
+        inner = DDS_UnsignedLong()
+        dd.get_ulong(ctypes.byref(inner), member_name, member_id)
+        for i in xrange(tc.member_count(ex())):
+            if inner.value == tc.member_ordinal(i, ex()):
+                return tc.member_name(i, ex())
+        raise Error('bad enum ordinal %d' % inner.value)
     else:
         raise NotImplementedError(kind)
 
@@ -566,12 +586,12 @@ class Topic(object):
         finally:
             self._support.delete_data(sample)
 
-    def recv(self):
+    def take(self):
         data_seq = DDSType.DynamicDataSeq()
         data_seq.initialize()
         info_seq = DDSType.SampleInfoSeq()
         info_seq.initialize()
-        self._dyn_narrowed_reader.take(ctypes.byref(data_seq), ctypes.byref(info_seq), 1, get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), get('ANY_INSTANCE_STATE', DDS_InstanceStateMask))
+        self._dyn_narrowed_reader.take(ctypes.byref(data_seq), ctypes.byref(info_seq), 1, get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE)
         try:
             info = info_seq.get_reference(0)
             return unpack_dd(data_seq.get_reference(0))
