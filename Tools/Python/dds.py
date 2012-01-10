@@ -6,7 +6,7 @@ import weakref
 
 arch_str = 'x64Linux2.6gcc4.1.1' if sys.maxsize > 2**32 else 'i86Linux2.6gcc4.1.1'
 _ddscore_lib = ctypes.CDLL(os.path.join(os.environ['NDDSHOME'], 'lib', arch_str, 'libnddscore.so'), ctypes.RTLD_GLOBAL)
-_ddsc_lib = ctypes.CDLL(os.path.join(os.environ['NDDSHOME'], 'lib', arch_str, 'libnddsc.so'))
+_ddsc_lib = ctypes.CDLL(os.path.join(os.environ['NDDSHOME'], 'lib', arch_str, 'libnddsc.so'), ctypes.RTLD_GLOBAL)
 
 # Error checkers
 
@@ -55,81 +55,6 @@ def check_true(result, func, arguments):
     if not result:
         raise Error()
 
-# Function and structure accessors
-
-def get(name, type):
-    return ctypes.cast(getattr(_ddsc_lib, 'DDS_' + name), ctypes.POINTER(type)).contents
-
-@apply
-class DDSFunc(object):
-    pass
-
-@apply
-class DDSType(object):
-    def __getattr__(self, attr):
-        contents = type(attr, (ctypes.Structure,), {})
-        
-        def g(self2, attr2):
-            f = getattr(DDSFunc, attr + '_' + attr2)
-            def m(*args):
-                return f(self2, *args)
-            setattr(self2, attr2, m)
-            return m
-        # make structs dynamically present bound methods
-        contents.__getattr__ = g
-        # take advantage of POINTERs being cached to make type pointers do the same
-        ctypes.POINTER(contents).__getattr__ = g
-        
-        setattr(self, attr, contents)
-        return contents
-
-DDSType.Topic._fields_ = [
-    ('_as_Entity', ctypes.c_void_p),
-    ('_as_TopicDescription', ctypes.POINTER(DDSType.TopicDescription)),
-]
-ctypes.POINTER(DDSType.Topic).as_topicdescription = lambda self: self.contents._as_TopicDescription
-
-DDSType.DynamicDataSeq._fields_ = DDSType.SampleInfoSeq._fields_ = [
-    ('_owned', ctypes.c_bool),
-    ('_contiguous_buffer', ctypes.c_void_p),
-    ('_discontiguous_buffer', ctypes.c_void_p),
-    ('_maximum', ctypes.c_ulong),
-    ('_length', ctypes.c_ulong),
-    ('_sequence_init', ctypes.c_long),
-    ('_read_token1', ctypes.c_void_p),
-    ('_read_token2', ctypes.c_void_p),
-    ('_elementPointersAllocation', ctypes.c_bool),
-]
-
-DDSType.InstanceHandle_t._fields_ = [
-    ('keyHash_value', ctypes.c_byte * 16),
-    ('keyHash_length', ctypes.c_uint32),
-    ('isValid', ctypes.c_int),
-]
-DDS_HANDLE_NIL = DDSType.InstanceHandle_t((ctypes.c_byte * 16)(*[0]*16), 16, False)
-
-'''DDSType.SampleInfo._fields_ = [
-    ('sample_state', DDS_SampleStateKind),
-    ('view_state', DDS_ViewStateKind),
-    ('instance_state', DDS_InstanceStateKind),
-    ('source_timestamp', DDS_Time_t),
-    ('instance_handle', DDSType.InstanceHandle_t),
-    ('publication_handle', DDSType.InstanceHandle_t),
-    ('disposed_generation_count', DDS_Long),
-    ('no_writers_generation_count', DDS_Long),
-    ('sample_rank', DDS_Long),
-    ('generation_rank', DDS_Long),
-    ('absolute_generation_rank', DDS_Long),
-    ('valid_data', DDS_Boolean),
-    ('reception_timestamp', DDS_Time_t),
-    ('publication_sequence_number', DDS_SequenceNumber_t),
-    ('reception_sequence_number', DDS_SequenceNumber_t),
-    ('publication_virtual_guid', DDS_GUID_t),
-    ('publication_virtual_sequence_number', DDS_SequenceNumber_t),
-    ('original_publication_virtual_guid', DDS_GUID_t),
-    ('original_publication_virtual_sequence_number', DDS_SequenceNumber_t),
-]'''
-
 # some types
 enum = ctypes.c_int
 
@@ -171,7 +96,7 @@ class TCKind(object):
     ULONG = 4
     FLOAT = 5
     DOUBLE = 6
-    BOOLEAN = 7 
+    BOOLEAN = 7
     CHAR = 8
     OCTET = 9
     STRUCT = 10
@@ -190,6 +115,200 @@ class TCKind(object):
     SPARSE = 23
     RAW_BYTES = 0x7e
     RAW_BYTES_KEYED = 0x7f
+
+# Function and structure accessors
+
+def get(name, type):
+    return ctypes.cast(getattr(_ddsc_lib, 'DDS_' + name), ctypes.POINTER(type)).contents
+
+@apply
+class DDSFunc(object):
+    pass
+
+@apply
+class DDSType(object):
+    def __getattr__(self, attr):
+        contents = type(attr, (ctypes.Structure,), {})
+
+        def g(self2, attr2):
+            f = getattr(DDSFunc, attr + '_' + attr2)
+            def m(*args):
+                return f(self2, *args)
+            setattr(self2, attr2, m)
+            return m
+        # make structs dynamically present bound methods
+        contents.__getattr__ = g
+        # take advantage of POINTERs being cached to make type pointers do the same
+        ctypes.POINTER(contents).__getattr__ = g
+
+        setattr(self, attr, contents)
+        return contents
+
+DDSType.Topic._fields_ = [
+    ('_as_Entity', ctypes.c_void_p),
+    ('_as_TopicDescription', ctypes.POINTER(DDSType.TopicDescription)),
+]
+ctypes.POINTER(DDSType.Topic).as_topicdescription = lambda self: self.contents._as_TopicDescription
+
+DDSType.DynamicDataSeq._fields_ = DDSType.SampleInfoSeq._fields_ = DDSType.OctetSeq._fields_ = [
+    ('_owned', ctypes.c_bool),
+    ('_contiguous_buffer', ctypes.c_void_p),
+    ('_discontiguous_buffer', ctypes.POINTER(ctypes.c_void_p)),
+    ('_maximum', ctypes.c_ulong),
+    ('_length', ctypes.c_ulong),
+    ('_sequence_init', ctypes.c_long),
+    ('_read_token1', ctypes.c_void_p),
+    ('_read_token2', ctypes.c_void_p),
+#    ('_elementPointersAllocation', ctypes.c_bool), # gcc says sizeof() should be 64, not 72. The extra 8 bytes ctypes adds breaks the QOS structures
+]
+
+DDSType.InstanceHandle_t._fields_ = [
+    ('keyHash_value', ctypes.c_byte * 16),
+    ('keyHash_length', ctypes.c_uint32),
+    ('isValid', ctypes.c_int),
+]
+DDS_HANDLE_NIL = DDSType.InstanceHandle_t((ctypes.c_byte * 16)(*[0]*16), 16, False)
+
+DDSType.Duration_t._fields_ = [
+    ('sec', DDS_Long),
+    ('nanosec', DDS_UnsignedLong)
+]
+'''
+DDSType.SampleInfo._fields_ = [
+    ('sample_state', DDS_Enum),
+    ('view_state', DDS_Enum),
+    ('instance_state', DDS_Enum),
+    ('source_timestamp', DDS_Time_t),
+    ('instance_handle', DDSType.InstanceHandle_t),
+    ('publication_handle', DDSType.InstanceHandle_t),
+    ('disposed_generation_count', DDS_Long),
+    ('no_writers_generation_count', DDS_Long),
+    ('sample_rank', DDS_Long),
+    ('generation_rank', DDS_Long),
+    ('absolute_generation_rank', DDS_Long),
+    ('valid_data', DDS_Boolean),
+    ('reception_timestamp', DDS_Time_t),
+    ('publication_sequence_number', DDS_SequenceNumber_t),
+    ('reception_sequence_number', DDS_SequenceNumber_t),
+    ('publication_virtual_guid', DDS_GUID_t),
+    ('publication_virtual_sequence_number', DDS_SequenceNumber_t),
+    ('original_publication_virtual_guid', DDS_GUID_t),
+    ('original_publication_virtual_sequence_number', DDS_SequenceNumber_t),
+]
+'''
+
+DDSType.TopicDataQosPolicy._fields_ = [
+    ('value', DDSType.OctetSeq),
+]
+
+class DurabilityQosPolicyKind:
+    VOLATILE = 0
+    TRANSIENT_LOCAL = 1
+    TRANSIENT = 2
+    PERSISTENT = 3
+
+DDSType.DurabilityQosPolicy._fields_ = [
+    ('kind', DDS_Enum),
+    ('direct_communication', DDS_Boolean),
+]
+
+class HistoryQosPolicyKind:
+    KEEP_LAST = 0
+    KEEP_ALL = 1
+
+DDSType.DurabilityServiceQosPolicy._fields_ = [
+    ('service_cleanup_delay', DDSType.Duration_t),
+    ('history_kind', DDS_Enum),
+    ('history_depth', DDS_Long),
+    ('max_samples', DDS_Long),
+    ('max_instances', DDS_Long),
+    ('max_samples_per_instance', DDS_Long),
+]
+
+DDSType.DeadlineQosPolicy._fields_ = DDSType.LatencyBudgetQosPolicy._fields_ = DDSType.LifespanQosPolicy._fields_ = [
+    ('period', DDSType.Duration_t),
+]
+
+class LivelinessQosPolicyKind:
+    AUTOMATIC = 0
+    MANUAL_BY_PARTICIPANT = 1
+    MANUAL_BY_TOPIC = 2
+
+DDSType.LivelinessQosPolicy._fields_ = [
+    ('kind', DDS_Enum),
+    ('lease_duration', DDSType.Duration_t),
+]
+
+class ReliabilityQosPolicyKind:
+    BEST_EFFORT = 0
+    RELIABLE = 1
+
+DDSType.ReliabilityQosPolicy._fields_ = [
+    ('kind', DDS_Enum),
+    ('max_blocking_time', DDSType.Duration_t),
+]
+
+class DestinationOrderQosPolicyKind:
+    BY_RECEPTION_TIMESTAMP = 0
+    BY_SOURCE_TIMESTAMP = 1
+
+DDSType.DestinationOrderQosPolicy._fields_ = [
+    ('kind', DDS_Enum),
+    ('undocumented_field_that_wasted_four_hours', DDS_Enum),
+    ('source_timestamp_tolerance', DDSType.Duration_t),
+]
+
+class HistoryQosPolicy:
+    KEEP_LAST = 0
+    KEEP_ALL = 1
+
+class RefilterQosPolicyKind:
+    NONE = 0
+    ALL = 1
+    ON_DEMAND = 2
+
+DDSType.HistoryQosPolicy._fields_ = [
+    ('kind', DDS_Enum),
+    ('depth', DDS_Long),
+    ('refilter', DDS_Enum),
+]
+
+DDSType.ResourceLimitsQosPolicy._fields_ = [
+    ('max_samples', DDS_Long),
+    ('max_instances', DDS_Long),
+    ('max_samples_per_instance', DDS_Long),
+    ('initial_samples', DDS_Long),
+    ('initial_instances', DDS_Long),
+    ('instance_has_buckets', DDS_Long),
+]
+
+DDSType.TransportPriorityQosPolicy._fields_ = [
+    ('value', DDS_Long),
+]
+
+class OwnershipQosPolicyKind:
+    SHARED = 0
+    EXCLUSIVE = 1
+
+DDSType.OwnershipQosPolicy._fields_ = [
+    ('kind', DDS_Enum),
+]
+
+DDSType.TopicQos._fields_ = [
+    ('topic_data', DDSType.TopicDataQosPolicy),
+    ('durability', DDSType.DurabilityQosPolicy),
+    ('durability_service', DDSType.DurabilityServiceQosPolicy),
+    ('deadline', DDSType.DeadlineQosPolicy),
+    ('latency_budget', DDSType.LatencyBudgetQosPolicy),
+    ('liveliness', DDSType.LivelinessQosPolicy),
+    ('reliability', DDSType.ReliabilityQosPolicy),
+    ('destination_order', DDSType.DestinationOrderQosPolicy),
+    ('history', DDSType.HistoryQosPolicy),
+    ('resource_limits', DDSType.ResourceLimitsQosPolicy),
+    ('transport_priority', DDSType.TransportPriorityQosPolicy),
+    ('lifespan', DDSType.LifespanQosPolicy),
+    ('ownership', DDSType.OwnershipQosPolicy),
+]
 
 # Function prototypes
 
@@ -218,20 +337,25 @@ map(_define_func, [
     ('DomainParticipantFactory_get_instance', check_null, ctypes.POINTER(DDSType.DomainParticipantFactory), []),
     ('DomainParticipantFactory_create_participant', check_null, ctypes.POINTER(DDSType.DomainParticipant), [ctypes.POINTER(DDSType.DomainParticipantFactory), DDS_DomainId_t, ctypes.POINTER(DDSType.DomainParticipantQos), ctypes.POINTER(DDSType.DomainParticipantListener), DDS_StatusMask]),
     ('DomainParticipantFactory_delete_participant', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DomainParticipantFactory), ctypes.POINTER(DDSType.DomainParticipant)]),
-    
+
     ('DomainParticipant_create_publisher', check_null, ctypes.POINTER(DDSType.Publisher), [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.PublisherQos), ctypes.POINTER(DDSType.PublisherListener), DDS_StatusMask]),
     ('DomainParticipant_delete_publisher', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.Publisher)]),
     ('DomainParticipant_create_subscriber', check_null, ctypes.POINTER(DDSType.Subscriber), [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.SubscriberQos), ctypes.POINTER(DDSType.SubscriberListener), DDS_StatusMask]),
     ('DomainParticipant_delete_subscriber', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.Subscriber)]),
     ('DomainParticipant_create_topic', check_null, ctypes.POINTER(DDSType.Topic), [ctypes.POINTER(DDSType.DomainParticipant), ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(DDSType.TopicQos), ctypes.POINTER(DDSType.TopicListener), DDS_StatusMask]),
     ('DomainParticipant_delete_topic', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.Topic)]),
-    
+    ('DomainParticipant_get_default_topic_qos', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.TopicQos)]),
+    ('DomainParticipant_create_datawriter', check_null, ctypes.POINTER(DDSType.DataWriter), [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.Topic), ctypes.POINTER(DDSType.DataWriterQos), ctypes.POINTER(DDSType.DataWriterListener), DDS_StatusMask]),
+    ('DomainParticipant_delete_datawriter', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.DataWriter)]),
+    ('DomainParticipant_create_datareader', check_null, ctypes.POINTER(DDSType.DataReader), [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.TopicDescription), ctypes.POINTER(DDSType.DataReaderQos), ctypes.POINTER(DDSType.DataReaderListener), DDS_StatusMask]),
+    ('DomainParticipant_delete_datareader', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DomainParticipant), ctypes.POINTER(DDSType.DataReader)]),
+
     ('Publisher_create_datawriter', check_null, ctypes.POINTER(DDSType.DataWriter), [ctypes.POINTER(DDSType.Publisher), ctypes.POINTER(DDSType.Topic), ctypes.POINTER(DDSType.DataWriterQos), ctypes.POINTER(DDSType.DataWriterListener), DDS_StatusMask]),
     ('Publisher_delete_datawriter', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.Publisher), ctypes.POINTER(DDSType.DataWriter)]),
-    
+
     ('Subscriber_create_datareader', check_null, ctypes.POINTER(DDSType.DataReader), [ctypes.POINTER(DDSType.Subscriber), ctypes.POINTER(DDSType.TopicDescription), ctypes.POINTER(DDSType.DataReaderQos), ctypes.POINTER(DDSType.DataReaderListener), DDS_StatusMask]),
     ('Subscriber_delete_datareader', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.Subscriber), ctypes.POINTER(DDSType.DataReader)]),
-    
+
     ('DynamicDataTypeSupport_new', check_null, ctypes.POINTER(DDSType.DynamicDataTypeSupport), [ctypes.POINTER(DDSType.TypeCode), ctypes.POINTER(DDSType.DynamicDataTypeProperty_t)]),
     ('DynamicDataTypeSupport_delete', None, None, [ctypes.POINTER(DDSType.DynamicDataTypeSupport)]),
     ('DynamicDataTypeSupport_register_type', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataTypeSupport), ctypes.POINTER(DDSType.DomainParticipant), ctypes.c_char_p]),
@@ -239,7 +363,7 @@ map(_define_func, [
     ('DynamicDataTypeSupport_create_data', check_null, ctypes.POINTER(DDSType.DynamicData), [ctypes.POINTER(DDSType.DynamicDataTypeSupport)]),
     ('DynamicDataTypeSupport_delete_data', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataTypeSupport), ctypes.POINTER(DDSType.DynamicData)]),
     ('DynamicDataTypeSupport_print_data', None, None, [ctypes.POINTER(DDSType.DynamicDataTypeSupport), ctypes.POINTER(DDSType.DynamicData)]),
-    
+
     ('DynamicData_new', check_null, ctypes.POINTER(DDSType.DynamicData), [ctypes.POINTER(DDSType.TypeCode), ctypes.POINTER(DDSType.DynamicDataProperty_t)]),
 ] + [
     ('DynamicData_get_' + func_name, check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(data_type), ctypes.c_char_p, DDS_DynamicDataMemberId])
@@ -251,7 +375,7 @@ map(_define_func, [
     ('DynamicData_get_string', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(DDS_UnsignedLong), ctypes.c_char_p, DDS_DynamicDataMemberId]),
     ('DynamicData_get_wstring', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(ctypes.c_wchar_p), ctypes.POINTER(DDS_UnsignedLong), ctypes.c_char_p, DDS_DynamicDataMemberId]),
     ('DynamicData_set_string', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.c_char_p, DDS_DynamicDataMemberId, ctypes.c_char_p]),
-    ('DynamicData_set_wstring', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.c_char_p, DDS_DynamicDataMemberId, ctypes.c_wchar_p]),    
+    ('DynamicData_set_wstring', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.c_char_p, DDS_DynamicDataMemberId, ctypes.c_wchar_p]),
     ('DynamicData_bind_complex_member', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(DDSType.DynamicData), ctypes.c_char_p, DDS_DynamicDataMemberId]),
     ('DynamicData_unbind_complex_member', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(DDSType.DynamicData)]),
     ('DynamicData_get_member_type', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(ctypes.POINTER(DDSType.TypeCode)), ctypes.c_char_p, DDS_DynamicDataMemberId]),
@@ -259,37 +383,40 @@ map(_define_func, [
     ('DynamicData_get_type', check_null, ctypes.POINTER(DDSType.TypeCode), [ctypes.POINTER(DDSType.DynamicData)]),
     ('DynamicData_get_type_kind', None, DDS_TCKind, [ctypes.POINTER(DDSType.DynamicData)]),
     ('DynamicData_delete', None, None, [ctypes.POINTER(DDSType.DynamicData)]),
-    
+
     ('DynamicDataWriter_narrow', check_null, ctypes.POINTER(DDSType.DynamicDataWriter), [ctypes.POINTER(DDSType.DataWriter)]),
     ('DynamicDataWriter_write', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataWriter), ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(DDSType.InstanceHandle_t)]),
-    
+
     ('DynamicDataReader_narrow', check_null, ctypes.POINTER(DDSType.DynamicDataReader), [ctypes.POINTER(DDSType.DataReader)]),
     ('DynamicDataReader_take', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataReader), ctypes.POINTER(DDSType.DynamicDataSeq), ctypes.POINTER(DDSType.SampleInfoSeq), DDS_Long, DDS_SampleStateMask, DDS_ViewStateMask, DDS_InstanceStateMask]),
     ('DynamicDataReader_return_loan', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataReader), ctypes.POINTER(DDSType.DynamicDataSeq), ctypes.POINTER(DDSType.SampleInfoSeq)]),
-    
+
     ('TypeCode_name', check_ex, ctypes.c_char_p, [ctypes.POINTER(DDSType.TypeCode), ctypes.POINTER(DDS_ExceptionCode_t)]),
     ('TypeCode_kind', check_ex, DDS_TCKind, [ctypes.POINTER(DDSType.TypeCode), ctypes.POINTER(DDS_ExceptionCode_t)]),
     ('TypeCode_member_count', check_ex, DDS_UnsignedLong, [ctypes.POINTER(DDSType.TypeCode), ctypes.POINTER(DDS_ExceptionCode_t)]),
     ('TypeCode_member_name', check_ex, ctypes.c_char_p, [ctypes.POINTER(DDSType.TypeCode), DDS_UnsignedLong, ctypes.POINTER(DDS_ExceptionCode_t)]),
     ('TypeCode_member_type', check_ex, ctypes.POINTER(DDSType.TypeCode), [ctypes.POINTER(DDSType.TypeCode), DDS_UnsignedLong, ctypes.POINTER(DDS_ExceptionCode_t)]),
-    
+    ('TypeCode_member_ordinal', check_ex, DDS_UnsignedLong, [ctypes.POINTER(DDSType.TypeCode), DDS_UnsignedLong, ctypes.POINTER(DDS_ExceptionCode_t)]),
+
     ('DynamicDataSeq_initialize', check_true, DDS_Boolean, [ctypes.POINTER(DDSType.DynamicDataSeq)]),
     ('DynamicDataSeq_get_length', None, DDS_Long, [ctypes.POINTER(DDSType.DynamicDataSeq)]),
     ('DynamicDataSeq_get_reference', check_null, ctypes.POINTER(DDSType.DynamicData), [ctypes.POINTER(DDSType.DynamicDataSeq), DDS_Long]),
-    
+
     ('SampleInfoSeq_initialize', check_true, DDS_Boolean, [ctypes.POINTER(DDSType.SampleInfoSeq)]),
     ('SampleInfoSeq_get_length', None, DDS_Long, [ctypes.POINTER(DDSType.SampleInfoSeq)]),
     ('SampleInfoSeq_get_reference', check_null, ctypes.POINTER(DDSType.SampleInfo), [ctypes.POINTER(DDSType.SampleInfoSeq), DDS_Long]),
-    
+
     ('String_free', None, None, [ctypes.c_char_p]),
-    
+
     ('Wstring_free', None, None, [ctypes.c_wchar_p]),
+
+    ('TopicQos_initialize', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.TopicQos)]),
 ])
 
 def write_into_dd_member(obj, dd, member_name=None, member_id=DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED):
     tc = ctypes.POINTER(DDSType.TypeCode)()
     dd.get_member_type(ctypes.byref(tc), member_name, member_id, ex())
-    
+
     kind = tc.kind(ex())
     if kind in _dyn_basic_types:
         func_name, data_type, bounds = _dyn_basic_types[kind]
@@ -312,6 +439,17 @@ def write_into_dd_member(obj, dd, member_name=None, member_id=DDS_DYNAMIC_DATA_M
         dd.set_string(member_name, member_id, obj)
     elif kind == TCKind.WSTRING:
         dd.set_wstring(member_name, member_id, obj)
+    elif kind == TCKind.ENUM:
+        assert isinstance(obj, str)
+        ordinal = None
+        for i in xrange(tc.member_count(ex())):
+            if obj == tc.member_name(i, ex()):
+                ordinal = tc.member_ordinal(i, ex())
+                break
+        if ordinal is not None:
+            dd.set_ulong(member_name, member_id, ordinal)
+        else:
+            raise ValueError('invalid enumeration string')
     else:
         raise NotImplementedError(kind)
 
@@ -333,7 +471,7 @@ def write_into_dd(obj, dd):
 def unpack_dd_member(dd, member_name=None, member_id=DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED):
     tc = ctypes.POINTER(DDSType.TypeCode)()
     dd.get_member_type(ctypes.byref(tc), member_name, member_id, ex())
-    
+
     kind = tc.kind(ex())
     if kind in _dyn_basic_types:
         func_name, data_type, bounds = _dyn_basic_types[kind]
@@ -384,49 +522,76 @@ def unpack_dd(dd):
     else:
         raise NotImplementedError(kind)
 
+class Qos:
+    LEGACY = ['legacy']
+    UNRELIABLE = []
+    RELIABLE = ['reliable']
+    EXCLUSIVE = ['exclusive']
+    LIVELINESS = ['liveliness']
+    PERSISTENT = ['reliable', 'persistent']
+    DEEP_PERSISTENT = ['reliable', 'persistent', 'deep_history']
+    DEFAULT = ['reliable', 'exclusive', 'liveliness']
+
 class Topic(object):
-    def __init__(self, dds, name, data_type):
+    def __init__(self, dds, name, data_type, qoslist=Qos.DEFAULT):
         self._dds = dds
         self.name = name
         self.data_type = data_type
-        del dds, name, data_type
-        
+        self.qoslist = qoslist
+        del dds, name, data_type, qoslist
+
+        qos = self._dds.get_default_topic_qos()
+        if 'legacy' not in self.qoslist:
+            qos.destination_order.kind = DestinationOrderQosPolicyKind.BY_SOURCE_TIMESTAMP
+
+            if 'reliable' in self.qoslist:
+                qos.reliability.kind = ReliabilityQosPolicyKind.RELIABLE
+            if 'exclusive' in self.qoslist:
+                qos.ownership.kind = OwnershipQosPolicyKind.EXCLUSIVE
+            if 'persistent' in self.qoslist:
+                if 'deep_history' in self.qoslist:
+                    qos.history.kind = HistoryQosPolicyKind.KEEP_ALL
+                qos.durability.kind = DurabilityQosPolicyKind.TRANSIENT_LOCAL
+            if 'liveliness' in self.qoslist:
+                qos.livelines.lease_duration.sec = 0
+                qos.livelines.lease_duration.nanosec = 500E6
+
         self._support = DDSFunc.DynamicDataTypeSupport_new(self.data_type._get_typecode(), get('DYNAMIC_DATA_TYPE_PROPERTY_DEFAULT', DDSType.DynamicDataTypeProperty_t))
         self._support.register_type(self._dds._participant, self.data_type.name)
-        
+
         self._topic = self._dds._participant.create_topic(
             self.name,
             self.data_type.name,
-            get('TOPIC_QOS_DEFAULT', DDSType.TopicQos),
+            qos,
             None,
             0,
         )
-        
-        self._writer = self._dds._publisher.create_datawriter(
+
+        self._writer = self._dds._participant.create_datawriter(
             self._topic,
-            get('DATAWRITER_QOS_DEFAULT', DDSType.DataWriterQos),
+            get('DATAWRITER_QOS_USE_TOPIC_QOS', DDSType.DataWriterQos),
             None,
             0,
         )
         self._dyn_narrowed_writer = DDSFunc.DynamicDataWriter_narrow(self._writer)
-        
-        self._reader = self._dds._subscriber.create_datareader(
+
+        self._reader = self._dds._participant.create_datareader(
             self._topic.as_topicdescription(),
-            get('DATAREADER_QOS_DEFAULT', DDSType.DataReaderQos),
+            get('DATAREADER_QOS_USE_TOPIC_QOS', DDSType.DataReaderQos),
             None,
             0,
         )
         self._dyn_narrowed_reader = DDSFunc.DynamicDataReader_narrow(self._reader)
-    
+
     def send(self, msg):
         sample = self._support.create_data()
-        
+
         try:
             write_into_dd(msg, sample)
             self._dyn_narrowed_writer.write(sample, DDS_HANDLE_NIL)
         finally:
             self._support.delete_data(sample)
-    
+
     def recv(self):
         data_seq = DDSType.DynamicDataSeq()
         DDSFunc.DynamicDataSeq_initialize(data_seq)
@@ -438,10 +603,10 @@ class Topic(object):
             return unpack_dd(data_seq.get_reference(0))
         finally:
             self._dyn_narrowed_reader.return_loan(ctypes.byref(data_seq), ctypes.byref(info_seq))
-    
+
     def __del__(self):
-        self._dds._publisher.delete_datawriter(self._writer)
-        self._dds._subscriber.delete_datareader(self._reader)
+        self._dds._participant.delete_datawriter(self._writer)
+        self._dds._participant.delete_datareader(self._reader)
         self._dds._participant.delete_topic(self._topic)
         self._support.unregister_type(self._dds._participant, self.data_type.name)
         self._support.delete()
@@ -454,34 +619,26 @@ class DDS(object):
             None,
             0,
         )
-        
-        self._publisher = self._participant.create_publisher(
-            get('PUBLISHER_QOS_DEFAULT', DDSType.PublisherQos),
-            None,
-            0,
-        )
-        
-        self._subscriber = self._participant.create_subscriber(
-            get('SUBSCRIBER_QOS_DEFAULT', DDSType.SubscriberQos),
-            None,
-            0,
-        )
+
         self._open_topics = weakref.WeakValueDictionary()
-    
-    def get_topic(self, name, data_type):
+
+    def get_default_topic_qos(self):
+        qos = DDSType.TopicQos()
+        qos.initialize()
+        self._participant.get_default_topic_qos(ctypes.byref(qos))
+        return qos
+
+    def get_topic(self, name, data_type, qos=None):
         res = self._open_topics.get(name, None)
         if res is not None:
             if data_type != res.data_type:
                 raise ValueError('get_topic called with a previous name but a different data_type')
             return res
-        res = Topic(self, name, data_type)
+        res = Topic(self, name, data_type, qos)
         self._open_topics[name] = res
         return res
-    
+
     def __del__(self):
-        self._participant.delete_subscriber(self._subscriber)
-        self._participant.delete_publisher(self._publisher)
-        
         # very slow for some reason
         DDSFunc.DomainParticipantFactory_get_instance().delete_participant(self._participant)
 
@@ -490,9 +647,9 @@ class LibraryType(object):
     def __init__(self, lib, name):
         self._lib, self.name = lib, name
         del lib, name
-        
+
         assert self._get_typecode().name(ex()) == self.name
-    
+
     def _get_typecode(self):
         f = getattr(self._lib, self.name + '_get_typecode')
         f.argtypes = []
@@ -503,7 +660,7 @@ class LibraryType(object):
 class Library(object):
     def __init__(self, so_path):
         self._lib = ctypes.CDLL(so_path)
-    
+
     def __getattr__(self, attr):
         res = LibraryType(self._lib, attr)
         setattr(self, attr, res)

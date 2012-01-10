@@ -1,8 +1,2 @@
-# These should probably in our personal repository configurations.
-# See .git/info/exclude
-# If you add an entry that is definitely yours to your local config, go ahead
-# and remove it from here.
-
 build*/
-*~
-subjugator_pc
+*.pyc
