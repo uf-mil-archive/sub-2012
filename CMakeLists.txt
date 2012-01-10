@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 project(SubjuGator)
 
 # Ensure CMake will find our custom modules in the cmake directory
@@ -7,6 +7,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Load our template functions
 include(Templates)
 include(UseDoxygen)
+include(PythonUtils)
 
 # Turn on warnings
 add_definitions(-Wall)
@@ -35,11 +36,14 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 find_package(Boost 1.36 REQUIRED COMPONENTS system thread date_time regex program_options filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_package(PythonInterp 2.6 REQUIRED)
+
 # add shared projects
 add_subdirectory(Shared/HAL)
 add_subdirectory(Shared/DDS)
 add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/WorkerManager)
+add_subdirectory(Shared/Python)
 
 # add legacy shared projects
 add_subdirectory(Legacy/HAL)

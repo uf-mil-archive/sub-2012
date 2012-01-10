@@ -1,0 +1,6 @@
+# source this to cause python to find python modules directly from
+# Shared/Python, overriding those that might be installed in your
+# user site directory. This way you don't have to run make install
+# after editing modules.
+
+export PYTHONPATH=$(readlink --canonicalize --no-newline `dirname $BASH_SOURCE`)/Shared/Python

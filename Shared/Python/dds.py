@@ -4,9 +4,8 @@ import struct
 import sys
 import weakref
 
-arch_str = 'x64Linux2.6gcc4.1.1' if sys.maxsize > 2**32 else 'i86Linux2.6gcc4.1.1'
-_ddscore_lib = ctypes.CDLL(os.path.join(os.environ['NDDSHOME'], 'lib', arch_str, 'libnddscore.so'), ctypes.RTLD_GLOBAL)
-_ddsc_lib = ctypes.CDLL(os.path.join(os.environ['NDDSHOME'], 'lib', arch_str, 'libnddsc.so'), ctypes.RTLD_GLOBAL)
+_ddscore_lib = ctypes.CDLL('libnddscore.so', ctypes.RTLD_GLOBAL)
+_ddsc_lib = ctypes.CDLL('libnddsc.so', ctypes.RTLD_GLOBAL)
 
 # Error checkers
 
@@ -138,6 +137,7 @@ class DDSType(object):
             return m
         # make structs dynamically present bound methods
         contents.__getattr__ = g
+        
         # take advantage of POINTERs being cached to make type pointers do the same
         ctypes.POINTER(contents).__getattr__ = g
 
@@ -594,9 +594,9 @@ class Topic(object):
 
     def recv(self):
         data_seq = DDSType.DynamicDataSeq()
-        DDSFunc.DynamicDataSeq_initialize(data_seq)
+        data_seq.initialize()
         info_seq = DDSType.SampleInfoSeq()
-        DDSFunc.SampleInfoSeq_initialize(info_seq)
+        info_seq.initialize()
         self._dyn_narrowed_reader.take(ctypes.byref(data_seq), ctypes.byref(info_seq), 1, get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), get('ANY_INSTANCE_STATE', DDS_InstanceStateMask))
         try:
             info = info_seq.get_reference(0)
