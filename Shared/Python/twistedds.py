@@ -10,8 +10,7 @@ class DDSTransport(object):
     
     def connect(self):
         self._cb_ref = self.topic.add_data_available_callback(self._data_available_callback)
-        self.protocol.transport = self
-        self.protocol.connectionMade()
+        self.protocol.makeConnection(self)
     
     def send(self, msg):
         self.topic.send(msg)

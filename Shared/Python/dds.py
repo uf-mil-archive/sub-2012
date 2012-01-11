@@ -556,6 +556,8 @@ def unpack_dd(dd):
         obj = []
         for i in xrange(dd.get_member_count()):
             obj.append(unpack_dd_member(dd, member_id=i+1))
+        if kind == TCKind.ARRAY:
+            obj = tuple(obj)
         return obj
     else:
         raise NotImplementedError(kind)

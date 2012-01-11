@@ -1,12 +1,12 @@
 import os
 import sys
 
-from twisted.internet import reactor
+from twisted.internet import protocol, reactor
 
 import dds
 import twistedds
 
-class TestProtocol(object):
+class TestProtocol(protocol.Protocol):
     def connectionMade(self):
         print 'connection made!'
     

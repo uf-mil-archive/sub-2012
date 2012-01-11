@@ -12,8 +12,8 @@ l = dds.Library(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), '..'
 
 topics = []
 #topics.append((d.get_topic('t1', l.State), lambda: dict(workername=str(random.randrange(2**10)), state=random.randrange(-2**31, 2**31), health=random.random())))
-topics.append((d.get_topic('t2', l.HydrophoneMessage), lambda: dict(timestamp=int(1e9*time.time()), declination=random.random(), heading=random.random(), distance=random.random(), frequency=random.random(), valid=random.choice([True, False]))))
-topics.append((d.get_topic('t3', l.PDWrenchMessage), lambda: dict(linear=[random.gauss(0, 1) for i in xrange(3)], moment=[random.gauss(0, 1) for i in xrange(3)])))
+topics.append((d.get_topic('Hydrophone', l.HydrophoneMessage), lambda: dict(timestamp=int(1e9*time.time()), declination=random.random(), heading=random.random(), distance=random.random(), frequency=random.random(), valid=random.choice([True, False]))))
+topics.append((d.get_topic('PDWrench', l.PDWrenchMessage), lambda: dict(linear=[random.gauss(0, 1) for i in xrange(3)], moment=[random.gauss(0, 1) for i in xrange(3)])))
 topics.append((d.get_topic('t4', l.VisionSetIDsMessage), lambda: dict(visionids=[random.randrange(1000) for i in xrange(random.randrange(10))], cameraid=random.randrange(10))))
 topics.append((d.get_topic('t5', l.ChatMessage), lambda: dict(username=str(random.randrange(2**10)), message=str(random.randrange(2**10)))))
 topics.append((d.get_topic('t6', l.IMUMessage), lambda: dict(timestamp=int(1e9*time.time()), flags=random.randrange(2**16), temp=random.random(), supply=random.random(), acceleration=[random.gauss(0, 1) for i in xrange(3)], angular_rate=[random.gauss(0, 1) for i in xrange(3)], mag_field=[random.gauss(0, 1) for i in xrange(3)])))
