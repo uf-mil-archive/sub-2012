@@ -1,6 +1,5 @@
 import sys
 import time
-import traceback
 import random
 import os
 
@@ -27,7 +26,7 @@ if recv:
         time.sleep(.01)
         t, mf = random.choice(topics)
         try:
-            msg = t.recv()
+            msg = t.take()
         except dds.Error, e:
             if e.message == 'no data':
                 continue
