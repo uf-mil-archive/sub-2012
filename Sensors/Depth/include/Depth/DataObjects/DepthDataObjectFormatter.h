@@ -1,9 +1,8 @@
-#ifndef DATAOBJECTS_DEPTH_DEPTHDATAOBJECTFORMATTER_H
-#define DATAOBJECTS_DEPTH_DEPTHDATAOBJECTFORMATTER_H
+#ifndef DEPTH_DATAOBJECTS_DEPTHDATAOBJECTFORMATTER_H
+#define DEPTH_DATAOBJECTS_DEPTHDATAOBJECTFORMATTER_H
 
-#include "DataObjects/Embedded/EmbeddedDataObjectFormatter.h"
-#include "DataObjects/EmbeddedTypeCodes.h"
-#include "DataObjects/EmbeddedAddresses.h"
+#include "LibSub/DataObjects/EmbeddedDataObjectFormatter.h"
+#include "LibSub/DataObjects/EmbeddedTypeCodes.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {

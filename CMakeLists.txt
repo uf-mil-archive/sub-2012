@@ -109,8 +109,8 @@ endif()
 
 # handle projects that only run on the gumstix
 if(BUILD_GUMSTIX)
-	add_subdirectory(Sensors/IMUSmartSensor)
-	add_subdirectory(Sensors/DepthSmartSensor)
+	add_subdirectory(Sensors/IMU)
+	add_subdirectory(Sensors/Depth)
 	add_subdirectory(Sensors/DVLSmartSensor)
 endif()
 

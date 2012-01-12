@@ -1,5 +1,5 @@
-#include "DataObjects/Depth/DepthDataObjectFormatter.h"
-#include "DataObjects/Depth/DepthInfo.h"
+#include "Depth/DataObjects/DepthDataObjectFormatter.h"
+#include "Depth/DataObjects/DepthInfo.h"
 
 using namespace subjugator;
 using namespace boost;
@@ -10,4 +10,3 @@ DepthDataObjectFormatter::DepthDataObjectFormatter(boost::uint8_t devaddress, bo
 DataObject *DepthDataObjectFormatter::makeInfoDataObject(ByteVec::const_iterator begin, ByteVec::const_iterator end) {
 	return new DepthInfo(begin, end);
 }
-

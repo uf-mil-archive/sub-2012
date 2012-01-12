@@ -1,0 +1,8 @@
+{
+    "rate": 20,
+    "endpoint": "serial /dev/ttyS1 baud=115200", /* TODO get this from gumstix */
+    "src_addr": 21,
+    "dest_addr": 40,
+    "rate": 5
+}
+    

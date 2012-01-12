@@ -1,0 +1,8 @@
+struct DepthMessage {
+	unsigned long long timestamp; // in nanoseconds
+	double depth;
+	double humidity;
+	double thermistertemp;
+	double humiditytemp;
+};
+
