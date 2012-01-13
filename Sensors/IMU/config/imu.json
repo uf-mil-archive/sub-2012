@@ -1,0 +1,4 @@
+{
+    "endpoint": "file /dev/adis1640x" /* TODO get this from gumstix */
+}
+    

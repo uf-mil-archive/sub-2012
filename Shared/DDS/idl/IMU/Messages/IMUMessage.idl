@@ -1,0 +1,10 @@
+struct IMUMessage {
+	unsigned long long timestamp;
+	unsigned short flags;
+	double temp;
+	double supply;
+	double acceleration[3];
+	double angular_rate[3];
+	double mag_field[3];
+};
+

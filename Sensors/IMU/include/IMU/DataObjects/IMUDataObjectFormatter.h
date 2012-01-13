@@ -1,8 +1,7 @@
 #ifndef IMU_DATA_OBJECT_FORMATTER_H
 #define IMU_DATA_OBJECT_FORMATTER_H
 
-#include "DataObjects/Embedded/EmbeddedDataObjectFormatter.h"
-#include "DataObjects/EmbeddedTypeCodes.h"
+#include "LibSub/DataObjects/EmbeddedDataObjectFormatter.h"
 #include <boost/cstdint.hpp>
 
 namespace subjugator {
