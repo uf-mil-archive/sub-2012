@@ -9,6 +9,7 @@
 #include "LibSub/Worker/WorkerKill.h"
 #include <ndds/ndds_cpp.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <Eigen/Dense>
 #include <ctime>
 
 namespace subjugator {
@@ -124,6 +125,14 @@ namespace subjugator {
 		from_dds(kill.name, msg.name);
 		from_dds(kill.desc, msg.desc);
 		from_dds(kill.killed, msg.killed);
+	}
+	
+	// Eigen
+	
+	template <int rows, typename T>
+	void to_dds(T (&array)[rows], const Eigen::Matrix<T, rows, 1> &vec) {
+		for (int i=0; i<vec.rows(); i++)
+			array[i] = vec(i);
 	}
 
 	/** @} */

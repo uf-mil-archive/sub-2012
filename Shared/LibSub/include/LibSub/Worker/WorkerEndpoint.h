@@ -103,6 +103,9 @@ namespace subjugator {
 			*/
 
 			WorkerEndpoint(const Args &args);
+			
+			void clearMaxAge() { maxage = std::numeric_limits<double>::infinity(); }
+			void setMaxAge(double maxage) { this->maxage = maxage; }
 
 			DataObjectEndpoint &getEndpoint() { return *endpoint; }
 			const DataObjectEndpoint &getEndpoint() const { return *endpoint; }

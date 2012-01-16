@@ -111,6 +111,6 @@ endif()
 if(BUILD_GUMSTIX)
 	add_subdirectory(Sensors/IMU)
 	add_subdirectory(Sensors/Depth)
-	add_subdirectory(Sensors/DVLSmartSensor)
+	add_subdirectory(Sensors/DVL)
 endif()
 

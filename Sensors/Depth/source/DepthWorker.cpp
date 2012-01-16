@@ -8,6 +8,7 @@
 using namespace subjugator;
 using namespace boost;
 using namespace std;
+
 DepthWorker::DepthWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 Worker("Depth", 5, configloader),
 hal(hal),

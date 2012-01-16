@@ -19,6 +19,7 @@
 #include <utility>
 #include <memory>
 #include <cassert>
+#include <iostream>
 
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
@@ -134,7 +135,6 @@ namespace subjugator {
 			TopicMap topicobjs;
 			boost::ptr_vector<Obj> objs;
 
-
 			template <class Message>
 			struct TopicObj : public Obj {
 				Topic<Message> t;
@@ -174,6 +174,8 @@ namespace subjugator {
 				io(io) { }
 
 				void receiveCallback(const MessageT &msg) {
+					std::cout << "receiveCallback" << std::endl;
+					
 					DataT data;
 					from_dds(data, msg);
 					io.dispatch(boost::bind(&WorkerMailbox<DataT>::set, &mailbox, data));

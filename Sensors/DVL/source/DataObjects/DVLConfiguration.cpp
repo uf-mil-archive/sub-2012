@@ -1,6 +1,6 @@
-#include "DataObjects/DVL/DVLConfiguration.h"
+#include "DVL/DataObjects/DVLConfiguration.h"
 #include <boost/lexical_cast.hpp>
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
@@ -9,13 +9,11 @@ using namespace subjugator;
 using namespace boost::posix_time;
 using namespace std;
 
-DVLConfiguration::DVLConfiguration(double maxdepth, double alignmentdeg)
-: maxdepth(maxdepth), alignmentdeg(alignmentdeg) { }
+DVLConfiguration::DVLConfiguration(double maxdepth) : 
+maxdepth(maxdepth) { }
 
 static const char preamble[] =
 	"CR0\r" // load factory settings (won't change baud rate)
-	"#CT0\r" // turn key operation off (DVL won't start pinging automatically on startup)
-	"BX00150\r" // set maximum depth to 15 meters
 	"#BJ 100 110 000\r" // enable only bottom track high res velocity and bottom track range
 	"ES0\r" // 0 salinity
 	"EX10010\r" // transform results to ship XYZ, allow 3 beam solutions
@@ -27,15 +25,10 @@ Packet DVLConfiguration::makePacket() const {
 
 	buf << "BX" << setw(5) << setfill('0') << (int)(maxdepth * 10) << '\r'; // configures max depth
 
-	// configure alignment
-	if (alignmentdeg == 0) // don't put a + sign on zero
-		buf << "EA00000\r";
-	else
-		buf << "EA" << setw(5) << setfill('0') << showpos << (int)(alignmentdeg * 100) << 'r'; // showpos puts a + sign for positive numbers, per DVL documentation
-
-	time_facet *lf = new time_facet("%Y/%m/%d, %H:%M:%S");
+	time_facet *lf = new time_facet("%Y/%m/%d, %H:%M:%S"); // set clock
     buf.imbue(std::locale(buf.getloc(), lf));
 	buf << "TT" << second_clock::local_time() << "\r";
+	
 	buf << "CS\r"; // start pinging
 
 	string str = buf.str();

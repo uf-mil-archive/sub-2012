@@ -1,0 +1,6 @@
+{
+    "endpoint": "serial /dev/ttyS0 baud=115200", /* TODO get this from gumstix */
+    "max_depth": "15",
+    "bad_ping_error_count": "3"
+}
+    

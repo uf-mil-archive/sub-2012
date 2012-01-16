@@ -1,0 +1,9 @@
+struct DVLMessage {
+	unsigned long long timestamp; // in nanoseconds
+	double velocity[3];
+	double velocityerror;
+	double height;
+	double beamcorrelation[4];
+	boolean good;
+};
+
