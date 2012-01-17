@@ -155,8 +155,7 @@ function(sub_executable projectname)
 	install(TARGETS ${exename} DESTINATION bin)
 
 	# install configs
-	file(GLOB_RECURSE configs "config/*")
-	install(FILES ${configs} DESTINATION ${SUBJUGATOR_CONFIG_DIRECTORY})
+	install(DIRECTORY config/ DESTINATION ${SUBJUGATOR_CONFIG_DIRECTORY} FILES_MATCHING PATTERN "*.json")
 endfunction()
 
 #############################################

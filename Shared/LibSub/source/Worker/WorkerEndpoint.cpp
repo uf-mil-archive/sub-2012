@@ -49,8 +49,10 @@ void WorkerEndpoint::updateState(double dt) {
 
 	if (state.code == State::STANDBY || state.code == State::ERROR) {
 		errorage += dt;
-		if (errorage >= 1) {
+		if (errorage >= 5) {
 			errorage = 0;
+			dobj.reset();
+			dobjage = 0;
 			endpoint->close();
 			endpoint->open();
 		}
@@ -62,6 +64,9 @@ void WorkerEndpoint::updateState(double dt) {
 void WorkerEndpoint::halReceiveCallback(std::auto_ptr<DataObject> &dobj) {
 	this->dobj = shared_ptr<DataObject>(dobj);
 	dobjage = 0;
+	
+	if (receivecallback)
+		receivecallback(this->dobj);
 }
 
 void WorkerEndpoint::halStateChangeCallback() {
