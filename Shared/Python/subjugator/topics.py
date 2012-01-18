@@ -1,5 +1,10 @@
 import dds
 
+from collections import namedtuple
+
+part = dds.Participant()
+lib = dds.Library('libdds_c.so')
+
 LEGACY = ['legacy']
 UNRELIABLE = []
 RELIABLE = ['reliable']
@@ -9,8 +14,18 @@ PERSISTENT = ['reliable', 'persistent']
 DEEP_PERSISTENT = ['reliable', 'persistent', 'deep_history']
 DEFAULT = ['reliable', 'exclusive', 'liveliness']
 
-def topic(d, qoslist):
-    qos = d.get_default_topic_qos()
+_TopicConf = namedtuple('TopicConf', 'type qos')
+
+_topic_qoses = {
+    'WorkerLog': _TopicConf(lib.WorkerLogMessage, DEEP_PERSISTENT)
+}
+
+def get(name):
+    conf = _topic_qoses[name]
+    return part.get_topic(name, conf.type, make_qos(conf.qos))
+
+def make_qos(qoslist):
+    qos = part.get_default_topic_qos()
     if 'legacy' not in qoslist:
         qos.destination_order.kind = dds.DestinationOrderQosPolicyKind.BY_SOURCE_TIMESTAMP
 

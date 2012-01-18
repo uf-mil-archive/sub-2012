@@ -2,6 +2,7 @@ import ctypes
 import os
 import sys
 import weakref
+import math
 
 _ddscore_lib = ctypes.CDLL('libnddscore.so', ctypes.RTLD_GLOBAL)
 _ddsc_lib = ctypes.CDLL('libnddsc.so', ctypes.RTLD_GLOBAL)
@@ -149,7 +150,7 @@ DDSType.Topic._fields_ = [
 ]
 ctypes.POINTER(DDSType.Topic).as_topicdescription = lambda self: self.contents._as_TopicDescription
 
-DDSType.DynamicDataSeq._fields_ = DDSType.SampleInfoSeq._fields_ = DDSType.OctetSeq._fields_ = [
+DDSType.DynamicDataSeq._fields_ = DDSType.SampleInfoSeq._fields_ = DDSType.OctetSeq._fields_ = DDSType.ConditionSeq._fields_ = [
     ('_owned', ctypes.c_bool),
     ('_contiguous_buffer', ctypes.c_void_p),
     ('_discontiguous_buffer', ctypes.POINTER(ctypes.c_void_p)),
@@ -208,6 +209,16 @@ DDSType.SampleInfo._fields_ = [
     ('original_publication_virtual_guid', DDSType.GUID_t),
     ('original_publication_virtual_sequence_number', DDSType.SequenceNumber_t),
 ]
+
+def duration(t):
+    d = DDSType.Duration_t()
+    (frac, sec) = math.modf(t)
+    d.sec = int(sec)
+    d.nanosec = int(frac / 1e9)
+    return d
+
+# some types
+enum = ctypes.c_int
 
 DDSType.TopicDataQosPolicy._fields_ = [
     ('value', DDSType.OctetSeq),
@@ -339,6 +350,11 @@ DDSType.DataReaderListener._fields_ = [
 
 DATA_AVAILABLE_STATUS = 0x0001 << 10
 
+ctypes.POINTER(DDSType.DataReader).as_entity = lambda self: ctypes.cast(self, ctypes.POINTER(DDSType.Entity))
+ctypes.POINTER(DDSType.StatusCondition).as_condition = lambda self: ctypes.cast(self, ctypes.POINTER(DDSType.Condition))
+ctypes.POINTER(DDSType.ReadCondition).as_condition = lambda self: ctypes.cast(self, ctypes.POINTER(DDSType.Condition))
+ctypes.POINTER(DDSType.Condition).__hash__ = lambda self: hash(ctypes.addressof(self.contents))
+
 # Function prototypes
 
 _dyn_basic_types = {
@@ -384,9 +400,11 @@ map(_define_func, [
 
     ('Subscriber_create_datareader', check_null, ctypes.POINTER(DDSType.DataReader), [ctypes.POINTER(DDSType.Subscriber), ctypes.POINTER(DDSType.TopicDescription), ctypes.POINTER(DDSType.DataReaderQos), ctypes.POINTER(DDSType.DataReaderListener), DDS_StatusMask]),
     ('Subscriber_delete_datareader', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.Subscriber), ctypes.POINTER(DDSType.DataReader)]),
-    
+
     ('DataReader_set_listener', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DataReader), ctypes.POINTER(DDSType.DataReaderListener), DDS_StatusMask]),
-    
+    ('DataReader_create_readcondition', check_null, ctypes.POINTER(DDSType.ReadCondition), [ctypes.POINTER(DDSType.DataReader), DDS_UnsignedLong, DDS_UnsignedLong, DDS_UnsignedLong]),
+    ('DataReader_delete_readcondition', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DataReader), ctypes.POINTER(DDSType.ReadCondition)]),
+
     ('DynamicDataTypeSupport_new', check_null, ctypes.POINTER(DDSType.DynamicDataTypeSupport), [ctypes.POINTER(DDSType.TypeCode), ctypes.POINTER(DDSType.DynamicDataTypeProperty_t)]),
     ('DynamicDataTypeSupport_delete', None, None, [ctypes.POINTER(DDSType.DynamicDataTypeSupport)]),
     ('DynamicDataTypeSupport_register_type', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataTypeSupport), ctypes.POINTER(DDSType.DomainParticipant), ctypes.c_char_p]),
@@ -416,9 +434,11 @@ map(_define_func, [
     ('DynamicData_delete', None, None, [ctypes.POINTER(DDSType.DynamicData)]),
 
     ('DynamicDataWriter_narrow', check_null, ctypes.POINTER(DDSType.DynamicDataWriter), [ctypes.POINTER(DDSType.DataWriter)]),
+    ('DynamicDataWriter_as_datawriter', check_null, ctypes.POINTER(DDSType.DataWriter), [ctypes.POINTER(DDSType.DynamicDataWriter)]),
     ('DynamicDataWriter_write', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataWriter), ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(DDSType.InstanceHandle_t)]),
 
     ('DynamicDataReader_narrow', check_null, ctypes.POINTER(DDSType.DynamicDataReader), [ctypes.POINTER(DDSType.DataReader)]),
+    ('DynamicDataReader_as_datareader', check_null, ctypes.POINTER(DDSType.DataReader), [ctypes.POINTER(DDSType.DynamicDataReader)]),
     ('DynamicDataReader_take', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataReader), ctypes.POINTER(DDSType.DynamicDataSeq), ctypes.POINTER(DDSType.SampleInfoSeq), DDS_Long, DDS_SampleStateMask, DDS_ViewStateMask, DDS_InstanceStateMask]),
     ('DynamicDataReader_return_loan', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicDataReader), ctypes.POINTER(DDSType.DynamicDataSeq), ctypes.POINTER(DDSType.SampleInfoSeq)]),
 
@@ -437,8 +457,22 @@ map(_define_func, [
     ('SampleInfoSeq_get_length', None, DDS_Long, [ctypes.POINTER(DDSType.SampleInfoSeq)]),
     ('SampleInfoSeq_get_reference', check_null, ctypes.POINTER(DDSType.SampleInfo), [ctypes.POINTER(DDSType.SampleInfoSeq), DDS_Long]),
 
-    ('String_free', None, None, [ctypes.c_char_p]),
+    ('ConditionSeq_initialize', check_true, DDS_Boolean, [ctypes.POINTER(DDSType.ConditionSeq)]),
+    ('ConditionSeq_get_length', None, DDS_Long, [ctypes.POINTER(DDSType.ConditionSeq)]),
+    ('ConditionSeq_get_reference', check_null, ctypes.POINTER(DDSType.Condition), [ctypes.POINTER(DDSType.ConditionSeq), DDS_Long]),
 
+    ('Entity_get_statuscondition', check_null, ctypes.POINTER(DDSType.StatusCondition), [ctypes.POINTER(DDSType.Entity)]),
+    ('StatusCondition_set_enabled_statuses', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.StatusCondition)]),
+    ('Condition_get_trigger_value', None, DDS_Boolean, [ctypes.POINTER(DDSType.Condition)]),
+
+    ('WaitSet_new', check_null, ctypes.POINTER(DDSType.WaitSet), []),
+    ('WaitSet_attach_condition', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.WaitSet), ctypes.POINTER(DDSType.Condition)]),
+    ('WaitSet_detach_condition', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.WaitSet), ctypes.POINTER(DDSType.Condition)]),
+    ('WaitSet_wait', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.WaitSet)]),
+    ('WaitSet_delete', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.WaitSet)]),
+
+
+    ('String_free', None, None, [ctypes.c_char_p]),
     ('Wstring_free', None, None, [ctypes.c_wchar_p]),
 
     ('TopicQos_initialize', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.TopicQos)]),
@@ -566,52 +600,58 @@ _outside_refs = set()
 _refs = set()
 
 class WrappedObject(object):
-    def __init__(self, inner, deps, free_func=lambda inner: None):
+    def __init__(self, inner, deps, free_func=lambda inner: None, _refs=_refs):
         self._inner = inner
         self._as_parameter_ = inner
         _refs.add(weakref.ref(self, lambda ref: (free_func(inner), _refs.remove(ref), deps)))
-    
+
+
     def __getattr__(self, attr):
         return getattr(self._inner, attr)
 
 class Topic(object):
-    def __init__(self, dds, name, data_type, qos=None):
-        self._dds = dds
+    def __init__(self, part, name, data_type, qos=None):
+        self._part = part
         self.name = name
         self.data_type = data_type
-        self.qos = qos if qos is not None else dds.get_default_topic_qos()
-        
+        self.qos = qos if qos is not None else part.get_default_topic_qos()
+
         self._support = WrappedObject(
             DDSFunc.DynamicDataTypeSupport_new(self.data_type._get_typecode(), get('DYNAMIC_DATA_TYPE_PROPERTY_DEFAULT', DDSType.DynamicDataTypeProperty_t)),
             self.data_type,
-            lambda support: (support.unregister_type(dds._participant, data_type.name), support.delete()),
+            lambda support: (support.unregister_type(self._part._participant, data_type.name), support.delete()),
         )
-        self._support.register_type(self._dds._participant, self.data_type.name)
-        
-        self._topic = WrappedObject(self._dds._participant.create_topic(
+        self._support.register_type(self._part._participant, self.data_type.name)
+
+        self._topic = WrappedObject(self._part._participant.create_topic(
             self.name,
             self.data_type.name,
             self.qos,
             None,
             0,
-        ), [self._dds._participant, self._support], dds._participant.delete_topic)
-        
+        ), [self._part._participant, self._support], self._part._participant.delete_topic)
+
         self._listener = None
         self._writer = None
         self._reader = None
-        
+
         self._callbacks = {}
-    
+
     def _create_reader(self):
         assert self._reader is None
-        self._reader = WrappedObject(self._dds._participant.create_datareader(
+        self._reader = WrappedObject(self._part._participant.create_datareader(
             self._topic.as_topicdescription(),
             get('DATAREADER_QOS_USE_TOPIC_QOS', DDSType.DataReaderQos),
             None,
             0,
-        ), [self._topic, self._dds._participant], self._dds._participant.delete_datareader)
+        ), [self._topic, self._part._participant], self._part._participant.delete_datareader)
         self._dyn_narrowed_reader = WrappedObject(DDSFunc.DynamicDataReader_narrow(self._reader), self._reader)
-    
+
+        self._reader_readcondition = WrappedObject(
+            self._reader.create_readcondition(get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE),
+            self._reader,
+            self._reader.delete_readcondition)
+
     def _enable_listener(self):
         assert self._listener is None
         if self._reader is None:
@@ -619,13 +659,13 @@ class Topic(object):
         self._listener = DDSType.DataReaderListener(on_data_available=ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(DDSType.DataReader))(self._data_available_callback))
         self._reader.set_listener(self._listener, DATA_AVAILABLE_STATUS)
         _outside_refs.add(self) # really want self._listener, but this does the same thing
-    
+
     def _disable_listener(self):
         assert self._listener is not None
         self._reader.set_listener(None, 0)
         self._listener = None
         _outside_refs.remove(self)
-    
+
     def add_data_available_callback(self, cb):
         '''Warning: callback is called back in another thread!'''
         if not self._callbacks:
@@ -633,24 +673,24 @@ class Topic(object):
         ref = max(self._callbacks) if self._callbacks else 0
         self._callbacks[ref] = cb
         return ref
-    
+
     def remove_data_available_callback(self, ref):
         del self._callbacks[ref]
         if not self._callbacks:
             self._disable_listener()
-    
+
     def _data_available_callback(self, listener_data, datareader):
         for cb in self._callbacks.itervalues():
             cb()
-    
+
     def send(self, msg):
         if self._writer is None:
-            self._writer = WrappedObject(self._dds._participant.create_datawriter(
+            self._writer = WrappedObject(self._part._participant.create_datawriter(
                 self._topic,
                 get('DATAWRITER_QOS_USE_TOPIC_QOS', DDSType.DataWriterQos),
                 None,
                 0,
-            ), [self._topic], self._dds._participant.delete_datawriter)
+            ), [self._topic], self._part._participant.delete_datawriter)
             self._dyn_narrowed_writer = WrappedObject(DDSFunc.DynamicDataWriter_narrow(self._writer), self._writer)
 
         sample = self._support.create_data()
@@ -676,7 +716,46 @@ class Topic(object):
         finally:
             self._dyn_narrowed_reader.return_loan(ctypes.byref(data_seq), ctypes.byref(info_seq))
 
-class DDS(object):
+    def get_condition(self):
+        if self._reader is None:
+            self._create_reader()
+        return self._reader_readcondition.as_condition()
+
+class WaitSet(object):
+    def __init__(self):
+        self._waitset = WrappedObject(DDSFunc.WaitSet_new(), [], DDSFunc.WaitSet_delete)
+        self._objcond = {}
+
+    def attach(self, topic, obj):
+        cond = topic.get_condition()
+        self._waitset.attach_condition(cond)
+        self._objcond[cond] = obj
+
+    def delete(self):
+        DDSFunc.WaitSet_delete(self._waitset)
+        self._waitset = None
+
+    def detach(self, topic):
+        cond = topic.get_condition()
+        self._waitset.detach_condition(cond)
+        del self._objcond[cond]
+
+    def wait(self, timeout):
+        cond_seq = DDSType.ConditionSeq()
+        DDSFunc.ConditionSeq_initialize(cond_seq)
+
+        try:
+            self._waitset.wait(ctypes.byref(cond_seq), ctypes.byref(duration(timeout)))
+
+            objs = [obj for cond, obj in self._objcond.iteritems() if cond.get_trigger_value()]
+            return objs
+        except Error, e:
+            if e.message == 'timeout':
+                return []
+            else:
+                raise
+
+class Participant(object):
     def __init__(self, domain_id=0):
         self._participant = WrappedObject(DDSFunc.DomainParticipantFactory_get_instance().create_participant(
             domain_id,
@@ -684,7 +763,7 @@ class DDS(object):
             None,
             0,
         ), None, DDSFunc.DomainParticipantFactory_get_instance().delete_participant)
-        
+
         self._open_topics = weakref.WeakValueDictionary()
 
     def get_default_topic_qos(self):
@@ -702,7 +781,6 @@ class DDS(object):
         res = Topic(self, name, data_type, qos)
         self._open_topics[name] = res
         return res
-
 
 class LibraryType(object):
     def __init__(self, lib, name):

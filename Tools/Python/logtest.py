@@ -8,16 +8,12 @@ d = dds.DDS()
 l = dds.Library('libdds_c.so')
 
 log_topic = d.get_topic('WorkerLog', l.WorkerLogMessage, qos.topic(d, qos.DEEP_PERSISTENT))
+ws = dds.WaitSet()
+ws.attach(log_topic)
+
 
 while True:
-    msg = dict(
-        worker="PythonWorker",
-        msg="Hello World, from Python",
-        type='WORKERLOGTYPE_INFO',
-        time=42
-    )
-    log_topic.send(msg)
-    print "send"
+    ws.wait(5)
 
     while True:
         try:
