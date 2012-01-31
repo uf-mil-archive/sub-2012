@@ -47,8 +47,6 @@ namespace subjugator {
 				participant.getDDS().get_default_topic_qos(qos);
 
 				if (qosflags != TopicQOSBits::LEGACY) {
-					qos.destination_order.kind = DDS_BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS;
-
 					if (qosflags & TopicQOSBits::RELIABLE)
 						qos.reliability.kind = DDS_RELIABLE_RELIABILITY_QOS;
 					if (qosflags & TopicQOSBits::EXCLUSIVE)

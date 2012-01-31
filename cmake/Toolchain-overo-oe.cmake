@@ -20,5 +20,5 @@ set(NDDS_ARCH armv7leLinux2.6gcc4.4.1)
 set(NDDS_HOME ${GUMSTIX_ROOT_PATH}/opt/RTI/ndds.4.5d)
 
 set(SUB_BUILD_TYPE gumstix)
-set(CMAKE_INSTALL_PREFIX ${GUMSTIX_ROOT_PATH}/home/root/sub)
-
+set(GUMSTIX_INSTALL_PREFIX /home/root/sub)
+set(CMAKE_INSTALL_PREFIX ${GUMSTIX_ROOT_PATH}/${GUMSTIX_INSTALL_PREFIX} CACHE PATH "Installation path.")
