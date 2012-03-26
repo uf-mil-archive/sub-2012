@@ -41,7 +41,7 @@ add_subdirectory(Shared/HAL)
 add_subdirectory(Shared/DDS)
 add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/WorkerManager)
-	
+
 # add legacy shared stuff
 add_subdirectory(Legacy/HAL)
 add_subdirectory(Legacy/DDS)
@@ -80,7 +80,7 @@ if(BUILD_PC)
 	else()
 		message(WARNING "FFTW not found. Eigen will fall back to kissfft.")
 	endif()
-	
+
 	add_subdirectory(Shared/Python)
 
 	add_subdirectory(Sensors/Hydrophone)
@@ -89,7 +89,6 @@ if(BUILD_PC)
 	add_subdirectory(Control/TrackingController)
 	add_subdirectory(Control/TrajectoryGenerator)
 	add_subdirectory(Control/C3Trajectory)
-	add_subdirectory(Control/EquTrajectoryGenerator)
 	add_subdirectory(Tools/SubLog)
 
 	if(OpenCV_FOUND AND FLYCAPTURE_FOUND)
