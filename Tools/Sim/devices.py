@@ -233,6 +233,7 @@ class DVLProtocol(protocol.Protocol):
     def connectionMade(self):
         print 'dvl connection made'
         self.listener_set.add(self)
+        self.transport.write('Teledyne RD Instruments (c) 2007')
     
     def dataReceived(self, data):
         print 'dvl', repr(data)
@@ -240,11 +241,11 @@ class DVLProtocol(protocol.Protocol):
     def sendHighResVel(self, bottom_vel, bottom_dist, water_vel, water_dist, speed_of_sound):
         if not all(len(x) == 4 for x in [bottom_vel, bottom_dist, water_vel, water_dist]):
             raise TypeError('first four arguments must each have a length of four')
-        self.sendUpdate([''.join([
+        self.sendUpdate(['\x80\x00' + '\x01'*58] + [''.join([
             '\x03\x58',
             struct.pack('16i', *(int(x*1e5+.5) for x in itertools.chain(bottom_vel, bottom_dist, water_vel, water_dist))),
             struct.pack('i', int(speed_of_sound*1e6+.5)),
-        ])])
+        ])] + ['\x00\x06' + '\x00'*79] + ['\x04\x58' + '\x00'*37])
     
     def sendUpdate(self, msgs):
         header_length = 1 + 1 + 2 + 1 + 1 + 2 * len(msgs)

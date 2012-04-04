@@ -1,0 +1,17 @@
+{
+	"mergeboard_endpoint": "tcp 127.0.0.1:10060",
+	"actuator_endpoint": "tcp 127.0.0.1:10061",
+	"heartbeat_endpoint": "tcp 127.0.0.1:10255",
+
+	"thrusters": {
+		"FRV":  {"endpoint": "tcp 127.0.0.1:10030"},
+		"FLV":  {"endpoint": "tcp 127.0.0.1:10031"},
+		"FS":   {"endpoint": "tcp 127.0.0.1:10032"},
+		"RLV":  {"endpoint": "tcp 127.0.0.1:10033"},
+		"LFOR": {"endpoint": "tcp 127.0.0.1:10034"},
+		"RFOR": {"endpoint": "tcp 127.0.0.1:10035"},
+		"RS":   {"endpoint": "tcp 127.0.0.1:10036"},
+		"RRV":  {"endpoint": "tcp 127.0.0.1:10037"}
+	}
+}
+
