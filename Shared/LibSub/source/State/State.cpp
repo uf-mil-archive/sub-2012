@@ -14,8 +14,11 @@ State State::combine(const State &other) const {
 		return *this;
 
 	State combined = *this;
-	if (other.msg.size())
-		combined.msg += " " + other.msg;
+	if (other.msg.size()) {
+		if (combined.msg.size())
+			combined.msg += " ";
+		combined.msg += other.msg;
+	}
 	return combined;
 }
 

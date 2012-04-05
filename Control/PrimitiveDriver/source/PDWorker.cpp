@@ -39,8 +39,6 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 }
 
 void PDWorker::initialize() {
-	estopsignal.setKill(false);
-
 	const ptree &thrusters = getConfig().get_child("thrusters");
 	thrustermapper.resize(thrusters.size());
 
@@ -76,7 +74,7 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 
 void PDWorker::estopChanged(bool estop) {
 	estopsignal.setKill(estop);
-	logger.log(string("ESTOP ") + (estop ? "active" : "inactive"));
+	logger.log(string("ESTOP ") + (estop ? "engaged" : "disengaged"));
 }
 
 void PDWorker::work(double dt) {
