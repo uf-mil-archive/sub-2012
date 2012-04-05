@@ -1,7 +1,7 @@
 #include "PrimitiveDriver/PDWorker.h"
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
-#include "PrimitiveDriver/Messages/PDActuatorMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDStatusMessageSupport.h"
+#include "PrimitiveDriver/Messages/PDEffortMessageSupport.h"
 #include "HAL/HAL.h"
 #include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
@@ -14,7 +14,7 @@ using namespace std;
 
 DECLARE_MESSAGE_TRAITS(PDWrenchMessage);
 DECLARE_MESSAGE_TRAITS(PDStatusMessage);
-DECLARE_MESSAGE_TRAITS(PDActuatorMessage);
+DECLARE_MESSAGE_TRAITS(PDEffortMessage);
 
 int main(int argc, char **argv) {
 	io_service io;
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 	dds.killSignal(worker.estopsignal);
 
 	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
-	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator", TopicQOS::LEGACY));
+	dds.receiver(worker.effortmailbox, dds.topic<PDEffortMessage>("PDEffort", TopicQOS::RELIABLE));
 	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
 
 	// Start the worker
@@ -52,8 +52,10 @@ namespace subjugator {
 	}
 
 	template <>
-	void from_dds(int &flags, const PDActuatorMessage &actuator) {
-		flags = actuator.flags;
+	void from_dds(VectorXd &vec, const PDEffortMessage &msg) {
+		vec.resize(8);
+		for (int i=0; i<8; i++)
+			vec(i) = msg.efforts[i];
 	}
 
 	template <>

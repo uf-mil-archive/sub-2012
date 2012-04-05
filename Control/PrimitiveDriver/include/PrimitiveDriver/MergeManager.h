@@ -11,16 +11,14 @@ namespace subjugator {
 	class MergeManager : public StateUpdaterContainer {
 		public:
 			typedef boost::function<void (bool)> EStopUpdateCallback;
-		
-			MergeManager(HAL &hal, const std::string &mergeendpointconf, const std::string &actuatorendpointconf, const EStopUpdateCallback &estopupdatecallback);
+
+			MergeManager(HAL &hal, const std::string &mergeendpointconf, const EStopUpdateCallback &estopupdatecallback);
 
 			const MergeInfo &getMergeInfo() const { return *mergeendpoint.getDataObject<MergeInfo>(); }
-			void setActuators(int flags);
 
 		private:
 			EStopUpdateCallback estopupdatecallback;
 			WorkerEndpoint mergeendpoint;
-			WorkerEndpoint actuatorendpoint;
 
 			bool prevestop;
 
