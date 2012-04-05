@@ -18,36 +18,38 @@
 
 namespace subjugator {
 	class PDWorker : public Worker {
-		public:
-			PDWorker(HAL &hal, const WorkerConfigLoader &configloader);
+	public:
+		PDWorker(HAL &hal, const WorkerConfigLoader &configloader);
 
-			WorkerMailbox<Vector6d> wrenchmailbox;
-			WorkerMailbox<int> actuatormailbox;
-			WorkerKillMonitor killmon;
+		WorkerMailbox<Vector6d> wrenchmailbox;
+		WorkerMailbox<VectorXd> effortmailbox;
+		WorkerMailbox<int> actuatormailbox;
+		WorkerKillMonitor killmon;
 
-			WorkerSignal<std::vector<double> > currentsignal;
-			WorkerSignal<PDInfo> infosignal;
-			WorkerKillSignal estopsignal;
+		WorkerSignal<std::vector<double> > currentsignal;
+		WorkerSignal<PDInfo> infosignal;
+		WorkerKillSignal estopsignal;
 
-		protected:
-			virtual void initialize();
-			virtual void work(double dt);
-			virtual void leaveActive();
+	protected:
+		virtual void initialize();
+		virtual void work(double dt);
+		virtual void leaveActive();
 
-		private:
-			void wrenchSet(const boost::optional<Vector6d> &wrench);
-			void actuatorSet(const boost::optional<int> &actuators);
-			void thrusterStateChanged(int num, const State &state);
-			void estopChanged(bool estop);
+	private:
+		void wrenchSet(const boost::optional<Vector6d> &wrench);
+		void effortSet(const boost::optional<VectorXd> &effort);
+		void actuatorSet(const boost::optional<int> &actuators);
+		void thrusterStateChanged(int num, const State &state);
+		void estopChanged(bool estop);
 
-			HAL &hal;
+		HAL &hal;
 
-			WorkerEndpoint heartbeatendpoint;
-			ThrusterManager thrustermanager;
-			ThrusterMapper thrustermapper;
-			MergeManager mergemanager;
+		WorkerEndpoint heartbeatendpoint;
+		ThrusterManager thrustermanager;
+		ThrusterMapper thrustermapper;
+		MergeManager mergemanager;
 
-			std::vector<ThrusterMapper::Entry> thrusterentries;
+		std::vector<ThrusterMapper::Entry> thrusterentries;
 	};
 }
 

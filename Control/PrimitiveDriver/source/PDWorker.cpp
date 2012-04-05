@@ -10,35 +10,32 @@ using namespace boost::property_tree;
 using namespace std;
 
 PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
-Worker("PrimitiveDriver", 50, configloader),
-wrenchmailbox(WorkerMailbox<Vector6d>::Args()
-	.setName("wrench")
-	.setCallback(boost::bind(&PDWorker::wrenchSet, this, _1))
-),
-actuatormailbox(WorkerMailbox<int>::Args()
-	.setName("actuator")
-	.setCallback(boost::bind(&PDWorker::actuatorSet, this, _1))
-),
-killmon("EStop"),
-estopsignal("EStop", "Magnetic EStop switch on the mergeboard"),
-hal(hal),
-heartbeatendpoint(WorkerEndpoint::Args()
-	.setName("heartbeat")
-	.setEndpoint(hal.makeDataObjectEndpoint(
-		getConfig().get<std::string>("heartbeat_endpoint"),
-		new HeartBeatDataObjectFormatter(21),
-		new Sub7EPacketFormatter()
-	))
-	.setOutgoingOnly()
-),
-thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
-thrustermapper(Vector3d(0, 0, 0)),
-mergemanager(
-	hal,
-	getConfig().get<std::string>("mergeboard_endpoint"),
-	getConfig().get<std::string>("actuator_endpoint"),
-	bind(&PDWorker::estopChanged, this, _1)
-) {
+	Worker("PrimitiveDriver", 50, configloader),
+	wrenchmailbox(WorkerMailbox<Vector6d>::Args()
+	              .setName("wrench")
+	              .setCallback(boost::bind(&PDWorker::wrenchSet, this, _1))),
+	effortmailbox(WorkerMailbox<VectorXd>::Args()
+	              .setName("effort")
+	              .setCallback(boost::bind(&PDWorker::effortSet, this, _1))),
+	actuatormailbox(WorkerMailbox<int>::Args()
+	                .setName("actuator")
+	                .setCallback(boost::bind(&PDWorker::actuatorSet, this, _1))),
+	killmon("EStop"),
+	estopsignal("EStop", "Magnetic EStop switch on the mergeboard"),
+	hal(hal),
+	heartbeatendpoint(WorkerEndpoint::Args()
+	                  .setName("heartbeat")
+	                  .setEndpoint(hal.makeDataObjectEndpoint(getConfig().get<std::string>("heartbeat_endpoint"),
+	                                                          new HeartBeatDataObjectFormatter(21),
+	                                                          new Sub7EPacketFormatter()))
+	                  .setOutgoingOnly()),
+	thrustermanager(hal, 21, bind(&PDWorker::thrusterStateChanged, this, _1, _2)),
+	thrustermapper(Vector3d(0, 0, 0)),
+	mergemanager(hal,
+	             getConfig().get<std::string>("mergeboard_endpoint"),
+	             getConfig().get<std::string>("actuator_endpoint"),
+	             bind(&PDWorker::estopChanged, this, _1))
+{
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
@@ -63,6 +60,10 @@ void PDWorker::initialize() {
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
 	VectorXd efforts = thrustermapper.mapWrenchToEfforts(optwrench.get_value_or(Vector6d::Zero()));
 	thrustermanager.setEfforts(efforts);
+}
+
+void PDWorker::effortSet(const boost::optional<VectorXd> &optefforts) {
+	thrustermanager.setEfforts(optefforts.get_value_or(VectorXd::Zero(8)));
 }
 
 void PDWorker::actuatorSet(const boost::optional<int> &flags) {

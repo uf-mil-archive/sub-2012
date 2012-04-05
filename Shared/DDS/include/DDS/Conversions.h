@@ -126,13 +126,19 @@ namespace subjugator {
 		from_dds(kill.desc, msg.desc);
 		from_dds(kill.killed, msg.killed);
 	}
-	
+
 	// Eigen
-	
+
 	template <int rows, typename T>
 	void to_dds(T (&array)[rows], const Eigen::Matrix<T, rows, 1> &vec) {
 		for (int i=0; i<vec.rows(); i++)
 			array[i] = vec(i);
+	}
+
+	template <int rows, typename T>
+	void from_dds(Eigen::Matrix<T, rows, 1> &vec, T (&array)[rows]) {
+		for (int i=0; i<vec.rows(); i++)
+			vec(i) = array[i];
 	}
 
 	/** @} */
