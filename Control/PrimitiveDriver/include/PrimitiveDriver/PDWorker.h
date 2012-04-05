@@ -23,7 +23,6 @@ namespace subjugator {
 
 		WorkerMailbox<Vector6d> wrenchmailbox;
 		WorkerMailbox<VectorXd> effortmailbox;
-		WorkerMailbox<int> actuatormailbox;
 		WorkerKillMonitor killmon;
 
 		WorkerSignal<std::vector<double> > currentsignal;
@@ -38,7 +37,6 @@ namespace subjugator {
 	private:
 		void wrenchSet(const boost::optional<Vector6d> &wrench);
 		void effortSet(const boost::optional<VectorXd> &effort);
-		void actuatorSet(const boost::optional<int> &actuators);
 		void thrusterStateChanged(int num, const State &state);
 		void estopChanged(bool estop);
 

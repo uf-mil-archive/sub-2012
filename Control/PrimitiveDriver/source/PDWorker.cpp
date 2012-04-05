@@ -17,9 +17,6 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 	effortmailbox(WorkerMailbox<VectorXd>::Args()
 	              .setName("effort")
 	              .setCallback(boost::bind(&PDWorker::effortSet, this, _1))),
-	actuatormailbox(WorkerMailbox<int>::Args()
-	                .setName("actuator")
-	                .setCallback(boost::bind(&PDWorker::actuatorSet, this, _1))),
 	killmon("EStop"),
 	estopsignal("EStop", "Magnetic EStop switch on the mergeboard"),
 	hal(hal),
@@ -33,7 +30,6 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 	thrustermapper(Vector3d(0, 0, 0)),
 	mergemanager(hal,
 	             getConfig().get<std::string>("mergeboard_endpoint"),
-	             getConfig().get<std::string>("actuator_endpoint"),
 	             bind(&PDWorker::estopChanged, this, _1))
 {
 	registerStateUpdater(heartbeatendpoint);
@@ -64,10 +60,6 @@ void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
 
 void PDWorker::effortSet(const boost::optional<VectorXd> &optefforts) {
 	thrustermanager.setEfforts(optefforts.get_value_or(VectorXd::Zero(8)));
-}
-
-void PDWorker::actuatorSet(const boost::optional<int> &flags) {
-	mergemanager.setActuators(flags.get_value_or(0));
 }
 
 void PDWorker::thrusterStateChanged(int num, const State &state) {
