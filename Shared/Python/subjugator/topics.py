@@ -17,7 +17,8 @@ DEFAULT = ['reliable', 'exclusive', 'liveliness']
 _TopicConf = namedtuple('TopicConf', 'type qos')
 
 _topic_qoses = {
-    'WorkerLog': _TopicConf(lib.WorkerLogMessage, DEEP_PERSISTENT)
+    'WorkerLog': _TopicConf(lib.WorkerLogMessage, DEEP_PERSISTENT),
+    'PDEffort': _TopicConf(lib.PDEffortMessage, RELIABLE)
 }
 
 def get(name):
