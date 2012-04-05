@@ -1,64 +1,48 @@
 #ifndef _SubLPOSVSSWorker_H
 #define _SubLPOSVSSWorker_H
 
-#include "SubMain/SubPrerequisites.h"
-#include "SubMain/SubTranslations.h"
-#include "SubMain/Workers/SubWorker.h"
+#include "LibSub/Worker/Worker.h"
+#include "LibSub/Worker/WorkerMailbox.h"
 #include "LPOSVSS/SubNavigationComputer.h"
-#include "DataObjects/DVL/DVLHighresBottomTrack.h"
-#include "DataObjects/IMU/IMUInfo.h"
-#include "DataObjects/Depth/DepthInfo.h"
-#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
+#include "LPOSVSS/DataObjects/DVLHighresBottomTrack.h"
+#include "LPOSVSS/DataObjects/IMUInfo.h"
+#include "LPOSVSS/DataObjects/DepthInfo.h"
+#include "LPOSVSS/DataObjects/LPOSVSSInfo.h"
+#include "LPOSVSS/DataObjects/PDInfo.h"
 #include <boost/ref.hpp>
 
 namespace subjugator
 {
-	class LPOSVSSWorkerCommands
-	{
-	public:
-		enum LPOSVSSWorkerCommandCode
-		{
-			SetDepth = 0,
-			SetIMU = 1,
-			SetDVL = 2,
-			SetCurrents = 3,
-			SetTare = 4,
-		};
-	};
-
 	class LPOSVSSWorker : public Worker
 	{
 	public:
-		LPOSVSSWorker(boost::asio::io_service& io, int64_t rate, bool useDVL);
-		bool Startup();
-		void Shutdown();
+		LPOSVSSWorker(const WorkerConfigLoader &configloader);
+		virtual ~LPOSVSSWorker();
+
+		WorkerMailbox<DVLHighresBottomTrack> dvlmailbox;
+		WorkerMailbox<IMUInfo> imumailbox;
+		WorkerMailbox<DepthInfo> depthmailbox;
+		WorkerMailbox<PDInfo> currentmailbox;
+		WorkerSignal<LPOSVSSInfo> signal;
 
 	protected:
-		  void initializeState();
-		  void readyState();
-		  void standbyState();
-		  void emergencyState();
-		  void failState();
-		  void allState();
+		virtual void enterActive();
+		virtual void work(double dt);
+
 	private:
+		boost::scoped_ptr<NavigationComputer> navComputer;
+		bool useDVL;
 
-		  std::auto_ptr<NavigationComputer> navComputer;
-		  bool useDVL;
+		std::auto_ptr<DVLHighresBottomTrack> dvlInfo;
+		std::auto_ptr<IMUInfo> imuInfo;
+		std::auto_ptr<DepthInfo> depthInfo;
 
-		  std::auto_ptr<DVLHighresBottomTrack> dvlInfo;
-		  std::auto_ptr<IMUInfo> imuInfo;
-		  std::auto_ptr<DepthInfo> depthInfo;
+		void setDepth(const boost::optional<DepthInfo>& depth);
+		void setIMU(const boost::optional<IMUInfo>& imu);
+		void setDVL(const boost::optional<DVLHighresBottomTrack>& dvl);
+		void setCurrents(const boost::optional<PDInfo>& pd);
 
-
-		  void setDepth(const DataObject& dobj);
-		  void setIMU(const DataObject& dobj);
-		  void setDVL(const DataObject& dobj);
-		  void setCurrents(const DataObject& dobj);
-		  void setTare(const DataObject& dobj);
-
-		  boost::int64_t getTimestamp(void);
-
-		  boost::mutex lock;
+		boost::int64_t getTimestamp(void);
 	};
 }
 

@@ -3,11 +3,11 @@
 
 #include "SubMain/SubPrerequisites.h"
 #include "LPOSVSS/SubThrusterCurrentCorrector.h"
-#include "DataObjects/DVL/DVLHighresBottomTrack.h"
-#include "DataObjects/IMU/IMUInfo.h"
-#include "DataObjects/Depth/DepthInfo.h"
-#include "DataObjects/PD/PDInfo.h"
-#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
+#include "LPOSVSS/DataObjects/DVLHighresBottomTrack.h"
+#include "LPOSVSS/DataObjects/IMUInfo.h"
+#include "LPOSVSS/DataObjects/DepthInfo.h"
+#include "LPOSVSS/DataObjects/PDInfo.h"
+#include "LPOSVSS/DataObjects/LPOSVSSInfo.h"
 #include "SubMain/SubTriad.h"
 #include "SubMain/SubAttitudeHelpers.h"
 #include "SubMain/SubMILQuaternion.h"
@@ -27,7 +27,7 @@ namespace subjugator
 	public:
 		typedef Matrix<double,7,1> Vector7d;
 	public:
-		NavigationComputer(boost::asio::io_service& io);
+		NavigationComputer();
 		void Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLHighresBottomTrack> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL);
 		bool getInitialized() { return initialized; }
 		void UpdateIMU(const DataObject& dobj);
@@ -38,6 +38,8 @@ namespace subjugator
 		void Shutdown();
 		void TarePosition(const Vector3d& position);
 		void GetNavInfo(LPOSVSSInfo& info);
+
+		void Update(boost::int64_t dtms);
 
 	private:
 		static const double latitudeDeg = 29.651388889; /*gainesville*/
@@ -52,8 +54,6 @@ namespace subjugator
 
 		static const double MAX_DEPTH = 15; // m
 		static const double MAX_DVL_NORM = 10; // Sub can't run at 10m/s
-
-		boost::asio::io_service& io;
 
 		Vector3d referenceNorthVector;
 		Vector3d referenceGravityVector;
@@ -98,20 +98,17 @@ namespace subjugator
 
 		bool initialized;
 
-		boost::shared_mutex kLock;
-		boost::mutex tareLock;
-		boost::mutex currentLock;
-
 		bool shutdown;
 
 		int kalmanCount;
 		boost::int64_t kTimerMs;
-		std::auto_ptr<boost::asio::deadline_timer> kTimer;
+		boost::int64_t kTimer;
 		boost::int64_t dvlTimerMs;
-		std::auto_ptr<boost::asio::deadline_timer> dvlTimer;
-		void fakeDVL(const boost::system::error_code& /*e*/);
+		boost::int64_t dvlTimer;
+		bool useDVL;
+		void fakeDVL();
 
-		void updateKalman(const boost::system::error_code& /*e*/);
+		void updateKalman();
 		boost::int64_t getTimestamp(void);
 		void resetErrors(bool tare, const Vector3d& tarePosition);
 	};
