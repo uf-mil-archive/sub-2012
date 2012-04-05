@@ -19,7 +19,6 @@
 #include <utility>
 #include <memory>
 #include <cassert>
-#include <iostream>
 
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
@@ -174,8 +173,6 @@ namespace subjugator {
 				io(io) { }
 
 				void receiveCallback(const MessageT &msg) {
-					std::cout << "receiveCallback" << std::endl;
-					
 					DataT data;
 					from_dds(data, msg);
 					io.dispatch(boost::bind(&WorkerMailbox<DataT>::set, &mailbox, data));
