@@ -18,7 +18,10 @@ _TopicConf = namedtuple('TopicConf', 'type qos')
 
 _topic_qoses = {
     'WorkerLog': _TopicConf(lib.WorkerLogMessage, DEEP_PERSISTENT),
-    'PDEffort': _TopicConf(lib.PDEffortMessage, RELIABLE)
+    'PDStatus': _TopicConf(lib.PDStatusMessage, LEGACY),
+    'PDEffort': _TopicConf(lib.PDEffortMessage, RELIABLE),
+    'IMU': _TopicConf(lib.IMUMessage,  LEGACY),
+    'Depth': _TopicConf(lib.DepthMessage, LEGACY),
 }
 
 def get(name):
@@ -28,8 +31,6 @@ def get(name):
 def make_qos(qoslist):
     qos = part.get_default_topic_qos()
     if 'legacy' not in qoslist:
-        qos.destination_order.kind = dds.DestinationOrderQosPolicyKind.BY_SOURCE_TIMESTAMP
-
         if 'reliable' in qoslist:
             qos.reliability.kind = dds.ReliabilityQosPolicyKind.RELIABLE
         if 'exclusive' in qoslist:
