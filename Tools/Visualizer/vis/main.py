@@ -1,5 +1,6 @@
 from __future__ import division
 
+import json
 import os
 import sys
 import math
@@ -15,9 +16,13 @@ pygtk.require('2.0')
 import gtk
 import pango
 
+import dds
+from subjugator import topics
+
 import graphs
 import util
 
+GAIN_NAMES = 'k ks alpha beta'.split(' ')
 
 class Line(object):
     def __init__(self, name, unit, data):
@@ -28,13 +33,15 @@ class Visualizer(object):
         self.graph = None
         self.contents = {}
         self.message = None
+        
+        self.gain_topic = topics.get('ControllerGains')
     
     def start(self):
-        wTree = gtk.Builder()
-        wTree.add_from_file(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'interface.glade'))
-        wTree.connect_signals(self)
+        self.wTree = gtk.Builder()
+        self.wTree.add_from_file(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'interface.glade'))
+        self.wTree.connect_signals(self)
         
-        combobox = wTree.get_object('combobox1')
+        combobox = self.wTree.get_object('combobox1')
         l = gtk.ListStore(str)
         for graph_name, graph_func in graphs.graphs:
             l.append([graph_name])
@@ -43,17 +50,89 @@ class Visualizer(object):
         combobox.pack_start(cell, True)
         combobox.add_attribute(cell, 'text', 0)
         
-        self.da = wTree.get_object('drawingarea1')
+        self.da = self.wTree.get_object('drawingarea1')
         self.da.connect('expose-event', lambda widget, event: self.redraw())
         self.da.set_size_request(400, 300)
         
         self.font_desc = pango.FontDescription('Serif 10')
         
-        window = wTree.get_object('window1')
+        window = self.wTree.get_object('window1')
         window.show()
         
         self.capture_loop = task.LoopingCall(self.capture)
         self.capture_loop.start(1/30)
+        
+        self.toggle_gains(None)
+        
+        gains = self.wTree.get_object('gains')
+        for i, name in enumerate(GAIN_NAMES):
+            cell = gtk.CellRendererText()
+            cell.set_property('editable', True)
+            cell.connect('edited', self.gain_edited, i)
+            gains.insert_column_with_attributes(-1, name, cell, text=i)
+        
+        self.presets = {}
+        for name in 'ABC':
+            self.presets[name] = gtk.ListStore(float, float, float, float, float, float)
+            for i in xrange(6):
+                self.presets[name].append([0]*6)
+        
+        self.choose_preset(self.wTree.get_object('buttonA'))
+    
+    def choose_preset(self, widget):
+        for name in 'ABC':
+            self.wTree.get_object('button' + name).set_sensitive(True)
+        widget.set_sensitive(False)
+        self.wTree.get_object('gains').set_model(self.presets[widget.get_label()])
+    
+    def gain_edited(self, cell, path, new_text, column):
+        model = self.wTree.get_object('gains').get_model()
+        model[path][column] = float(new_text)
+    
+    def toggle_gains(self, widget):
+        if self.wTree.get_object('gains_toggler').get_active():
+            self.wTree.get_object('gains_box').show()
+        else:
+            self.wTree.get_object('gains_box').hide()
+    
+    def gains_load(self, widget):
+        d = gtk.FileChooserDialog('Select a gain file to load', None, gtk.FILE_CHOOSER_ACTION_OPEN, (gtk.STOCK_CANCEL,gtk.RESPONSE_REJECT, gtk.STOCK_OK,gtk.RESPONSE_ACCEPT))
+        def response(d2, response):
+            d.hide()
+            if response != gtk.RESPONSE_ACCEPT:
+                return
+            model = self.wTree.get_object('gains').get_model()
+            with open(d.get_filename(), 'rb') as f:
+                data = json.loads(f.read())
+            for i, name in enumerate(GAIN_NAMES):
+                x = filter(None, data['gains'][name].split(' '))
+                for j in xrange(6):
+                    model[j][i] = float(x[j])
+        d.x = 5 # hack for some pygtk bug(?), sigh
+        d.connect('response', response)
+        d.show()
+    
+    def gains_save(self, widget):
+        d = gtk.FileChooserDialog('Select a gain file to save to', None, gtk.FILE_CHOOSER_ACTION_SAVE, (gtk.STOCK_CANCEL,gtk.RESPONSE_REJECT, gtk.STOCK_OK,gtk.RESPONSE_ACCEPT))
+        def response(d2, response):
+            d.hide()
+            if response != gtk.RESPONSE_ACCEPT:
+                return
+            model = self.wTree.get_object('gains').get_model()
+            with open(d.get_filename(), 'wb') as f:
+                f.write(json.dumps({
+                    'mode': 'rise',
+                    'gains': dict(((name, ' '.join(str(model[j][i]) for j in xrange(6))) for i, name in enumerate(GAIN_NAMES)),
+                        gamma1='1 '*6,
+                        gamma2='1 '*19),
+                }))
+        d.x = 5
+        d.connect('response', response)
+        d.show()
+    
+    def gains_apply(self, widget):
+        model = self.wTree.get_object('gains').get_model()
+        self.gain_topic.send(dict((name, [model[j][i] for j in xrange(6)]) for i, name in enumerate(GAIN_NAMES)))
     
     def graph_chosen(self, combobox):
         i = combobox.get_active()

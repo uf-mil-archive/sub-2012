@@ -22,6 +22,7 @@ _topic_qoses = {
     'PDEffort': _TopicConf(lib.PDEffortMessage, RELIABLE),
     'IMU': _TopicConf(lib.IMUMessage,  LEGACY),
     'Depth': _TopicConf(lib.DepthMessage, LEGACY),
+    'ControllerGains': _TopicConf(lib.ControllerGainsMessage, PERSISTENT),
 }
 
 def get(name):
