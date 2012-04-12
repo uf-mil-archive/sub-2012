@@ -1,5 +1,4 @@
-from subjugator import sched, topics
-import dds
+from subjugator import sched, sub
 
 # Gathers data for hard and soft iron magnetometer calibration.
 # Waits 30 seconds for the tether to be removed, then logs the magnetomter
@@ -7,20 +6,16 @@ import dds
 
 @sched.Task("log")
 def log():
-    imutopic = topics.get('IMU')
-
     sched.sleep(30)
     print "Logging"
-
-    with sched.Timeout(2*60) as t:
+    with sched.Timeout(2*60):
         with open('hard_soft.csv', 'w') as f:
             while True:
                 sched.sleep(1.0/50)
-
                 try:
-                    imu = imutopic.read()
-                    print >>f, '%f,%f,%f' % imu['mag_field']
+                    f.write('%f,%f,%f' % sub.IMU.mag)
                 except dds.Error as e:
                     pass
- 
+    print "Done"
+
 sched.run()
