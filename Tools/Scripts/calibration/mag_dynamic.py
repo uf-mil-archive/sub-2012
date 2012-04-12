@@ -1,6 +1,10 @@
 from subjugator import sched, topics
 import dds
 
+# Gathers data necessary for dynamic magnetometer calibration
+# Ramps each thruster individually forward and reverse, and logs the magnetometer
+# readings per thruster to a set of files 'dynamic_cal_thruster_[0-7].csv'.
+
 def setThruster(num, effort):
     efforttopic = topics.get('PDEffort')
 
