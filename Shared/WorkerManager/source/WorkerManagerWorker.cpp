@@ -9,12 +9,11 @@ using namespace boost::algorithm;
 using namespace std;
 
 WorkerManagerWorker::WorkerManagerWorker(const string &suffix, const WorkerConfigLoader &configloader) :
-Worker("WorkerManager" + (suffix.size() ? "_" + suffix : ""), 2, configloader),
-commandmailbox(WorkerMailbox<Command>::Args()
-	.setName("command")
-	.setCallback(bind(&WorkerManagerWorker::commandSet, this, _1))
-),
-workerlist(*this)
+	Worker("WorkerManager" + (suffix.size() ? "_" + suffix : ""), 2, configloader),
+	commandmailbox(WorkerMailbox<Command>::Args()
+	               .setName("command")
+	               .setCallback(bind(&WorkerManagerWorker::commandSet, this, _1))),
+	workerlist(*this)
 {
 	registerStateUpdater(workerlist);
 }
@@ -49,12 +48,8 @@ void WorkerManagerWorker::commandSet(const boost::optional<Command> &cmd) {
 		return;
 
 	WorkerManager *wm = workerlist.getWorkerManager(cmd->workername);
-	if (!wm) {
-		stringstream buf;
-		buf << "Told to " << (cmd->start ? "start " : "stop ") << "unknown worker " << cmd->workername;
-		logger.log(buf.str(), WorkerLogEntry::ERROR);
+	if (!wm)
 		return;
-	}
 
 	if (cmd->start) {
 		logger.log("Starting " + wm->getName());
