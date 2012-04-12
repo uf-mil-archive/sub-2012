@@ -43,7 +43,7 @@ def sweep():
 
     for i in xrange(0, 8):
         log = Logger(i, 50)
-        thrusterSweep(i, 1, 2)
+        thrusterSweep(i, .2, 1)
         log.stop()
 
 class Logger(sched.Task):
