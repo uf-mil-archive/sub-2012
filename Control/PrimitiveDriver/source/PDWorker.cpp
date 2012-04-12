@@ -52,11 +52,17 @@ void PDWorker::initialize() {
 }
 
 void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
+	if (!isActive())
+		return;
+
 	VectorXd efforts = thrustermapper.mapWrenchToEfforts(optwrench.get_value_or(Vector6d::Zero()));
 	thrustermanager.setEfforts(efforts);
 }
 
 void PDWorker::effortSet(const boost::optional<VectorXd> &optefforts) {
+	if (!isActive())
+		return;
+
 	thrustermanager.setEfforts(optefforts.get_value_or(VectorXd::Zero(8)));
 }
 
