@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
 	dds.sender(worker.trajsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
 
-	worker.initialposition.set((Vector6d() << 0, 0, 0, 0, 0, 0).finished());
+	//	worker.initialposition.set((Vector6d() << 0, 0, 0, 0, 0, 0).finished());
 
 	builder.runWorker();
 }
