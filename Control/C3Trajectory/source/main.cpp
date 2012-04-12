@@ -4,6 +4,7 @@
 #include "DDSMessages/SetWaypointMessageSupport.h"
 #include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
+#include "LibSub/Math/Quaternion.h"
 #include <boost/asio.hpp>
 
 using namespace std;
@@ -33,15 +34,14 @@ int main(int argc, char **argv) {
 
 	dds.sender(worker.trajsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
 
-	//	worker.initialposition.set((Vector6d() << 0, 0, 0, 0, 0, 0).finished());
-
 	builder.runWorker();
 }
 
 namespace subjugator {
 	template <>
 	void from_dds(Vector6d &initialpos, const LPOSVSSMessage &msg) {
-		from_dds(initialpos, msg.position_NED);
+		initialpos.head(3) = Vector3d(msg.position_NED);
+		initialpos.tail(3) = MILQuaternionOps::Quat2Euler(Vector4d(msg.quaternion_NED_B));
 	}
 
 	template <>
