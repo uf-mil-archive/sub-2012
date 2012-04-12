@@ -36,6 +36,8 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 find_package(Boost 1.36 REQUIRED COMPONENTS system thread date_time regex program_options filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_package(PythonInterp)
+
 # add shared projects
 add_subdirectory(Shared/HAL)
 add_subdirectory(Shared/DDS)
@@ -81,7 +83,9 @@ if(BUILD_PC)
 		message(WARNING "FFTW not found. Eigen will fall back to kissfft.")
 	endif()
 
-	add_subdirectory(Shared/Python)
+	if(PYTHONINTERP_FOUND)	
+		add_subdirectory(Shared/Python)
+	endif()
 
 	add_subdirectory(Sensors/Hydrophone)
 	add_subdirectory(Mission/MissionPlanner)
