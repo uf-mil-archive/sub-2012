@@ -69,18 +69,25 @@ class Visualizer(object):
             gains.insert_column_with_attributes(-1, name, cell, text=i)
         
         self.presets = {}
-        for name in 'ABC':
+        for name in ['Current', 'A', 'B']:
             self.presets[name] = gtk.ListStore(float, float, float, float, float, float)
             for i in xrange(6):
                 self.presets[name].append([0]*6)
         
-        self.choose_preset(self.wTree.get_object('buttonA'))
+        self.choose_preset(self.wTree.get_object('buttonCurrent'))
     
     def choose_preset(self, widget):
-        for name in 'ABC':
+        for name in self.presets:
             self.wTree.get_object('button' + name).set_sensitive(True)
         widget.set_sensitive(False)
         self.wTree.get_object('gains').set_model(self.presets[widget.get_label()])
+    
+    def gain_copy(self, widget):
+        model = self.wTree.get_object('gains').get_model()
+        model2 = self.presets[widget.get_label().strip('->')]
+        for i, name in enumerate(GAIN_NAMES):
+            for j in xrange(6):
+                model2[j][i] = model[j][i]
     
     def gain_edited(self, cell, path, new_text, column):
         model = self.wTree.get_object('gains').get_model()
@@ -143,6 +150,17 @@ class Visualizer(object):
         gtk.main_quit()
     
     def capture(self):
+        # XXX move this out
+        try:
+            new_gains = self.gain_topic.take()
+        except dds.Error, e:
+            if e.message != 'no data':
+                raise
+        else:
+            for i, name in enumerate(GAIN_NAMES):
+                for j in xrange(6):
+                    self.presets['Current'][j][i] = float(new_gains[name][j])
+        
         if self.graph is None:
             return
         t = time.time()
