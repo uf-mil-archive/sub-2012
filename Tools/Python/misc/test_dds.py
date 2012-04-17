@@ -7,8 +7,8 @@ import dds
 
 recv = ['send', 'recv'].index(sys.argv[1])
 
-d = dds.DDS()
-l = dds.Library(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), '..', '..', 'build', 'Legacy', 'DDS', 'libddsmessages_c.so'))
+d = dds.Participant()
+l = dds.Library('libddsmessages_c.so')
 
 topics = []
 #topics.append((d.get_topic('t1', l.State), lambda: dict(workername=str(random.randrange(2**10)), state=random.randrange(-2**31, 2**31), health=random.random())))

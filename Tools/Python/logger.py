@@ -27,7 +27,10 @@ parser.add_argument(metavar='TOPIC', nargs='*',
 )
 args = parser.parse_args()
 
-d = dds.DDS()
+if not args.trigger_topics:
+    parser.error('need at least one trigger topic!')
+
+d = dds.Participant()
 
 message_lib = dds.Library(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), '..', '..', 'build', 'Legacy', 'DDS', 'libddsmessages_c.so'))
 
