@@ -8,11 +8,9 @@ import time
 import traceback
 import colorsys
 
-from twisted.internet import gtk2reactor
-gtk2reactor.install()
-from twisted.internet import reactor, task
 import pygtk
 pygtk.require('2.0')
+import glib
 import gtk
 import pango
 
@@ -59,8 +57,7 @@ class Visualizer(object):
         window = self.wTree.get_object('window1')
         window.show()
         
-        self.capture_loop = task.LoopingCall(self.capture)
-        self.capture_loop.start(1/30)
+        self.capture_loop = glib.timeout_add(int(1/30*1000), lambda: self.capture() or True) # return True so func is called again
         
         self.toggle_gains(None)
         
@@ -142,8 +139,8 @@ class Visualizer(object):
         self.contents = {}
     
     def window_closed(self, window):
-        self.capture_loop.stop()
-        reactor.stop()
+        glib.source_remove(self.capture_loop)
+        gtk.main_quit()
     
     def capture(self):
         if self.graph is None:
@@ -242,4 +239,4 @@ class Visualizer(object):
 
 def main():
     Visualizer().start()
-    reactor.run()
+    gtk.main()

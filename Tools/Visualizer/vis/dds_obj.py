@@ -1,26 +1,31 @@
 import os
 import sys
 
-from twisted.internet import protocol, reactor
+import glib
 
 import dds
-import twistedds
 
 from . import util
 
-class ListenProtocol(protocol.Protocol):
-    def __init__(self, message_callback, die_callback):
+class ListenProtocol(object):
+    def __init__(self, topic, message_callback, die_callback):
+        self.topic = topic
         self.message_callback, self.die_callback = message_callback, die_callback
-        self.die_timer = reactor.callLater(5, self._die)
-    
-    def messageReceived(self, msg):
-        self.message_callback(msg)
+        
+        self.die_timer = glib.timeout_add_seconds(5, self._die)
     
     def touch(self):
-        self.die_timer.reset(5)
+        glib.source_remove(self.die_timer)
+        self.die_timer = glib.timeout_add_seconds(5, self._die)
+        
+        try:
+            self.message_callback(self.topic.take())
+        except dds.Error, e:
+            if e.message != 'no data':
+                raise
     
     def _die(self):
-        self.transport.loseConnection()
+        del self.topic
         self.die_callback()
 
 class DataObject(object):
@@ -37,12 +42,10 @@ class DataObject(object):
     
     def __getattr__(self, name):
         if name not in self._active_listeners:
-            p = ListenProtocol(lambda msg: self._topic_messages.update({name: msg}), lambda: (self._active_listeners.pop(name), self._topic_messages.pop(name, None)))
             data_type = getattr(self._message_library, name + 'Message')
-            twistedds.connectDDS(self._dds.get_topic(name, data_type), p)
-            self._active_listeners[name] = p
-        else:
-            self._active_listeners[name].touch()
+            self._active_listeners[name] = ListenProtocol(self._dds.get_topic(name, data_type), lambda msg: self._topic_messages.update({name: msg}), lambda: (self._active_listeners.pop(name), self._topic_messages.pop(name, None)))
+        
+        self._active_listeners[name].touch()
         
         if name in self._topic_messages:
             return self._topic_messages[name]
