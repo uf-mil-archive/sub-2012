@@ -24,6 +24,10 @@ gainsmailbox(WorkerMailbox<TrackingController::Gains>::Args()
 	loadConfig();
 }
 
+void TrackingControllerWorker::initialize() {
+	gainssignal.emit(controllerconfig.gains);
+}
+
 void TrackingControllerWorker::enterActive() {
 	setCurrentPosWaypoint();
 	resetController();

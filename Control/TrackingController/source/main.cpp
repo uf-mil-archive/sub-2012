@@ -37,10 +37,11 @@ int main(int argc, char **argv) {
 
 	dds.receiver(worker.lposvssmailbox, dds.topic<LPOSVSSMessage>("LPOSVSS", TopicQOS::LEGACY));
 	dds.receiver(worker.trajectorymailbox, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
-	dds.receiver(worker.gainsmailbox, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::LEGACY));
+	dds.receiver(worker.gainsmailbox, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::PERSISTENT));
 
 	dds.sender(worker.wrenchsignal, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
 	dds.sender(worker.logsignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog", TopicQOS::LEGACY));
+	dds.sender(worker.gainssignal, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::PERSISTENT));
 
 	// Start the worker
 	builder.runWorker();
@@ -67,6 +68,14 @@ namespace subjugator {
 		from_dds(gains.ks, msg.ks);
 		from_dds(gains.alpha, msg.alpha);
 		from_dds(gains.beta, msg.beta);
+	}
+
+	template <>
+	void to_dds(ControllerGainsMessage &msg, const TrackingController::Gains &gains) {
+		to_dds(msg.k, gains.k);
+		to_dds(msg.ks, gains.ks);
+		to_dds(msg.alpha, gains.alpha);
+		to_dds(msg.beta, gains.beta);
 	}
 
 	template <>
