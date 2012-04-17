@@ -14,42 +14,44 @@ namespace subjugator {
 		bool killed;
 
 		WorkerKill() { }
-		WorkerKill(const std::string &name, const std::string &desc, bool killed=false) :
-		name(name), desc(desc), killed(killed) { }
+	    WorkerKill(const std::string &name, const std::string &desc, bool killed=false) : name(name), desc(desc), killed(killed) { }
 
 		std::string getName() const { return name; }
 	};
 
 	class WorkerKillSignal : public WorkerSignal<WorkerKill> {
-		public:
-			WorkerKillSignal(const std::string &killname, const std::string &desc);
+	public:
+		WorkerKillSignal(const std::string &killname, const std::string &desc);
 
-			void setKill(bool kill);
-			void kill() { setKill(true); }
-			void unkill() { setKill(false); }
+		void setKill(bool kill);
+		void kill() { setKill(true); }
+		void unkill() { setKill(false); }
 
-			bool isKilled() const { return getData() ? getData()->killed : false; }
+		bool isKilled() const { return getData() ? getData()->killed : false; }
 
-		private:
-			std::string killname;
-			std::string desc;
+	private:
+		std::string killname;
+		std::string desc;
 	};
 
 	class WorkerKillMonitor : public StateUpdater, public WorkerMap<std::string, WorkerKill> {
-		public:
-			WorkerKillMonitor(const std::string &selfkillname="");
+	public:
+		typedef boost::function<void ()> KillChangedCallback;
 
-			boost::optional<const WorkerKill &> getKill() const;
-			bool isKilled() const { return getKill(); }
+		WorkerKillMonitor(const std::string &selfkillname="", const KillChangedCallback &callback=KillChangedCallback());
 
-			virtual const State &getState() const { return state; }
-			virtual void updateState(double dt);
+		boost::optional<const WorkerKill &> getKill() const;
+		bool isKilled() const { return getKill(); }
 
-		private:
-			void update();
+		virtual const State &getState() const { return state; }
+		virtual void updateState(double dt);
 
-			std::string selfkillname;
-			State state;
+	private:
+		void onUpdate(const boost::optional<WorkerKill> &prev, const boost::optional<WorkerKill> &cur);
+
+		KillChangedCallback callback;
+		std::string selfkillname;
+		State state;
 	};
 }
 

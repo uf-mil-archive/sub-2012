@@ -11,7 +11,7 @@ namespace subjugator {
 	class WorkerMapArguments {
 		public:
 			typedef boost::function<KeyT (const ValueT &)> KeyCallback;
-			typedef boost::function<void (const ValueT &val)> UpdateCallback;
+			typedef boost::function<void (const boost::optional<ValueT> &prev, const boost::optional<ValueT> &cur)> UpdateCallback;
 
 			WorkerMapArguments() { }
 
@@ -62,13 +62,17 @@ namespace subjugator {
 			void update(const ValueT &val) {
 				KeyT key = keycallback(val);
 				iterator i = map.find(key);
-				if (i != map.end())
+
+				boost::optional<ValueT> prev;
+				if (i != map.end()) {
+					prev = i->second;
 					i->second = val;
-				else
+				} else {
 					map.insert(make_pair(key, val));
+				}
 
 				if (updatecallback)
-					updatecallback(val);
+					updatecallback(prev, val);
 			}
 
 			void remove(const ValueT &val) {
@@ -77,9 +81,11 @@ namespace subjugator {
 				if (i == map.end())
 					return;
 
+				ValueT prev = i->second;
 				map.erase(i);
+
 				if (updatecallback)
-					updatecallback(val);
+					updatecallback(prev, boost::optional<ValueT>());
 			}
 
 		private:

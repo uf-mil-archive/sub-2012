@@ -16,11 +16,13 @@ void WorkerKillSignal::setKill(bool kill) {
 	emit(WorkerKill(killname, desc, kill));
 }
 
-WorkerKillMonitor::WorkerKillMonitor(const std::string &selfkillname) :
-WorkerMap<std::string, WorkerKill>(WorkerMap<std::string, WorkerKill>::Args()
-	.setKeyCallback(&WorkerKill::getName)
-),
-selfkillname(selfkillname) { }
+WorkerKillMonitor::WorkerKillMonitor(const std::string &selfkillname, const KillChangedCallback &callback) :
+	WorkerMap<std::string, WorkerKill>(WorkerMap<std::string, WorkerKill>::Args()
+	                                   .setKeyCallback(&WorkerKill::getName)
+	                                   .setUpdateCallback(bind(&WorkerKillMonitor::onUpdate, this, _1, _2))),
+	callback(callback),
+	selfkillname(selfkillname)
+{ }
 
 optional<const WorkerKill &> WorkerKillMonitor::getKill() const {
 	for (WorkerMap<std::string, WorkerKill>::const_iterator i = begin(); i != end(); ++i) {
@@ -42,3 +44,25 @@ void WorkerKillMonitor::updateState(double dt) {
 	}
 }
 
+void WorkerKillMonitor::onUpdate(const optional<WorkerKill> &prev, const optional<WorkerKill> &cur) {
+	if (!callback)
+		return;
+
+	bool prevkilled = prev && prev->killed;
+	bool curkilled = cur && cur->killed;
+	if (!prevkilled && curkilled) {
+		bool onlykill = true;
+		for (WorkerMap<std::string, WorkerKill>::const_iterator i = begin(); i != end(); ++i) {
+			if (i->second.name != cur->name && i->second.killed && i->second.name != selfkillname) {
+				onlykill = false;
+				break;
+			}
+		}
+
+		if (onlykill)
+			callback();
+	} else if (prevkilled && !curkilled) {
+		if (!getKill())
+			callback();
+	}
+}

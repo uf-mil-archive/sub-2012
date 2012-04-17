@@ -27,7 +27,10 @@ int main(int argc, char **argv) {
 	DDSBuilder dds(io);
 	dds.worker(worker);
 
+	dds.killMonitor(worker.killmon);
+	dds.killSignal(worker.hobkillsignal);
 	dds.sender(worker.signal, dds.topic<DVLMessage>("DVL", TopicQOS::LEGACY));
+
 
 	// Start the worker
 	builder.runWorker();
@@ -43,7 +46,7 @@ namespace subjugator {
 			msg.good = false;
 			to_dds(msg.velocity, Vector3d(0, 0, 0));
 		}
-		
+
 		to_dds(msg.velocityerror, info.velocityerror.get_value_or(0));
 		to_dds(msg.height, info.height.get_value_or(0));
 		to_dds(msg.beamcorrelation, info.beamcorrelation);

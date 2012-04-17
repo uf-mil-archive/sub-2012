@@ -1,6 +1,8 @@
 {
-    "endpoint": "serial /dev/ttyS0 baud=115200", /* TODO get this from gumstix */
+    "endpoint": "serial /dev/ttyS0 baud=115200", /* TODO udev/symlinks/something */
     "max_depth": "15",
-    "bad_ping_error_count": "3"
+    "bad_ping_error_count": "3",
+    "min_hob": ".75", /* DVL kills the sub if height over bottom becomes less than this */
+    "bad_hob_error_count": "3" /* three consecutive pings before kill engages */
 }
-    
+
