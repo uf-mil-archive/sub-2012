@@ -1,13 +1,12 @@
 #ifndef SUBINS_H
 #define SUBINS_H
 
-#include "SubMain/SubPrerequisites.h"
 #include "LPOSVSS/DataObjects/IMUInfo.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <cmath>
-#include "SubMain/SubMILQuaternion.h"
-#include "SubMain/SubAttitudeHelpers.h"
+#include "LibSub/Math/Quaternion.h"
+#include "LibSub/Math/AttitudeHelpers.h"
 #include "LPOSVSS/SubKalman.h"
 #include <iostream>
 

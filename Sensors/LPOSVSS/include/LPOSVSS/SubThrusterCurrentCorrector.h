@@ -1,8 +1,8 @@
 #ifndef SUBTHRUSTERCURRENTCORRECTOR_H
 #define SUBTHRUSTERCURRENTCORRECTOR_H
 
-#include "SubMain/SubPrerequisites.h"
 #include <Eigen/Dense>
+#include <vector>
 
 namespace subjugator
 {
