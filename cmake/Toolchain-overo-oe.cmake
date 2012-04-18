@@ -1,3 +1,7 @@
+if(NOT DEFINED ENV{OVEROTOP})
+       message(FATAL_ERROR "OVEROTOP environment variable must be set when using overo-oe toolchain!")
+endif()
+
 set(GUMSTIX_ROOT_PATH $ENV{OVEROTOP}/tmp/sysroots/armv7a-angstrom-linux-gnueabi)
 set(GUMSTIX_TOOLCHAIN_PATH $ENV{OVEROTOP}/tmp/sysroots/x86_64-linux/usr/armv7a/bin)
 set(FLAGS "-O3 -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp -DNDEBUG")
