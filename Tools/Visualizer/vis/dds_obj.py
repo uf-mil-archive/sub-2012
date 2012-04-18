@@ -4,6 +4,7 @@ import sys
 import glib
 
 import dds
+from subjugator import topics
 
 from . import util
 
@@ -37,15 +38,11 @@ class DataObject(object):
     # starts listening when a message is requested the first time and stops 5 seconds after it was last requested
     
     def __init__(self):
-        self._dds = dds.Participant()
-        self._message_library = dds.Library('libddsmessages_c.so')
-        
         self._active_listeners = {}
     
     def __getattr__(self, name):
         if name not in self._active_listeners:
-            data_type = getattr(self._message_library, name + 'Message')
-            self._active_listeners[name] = Listener(self._dds.get_topic(name, data_type), lambda: self._active_listeners.pop(name))
+            self._active_listeners[name] = Listener(topics.get(name), lambda: self._active_listeners.pop(name))
         
         last = self._active_listeners[name].get_last()
         if last is not None:

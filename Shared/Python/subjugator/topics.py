@@ -23,6 +23,8 @@ _topic_qoses = {
     'IMU': _TopicConf(lib.IMUMessage,  LEGACY),
     'Depth': _TopicConf(lib.DepthMessage, LEGACY),
     'ControllerGains': _TopicConf(lib.ControllerGainsMessage, PERSISTENT),
+    'Trajectory': _TopicConf(lib.TrajectoryMessage, LEGACY),
+    'LPOSVSS': _TopicConf(dds.Library('libddsmessages_c.so').LPOSVSSMessage, LEGACY),
 }
 
 def get(name):
