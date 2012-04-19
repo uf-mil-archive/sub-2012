@@ -197,7 +197,7 @@ class Visualizer(object):
                 self.contents[name].data.append((t, value))
         
         for line in self.contents.itervalues():
-            while line.data and line.data[0][0] < t - math.pi*10: # having the period not be rational helps the tick marks
+            while line.data and line.data[0][0] < t - math.pi*3: # having the period not be rational helps the tick marks
                 line.data.pop(0)
         
         self.redraw()
@@ -244,6 +244,7 @@ class Visualizer(object):
             this_color = hsv_to_gc(i/len(units), 3/4, 2/3)
             
             val_range = util.minmax(val for line in self.contents.itervalues() if line.unit == unit for t, val in line.data)
+            if val_range[0] == val_range[1]: continue
             y_scaler = util.scaler(val_range, y_range)
             self.da.window.draw_line(this_color, left, margin, left, h - margin) # left border
             

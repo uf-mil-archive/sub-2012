@@ -39,6 +39,13 @@ orientation = lambda: quat_to_euler_dict(dds.LPOSVSS['quaternion_NED_B'])
 desired_orientation = lambda: array_to_dict([math.degrees(x) for x in dds.Trajectory['xd'][3:]], ['Roll', 'Pitch', 'Yaw'], 'deg')
 
 graphs = [
+    ('DVL velocity', lambda: array_to_dict(dds.DVL['velocity'], 'XYZ', 'm/s')),
+    ('Depth', lambda: {'Z': (dds.Depth['depth'], 'm')}),
+    ('IMU', lambda: flatten({
+        'a': array_to_dict(dds.IMU['acceleration'], 'XYZ', 'm/s2'),
+        'g': array_to_dict(dds.IMU['angular_rate'], 'XYZ', 'rad/s'),
+        'm': array_to_dict(dds.IMU['mag_field'], 'XYZ', 'uT'),
+    })),
     ('Position', position),
     ('Desired position', desired_position),
     ('Position and desired position', lambda: flatten({
