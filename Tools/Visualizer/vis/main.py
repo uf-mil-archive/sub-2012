@@ -21,6 +21,8 @@ import graphs
 import util
 
 GAIN_NAMES = 'k ks alpha beta'.split(' ')
+GAIN_ROWS = 'x y z R P Y'.split(' ')
+UPDATE_HZ = 30
 
 class Line(object):
     def __init__(self, name, unit, data):
@@ -60,7 +62,7 @@ class Visualizer(object):
         window = self.wTree.get_object('window1')
         window.show()
 
-        self.capture_loop = glib.timeout_add(int(1/30*1000), lambda: self.capture() or True) # return True so func is called again
+        self.capture()
 
         self.toggle_gains(None)
 
@@ -70,6 +72,8 @@ class Visualizer(object):
             cell.set_property('editable', True)
             cell.connect('edited', self.gain_edited, i)
             gains.insert_column_with_attributes(-1, name, cell, text=i)
+        gains.insert_column_with_data_func(-1, '', gtk.CellRendererText(),
+            lambda column, cell, model, iter, _: cell.set_property('text', GAIN_ROWS[int(model.get_string_from_iter(iter))]), None)
 
         self.presets = {}
         for name in ['Current', 'A', 'B']:
@@ -169,6 +173,10 @@ class Visualizer(object):
             try:
                 cur_pos = self.lposvss_topic.take()
                 for name, value in zip('xyz', cur_pos['position_NED']) + zip('RPY', graphs.quat_to_euler(cur_pos['quaternion_NED_B'])):
+                    if name == 'R':
+                        value = 180*int(value/180+0.5)
+                    if name == 'P':
+                        value = 0
                     self.wTree.get_object('wp_cur_' + name).set_text(str(value))
                 self.waypoint_current_set = True
             except dds.Error, e:
@@ -177,30 +185,31 @@ class Visualizer(object):
             except:
                 traceback.print_exc()
 
-        if self.graph is None:
-            return
-        t = time.time()
-        try:
-            new = self.graph()
-        except util.DataNotYetAvailableError, e:
-            self.message = e.message + ' message has not been received yet.'
-        except:
-            traceback.print_exc()
-            self.message = traceback.format_exc()
-        else:
-            self.message = None
-            for name, (value, unit) in new.iteritems():
-                if math.isinf(value) or math.isnan(value):
-                    continue
-                if name not in self.contents:
-                    self.contents[name] = Line(name, unit, [])
-                self.contents[name].data.append((t, value))
+        if self.graph is not None:
+            t = time.time()
+            try:
+                new = self.graph()
+            except util.DataNotYetAvailableError, e:
+                self.message = e.message + ' message has not been received yet.'
+            except:
+                traceback.print_exc()
+                self.message = traceback.format_exc()
+            else:
+                self.message = None
+                for name, (value, unit) in new.iteritems():
+                    if math.isinf(value) or math.isnan(value):
+                        continue
+                    if name not in self.contents:
+                        self.contents[name] = Line(name, unit, [])
+                    self.contents[name].data.append((t, value))
 
-        for line in self.contents.itervalues():
-            while line.data and line.data[0][0] < t - math.pi*3: # having the period not be rational helps the tick marks
-                line.data.pop(0)
+            for line in self.contents.itervalues():
+                while line.data and line.data[0][0] < t - math.pi*3: # having the period not be rational helps the tick marks
+                    line.data.pop(0)
 
-        self.redraw()
+            self.redraw()
+        
+        self.capture_loop = glib.timeout_add(int(1/UPDATE_HZ*1000), lambda: self.capture() and False) # False prevents it from being called again
 
     def redraw(self):
         def draw_text(gc, x, y, text):
@@ -223,7 +232,7 @@ class Visualizer(object):
 
         units = set(line.unit for line in self.contents.itervalues())
 
-        t_scale = min(t for line in self.contents.itervalues() for t, val in line.data) if self.contents else t-5, t
+        t_scale = min([t for line in self.contents.itervalues() for t, val in line.data] + [t-1]), t
         x_range = margin*(len(units)+1), w - margin
         x_scaler = util.scaler(t_scale, x_range)
 
@@ -243,14 +252,18 @@ class Visualizer(object):
             left = margin*(i+1)
             this_color = hsv_to_gc(i/len(units), 3/4, 2/3)
 
+            if not [val for line in self.contents.itervalues() if line.unit == unit for t, val in line.data]:
+                continue
             val_range = util.minmax(val for line in self.contents.itervalues() if line.unit == unit for t, val in line.data)
-            if val_range[0] == val_range[1]: continue
+            if val_range[0] == val_range[1]:
+                val_range = val_range[0] - 1, val_range[0] + 1
             y_scaler = util.scaler(val_range, y_range)
             self.da.window.draw_line(this_color, left, margin, left, h - margin) # left border
 
             draw_text(this_color, left, margin//2, unit) # left label
 
-            self.da.window.draw_line(this_color, left, int(y_scaler(0)), w-margin, int(y_scaler(0))) # zero line
+            if val_range[0] < 0 < val_range[1]:
+                self.da.window.draw_line(this_color, left, int(y_scaler(0)), w-margin, int(y_scaler(0))) # zero line
 
             for tick in util.ticks(val_range, abs(y_range[1] - y_range[0])/100): # get about 1 tick per 100 pixels
                 y = int(y_scaler(tick))
@@ -280,6 +293,8 @@ class Visualizer(object):
             self.wTree.get_object('waypoint_box').hide()
 
     def waypoint_reset(self, widget):
+        for name in 'xyzRPY':
+            self.wTree.get_object('wp_cur_' + name).set_text('')
         self.waypoint_current_set = False
 
     def waypoint_apply(self, widget):
@@ -292,10 +307,10 @@ class Visualizer(object):
         dx = float(self.wTree.get_object('wp_del_x').get_text())
         x = float(self.wTree.get_object('wp_cur_x').get_text())
         dy = float(self.wTree.get_object('wp_del_y').get_text())
-        y = float(self.wTree.get_object('wp_del_y').get_text())
-        yaw = math.radians(float(self.wTree.get_object('wp_cur_yaw').get_text()))
-        self.wTree.set_object('wp_cur_x').set_text(str(x + dx*cos(yaw)-dy*sin(yaw)))
-        self.wTree.set_object('wp_cur_y').set_text(str(y + dx*sin(yaw)+dy*cos(yaw)))
+        y = float(self.wTree.get_object('wp_cur_y').get_text())
+        yaw = math.radians(float(self.wTree.get_object('wp_cur_Y').get_text()))
+        self.wTree.get_object('wp_cur_x').set_text(str(x + dx*math.cos(yaw)-dy*math.sin(yaw)))
+        self.wTree.get_object('wp_cur_y').set_text(str(y + dx*math.sin(yaw)+dy*math.cos(yaw)))
 
         self.setwaypoint_topic.send(dict(
             isRelative=False,
