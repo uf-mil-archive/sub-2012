@@ -48,34 +48,38 @@ int main(int argc, char **argv) {
 
 namespace subjugator {
 	template <>
-	void from_dds(DVLHighresBottomTrack &info, const DVLMessage &msg) {
-		info = DVLHighresBottomTrack(0, Vector3d(msg.velocity), msg.velocityerror, msg.good);
+	void from_dds(DVLVelocity &info, const DVLMessage &msg) {
+		info.vel = Vector3d(msg.velocity);
+		info.velerror = msg.velocityerror;
+		info.good = msg.good;
 	}
 
 	template <>
 	void from_dds(IMUInfo &info, const IMUMessage &msg) {
-		info = IMUInfo(0, msg.supply, msg.temp, msg.timestamp, Vector3d(msg.acceleration), Vector3d(msg.angular_rate), Vector3d(msg.mag_field));
+		info.timestamp = msg.timestamp;
+		info.acceleration = Vector3d(msg.acceleration);
+		info.ang_rate = Vector3d(msg.angular_rate);
+		info.mag_field = Vector3d(msg.mag_field);
 	}
 
 	template <>
 	void from_dds(DepthInfo &info, const DepthMessage &msg) {
-		info = DepthInfo(0, 0, 0, msg.depth, msg.thermistertemp, msg.humidity, msg.humiditytemp);
+		info.depth = msg.depth;
 	}
 
 	template <>
 	void from_dds(PDInfo &info, const PDStatusMessage &msg) {
-		vector<double> currents(8);
-		copy(msg.current, msg.current+8, currents.begin());
-		info = PDInfo(0, msg.timestamp, currents, MergeInfo());
+		info.currents.resize(8);
+		copy(msg.current, msg.current+8, info.currents.begin());
 	}
 
 	template <>
 	void to_dds(LPOSVSSMessage &msg, const LPOSVSSInfo &info) {
-		to_dds(msg.position_NED, info.getPosition_NED());
-		to_dds(msg.quaternion_NED_B, info.getQuat_NED_B());
-		to_dds(msg.velocity_NED, info.getVelocity_NED());
-		to_dds(msg.angularRate_BODY, info.getAngularRate_BODY());
-		to_dds(msg.acceleration_BODY, info.getAcceleration_BODY());
+		to_dds(msg.position_NED, info.position_NED);
+		to_dds(msg.quaternion_NED_B, info.quaternion_NED_B);
+		to_dds(msg.velocity_NED, info.velocity_NED);
+		to_dds(msg.angularRate_BODY, info.angularRate_BODY);
+		to_dds(msg.acceleration_BODY, info.acceleration_BODY);
 	}
 }
 

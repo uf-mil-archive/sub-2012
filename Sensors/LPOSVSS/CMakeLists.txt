@@ -1,1 +1,1 @@
-sub_executable(LPOSVSS DDS HAL Sub)
+sub_executable(LPOSVSS DDS Sub)

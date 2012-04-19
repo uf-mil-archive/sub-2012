@@ -2,7 +2,7 @@
 #define SUBNAVIGATIONCOMPUTER_H
 
 #include "LPOSVSS/SubThrusterCurrentCorrector.h"
-#include "LPOSVSS/DataObjects/DVLHighresBottomTrack.h"
+#include "LPOSVSS/DataObjects/DVLVelocity.h"
 #include "LPOSVSS/DataObjects/IMUInfo.h"
 #include "LPOSVSS/DataObjects/DepthInfo.h"
 #include "LPOSVSS/DataObjects/PDInfo.h"
@@ -27,12 +27,12 @@ namespace subjugator
 		typedef Matrix<double,7,1> Vector7d;
 	public:
 		NavigationComputer();
-		void Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLHighresBottomTrack> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL);
+		void Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLVelocity> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL);
 		bool getInitialized() { return initialized; }
-		void UpdateIMU(const DataObject& dobj);
-		void UpdateDepth(const DataObject& dobj);
-		void UpdateDVL(const DataObject& dobj);
-		void UpdateCurrents(const DataObject& dobj);
+		void UpdateIMU(const IMUInfo& imu);
+		void UpdateDepth(const DepthInfo& dobj);
+		void UpdateDVL(const DVLVelocity& dvl);
+		void UpdateCurrents(const PDInfo& dobj);
 
 		void Shutdown();
 		void TarePosition(const Vector3d& position);
@@ -84,7 +84,6 @@ namespace subjugator
 		Vector4d attRef;
 		Vector3d velRef;
 		Vector7d z;
-
 		Vector3d r_ORIGIN_NAV;
 
 		Vector3d magSum;

@@ -7,7 +7,7 @@ using namespace std;
 
 LPOSVSSWorker::LPOSVSSWorker(const WorkerConfigLoader &configloader) :
 	Worker("LPOSVSS", 200, configloader),
-	dvlmailbox(WorkerMailbox<DVLHighresBottomTrack>::Args()
+	dvlmailbox(WorkerMailbox<DVLVelocity>::Args()
 	           .setName("dvl")
 	           .setCallback(bind(&LPOSVSSWorker::setDVL, this, _1))),
 	imumailbox(WorkerMailbox<IMUInfo>::Args()
@@ -52,10 +52,10 @@ void LPOSVSSWorker::setIMU(const optional<IMUInfo>& info)
 	}
 }
 
-void LPOSVSSWorker::setDVL(const optional<DVLHighresBottomTrack>& info)
+void LPOSVSSWorker::setDVL(const optional<DVLVelocity>& info)
 {
 	if (info) {
-		dvlInfo = std::auto_ptr<DVLHighresBottomTrack>(new DVLHighresBottomTrack(*info));
+		dvlInfo = std::auto_ptr<DVLVelocity>(new DVLVelocity(*info));
 		if (isActive())
 			navComputer->UpdateDVL(*info);
 	}
@@ -69,13 +69,13 @@ void LPOSVSSWorker::enterActive()
 
 void LPOSVSSWorker::work(double dt)
 {
-	boost::shared_ptr<LPOSVSSInfo> info(new LPOSVSSInfo(0, getTimestamp()));
+	LPOSVSSInfo info;
 
 	navComputer->Update((boost::int64_t)(dt * 1000));
-	navComputer->GetNavInfo(*info);
+	navComputer->GetNavInfo(info);
 
 	// Emit the LPOSInfo every iteration
-	signal.emit(*info);
+	signal.emit(info);
 }
 
 LPOSVSSWorker::~LPOSVSSWorker()
@@ -89,6 +89,7 @@ boost::int64_t LPOSVSSWorker::getTimestamp(void)
 	timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
 
+	static const uint64_t NSEC_PER_SEC = 1000000000;
 	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 }
 

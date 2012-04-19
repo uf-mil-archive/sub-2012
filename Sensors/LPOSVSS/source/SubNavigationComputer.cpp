@@ -105,13 +105,14 @@ boost::int64_t NavigationComputer::getTimestamp(void)
 	timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
 
+	static const uint64_t NSEC_PER_SEC = 1000000000;
 	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 }
 
-void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLHighresBottomTrack> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL)
+void NavigationComputer::Init(std::auto_ptr<IMUInfo> imu, std::auto_ptr<DVLVelocity> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL)
 {
 	// Tare the depth sensor
-	depth_zero_offset = depthInfo->getDepth();
+	depth_zero_offset = depthInfo->depth;
 	depth_tare = depth_zero_offset;
 
 	// Attitude initialization
@@ -121,14 +122,14 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 	triad = std::auto_ptr<Triad>(new Triad(Vector4d(1.0,0.0,0.0,0.0), referenceGravityVector, referenceNorthVector));
 
 	// Hard and soft correct the initial magnetometer reading
-	Vector3d tempMag = imuInfo->getMagneticField() - magShift;
+	Vector3d tempMag = imu->mag_field - magShift;
 	tempMag = MILQuaternionOps::QuatRotate(q_MagCorrection, tempMag);
 	tempMag = tempMag.cwiseQuotient(magScale);
 	tempMag = MILQuaternionOps::QuatRotate(q_MagCorrectionInverse, tempMag);
 	tempMag = MILQuaternionOps::QuatRotate(q_SUB_IMU, tempMag);
 
 	// Triad normalizes the vectors passed in so magnitude doesn't matter. - pay attention to the adis. Double -1's yield the raw again...
-	Vector3d a_prev = referenceGravityVector.norm()*MILQuaternionOps::QuatRotate(q_SUB_IMU, imuInfo->getAcceleration());
+	Vector3d a_prev = referenceGravityVector.norm()*MILQuaternionOps::QuatRotate(q_SUB_IMU, imu->acceleration);
 	triad->Update(a_prev, tempMag);
 
 	a_prev*=-1.0; // The ins needs the correct right hand coordinate frame acceleration
@@ -148,7 +149,7 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 					Vector3d::Zero(),	// Initial gyro bias, rad/s
 					Vector3d::Zero(),	// Initial accelerometer bias, m/s^2
 					q_SUB_IMU,
-					imuInfo->getTimestamp()
+					imu->timestamp
 			));
 
 
@@ -192,10 +193,10 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLH
 // Fix this to tare based on current location
 void NavigationComputer::TarePosition(const Vector3d& position)
 {
-	LPOSVSSInfo info(0,0);	// don't have state or timestamp
+	LPOSVSSInfo info;	// don't have state or timestamp
 	GetNavInfo(info);
 
-	Vector3d pos = position + MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.getQuat_NED_B()), r_ORIGIN_NAV);
+	Vector3d pos = position + MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), r_ORIGIN_NAV);
 
 	resetErrors(true, pos);
 	depth_tare = depth_zero_offset + pos(2);
@@ -273,19 +274,15 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 	cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
 }
 
-void NavigationComputer::UpdateIMU(const DataObject& dobj)
+void NavigationComputer::UpdateIMU(const IMUInfo& imu)
 {
 	static int count = 0;
 
-	const IMUInfo *info = dynamic_cast<const IMUInfo *>(&dobj);
-	if(!info)
-		return;
-
 	// The INS has the rotation info already, so just push the packet through
-	ins->Update(*info);
+	ins->Update(imu);
 
 	// Dynamic correction of the mag data
-	Vector3d tempMag = info->getMagneticField() -
+	Vector3d tempMag = imu.mag_field -
 			ThrusterCurrentCorrector::CalculateTotalCorrection(thrusterCurrentCorrectors, thrusterCurrents);
 
 	boost::shared_ptr<INSData> insdata = ins->GetData();
@@ -331,16 +328,12 @@ void NavigationComputer::UpdateIMU(const DataObject& dobj)
 	attRefAvailable = true;
 }
 
-void NavigationComputer::UpdateDepth(const DataObject& dobj)
+void NavigationComputer::UpdateDepth(const DepthInfo& depth)
 {
-	const DepthInfo *info = dynamic_cast<const DepthInfo *>(&dobj);
-	if(!info)
-		return;
-
 	// The depth inside the packet is given in NED, we simply
 	// subtract the tare value
 	//double temp = (info->getDepth() - depth_tare);
-	double temp = (info->getDepth() - 10.62)*1.45;
+	double temp = (depth.depth - 10.62)*1.45;
 
 	if(std::abs(temp) > MAX_DEPTH)
 		return;
@@ -349,12 +342,8 @@ void NavigationComputer::UpdateDepth(const DataObject& dobj)
 	depthRefAvailable = true;
 }
 
-void NavigationComputer::UpdateDVL(const DataObject& dobj)
+void NavigationComputer::UpdateDVL(const DVLVelocity& dvl)
 {
-	const DVLHighresBottomTrack *info = dynamic_cast<const DVLHighresBottomTrack *>(&dobj);
-	if(!info)
-		return;
-
     // DVL data is expected in the NED down frame by the error measurement
     // for the Kalman filter. It comes in the DVL frame, which needs to be rotated
     // to the sub frame, and then transformed by the current best quaternion estimate
@@ -362,9 +351,9 @@ void NavigationComputer::UpdateDVL(const DataObject& dobj)
 	Vector3d dvl_vel;
 
 	// Check for bad DVL data - Flags for this now
-	if(!info->isGood())
+	if(!dvl.good)
 		return;
-	dvl_vel = MILQuaternionOps::QuatRotate(q_SUB_DVL, info->getVelocity());
+	dvl_vel = MILQuaternionOps::QuatRotate(q_SUB_DVL, dvl.vel);
 
 	boost::shared_ptr<INSData> insdata = ins->GetData();
 	boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
@@ -374,18 +363,14 @@ void NavigationComputer::UpdateDVL(const DataObject& dobj)
 	velRefAvailable = true;
 }
 
-void NavigationComputer::UpdateCurrents(const DataObject& dobj)
+void NavigationComputer::UpdateCurrents(const PDInfo& pd)
 {
-	const PDInfo *info = dynamic_cast<const PDInfo *>(&dobj);
-	if(!info)
-		return;
-
-	thrusterCurrents = info->getCurrents();
+	thrusterCurrents = pd.currents;
 }
 
 void NavigationComputer::fakeDVL()
 {
-	DVLHighresBottomTrack info(getTimestamp(), Vector3d::Zero(), 0.0, true );
+	DVLVelocity info = { Vector3d::Zero(), 0.0, true };
 
 	UpdateDVL(info);
 }

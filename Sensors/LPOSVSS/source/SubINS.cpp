@@ -34,15 +34,15 @@ INS::INS(double lat, Vector3d w_dif_prev, Vector3d a_body_prev, Vector3d p_prev,
 	w_ie_n(2) = -1.0*w_ie_e*std::sin(lat);
 }
 
-void INS::Update(const IMUInfo& info)
+void INS::Update(const IMUInfo& imu)
 {
 	// Validate the contents of the packet
-    Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, info.getAngularRate());
-    Vector3d a_body = -1.0*gMag*MILQuaternionOps::QuatRotate(q_SUB_IMU, info.getAcceleration());	// Convert the IMU to m/s^2 - ADIS wtf coordinate system
+    Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.ang_rate);
+    Vector3d a_body = -1.0*gMag*MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);	// Convert the IMU to m/s^2 - ADIS wtf coordinate system
 
     // Update dt
-    dt = (info.getTimestamp() - imuPreviousTime)*SECPERNANOSEC;
-    imuPreviousTime = info.getTimestamp();
+    dt = (imu.timestamp - imuPreviousTime)*SECPERNANOSEC;
+    imuPreviousTime = imu.timestamp;
 
     //Protect the INS against the debugger and non monotonic time
     if((dt <= 0) || (dt > .050))
