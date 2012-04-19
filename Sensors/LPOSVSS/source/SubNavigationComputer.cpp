@@ -453,7 +453,8 @@ void NavigationComputer::UpdateDepth(const DataObject& dobj)
 	// The depth inside the packet is given in NED, we simply
 	// subtract the tare value
 	tareLock.lock();
-	double temp = (info->getDepth() - depth_tare);
+	//double temp = (info->getDepth() - depth_tare);
+	double temp = (info->getDepth() - 10.62)/1.45;
 	tareLock.unlock();
 
 	if(std::abs(temp) > MAX_DEPTH)
