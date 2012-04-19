@@ -33,6 +33,9 @@ class Visualizer(object):
         self.message = None
         
         self.gain_topic = topics.get('ControllerGains')
+        self.lposvss_topic = topics.get('LPOSVSS')
+        self.setwaypoint_topic = topics.get('SetWaypoint')
+        self.waypoint_current_set = False
     
     def start(self):
         self.wTree = gtk.Builder()
@@ -161,6 +164,19 @@ class Visualizer(object):
                 for j in xrange(6):
                     self.presets['Current'][j][i] = float(new_gains[name][j])
         
+        # XXX move this out too
+        if not self.waypoint_current_set:
+            try:
+                cur_pos = self.lposvss_topic.take()
+                for name, value in zip('xyz', cur_pos['position_NED']) + zip('RPY', graphs.quat_to_euler(cur_pos['quaternion_NED_B'])):
+                    self.wTree.get_object('wp_cur_' + name).set_text(str(value))
+                self.waypoint_current_set = True
+            except dds.Error, e:
+                if e.message != 'no data':
+                    traceback.print_exc()
+            except:
+                traceback.print_exc()
+        
         if self.graph is None:
             return
         t = time.time()
@@ -254,6 +270,29 @@ class Visualizer(object):
             draw_text(fg, w//2, h//2, self.message)
         
         self.da.window.end_paint()
+    
+    
+    def toggle_waypoint(self, widget):
+        if self.wTree.get_object('waypoint_toggler').get_active():
+            self.wTree.get_object('waypoint_box').show()
+        else:
+            self.wTree.get_object('waypoint_box').hide()
+    
+    def waypoint_reset(self, widget):
+        self.waypoint_current_set = False
+    
+    def waypoint_apply(self, widget):
+        for name in 'xyzRPY':
+            val = float(self.wTree.get_object('wp_cur_' + name).get_text())
+            new = val + float(self.wTree.get_object('wp_del_' + name).get_text())
+            self.wTree.get_object('wp_del_' + name).set_text('0')
+            self.wTree.get_object('wp_cur_' + name).set_text(str(new))
+        self.setwaypoint_topic.send(dict(
+            isRelative=False,
+            position_ned=[float(self.wTree.get_object('wp_cur_' + name).get_text()) for name in 'xyz'],
+            rpy=[math.radians(float(self.wTree.get_object('wp_cur_' + name).get_text())) for name in 'RPY'],
+        ))
+
 
 def main():
     Visualizer().start()

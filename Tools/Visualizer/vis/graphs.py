@@ -8,12 +8,17 @@ dds = dds_obj.DataObject()
 # (only by convention - the plotter just ignores lines whose names end with underscores)
 
 def quat_to_euler(q):
-    return {
-        'min_': (-180, 'deg'), 'max_': (180, 'deg'),
-        'Roll': (math.degrees(math.atan2(2*(q[2]*q[3]+q[0]*q[1]), 1-2*(q[1]*q[1]+q[2]*q[2]))), 'deg'),
-        'Pitch': (math.degrees(-math.asin(2*(q[1]*q[3]-q[0]*q[2]))), 'deg'),
-        'Yaw': (math.degrees(math.atan2(2*(q[1]*q[2]+q[0]*q[3]), 1-2*(q[2]*q[2]+q[3]*q[3]))), 'deg'),
-    }
+    return [
+        math.degrees(math.atan2(2*(q[2]*q[3]+q[0]*q[1]), 1-2*(q[1]*q[1]+q[2]*q[2]))),
+        math.degrees(-math.asin(2*(q[1]*q[3]-q[0]*q[2]))),
+        math.degrees(math.atan2(2*(q[1]*q[2]+q[0]*q[3]), 1-2*(q[2]*q[2]+q[3]*q[3]))),
+    ]
+
+
+def quat_to_euler_dict(q):
+    res = array_to_dict(quat_to_euler(q), 'Roll Pitch Yaw'.split(' '), 'deg')
+    res.update({'min_': (-180, 'deg'), 'max_': (180, 'deg')})
+    return res
 
 def array_to_dict(array, names, unit):
     assert len(array) == len(names)
@@ -30,7 +35,7 @@ def subtract_dicts(a, b):
 position = lambda: array_to_dict(dds.LPOSVSS['position_NED'], 'XYZ', 'm')
 velocity = lambda: array_to_dict(dds.LPOSVSS['velocity_NED'], 'XYZ', 'm/s')
 desired_position = lambda: array_to_dict(dds.Trajectory['xd'][:3], 'XYZ', 'm')
-orientation = lambda: quat_to_euler(dds.LPOSVSS['quaternion_NED_B'])
+orientation = lambda: quat_to_euler_dict(dds.LPOSVSS['quaternion_NED_B'])
 desired_orientation = lambda: array_to_dict([math.degrees(x) for x in dds.Trajectory['xd'][3:]], ['Roll', 'Pitch', 'Yaw'], 'deg')
 
 graphs = [
