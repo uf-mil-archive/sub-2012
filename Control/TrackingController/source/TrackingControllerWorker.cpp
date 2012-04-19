@@ -100,11 +100,13 @@ void TrackingControllerWorker::resetController() {
 void TrackingControllerWorker::setCurrentPosWaypoint() {
 	logger.log("Setting waypoint to current position", WorkerLogEntry::DEBUG);
 
+	Vector3d rpy = MILQuaternionOps::Quat2Euler(lposvssmailbox->quaternion_ned_b);
+
 	TrackingController::TrajectoryPoint tp;
 	tp.xd << lposvssmailbox->position_ned,
 	         0,
-	         0,
-	         MILQuaternionOps::Quat2Euler(lposvssmailbox->quaternion_ned_b)(2);
+	         abs(rpy(0)) < M_PI/2 ? 0 : M_PI,
+	         rpy(2);
 	tp.xd_dot = Vector6d::Zero();
 	trajectorymailbox.set(tp);
 }

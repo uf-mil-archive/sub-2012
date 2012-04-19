@@ -17,7 +17,13 @@ C3TrajectoryWorker::C3TrajectoryWorker(const WorkerConfigLoader &configloader) :
 }
 
 void C3TrajectoryWorker::enterActive() {
-	trajptr.reset(new C3Trajectory(initialposition.get(), Vector6d::Zero(), limits));
+	const Vector6d &pos = *initialposition;
+	Vector6d q;
+	q << pos.head(3), // copy XYZ
+		abs(pos(3)) < M_PI/2 ? 0 : M_PI,
+		0,
+		pos(5);
+	trajptr.reset(new C3Trajectory(q, Vector6d::Zero(), limits));
 }
 
 void C3TrajectoryWorker::leaveActive() {
