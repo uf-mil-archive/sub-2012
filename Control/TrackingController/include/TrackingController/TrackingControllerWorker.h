@@ -37,9 +37,11 @@ namespace subjugator {
 
 			WorkerSignal<Vector6d> wrenchsignal;
 			WorkerSignal<LogData> logsignal;
+			WorkerSignal<TrackingController::Gains> gainssignal;
 
 		protected:
 			virtual void enterActive();
+			virtual void initialize();
 			virtual void work(double dt);
 
 		private:
