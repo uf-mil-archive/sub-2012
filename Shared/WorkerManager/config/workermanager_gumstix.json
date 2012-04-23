@@ -2,8 +2,8 @@
 	"workers": [
 		{"name": "DVL"},
 		{"name": "IMU"},
-		{"name": "Depth"},
-		{"name": "LPOSVSS"}
+		{"name": "Depth"}
+/*		{"name": "LPOSVSS"} */
 	]
 }
 

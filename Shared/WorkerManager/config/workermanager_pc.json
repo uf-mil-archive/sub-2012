@@ -2,6 +2,8 @@
 	"workers": [
 		{"name": "PrimitiveDriver"},
 		{"name": "TrackingController"},
-		{"name": "TrajectoryGenerator"}
+		{"name": "TrajectoryGenerator"},
+		{"name": "LPOSVSS"},
+		{"name": "C3Trajectory"}
 	]
 }
