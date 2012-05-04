@@ -59,9 +59,7 @@ class Visualizer(object):
 
         window = self.wTree.get_object('window1')
         window.show()
-
-        self.capture_loop = glib.timeout_add(int(1/30*1000), lambda: self.capture() or True) # return True so func is called again
-
+        self.capture_loop = glib.timeout_add(int(1/20*1000), lambda: self.capture() or True) # return True so func is called again
         self.toggle_gains(None)
 
         gains = self.wTree.get_object('gains')
@@ -167,9 +165,16 @@ class Visualizer(object):
         # XXX move this out too
         if not self.waypoint_current_set:
             try:
+                print "test"
                 cur_pos = self.lposvss_topic.take()
-                for name, value in zip('xyz', cur_pos['position_NED']) + zip('RPY', graphs.quat_to_euler(cur_pos['quaternion_NED_B'])):
+                for name, value in zip('xyz', cur_pos['position_NED']) + [('Y', graphs.quat_to_euler(cur_pos['quaternion_NED_B'])[2])]:
+                    print name, value
                     self.wTree.get_object('wp_cur_' + name).set_text(str(value))
+                self.wTree.get_object('wp_cur_R').set_text('0')
+                self.wTree.get_object('wp_cur_P').set_text('0')
+                for name in 'xyzRPY':
+                    self.wTree.get_object('wp_del_'+name).set_text('0')                
+
                 self.waypoint_current_set = True
             except dds.Error, e:
                 if e.message != 'no data':
@@ -292,10 +297,10 @@ class Visualizer(object):
         dx = float(self.wTree.get_object('wp_del_x').get_text())
         x = float(self.wTree.get_object('wp_cur_x').get_text())
         dy = float(self.wTree.get_object('wp_del_y').get_text())
-        y = float(self.wTree.get_object('wp_del_y').get_text())
-        yaw = math.radians(float(self.wTree.get_object('wp_cur_yaw').get_text()))
-        self.wTree.set_object('wp_cur_x').set_text(str(x + dx*cos(yaw)-dy*sin(yaw)))
-        self.wTree.set_object('wp_cur_y').set_text(str(y + dx*sin(yaw)+dy*cos(yaw)))
+        y = float(self.wTree.get_object('wp_cur_y').get_text())
+        yaw = math.radians(float(self.wTree.get_object('wp_cur_Y').get_text()))
+        self.wTree.get_object('wp_cur_x').set_text(str(x + dx*math.cos(yaw)-dy*math.sin(yaw)))
+        self.wTree.get_object('wp_cur_y').set_text(str(y + dx*math.sin(yaw)+dy*math.cos(yaw)))
 
         self.setwaypoint_topic.send(dict(
             isRelative=False,
