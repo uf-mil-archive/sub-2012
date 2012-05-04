@@ -58,9 +58,10 @@ VectorXd ThrusterMapper::forcesToEfforts(const VectorXd &forces) const {
 			efforts[i] = forces[i] / rsat[i];
 	}
 
-	double maxeffort = efforts.array().abs().maxCoeff();
-	if (maxeffort > 1.0)
-		efforts /= maxeffort;
+	// saturate all thrusters independently
+	for (int i=0; i<efforts.rows(); i++) {
+		efforts[i] = max(min(efforts[i], 1.0), -1.0);
+	}
 
 	return efforts;
 }
