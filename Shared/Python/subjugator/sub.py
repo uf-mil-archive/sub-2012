@@ -29,7 +29,7 @@ class Thruster(object):
     def current(self):
         pdstatustopic = topics.get('PDStatus')
         try:
-            return pdstatustopic.read()['current']
+            return pdstatustopic.read()['current'][self.num]
         except dds.Error:
             return 0
 
@@ -37,22 +37,57 @@ thrusters = map(Thruster, xrange(0, 8))
 
 ## Sensors
 
-@apply
-class IMU(object):
+class Sensor(object):
+    def __init__(self, topicname):
+        self.topicname = topicname
+
     @property
-    def mag(self):
-        imutopic = topics.get('IMU')
+    def available(self):
+        topic = topics.get(self.topicname)
         try:
-            return imutopic.read()['mag_field']
+            topic.read()
+            return True
         except:
-            return (0, 0, 0)
+            return False
+
+    @staticmethod
+    def _makeprop(field, default):
+        def get(self):
+            topic = topics.get(self.topicname)
+            try:
+                return topic.read()[field]
+            except:
+                return default
+        return property(get)
 
 @apply
-class DepthSensor(object):
-    @property
-    def depth(self):
-        depthtopic = topics.get('Depth')
-        try:
-            return depthtopic.read()['depth']
-        except:
-            return 0
+class IMU(Sensor):
+    def __init__(self):
+        Sensor.__init__(self, 'IMU')
+
+    mag = Sensor._makeprop('mag_field', (0, 0, 0))
+    accel = Sensor._makeprop('acceleration', (0, 0, 0))
+    angrate = Sensor._makeprop('angular_rate', (0, 0, 0))
+
+@apply
+class DepthSensor(Sensor):
+    def __init__(self):
+        Sensor.__init__(self, 'Depth')
+    depth = Sensor._makeprop('depth', 0)
+
+@apply
+class DVL(Sensor):
+    def __init__(self):
+        Sensor.__init__(self, 'DVL')
+    velocity = Sensor._makeprop('velocity', (0, 0, 0))
+
+@apply
+class Hydrophones(Sensor):
+    def __init__(self):
+        Sensor.__init__(self, 'Hydrophone')
+    declination = Sensor._makeprop('declination', 0)
+    heading = Sensor._makeprop('heading', 0)
+    distance = Sensor._makeprop('distance', 0)
+    frequency = Sensor._makeprop('frequency', 0)
+    valid = Sensor._makeprop('valid', False)
+
