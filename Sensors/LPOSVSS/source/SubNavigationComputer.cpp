@@ -109,10 +109,10 @@ boost::int64_t NavigationComputer::getTimestamp(void)
 	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
 }
 
-void NavigationComputer::Init(std::auto_ptr<IMUInfo> imu, std::auto_ptr<DVLVelocity> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL)
+void NavigationComputer::Init(const IMUInfo &imu, const DVLVelocity &dvlInfo, const DepthInfo &depthInfo, bool useDVL)
 {
 	// Tare the depth sensor
-	depth_zero_offset = depthInfo->depth;
+	depth_zero_offset = depthInfo.depth;
 	depth_tare = depth_zero_offset;
 
 	// Attitude initialization
@@ -122,14 +122,14 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imu, std::auto_ptr<DVLVeloc
 	triad = std::auto_ptr<Triad>(new Triad(Vector4d(1.0,0.0,0.0,0.0), referenceGravityVector, referenceNorthVector));
 
 	// Hard and soft correct the initial magnetometer reading
-	Vector3d tempMag = imu->mag_field - magShift;
+	Vector3d tempMag = imu.mag_field - magShift;
 	tempMag = MILQuaternionOps::QuatRotate(q_MagCorrection, tempMag);
 	tempMag = tempMag.cwiseQuotient(magScale);
 	tempMag = MILQuaternionOps::QuatRotate(q_MagCorrectionInverse, tempMag);
 	tempMag = MILQuaternionOps::QuatRotate(q_SUB_IMU, tempMag);
 
 	// Triad normalizes the vectors passed in so magnitude doesn't matter. - pay attention to the adis. Double -1's yield the raw again...
-	Vector3d a_prev = referenceGravityVector.norm()*MILQuaternionOps::QuatRotate(q_SUB_IMU, imu->acceleration);
+	Vector3d a_prev = referenceGravityVector.norm()*MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);
 	triad->Update(a_prev, tempMag);
 
 	a_prev*=-1.0; // The ins needs the correct right hand coordinate frame acceleration
@@ -149,7 +149,7 @@ void NavigationComputer::Init(std::auto_ptr<IMUInfo> imu, std::auto_ptr<DVLVeloc
 					Vector3d::Zero(),	// Initial gyro bias, rad/s
 					Vector3d::Zero(),	// Initial accelerometer bias, m/s^2
 					q_SUB_IMU,
-					imu->timestamp
+					imu.timestamp
 			));
 
 

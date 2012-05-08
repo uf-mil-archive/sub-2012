@@ -33,16 +33,10 @@ namespace subjugator
 		boost::scoped_ptr<NavigationComputer> navComputer;
 		bool useDVL;
 
-		std::auto_ptr<DVLVelocity> dvlInfo;
-		std::auto_ptr<IMUInfo> imuInfo;
-		std::auto_ptr<DepthInfo> depthInfo;
-
 		void setDepth(const boost::optional<DepthInfo>& depth);
 		void setIMU(const boost::optional<IMUInfo>& imu);
 		void setDVL(const boost::optional<DVLVelocity>& dvl);
 		void setCurrents(const boost::optional<PDInfo>& pd);
-
-		boost::int64_t getTimestamp(void);
 	};
 }
 

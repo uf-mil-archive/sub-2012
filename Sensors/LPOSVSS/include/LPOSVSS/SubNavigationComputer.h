@@ -15,9 +15,7 @@
 #include <cmath>
 #include <Eigen/Dense>
 
-#include <time.h>
-
-using namespace Eigen;
+#include <ctime>
 
 namespace subjugator
 {
@@ -27,7 +25,7 @@ namespace subjugator
 		typedef Matrix<double,7,1> Vector7d;
 	public:
 		NavigationComputer();
-		void Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLVelocity> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL);
+		void Init(const IMUInfo &imuInfo, const DVLVelocity &dvlInfo, const DepthInfo &depthInfo, bool useDVL);
 		bool getInitialized() { return initialized; }
 		void UpdateIMU(const IMUInfo& imu);
 		void UpdateDepth(const DepthInfo& dobj);

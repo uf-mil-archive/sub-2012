@@ -30,41 +30,32 @@ LPOSVSSWorker::LPOSVSSWorker(const WorkerConfigLoader &configloader) :
 
 void LPOSVSSWorker::setDepth(const optional<DepthInfo>& info)
 {
-	if (info) {
-		depthInfo = std::auto_ptr<DepthInfo>(new DepthInfo(*info));
+	if (isActive() && info)
 		navComputer->UpdateDepth(*info);
-	}
 }
 
 void LPOSVSSWorker::setCurrents(const optional<PDInfo>& info)
 {
-	if (isActive())
+	if (isActive() && info)
 		navComputer->UpdateCurrents(*info);
 	return;
 }
 
 void LPOSVSSWorker::setIMU(const optional<IMUInfo>& info)
 {
-	if (info) {
-		imuInfo = std::auto_ptr<IMUInfo>(new IMUInfo(*info));
-		if (isActive())
-			navComputer->UpdateIMU(*info);
-	}
+	if (isActive() && info)
+		navComputer->UpdateIMU(*info);
 }
 
 void LPOSVSSWorker::setDVL(const optional<DVLVelocity>& info)
 {
-	if (info) {
-		dvlInfo = std::auto_ptr<DVLVelocity>(new DVLVelocity(*info));
-		if (isActive())
-			navComputer->UpdateDVL(*info);
-	}
-
+	if (isActive() && info)
+		navComputer->UpdateDVL(*info);
 }
 
 void LPOSVSSWorker::enterActive()
 {
-	navComputer->Init(imuInfo, dvlInfo, depthInfo, useDVL);
+	navComputer->Init(*imumailbox, *dvlmailbox, *depthmailbox, useDVL);
 }
 
 void LPOSVSSWorker::work(double dt)
@@ -83,13 +74,3 @@ LPOSVSSWorker::~LPOSVSSWorker()
 	if(navComputer->getInitialized())
 		navComputer->Shutdown();
 }
-
-boost::int64_t LPOSVSSWorker::getTimestamp(void)
-{
-	timespec t;
-	clock_gettime(CLOCK_MONOTONIC, &t);
-
-	static const uint64_t NSEC_PER_SEC = 1000000000;
-	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
-}
-
