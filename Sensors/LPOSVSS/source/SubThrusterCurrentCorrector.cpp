@@ -1,50 +1,28 @@
 #include "LPOSVSS/SubThrusterCurrentCorrector.h"
 
 using namespace subjugator;
+using namespace Eigen;
+using namespace boost;
+using namespace std;
 
-ThrusterCurrentCorrector::ThrusterCurrentCorrector(int address, const double fcoeffX[], const double fcoeffY[], const double fcoeffZ[],
-		 const double rcoeffX[], const double rcoeffY[], const double rcoeffZ[])
+ThrusterCurrentCorrector::ThrusterCurrentCorrector(const Config &conf) :
+	conf(conf)
+{ }
+
+Eigen::Vector3d ThrusterCurrentCorrector::calculate(double current) const
 {
-	for(int i = 0; i < 4; i++)
-	{
-		this->fCoeffX[i] = fcoeffX[i];
-		this->fCoeffY[i] = fcoeffY[i];
-		this->fCoeffZ[i] = fcoeffZ[i];
-
-		this->rCoeffX[i] = rcoeffX[i];
-		this->rCoeffY[i] = rcoeffY[i];
-		this->rCoeffZ[i] = rcoeffZ[i];
-	}
-}
-
-Eigen::Vector3d ThrusterCurrentCorrector::CalculateDynamicMagCorrection(double current) const
-{
-	Eigen::Vector3d res;	// Okay since every element is set below
 	double current_squared = current*current;
 	double current_cubed = current*current_squared;
 
-	if(current >= 0)
-	{
-		res(0) = fCoeffX[1] * current + fCoeffX[2]*current_squared + fCoeffX[3]*current_cubed;
-		res(1) = fCoeffY[1] * current + fCoeffY[2]*current_squared + fCoeffY[3]*current_cubed;
-		res(2) = fCoeffZ[1] * current + fCoeffZ[2]*current_squared + fCoeffZ[3]*current_cubed;
-	}
-	else
-	{
-		res(0) = rCoeffX[1] * current + rCoeffX[2]*current_squared + rCoeffX[3]*current_cubed;
-		res(1) = rCoeffY[1] * current + rCoeffY[2]*current_squared + rCoeffY[3]*current_cubed;
-		res(2) = rCoeffZ[1] * current + rCoeffZ[2]*current_squared + rCoeffZ[3]*current_cubed;
-	}
+	const array<Vector3d, 4> &coefs = current > 0 ? conf.forward : conf.reverse;
 
-	return res;
+	return coefs[0] + current*coefs[1] + current_squared*coefs[2] + current_cubed*coefs[3];
 }
 
-Eigen::Vector3d ThrusterCurrentCorrector::CalculateTotalCorrection(const std::vector<ThrusterCurrentCorrector>& tList,const std::vector<double>& currents)
-{
+Vector3d ThrusterCurrentCorrector::CalculateTotalCorrection(const vector<ThrusterCurrentCorrector>& tList,const vector<double>& currents) {
 	Eigen::Vector3d res = Eigen::Vector3d::Zero();
-	for(size_t i = 0; i < tList.size(); i++)
-	{
-		res += tList[i].CalculateDynamicMagCorrection(currents[i]);
+	for(size_t i = 0; i < tList.size(); i++) {
+		res += tList[i].calculate(currents[i]);
 	}
 	return res;
 }

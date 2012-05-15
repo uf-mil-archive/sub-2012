@@ -3,25 +3,23 @@
 
 #include <Eigen/Dense>
 #include <vector>
+#include <boost/array.hpp>
 
-namespace subjugator
-{
-	class ThrusterCurrentCorrector
-	{
+namespace subjugator {
+	class ThrusterCurrentCorrector {
 	public:
-		ThrusterCurrentCorrector(int address, const double fcoeffX[], const double fcoeffY[], const double fcoeffZ[],
-				 const double rcoeffX[], const double rcoeffY[], const double rcoeffZ[]);
+		struct Config {
+			boost::array<Eigen::Vector3d, 4> forward;
+			boost::array<Eigen::Vector3d, 4> reverse;
+		};
 
-		Eigen::Vector3d CalculateDynamicMagCorrection(double current) const;
+		ThrusterCurrentCorrector(const Config &config);
+
+		Eigen::Vector3d calculate(double current) const;
+
 		static Eigen::Vector3d CalculateTotalCorrection(const std::vector<ThrusterCurrentCorrector>& tList, const std::vector<double>& currents);
 	private:
-		double fCoeffX[4];
-		double fCoeffY[4];
-		double fCoeffZ[4];
-
-		double rCoeffX[4];
-		double rCoeffY[4];
-		double rCoeffZ[4];
+		Config conf;
 	};
 }
 

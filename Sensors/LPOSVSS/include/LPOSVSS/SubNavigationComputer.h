@@ -10,21 +10,30 @@
 #include "LPOSVSS/Triad.h"
 #include "LibSub/Math/AttitudeHelpers.h"
 #include "LibSub/Math/Quaternion.h"
+#include "LibSub/Math/EigenUtils.h"
 #include "LPOSVSS/SubINS.h"
 #include "LPOSVSS/SubKalman.h"
 #include <cmath>
 #include <Eigen/Dense>
-
 #include <ctime>
 
-namespace subjugator
-{
-	class NavigationComputer
-	{
+namespace subjugator {
+	class NavigationComputer {
 	public:
-		typedef Matrix<double,7,1> Vector7d;
-	public:
-		NavigationComputer();
+		struct Config {
+			std::vector<ThrusterCurrentCorrector::Config> currentconfigs;
+			Vector4d q_MagCorrection;
+			Vector3d magShift;
+			Vector3d magScale;
+
+			Vector3d referenceNorthVector;
+			double latitudeDeg;
+
+			Vector3d dvl_sigma;
+			Vector3d att_sigma;
+		};
+
+		NavigationComputer(const Config &config);
 		void Init(const IMUInfo &imuInfo, const DVLVelocity &dvlInfo, const DepthInfo &depthInfo, bool useDVL);
 		bool getInitialized() { return initialized; }
 		void UpdateIMU(const IMUInfo& imu);
@@ -39,6 +48,8 @@ namespace subjugator
 		void Update(boost::int64_t dtms);
 
 	private:
+		Config conf;
+
 		static const double latitudeDeg = 29.651388889; /*gainesville*/
 		static const double alpha = 0.4082;
 		static const double beta = 2.0;
@@ -52,19 +63,13 @@ namespace subjugator
 		static const double MAX_DEPTH = 15; // m
 		static const double MAX_DVL_NORM = 10; // Sub can't run at 10m/s
 
-		Vector3d referenceNorthVector;
 		Vector3d referenceGravityVector;
 		Vector3d initialPosition;
 		Vector3d initialVelocity;
 		Vector3d white_noise_sigma_f;
 		Vector3d white_noise_sigma_w;
-		Vector3d dvl_sigma;
-		Vector3d att_sigma;
 		Vector4d q_SUB_DVL;
 		Vector4d q_SUB_IMU;
-		Vector4d q_MagCorrection;
-		Vector3d magShift;
-		Vector3d magScale;
 		Matrix<double, 13, 13>covariance;
 
 		std::vector<ThrusterCurrentCorrector> thrusterCurrentCorrectors;

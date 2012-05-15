@@ -1,8 +1,10 @@
 #include "LPOSVSS/SubLPOSVSSWorker.h"
 #include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace subjugator;
 using namespace boost;
+using namespace boost::property_tree;
 using namespace std;
 
 LPOSVSSWorker::LPOSVSSWorker(const WorkerConfigLoader &configloader) :
@@ -19,13 +21,40 @@ LPOSVSSWorker::LPOSVSSWorker(const WorkerConfigLoader &configloader) :
 	currentmailbox(WorkerMailbox<PDInfo>::Args()
 	               .setName("current")
 	               .setCallback(bind(&LPOSVSSWorker::setCurrents, this, _1))),
-	navComputer(new NavigationComputer()),
 	useDVL(useDVL)
 {
 	registerStateUpdater(dvlmailbox);
 	registerStateUpdater(imumailbox);
 	registerStateUpdater(depthmailbox);
 	registerStateUpdater(currentmailbox);
+
+	const ptree &config = getConfig();
+	NavigationComputer::Config navconf;
+
+	navconf.currentconfigs.resize(8);
+	const ptree &currentconfigs = config.get_child("currentconfigs");
+	for (int i=0; i<8; i++) {
+		const ptree &pt = currentconfigs.get_child(lexical_cast<string>(i));
+
+		ThrusterCurrentCorrector::Config &config = navconf.currentconfigs[i];
+
+		const ptree &forward = pt.get_child("forward");
+		const ptree &reverse = pt.get_child("reverse");
+		for (int j=0; j<4; j++) {
+			string jstr = lexical_cast<string>(j);
+			config.forward[j] = forward.get<Vector3d>(jstr);
+			config.reverse[j] = reverse.get<Vector3d>(jstr);
+		}
+	}
+
+	navconf.q_MagCorrection = config.get<Vector4d>("q_MagCorrection");
+	navconf.magShift = config.get<Vector3d>("magShift");
+	navconf.magScale = config.get<Vector3d>("magScale");
+	navconf.referenceNorthVector = config.get<Vector3d>("referenceNorthVector");
+	navconf.latitudeDeg = config.get<double>("latitudeDeg");
+	navconf.dvl_sigma = config.get<Vector3d>("dvl_sigma");
+	navconf.att_sigma = config.get<Vector3d>("att_sigma");
+	navComputer.reset(new NavigationComputer(navconf));
 }
 
 void LPOSVSSWorker::setDepth(const optional<DepthInfo>& info)
