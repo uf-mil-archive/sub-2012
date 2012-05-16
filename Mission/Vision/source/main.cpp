@@ -19,24 +19,26 @@ int main(int argc, char **argv)
 	boost::asio::io_service io;
 
 	if (argc < 5) {
-		cerr << "Usage: camNum shutterVal gainVal showDebugImages logImages objectIDs..." << endl;
+		cerr << "Usage: camNum camId shutterVal gainVal showDebugImages logImages objectIDs..." << endl;
 		cerr << "Transdec @ 6pm: for: 1,2 - down: 4,2" << endl;
 		cerr << "Hotel pool @ night: for: 30,10 - down: 30,10" << endl;
 		return 1;
 	}
 	
-	int camnum = lexical_cast<int>(argv[1]);
-	float shutterVal = lexical_cast<float>(argv[2]);
-	float gainVal = lexical_cast<float>(argv[3]);
-	bool showDebugImages = lexical_cast<bool>(argv[4]);
-	bool logImages = lexical_cast<bool>(argv[5]);
+	boost::property_tree::ptree cameraDesc;
+	cameraDesc.put("type", "camera");
+	cameraDesc.put("number", lexical_cast<int>(argv[1]));
+	int camnum = lexical_cast<int>(argv[2]);
+	float shutterVal = lexical_cast<float>(argv[3]);
+	float gainVal = lexical_cast<float>(argv[4]);
+	bool showDebugImages = lexical_cast<bool>(argv[5]);
+	bool logImages = lexical_cast<bool>(argv[6]);
 
 	printf("Debug images: %d\n",(int)showDebugImages);
 	printf("Log images: %d\n",(int)logImages);
 	
 	// We need a worker
-	VisionWorker worker(io, 30 /*hz*/, 1, showDebugImages, camnum, logImages, shutterVal, gainVal);
-	//VisionWorker worker(io, 30 /*hz*/, 0, showDebugImages, camnum, logImages, shutterVal, gainVal);
+	VisionWorker worker(io, 30 /*hz*/, cameraDesc, camnum, showDebugImages, logImages, shutterVal, gainVal);
 
 	if(!worker.Startup())
 		throw new runtime_error("Failed to start Vision Worker!");
@@ -58,9 +60,9 @@ int main(int argc, char **argv)
 	if (VisionSetIDsMessageTypeSupport::register_type(participant, VisionSetIDsMessageTypeSupport::get_type_name()) != DDS_RETCODE_OK)
 		throw runtime_error("Failed to register type");
 
-	if (argc > 6) {
+	if (argc > 7) {
 		vector<int> ids;
-		for (int arg=6; arg<argc; arg++)
+		for (int arg=7; arg<argc; arg++)
 		 	ids.push_back(lexical_cast<int>(argv[arg]));
 
 		boost::weak_ptr<InputToken> token = worker.ConnectToCommand(VisionWorkerCommands::UpdateIDs, 2);

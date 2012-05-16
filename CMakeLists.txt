@@ -104,7 +104,7 @@ if(BUILD_PC)
 	add_subdirectory(Control/C3Trajectory)
 	add_subdirectory(Tools/SubLog)
 
-	if(OpenCV_FOUND AND FLYCAPTURE_FOUND AND SUB_BUILD_LEGACY)
+	if(OpenCV_FOUND AND SUB_BUILD_LEGACY)
 		#add_subdirectory(Mission/Vision)
 	endif()
 

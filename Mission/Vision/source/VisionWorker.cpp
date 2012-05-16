@@ -16,10 +16,11 @@ using namespace boost::posix_time;
 using namespace subjugator;
 using namespace std;
 
-VisionWorker::VisionWorker(io_service &io_service, int64_t rateHz, int inputMode, bool showDebugImages, int cameraNumber, bool logImages, float shutterVal, float gainVal)
-: Worker(io_service, rateHz)
+VisionWorker::VisionWorker(io_service &io_service, int64_t rateHz, const boost::property_tree::ptree& cameraDesc, int cameraId, bool showDebugImages, bool logImages, float shutterVal, float gainVal)
+: Worker(io_service, rateHz), cal(&io_service)
 {
-	this->inputMode = inputMode; // load camera by default
+	this->cameraDesc = cameraDesc;
+	this->cameraId = cameraId;
 	this->showDebugImages = showDebugImages;
 	this->ioimages = new IOImages();
 
@@ -34,7 +35,6 @@ VisionWorker::VisionWorker(io_service &io_service, int64_t rateHz, int inputMode
 				boost::bind(&VisionWorker::failState, this));
 
 	setControlToken((int)VisionWorkerCommands::UpdateIDs, boost::bind(&VisionWorker::updateIDs, this, _1));
-	this->cameraNumber = cameraNumber;
 	this->frameCnt = 0;
 	this->logImages = logImages;
 	this->shutterVal = shutterVal;
@@ -54,25 +54,9 @@ bool VisionWorker::Startup()
 		//namedWindow("Debug",1);
 	}
 
-	if(inputMode == 0)
-	{
-		// Don't really need to do anything here
-	}
-	else if(inputMode == 1)
-	{
-		// Initialize the cameras
-		int result = flyCapGrab.FlyCapInitializeCameras(cameraNumber, shutterVal, gainVal);
-		// If initialization fails, exit!
-		if(result==-1)
-		{
-			printf("Failed to initialize cameras\n");
-			return false;
-		}
-	}
-	else if(inputMode == 2)
-	{
-		// Open video stream here
-	}
+	camera = cal.getCamera(cameraDesc);
+	camera->setExposure(shutterVal);
+	camera->setGain(gainVal);
 
 	mStateManager.ChangeState(SubStates::READY);
 	return true;
@@ -85,30 +69,15 @@ void VisionWorker::Shutdown()
 		cvDestroyWindow("Processed");
 		cvDestroyWindow("Debug");
 	}
+	delete camera;
 }
 
 void VisionWorker::readyState()
 {
 	updateLock.lock();
 
-	if(inputMode == 0)
-	{
-		if(!ioimages->setNewSource(imread("images/octagon.jpg",1)))
-		{
-			printf("Failed to open file!\n");
-			return;
-		}
-	}
-	else if(inputMode == 1)
-	{
-		// Grab a frame from the camera, copy into ioimages object
-		flyCapGrab.FlyCapGrabImage(cameraNumber);
-		flyCapGrab.getCvImage(cameraNumber).copyTo(ioimages->src); // TODO can we just change the pointer instead of copying here?
-	}
-	else if(inputMode == 2)
-	{
-		// TODO Grab frame from video file here
-	}
+	// Grab a frame from the camera, copy into ioimages object
+	camera->getImage().copyTo(ioimages->src);
 
 	for(unsigned int i=0; i<listOfFinders.size(); i++)
 	{
@@ -155,10 +124,10 @@ void VisionWorker::readyState()
 	if(logImages && frameCnt%30 == 0)
 	{
 		std::stringstream str;
-		str << "log/" << cameraNumber << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.jpg";
+		str << "log/" << cameraId << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.jpg";
 		imwrite(str.str(),ioimages->src);
 		std::stringstream str2;
-		str2 << "log/" << cameraNumber << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.jpg";
+		str2 << "log/" << cameraId << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.jpg";
 		imwrite(str2.str(),ioimages->prcd);
 		//printf("Logging image: %d-%d.jpg\n",cameraNumber,frameCnt);
 	}
@@ -170,7 +139,7 @@ void VisionWorker::readyState()
 void VisionWorker::updateIDs(const DataObject &dobj)
 {
 	if (const VisionSetIDs *vids = dynamic_cast<const VisionSetIDs *>(&dobj)) {
-		if (vids->getCameraID() != cameraNumber)
+		if (vids->getCameraID() != cameraId)
 			return;
 			
 		updateLock.lock();

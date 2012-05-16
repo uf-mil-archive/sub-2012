@@ -8,7 +8,7 @@
 #include "DataObjects/Vision/FinderResult2D.h"
 #include "DataObjects/Vision/FinderResult3D.h"
 #include "MILObjectIDs.h"
-#include "FlyCaptureGrabber.h"
+#include "ImageSource.h"
 #include "HAL/format/DataObject.h"
 #include <boost/thread/mutex.hpp>
 
@@ -27,23 +27,25 @@ public:
 class VisionWorker : public subjugator::Worker
 {
 public:
-	VisionWorker(boost::asio::io_service &io_service, boost::int64_t rateHz, int inputMode, bool showDebugImages, int cameraNumber, bool logImages, float shutterVal, float gainVal);
+	VisionWorker(boost::asio::io_service &io_service, boost::int64_t rateHz, const boost::property_tree::ptree& cameraDesc, int cameraId, bool showDebugImages, bool logImages, float shutterVal, float gainVal);
 	~VisionWorker(void);
 
 	bool Startup();
 	void Shutdown();
 
 private:
+	CAL cal;
+	boost::property_tree::ptree cameraDesc;
 	IOImages* ioimages;
 	int inputMode;
 	bool showDebugImages;
 	bool logImages;
-	int cameraNumber;
+	int cameraId;
 	FinderGenerator finderGen;
 	vector<boost::shared_ptr<IFinder> > listOfFinders;
 	vector<int> finderIDs;
 	vector<boost::shared_ptr<FinderResult> > fResult;
-	FlyCaptureGrabber flyCapGrab;
+	Camera *camera;
 	int frameCnt;
 	float shutterVal;
 	float gainVal;
