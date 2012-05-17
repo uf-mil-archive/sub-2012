@@ -528,7 +528,7 @@ def write_into_dd(obj, dd):
             name = tc.member_name(i, ex())
             write_into_dd_member(obj[name], dd, member_name=name)
     elif kind == TCKind.ARRAY or kind == TCKind.SEQUENCE:
-        assert isinstance(obj, list)
+        assert isinstance(obj, (list, tuple))
         for i, x in enumerate(obj):
             write_into_dd_member(x, dd, member_id=i+1)
     else:

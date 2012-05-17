@@ -32,8 +32,14 @@ def subtract_dicts(a, b):
     assert all(a[k][1] == b[k][1] for k in a.keys()) # units match
     return dict((k, (a[k][0] - b[k][0], a[k][1])) for k in a.keys())
 
-position = lambda: array_to_dict(dds.LPOSVSS['position_NED'], 'XYZ', 'm')
-velocity = lambda: array_to_dict(dds.LPOSVSS['velocity_NED'], 'XYZ', 'm/s')
+def add_border(d, (border, border_unit)):
+    assert all(unit == border_unit for name, (value, unit) in d.iteritems())
+    low = min(value for name, (value, unit) in d.iteritems())
+    high = min(value for name, (value, unit) in d.iteritems())
+    return dict(d, lowborder_=(low-border, border_unit), highborder_=(high+border, border_unit))
+
+position = lambda: add_border(array_to_dict(dds.LPOSVSS['position_NED'], 'XYZ', 'm'), (0.01, 'm'))
+velocity = lambda: add_border(array_to_dict(dds.LPOSVSS['velocity_NED'], 'XYZ', 'm/s'), (0.01, 'm/s'))
 desired_position = lambda: array_to_dict(dds.Trajectory['xd'][:3], 'XYZ', 'm')
 desired_velocity = lambda: array_to_dict(dds.Trajectory['xd_dot'][:3], 'XYZ', 'm/s')
 orientation = lambda: quat_to_euler_dict(dds.LPOSVSS['quaternion_NED_B'])
@@ -58,7 +64,7 @@ graphs = [
         'p': position()[axis_],
         'd': desired_position()[axis_],
     })
-        for axis in 'XYZ'
+    for axis in 'XYZ'
 ] + [
     ('Position minus desired position', lambda: subtract_dicts(position(), desired_position())),
     ('Position and velocity', lambda: flatten({
@@ -70,6 +76,7 @@ graphs = [
         'd': desired_velocity(),
     })),
     ('Orientation', orientation),
+    ('Desired orientation', desired_orientation),
     ('Orientation and desired orientation', lambda: flatten({
         't': orientation(),
         'd': desired_orientation(),
