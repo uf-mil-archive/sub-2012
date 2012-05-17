@@ -31,7 +31,6 @@ namespace subjugator {
 		Vector6d qdot;
 		Vector6d qdotdot_b;
 		Vector6d u_b;
-		Vector6d u_b_prev;
 
 		Limits limits;
 

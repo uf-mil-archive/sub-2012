@@ -13,7 +13,6 @@ C3Trajectory::C3Trajectory(const Vector6d &qinit, const Vector6d &qdotinit, cons
 	qdot(qdotinit),
 	qdotdot_b(Vector6d::Zero()),
 	u_b(Vector6d::Zero()),
-	u_b_prev(Vector6d::Zero()),
 	limits(limits) { }
 
 C3Trajectory::Point C3Trajectory::getCurrentPoint() const {
@@ -40,12 +39,11 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 		vmax_b_prime.head(3) = result.second;
 	}
 
-	u_b_prev = u_b;
 	for (int i=0; i<6; i++) {
 		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), 0, 0, vmin_b_prime(i), vmax_b_prime(i), limits.amin_b(i), limits.amax_b(i), limits.umax_b(i));
 	}
 
-	qdotdot_b += dt*u_b_prev;
+	qdotdot_b += dt*u_b;
 	Vector6d qdotdot = J.lu().solve(qdotdot_b);
 	qdot += dt*qdotdot;
 	q += dt*qdot;
