@@ -39,7 +39,8 @@ namespace subjugator {
 		                       double vmin, double vmax,
 		                       double amin, double amax,
 		                       double umax);
-		static Matrix6d jacobian(const Vector3d &rpy);
+		static Matrix4d transformation(const Vector6d &q);
+		static Matrix4d inverse_transformation(const Vector6d &q);
 		static std::pair<Vector3d, Vector3d> limit(const Vector3d &vmin, const Vector3d &vmax, const Vector3d &delta);
 	};
 };

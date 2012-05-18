@@ -11,6 +11,7 @@ namespace subjugator {
 	using Eigen::Vector4d;
 	typedef Eigen::Matrix<double, 6, 1> Vector6d;
 	using Eigen::VectorXd;
+	typedef Eigen::Matrix<double, 4, 4> Matrix4d;
 
 	// Controller
 	typedef Eigen::Matrix<double, 6, 6> Matrix6d;

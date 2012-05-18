@@ -1,7 +1,6 @@
 #include "C3Trajectory/C3Trajectory.h"
+#include "LibSub/Math/AttitudeHelpers.h"
 #include "boost/tuple/tuple.hpp"
-
-#include <iostream>
 
 using namespace subjugator;
 using namespace Eigen;
@@ -22,13 +21,21 @@ C3Trajectory::Point C3Trajectory::getCurrentPoint() const {
    	return p;
 }
 
+static Vector6d apply(const Matrix4d &T, const Vector6d &q, double w) {
+	Vector6d q_t;
+	q_t << q.head(3), w;
+	q_t.head(4) = T * q_t.head(4);
+	q_t.tail(3) = q.tail(3);
+	return q_t;
+}
+
 void C3Trajectory::update(double dt, const Vector6d &r) {
-	Matrix6d J = jacobian(q.tail(3));
-	Vector6d q_b = J*q;
-	Vector6d r_b = J*r;
-	r_b.head(3) -= q_b.head(3);
-	q_b.head(3).fill(0);
-	Vector6d qdot_b = J*qdot;
+	Matrix4d T = transformation(q);
+	Matrix4d T_inv = inverse_transformation(q);
+
+	Vector6d q_b = apply(T, q, 1);
+	Vector6d r_b = apply(T, r, 1);
+	Vector6d qdot_b = apply(T, qdot, 0);
 
 	Vector6d vmin_b_prime = limits.vmin_b;
 	Vector6d vmax_b_prime = limits.vmax_b;
@@ -44,7 +51,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	}
 
 	qdotdot_b += dt*u_b;
-	Vector6d qdotdot = J.lu().solve(qdotdot_b);
+	Vector6d qdotdot = apply(T_inv, qdotdot_b, 0);
 	qdot += dt*qdotdot;
 	q += dt*qdot;
 }
@@ -102,29 +109,30 @@ double C3Trajectory::c3filter(double q, double qdot, double qdotdot,
 	return max(uv_emin, min(uc, uv_emax));
 }
 
-Matrix6d C3Trajectory::jacobian(const Vector3d &rpy) {
-	double sphi = sin(rpy(0));
-	double cphi = cos(rpy(0));
+Matrix4d C3Trajectory::transformation(const Vector6d &q) {
+	Matrix4d R;
+	R.block<3,3>(0, 0) = AttitudeHelpers::EulerToRotation(q.tail(3));
+	R.block<1,3>(3, 0).fill(0);
+	R.block<3,1>(0, 3).fill(0);
+	R(3, 3) = 1;
 
-	double stheta = sin(rpy(1));
-	double ctheta = cos(rpy(1));
-	double tantheta = tan(rpy(1));
+	Matrix4d T = Matrix4d::Identity();
+	T.block<3,1>(0, 3) = q.head(3);
 
-	double spsi = sin(rpy(2));
-	double cpsi = cos(rpy(2));
+	return R*T;
+}
 
-	Matrix6d j;
-	j.block<3,3>(0, 0) <<
-		cpsi*ctheta, -spsi*cphi + cpsi*stheta*sphi, spsi*sphi + cphi*cphi*stheta,
-		spsi*ctheta, cpsi*cphi + sphi*stheta*spsi, -cpsi*sphi + stheta*spsi*cphi,
-		-stheta, ctheta*sphi, ctheta*cphi;
-	j.block<3,3>(0, 3).fill(0);
-	j.block<3,3>(3, 0).fill(0);
-	j.block<3,3>(3, 3) <<
-		1, sphi*tantheta, cphi*tantheta,
-		0, cphi, -sphi,
-		0, sphi/ctheta, cphi/ctheta;
-	return j;
+Matrix4d C3Trajectory::inverse_transformation(const Vector6d &q) {
+	Matrix4d R;
+	R.block<3,3>(0, 0) = AttitudeHelpers::EulerToRotation(q.tail(3));
+	R.block<1,3>(3, 0).fill(0);
+	R.block<3,1>(0, 3).fill(0);
+	R(3, 3) = 1;
+
+	Matrix4d T = Matrix4d::Identity();
+	T.block<3,1>(0, 3) = -q.head(3);
+
+	return T*R.transpose();
 }
 
 std::pair<Vector3d, Vector3d> C3Trajectory::limit(const Vector3d &vmin, const Vector3d &vmax, const Vector3d &delta) {
