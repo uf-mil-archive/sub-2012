@@ -75,6 +75,8 @@ namespace subjugator {
 		from_dds(gains.ks, msg.ks);
 		from_dds(gains.alpha, msg.alpha);
 		from_dds(gains.beta, msg.beta);
+		gains.gamma1.fill(0); // TODO either get rid of NN stuff or get it all through the DDS messages
+		gains.gamma2.fill(0);
 	}
 
 	template <>

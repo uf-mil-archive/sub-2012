@@ -2,7 +2,6 @@
 #include "LibSub/Math/AttitudeHelpers.h"
 #include "LibSub/Math/Quaternion.h"
 #include <boost/algorithm/string.hpp>
-#include <iostream>
 
 using namespace subjugator;
 using namespace boost::algorithm;
@@ -85,22 +84,13 @@ Vector6d TrackingController::nnFeedForward(double dt, const Vector6d &e2, const 
 	VectorXd xd_nn_dot(t.xd.rows()*3+1, 1); // xd_nn_dot = [0 ; xd_dot; xd_dotdot; xd_dotdotdot];
 	xd_nn_dot << 0, t.xd_dot, xd_dotdot, xd_dotdotdot;
 
-	//VectorXd sigma = 2.0 * AttitudeHelpers::Tanh(V_hat.transpose() * xd_nn);
 	VectorXd one = VectorXd::Ones(V_hat_prev.cols(), 1); // not sure why I need the matrix form of ::Ones here, the vector form hits a static assert
-	cout << one << endl;
-	cout << "before sigma" << endl;
 	VectorXd sigma = one.cwiseQuotient(one + (-V_hat_prev.transpose() * xd_nn).array().exp().matrix());
-
-	cout << "sigma: " << sigma << endl;
 
 	VectorXd sigma_hat(1+sigma.rows(),1); //sigma_hat = [1; sigma];
 	sigma_hat << 1, sigma;
 
-	//VectorXd tempProd = V_hat_prev.transpose() * xd_nn; // 2 * Sech((V_hat.Transpose() * xd_nn).^2);
-	//MatrixXd inner = 2.0 * AttitudeHelpers::Sech(tempProd.cwiseProduct(tempProd));
-	//MatrixXd sigma_hat_prime_term = inner.asDiagonal();
 	MatrixXd sigma_hat_prime_term = sigma.asDiagonal() * (MatrixXd::Identity(sigma.rows(), sigma.rows()) - (MatrixXd)sigma.asDiagonal());
-	//sigma_hat_prime = [zeros(1,length(sigma_hat_prime_term));sigma_hat_prime_term];
 	MatrixXd sigma_hat_prime(1+sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols());
 	sigma_hat_prime.fill(0.0);
 	sigma_hat_prime.block(1, 0, sigma_hat_prime_term.rows(), sigma_hat_prime_term.cols()) = sigma_hat_prime_term;
