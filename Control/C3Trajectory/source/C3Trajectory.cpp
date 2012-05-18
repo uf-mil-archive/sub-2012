@@ -7,9 +7,9 @@ using namespace Eigen;
 using namespace boost;
 using namespace std;
 
-C3Trajectory::C3Trajectory(const Vector6d &qinit, const Vector6d &qdotinit, const Limits &limits) :
-	q(qinit),
-	qdot(qdotinit),
+C3Trajectory::C3Trajectory(const Point &start, const Limits &limits) :
+	q(start.q),
+	qdot(start.qdot),
 	qdotdot_b(Vector6d::Zero()),
 	u_b(Vector6d::Zero()),
 	limits(limits) { }

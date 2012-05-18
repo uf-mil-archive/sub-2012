@@ -14,15 +14,21 @@ namespace subjugator {
 			Vector6d umax_b;
 		};
 
-		C3Trajectory(const Vector6d &qinit, const Vector6d &qdotinit, const Limits &limits);
+		struct Point {
+			Vector6d q;
+			Vector6d qdot;
+
+			Point() { }
+
+			Point(const Vector6d &q, const Vector6d &qdot) :
+				q(q), qdot(qdot) { }
+		};
+
+		C3Trajectory(const Point &start, const Limits &limits);
 		inline void setLimits(const Limits &limits) { this->limits = limits; }
 
 		void update(double dt, const Vector6d &r);
 
-		struct Point {
-			Vector6d q;
-			Vector6d qdot;
-		};
 
 		Point getCurrentPoint() const;
 

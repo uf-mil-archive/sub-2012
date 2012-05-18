@@ -7,23 +7,17 @@ C3TrajectoryWorker::C3TrajectoryWorker(const WorkerConfigLoader &configloader) :
 	Worker("C3Trajectory", 50, configloader),
 	waypointmailbox(WorkerMailbox<Vector6d>::Args()
 	                .setName("waypoint")),
-	initialposition(WorkerMailbox<Vector6d>::Args()
+	initialpoint(WorkerMailbox<Point>::Args()
 	                .setName("initial position"))
 {
-	registerStateUpdater(initialposition);
+	registerStateUpdater(initialpoint);
 	registerStateUpdater(killmon);
 
 	loadConfig();
 }
 
 void C3TrajectoryWorker::enterActive() {
-	const Vector6d &pos = *initialposition;
-	Vector6d q;
-	q << pos.head(3), // copy XYZ
-		abs(pos(3)) < M_PI/2 ? 0 : M_PI,
-		0,
-		pos(5);
-	trajptr.reset(new C3Trajectory(q, Vector6d::Zero(), limits));
+	trajptr.reset(new C3Trajectory(*initialpoint, limits));
 }
 
 void C3TrajectoryWorker::leaveActive() {
