@@ -38,6 +38,7 @@ namespace subjugator {
 			WorkerSignal<Vector6d> wrenchsignal;
 			WorkerSignal<LogData> logsignal;
 			WorkerSignal<TrackingController::Gains> gainssignal;
+			WorkerSignal<TrackingController::TrajectoryPoint> initialpointsignal;
 
 		protected:
 			virtual void enterActive();
