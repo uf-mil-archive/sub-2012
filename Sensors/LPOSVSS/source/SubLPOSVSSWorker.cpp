@@ -38,12 +38,11 @@ LPOSVSSWorker::LPOSVSSWorker(const WorkerConfigLoader &configloader) :
 
 		ThrusterCurrentCorrector::Config &config = navconf.currentconfigs[i];
 
-		const ptree &forward = pt.get_child("forward");
-		const ptree &reverse = pt.get_child("reverse");
+		ptree::const_iterator forward = pt.get_child("forward").begin();
+		ptree::const_iterator reverse = pt.get_child("reverse").begin();
 		for (int j=0; j<4; j++) {
-			string jstr = lexical_cast<string>(j);
-			config.forward[j] = forward.get<Vector3d>(jstr);
-			config.reverse[j] = reverse.get<Vector3d>(jstr);
+			config.forward[j] = forward++->second.get_value<Vector3d>();
+			config.reverse[j] = reverse++->second.get_value<Vector3d>();
 		}
 	}
 
