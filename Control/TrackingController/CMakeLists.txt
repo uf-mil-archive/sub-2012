@@ -1,1 +1,1 @@
-sub_executable(TrackingController LegacyDDS DDS Sub)
+sub_executable(TrackingController DDS Sub)

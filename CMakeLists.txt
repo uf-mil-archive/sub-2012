@@ -27,6 +27,11 @@ else()
 	set(BUILD_GUMSTIX TRUE)
 endif()
 
+# Handle building legacy stuff
+if(NOT SUB_BUILD_LEGACY)
+	set(SUB_BUILD_LEGACY OFF CACHE BOOL "Whether to build legacy libraries and programs")
+endif()
+
 # find required packages
 find_package(NDDS REQUIRED)
 
@@ -45,10 +50,12 @@ add_subdirectory(Shared/LibSub)
 add_subdirectory(Shared/WorkerManager)
 
 # add legacy shared stuff
-add_subdirectory(Legacy/HAL)
-add_subdirectory(Legacy/DDS)
-add_subdirectory(Legacy/DataObjects)
-add_subdirectory(Legacy/SubMain)
+if(SUB_BUILD_LEGACY)
+	add_subdirectory(Legacy/HAL)
+	add_subdirectory(Legacy/DDS)
+	add_subdirectory(Legacy/DataObjects)
+	add_subdirectory(Legacy/SubMain)
+endif()
 
 # We're building LPOSVSS binaries for both systems until its running smoothly on the gumstix
 add_subdirectory(Sensors/LPOSVSS)
@@ -83,29 +90,33 @@ if(BUILD_PC)
 		message(WARNING "FFTW not found. Eigen will fall back to kissfft.")
 	endif()
 
-	if(PYTHONINTERP_FOUND)	
+	if(PYTHONINTERP_FOUND)
 		add_subdirectory(Shared/Python)
 	endif()
 
 	add_subdirectory(Sensors/Hydrophone)
-	add_subdirectory(Mission/MissionPlanner)
 	add_subdirectory(Control/PrimitiveDriver)
 	add_subdirectory(Control/TrackingController)
-	add_subdirectory(Control/TrajectoryGenerator)
+	if(SUB_BUILD_LEGACY)
+		add_subdirectory(Control/TrajectoryGenerator)
+	endif()
 	add_subdirectory(Control/C3Trajectory)
 	add_subdirectory(Tools/SubLog)
 
-	if(OpenCV_FOUND AND FLYCAPTURE_FOUND)
-		add_subdirectory(Mission/Vision)
+	if(OpenCV_FOUND AND FLYCAPTURE_FOUND AND SUB_BUILD_LEGACY)
+		#add_subdirectory(Mission/Vision)
 	endif()
 
 	if(QT_FOUND)
-		add_subdirectory(Tools/MotorCalibrate)
-		add_subdirectory(Tools/DDSWatcher)
-		add_subdirectory(Tools/PDTest)
 		add_subdirectory(Tools/SubControl)
-		if(QWT_FOUND)
-			add_subdirectory(Tools/TrajectoryTest)
+		if(SUB_BUILD_LEGACY)
+			add_subdirectory(Tools/MotorCalibrate)
+			add_subdirectory(Tools/DDSWatcher)
+			add_subdirectory(Tools/PDTest)
+
+			if(QWT_FOUND)
+				add_subdirectory(Tools/TrajectoryTest)
+			endif()
 		endif()
 	endif()
 endif()

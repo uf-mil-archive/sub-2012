@@ -2,7 +2,7 @@
 #include "TrackingController/Messages/ControllerGainsMessageSupport.h"
 #include "TrackingController/Messages/TrackingControllerLogMessageSupport.h"
 #include "TrackingController/Messages/TrajectoryMessageSupport.h"
-#include "DDSMessages/LPOSVSSMessageSupport.h"
+#include "LPOSVSS/Messages/LPOSVSSMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
 #include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
