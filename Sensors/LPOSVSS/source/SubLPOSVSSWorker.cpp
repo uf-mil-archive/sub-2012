@@ -21,7 +21,7 @@ LPOSVSSWorker::LPOSVSSWorker(const WorkerConfigLoader &configloader) :
 	currentmailbox(WorkerMailbox<PDInfo>::Args()
 	               .setName("current")
 	               .setCallback(bind(&LPOSVSSWorker::setCurrents, this, _1))),
-	useDVL(useDVL)
+	useDVL(getConfig().get<bool>("usedvl"))
 {
 	registerStateUpdater(dvlmailbox);
 	registerStateUpdater(imumailbox);
