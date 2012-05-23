@@ -3,7 +3,7 @@
 using namespace subjugator;
 using namespace std;
 
-NavigationComputer::NavigationComputer(const Config &config):
+NavigationComputer::NavigationComputer(const Config &conf):
 	conf(conf),
 	referenceGravityVector(0.0,0.0,1.0),
 	initialPosition(0.0,0.0,0.0), initialVelocity(0.0,0.0,0.0),
@@ -21,6 +21,10 @@ NavigationComputer::NavigationComputer(const Config &config):
 	acceptable_gravity_mag = referenceGravityVector.norm() * 1.04;
 
 	q_MagCorrectionInverse = MILQuaternionOps::QuatInverse(conf.q_MagCorrection);
+
+	for (std::vector<ThrusterCurrentCorrector::Config>::const_iterator i = conf.currentconfigs.begin(); i != conf.currentconfigs.end(); ++i) {
+		thrusterCurrentCorrectors.push_back(*i);
+	}
 
 	z = Vector7d::Zero();
 
@@ -211,9 +215,15 @@ void NavigationComputer::UpdateIMU(const IMUInfo& imu)
 	// The INS has the rotation info already, so just push the packet through
 	ins->Update(imu);
 
-	// Dynamic correction of the mag data
-	Vector3d tempMag = imu.mag_field -
+	Vector3d tempMag;
+	if (thrusterCurrents.size()) {
+
+		// Dynamic correction of the mag data
+		tempMag = imu.mag_field -
 			ThrusterCurrentCorrector::CalculateTotalCorrection(thrusterCurrentCorrectors, thrusterCurrents);
+	} else {
+		tempMag = imu.mag_field;
+	}
 
 	boost::shared_ptr<INSData> insdata = ins->GetData();
 	// We just do a very basic average over the last 10 samples (reduces to 20Hz)
