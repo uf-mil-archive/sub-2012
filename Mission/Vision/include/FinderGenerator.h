@@ -1,6 +1,8 @@
 #ifndef FINDER_GENERATOR_H
 #define FINDER_GENERATOR_H
 
+#include <boost/shared_ptr.hpp>
+
 #include "IFinder.h"
 #include "IOImages.h"
 

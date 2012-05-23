@@ -1,0 +1,11 @@
+{
+	"imageSource": {
+		"type": "camera",
+		"number": 0
+	},
+	"cameraId": 0,
+	"logImages": false,
+	"showDebugImages": true,
+	"shutterVal": 42,
+	"gainVal": 42.5
+}

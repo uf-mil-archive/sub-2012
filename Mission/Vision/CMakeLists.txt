@@ -1,1 +1,1 @@
-sub_executable(Vision OpenCV LegacyDDS SubMain DataObjects LegacyHAL)
+sub_executable(Vision OpenCV DDS Sub)

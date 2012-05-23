@@ -39,19 +39,16 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 				// approximate contour with accuracy proportional to the contour perimeter
 				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.02, true);
 				// square contours should have 4 vertices after approximation and be convex.
-				if( approx.size() == 4 && isContourConvex(Mat(approx)) )
-                {
+				if( approx.size() == 4 && isContourConvex(Mat(approx)) ) {
 					double maxCosine = 0;
-					for( int j = 2; j < 5; j++ )
-                    {
-                        // find the maximum cosine of the angle between joint edges
-                        double cosine = fabs(angle(approx[j%4], approx[j-2], approx[j-1]));
-                        maxCosine = MAX(maxCosine, cosine);
-                    }
+					for( int j = 2; j < 5; j++ ) {
+						// find the maximum cosine of the angle between joint edges
+						double cosine = fabs(angle(approx[j%4], approx[j-2], approx[j-1]));
+						maxCosine = MAX(maxCosine, cosine);
+					}
 					// if cosines of all angles are small (all angles are ~90 degree) then write quandrange
-                    // vertices to resultant sequence
-                    if( maxCosine < 0.5 )
-					{
+					// vertices to resultant sequence
+					if( maxCosine < 0.5 ) {
 						// push to vector of saved boxes
 						OuterBox outerBox;
 						outerBox.corners = approx;
@@ -103,11 +100,11 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 
 double Contours::angle( Point pt1, Point pt2, Point pt0 )
 {
-    double dx1 = pt1.x - pt0.x;
-    double dy1 = pt1.y - pt0.y;
-    double dx2 = pt2.x - pt0.x;
-    double dy2 = pt2.y - pt0.y;
-    return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
+	double dx1 = pt1.x - pt0.x;
+	double dy1 = pt1.y - pt0.y;
+	double dx2 = pt2.x - pt0.x;
+	double dy2 = pt2.y - pt0.y;
+	return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
 void Contours::drawResult(IOImages* ioimages, int objectID)
@@ -275,7 +272,7 @@ void Contours::sortBoxes()
 			{
 				if (angles[j]<angles[i])
 				{
-					swp_ang = angles[i]; angles[i]=angles[j];  angles[j]=swp_ang;
+					swp_ang = angles[i]; angles[i]=angles[j]; angles[j]=swp_ang;
 					swpx = boxes[k].corners[i].x; boxes[k].corners[i].x=boxes[k].corners[j].x; boxes[k].corners[j].x=swpx;
 					swpy = boxes[k].corners[i].y; boxes[k].corners[i].y=boxes[k].corners[j].y; boxes[k].corners[j].y=swpy;
 				}

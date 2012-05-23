@@ -2,7 +2,7 @@
 #define HEDGE_FINDER_H
 
 #include "IFinder.h"
-#include "DataObjects/Vision/FinderResult2D.h"
+#include "FinderResult.h"
 #include "Line.h"
 
 class HedgeFinder : public IFinder
@@ -10,7 +10,7 @@ class HedgeFinder : public IFinder
 	public:
 		HedgeFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
 		~HedgeFinder(void);
-		vector<boost::shared_ptr<FinderResult> > find(IOImages* ioimages);
+		vector<FinderResult> find(IOImages* ioimages);
 
 	private:
 		int result;

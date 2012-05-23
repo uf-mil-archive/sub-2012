@@ -26,11 +26,11 @@ int Line::findLines(IOImages* ioimages)
 	Canny(ioimages->dbg, edgeImage, 50, 200, 3 );
 	HoughLinesP(edgeImage, lines, 1, CV_PI/360, 80, 60, 50 );
 
-    for( size_t i = 0; i < lines.size(); i++ )
-    {
+	for( size_t i = 0; i < lines.size(); i++ )
+	{
 		line( ioimages->prcd, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(0,0,255), 1, 8 );
 		tmpAngle = atan2((double)lines[i][1]-(double)lines[i][3],(double)lines[i][0]-(double)lines[i][2]); // (y1-y2)/(x1-x2)
-		if(tmpAngle != 0) tmpAngle += 3.1415/2.0;  // offset to vertical
+		if(tmpAngle != 0) tmpAngle += 3.1415/2.0; // offset to vertical
 		if(tmpAngle > 0) tmpAngle -= 3.1415;
 		//printf("%f\n",tmpAngle);
 

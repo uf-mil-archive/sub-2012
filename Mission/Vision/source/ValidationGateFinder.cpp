@@ -1,7 +1,5 @@
 #include "ValidationGateFinder.h"
 
-using namespace boost;
-
 ValidationGateFinder::ValidationGateFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -16,9 +14,9 @@ ValidationGateFinder::~ValidationGateFinder(void)
 	delete t;
 }
 
-vector<shared_ptr<FinderResult> > ValidationGateFinder::find(IOImages* ioimages)
+vector<FinderResult> ValidationGateFinder::find(IOImages* ioimages)
 {
-	vector<shared_ptr<FinderResult> > resultVector;
+	vector<FinderResult> resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -33,24 +31,21 @@ vector<shared_ptr<FinderResult> > ValidationGateFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Line* line = new Line(1);
-		result = line->findLines(ioimages);
-		line->drawResult(ioimages,oIDs[i]);
+		Line line(1);
+		result = line.findLines(ioimages);
+		line.drawResult(ioimages,oIDs[i]);
 		//printf("result: %d\n",result);
 
 		// Prepare results
-		FinderResult2D *fResult2D = new FinderResult2D();
-		if(result)
-		{
-			fResult2D->objectID = oIDs[i];
-			fResult2D->u = line->avgLines[0].centroid.x;
-			fResult2D->v = line->avgLines[0].centroid.y;
-			fResult2D->scale = line->avgLines[0].length;
-			printf("scale: %f\n",line->avgLines[0].length);
+		FinderResult fResult;
+		if(result) {
+			fResult.objectID = oIDs[i];
+			fResult.u = line.avgLines[0].centroid.x;
+			fResult.v = line.avgLines[0].centroid.y;
+			fResult.scale = line.avgLines[0].length;
+			printf("scale: %f\n",line.avgLines[0].length);
 		}
-		resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
-		// clean up the line!
-		delete line;
+		resultVector.push_back(fResult);
 	}
 	return resultVector;
 }

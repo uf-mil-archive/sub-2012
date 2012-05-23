@@ -1,0 +1,5 @@
+struct VisionSetIDsMessage {
+	sequence<long> visionids;
+	long cameraid;
+};
+

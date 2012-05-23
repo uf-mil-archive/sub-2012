@@ -1,7 +1,5 @@
 #include "ShapeFinder.h"
 
-using namespace boost;
-
 ShapeFinder::ShapeFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -16,9 +14,9 @@ ShapeFinder::~ShapeFinder(void)
 	delete t;
 }
 
-vector<shared_ptr<FinderResult> > ShapeFinder::find(IOImages* ioimages)
+vector<FinderResult> ShapeFinder::find(IOImages* ioimages)
 {
-	vector<shared_ptr<FinderResult> > resultVector;
+	vector<FinderResult> resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -35,28 +33,27 @@ vector<shared_ptr<FinderResult> > ShapeFinder::find(IOImages* ioimages)
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 
 		// call to specific member function here
-		Contours* contours = new Contours(100,50000,1500);
-		result = contours->identifyShape(ioimages);
+		Contours contours(100,50000,1500);
+		result = contours.identifyShape(ioimages);
 
 		// Prepare results
-		FinderResult2D *fResult2D = new FinderResult2D();
+		FinderResult fResult;
 		if(result)
 		{
 			// Draw result
-			contours->drawResult(ioimages,oIDs[i]);
+			contours.drawResult(ioimages,oIDs[i]);
 
 			// find the largest shape
-			int index = contours->findLargestShape();
-			if(contours->shapes[index].shape_x)
-				fResult2D->objectID = MIL_OBJECTID_BIN_X;
+			int index = contours.findLargestShape();
+			if(contours.shapes[index].shape_x)
+				fResult.objectID = MIL_OBJECTID_BIN_X;
 			else
-				fResult2D->objectID = MIL_OBJECTID_BIN_O;
-			fResult2D->scale = contours->shapes[index].area;
-			fResult2D->u = contours->shapes[index].centroid.x;
-			fResult2D->v = contours->shapes[index].centroid.y;
+				fResult.objectID = MIL_OBJECTID_BIN_O;
+			fResult.scale = contours.shapes[index].area;
+			fResult.u = contours.shapes[index].centroid.x;
+			fResult.v = contours.shapes[index].centroid.y;
 		}
-		resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
-		delete contours;
+		resultVector.push_back(fResult);
 	}
 	return resultVector;
 }

@@ -4,8 +4,7 @@
 #include "IOImages.h"
 #include "INormalizer.h"
 #include "IThresholder.h"
-#include "DataObjects/Vision/FinderResult.h"
-#include <boost/shared_ptr.hpp>
+#include "FinderResult.h"
 #include <vector>
 
 class IFinder
@@ -15,7 +14,7 @@ class IFinder
 		INormalizer* n;
 		IThresholder* t;
 		virtual ~IFinder() {}
-		virtual vector<boost::shared_ptr<FinderResult> > find(IOImages* ioimages)=0;
+		virtual vector<FinderResult> find(IOImages* ioimages)=0;
 };
 
 #endif

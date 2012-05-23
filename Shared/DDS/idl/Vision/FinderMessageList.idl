@@ -1,0 +1,13 @@
+struct FinderMessage {
+        long objectid;
+        long u;
+        long v;
+        double scale;
+        double angle;
+};
+
+struct FinderMessageList {
+	sequence<FinderMessage> messages;
+	long cameraid;
+};
+

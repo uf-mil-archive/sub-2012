@@ -2,7 +2,7 @@
 #define BUOY_FINDER_H
 
 #include "IFinder.h"
-#include "DataObjects/Vision/FinderResult2D.h"
+#include "FinderResult.h"
 #include "Blob.h"
 
 class BuoyFinder : public IFinder
@@ -10,7 +10,7 @@ class BuoyFinder : public IFinder
 	public:
 		BuoyFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
 		~BuoyFinder(void);
-		vector<boost::shared_ptr<FinderResult> > find(IOImages* ioimages);
+		vector<FinderResult> find(IOImages* ioimages);
 
 	private:
 		int result;

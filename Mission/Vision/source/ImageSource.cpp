@@ -36,15 +36,14 @@ void CvCamera::setGain(float gain) {
 }
 
 
-CAL::CAL(boost::asio::io_service* io) {
-	this->io = io;
+CAL::CAL(boost::asio::io_service& io) : io(io) {
 }
 
 Camera* CAL::getCamera(const boost::property_tree::ptree& cameraDesc) {
 	if(cameraDesc.get<std::string>("type") == "video") {
-		return new CvCamera(this->io, cameraDesc.get<std::string>("filename"));
+		return new CvCamera(&this->io, cameraDesc.get<std::string>("filename"));
 	} else if(cameraDesc.get<std::string>("type") == "camera") {
-		return new CvCamera(this->io, cameraDesc.get<int>("number"));
+		return new CvCamera(&this->io, cameraDesc.get<int>("number"));
 	} else {
 		throw std::runtime_error("bad camera type");
 	}

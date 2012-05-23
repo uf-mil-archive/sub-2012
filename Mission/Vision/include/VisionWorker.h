@@ -2,15 +2,19 @@
 #define VISION_WORKER_H
 
 #include <vector>
-#include "SubMain/Workers/SubWorker.h"
+#include <boost/thread/mutex.hpp>
+
+#include "LibSub/Worker/Worker.h"
+#include "LibSub/Worker/WorkerMailbox.h"
+#include "LibSub/Worker/WorkerSignal.h"
+#include "LibSub/Worker/WorkerKill.h"
+
 #include "IOImages.h"
 #include "FinderGenerator.h"
-#include "DataObjects/Vision/FinderResult2D.h"
-#include "DataObjects/Vision/FinderResult3D.h"
+#include "FinderResult.h"
 #include "MILObjectIDs.h"
 #include "ImageSource.h"
-#include "HAL/format/DataObject.h"
-#include <boost/thread/mutex.hpp>
+#include "VisionSetIDs.h"
 
 using namespace cv;
 using namespace std;
@@ -24,14 +28,25 @@ public:
 	};
 };
 
-class VisionWorker : public subjugator::Worker
+namespace subjugator {
+
+class VisionWorker : public Worker
 {
 public:
-	VisionWorker(boost::asio::io_service &io_service, boost::int64_t rateHz, const boost::property_tree::ptree& cameraDesc, int cameraId, bool showDebugImages, bool logImages, float shutterVal, float gainVal);
+	VisionWorker(CAL& cal, const WorkerConfigLoader &configloader);
 	~VisionWorker(void);
 
 	bool Startup();
 	void Shutdown();
+
+	WorkerMailbox<VisionSetIDs> setidsmailbox;
+
+	WorkerSignal<std::pair<int, vector<FinderResult> > > outputsignal;
+
+protected:
+	virtual void enterActive();
+	virtual void leaveActive();
+	virtual void work(double dt);
 
 private:
 	CAL cal;
@@ -44,19 +59,18 @@ private:
 	FinderGenerator finderGen;
 	vector<boost::shared_ptr<IFinder> > listOfFinders;
 	vector<int> finderIDs;
-	vector<boost::shared_ptr<FinderResult> > fResult;
 	Camera *camera;
 	int frameCnt;
 	float shutterVal;
 	float gainVal;
 
-	boost::mutex updateLock;
-
 	void readyState();
 	void emergencyState();
 	void failState();
 
-	void updateIDs(const subjugator::DataObject &dobj);
+	void updateIDs(const VisionSetIDs &vids);
 };
+
+}
 
 #endif

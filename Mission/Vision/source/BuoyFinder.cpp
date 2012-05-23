@@ -1,7 +1,5 @@
 #include "BuoyFinder.h"
 
-using namespace boost;
-
 BuoyFinder::BuoyFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
 {
 	this->oIDs = objectIDs;
@@ -16,9 +14,9 @@ BuoyFinder::~BuoyFinder(void)
 	delete t;
 }
 
-vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
+vector<FinderResult> BuoyFinder::find(IOImages* ioimages)
 {
-	vector<shared_ptr<FinderResult> > resultVector;
+	vector<FinderResult> resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -31,23 +29,21 @@ vector<shared_ptr<FinderResult> > BuoyFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Blob* blob = new Blob(100,80000,2000);
-		result = blob->findBlob(ioimages);
+		Blob blob(100,80000,2000);
+		result = blob.findBlob(ioimages);
 
-		for (unsigned int j=0; j<blob->data.size(); j++) {
-			// Prepare results
-			FinderResult2D *fResult2D = new FinderResult2D();
+		for (unsigned int j=0; j<blob.data.size(); j++) {
 			// Draw result
-			blob->drawResult(ioimages,oIDs[i]);
+			blob.drawResult(ioimages,oIDs[i]);
 			//printf("buoy finder!\n");
-			fResult2D->objectID = oIDs[i];
-			fResult2D->u = blob->data[j].centroid.x;
-			fResult2D->v = blob->data[j].centroid.y;
-			fResult2D->scale = blob->data[j].area;
-			resultVector.push_back(shared_ptr<FinderResult>(fResult2D));
+			// Prepare results
+			FinderResult fResult;
+			fResult.objectID = oIDs[i];
+			fResult.u = blob.data[j].centroid.x;
+			fResult.v = blob.data[j].centroid.y;
+			fResult.scale = blob.data[j].area;
+			resultVector.push_back(fResult);
 		}
-
-		delete blob;
 	}
 	return resultVector;
 }
