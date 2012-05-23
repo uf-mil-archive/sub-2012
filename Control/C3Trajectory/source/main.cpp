@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 	dds.killMonitor(worker.killmon);
 
 	dds.receiver(worker.waypointmailbox, dds.topic<SetWaypointMessage>("SetWaypoint", TopicQOS::LEGACY));
-	dds.receiver(worker.initialposition, dds.topic<LPOSVSSMessage>("LPOSVSS", TopicQOS::LEGACY));
+	dds.receiver(worker.initialpoint, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
 
 	dds.sender(worker.trajsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
 
@@ -39,16 +39,16 @@ int main(int argc, char **argv) {
 
 namespace subjugator {
 	template <>
-	void from_dds(Vector6d &initialpos, const LPOSVSSMessage &msg) {
-		initialpos.head(3) = Vector3d(msg.position_NED);
-		initialpos.tail(3) = MILQuaternionOps::Quat2Euler(Vector4d(msg.quaternion_NED_B));
-	}
-
-	template <>
 	void from_dds(Vector6d &waypoint, const SetWaypointMessage &msg) {
 		//assert(!msg.isRelative); // relative waypoints were agreed to be a bad idea at this level, sub tends to drift downward as error keeps getting added into waypoints
 		waypoint.head(3) = Vector3d(msg.position_ned); // TODO from_dds should work here but it doesn't
 		waypoint.tail(3) = Vector3d(msg.rpy);
+	}
+
+	template <>
+	void from_dds(C3TrajectoryWorker::Point &point, const TrajectoryMessage &msg) {
+		point.q = Vector6d(msg.xd);
+		point.qdot = Vector6d(msg.xd_dot);
 	}
 
 	template <>

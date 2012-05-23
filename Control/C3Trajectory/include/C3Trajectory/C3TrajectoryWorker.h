@@ -11,16 +11,12 @@
 namespace subjugator {
 	class C3TrajectoryWorker : public Worker {
 	public:
-		struct Waypoint {
-			Vector6d dest;
-		};
-
 		typedef C3Trajectory::Point Point;
 
 		C3TrajectoryWorker(const WorkerConfigLoader &configloader);
 
 		WorkerMailbox<Vector6d> waypointmailbox;
-		WorkerMailbox<Vector6d> initialposition;
+		WorkerMailbox<Point> initialpoint;
 		WorkerKillMonitor killmon;
 
 		WorkerSignal<Point> trajsignal;

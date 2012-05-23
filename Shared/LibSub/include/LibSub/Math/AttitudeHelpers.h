@@ -16,6 +16,7 @@ namespace subjugator
 		static Vector3d LocalGravity(double lat, double depth);
 		static double Markov_wStdDev(double dt, double T, double sigma);
 		static Vector3d RotationToEuler(const Matrix3d& R);
+		static Matrix3d EulerToRotation(const Vector3d& rpy);
 		static double DAngleDiff(double a, double b);
 		static double DAngleClamp(double a);
 		static Vector4d RotationToQuaternion(const Matrix3d& R);

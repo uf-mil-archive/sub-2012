@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
 	dds.sender(worker.wrenchsignal, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
 	dds.sender(worker.logsignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog", TopicQOS::LEGACY));
 	dds.sender(worker.gainssignal, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::PERSISTENT));
+	dds.sender(worker.initialpointsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
 
 	// Start the worker
 	builder.runWorker();
@@ -63,11 +64,19 @@ namespace subjugator {
 	}
 
 	template <>
+	void to_dds(TrajectoryMessage &msg, const TrackingController::TrajectoryPoint &tp) {
+		to_dds(msg.xd, tp.xd);
+		to_dds(msg.xd_dot, tp.xd_dot);
+	}
+
+	template <>
 	void from_dds(TrackingController::Gains &gains, const ControllerGainsMessage &msg) {
 		from_dds(gains.k, msg.k);
 		from_dds(gains.ks, msg.ks);
 		from_dds(gains.alpha, msg.alpha);
 		from_dds(gains.beta, msg.beta);
+		gains.gamma1.fill(0); // TODO either get rid of NN stuff or get it all through the DDS messages
+		gains.gamma2.fill(0);
 	}
 
 	template <>

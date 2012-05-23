@@ -14,15 +14,21 @@ namespace subjugator {
 			Vector6d umax_b;
 		};
 
-		C3Trajectory(const Vector6d &qinit, const Vector6d &qdotinit, const Limits &limits);
+		struct Point {
+			Vector6d q;
+			Vector6d qdot;
+
+			Point() { }
+
+			Point(const Vector6d &q, const Vector6d &qdot) :
+				q(q), qdot(qdot) { }
+		};
+
+		C3Trajectory(const Point &start, const Limits &limits);
 		inline void setLimits(const Limits &limits) { this->limits = limits; }
 
 		void update(double dt, const Vector6d &r);
 
-		struct Point {
-			Vector6d q;
-			Vector6d qdot;
-		};
 
 		Point getCurrentPoint() const;
 
@@ -31,7 +37,6 @@ namespace subjugator {
 		Vector6d qdot;
 		Vector6d qdotdot_b;
 		Vector6d u_b;
-		Vector6d u_b_prev;
 
 		Limits limits;
 
@@ -40,7 +45,8 @@ namespace subjugator {
 		                       double vmin, double vmax,
 		                       double amin, double amax,
 		                       double umax);
-		static Matrix6d jacobian(const Vector3d &rpy);
+
+		static std::pair<Matrix4d, Matrix4d> transformation_pair(const Vector6d &q);
 		static std::pair<Vector3d, Vector3d> limit(const Vector3d &vmin, const Vector3d &vmax, const Vector3d &delta);
 	};
 };
