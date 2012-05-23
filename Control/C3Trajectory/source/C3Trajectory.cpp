@@ -30,8 +30,9 @@ static Vector6d apply(const Matrix4d &T, const Vector6d &q, double w) {
 }
 
 void C3Trajectory::update(double dt, const Vector6d &r) {
-	Matrix4d T = transformation(q);
-	Matrix4d T_inv = inverse_transformation(q);
+	pair<Matrix4d, Matrix4d> Ts = transformation_pair(q);
+	const Matrix4d &T = Ts.first;
+	const Matrix4d &T_inv = Ts.second;
 
 	Vector6d q_b = apply(T, q, 1);
 	Vector6d r_b = apply(T, r, 1);
@@ -109,7 +110,7 @@ double C3Trajectory::c3filter(double q, double qdot, double qdotdot,
 	return max(uv_emin, min(uc, uv_emax));
 }
 
-Matrix4d C3Trajectory::transformation(const Vector6d &q) {
+pair<Matrix4d, Matrix4d> C3Trajectory::transformation_pair(const Vector6d &q) {
 	Matrix4d R;
 	R.block<3,3>(0, 0) = AttitudeHelpers::EulerToRotation(q.tail(3));
 	R.block<1,3>(3, 0).fill(0);
@@ -119,20 +120,13 @@ Matrix4d C3Trajectory::transformation(const Vector6d &q) {
 	Matrix4d T = Matrix4d::Identity();
 	T.block<3,1>(0, 3) = q.head(3);
 
-	return R*T;
-}
+	pair<Matrix4d, Matrix4d> result;
+	result.first = R*T; // NED -> BODY
 
-Matrix4d C3Trajectory::inverse_transformation(const Vector6d &q) {
-	Matrix4d R;
-	R.block<3,3>(0, 0) = AttitudeHelpers::EulerToRotation(q.tail(3));
-	R.block<1,3>(3, 0).fill(0);
-	R.block<3,1>(0, 3).fill(0);
-	R(3, 3) = 1;
-
-	Matrix4d T = Matrix4d::Identity();
 	T.block<3,1>(0, 3) = -q.head(3);
+	result.second = T*R.transpose(); // BODY -> NED
 
-	return T*R.transpose();
+	return result;
 }
 
 std::pair<Vector3d, Vector3d> C3Trajectory::limit(const Vector3d &vmin, const Vector3d &vmax, const Vector3d &delta) {
