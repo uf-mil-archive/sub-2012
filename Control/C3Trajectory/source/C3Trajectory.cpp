@@ -23,7 +23,7 @@ C3Trajectory::Point C3Trajectory::getCurrentPoint() const {
 
 static Vector6d apply(const Matrix4d &T, const Vector6d &q, double w) {
 	Vector6d q_t;
-	q_t << q.head(3), w;
+	q_t << q.head(3), w, 0, 0;
 	q_t.head(4) = T * q_t.head(4);
 	q_t.tail(3) = q.tail(3);
 	return q_t;
