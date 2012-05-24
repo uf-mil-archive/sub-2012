@@ -1,9 +1,9 @@
 #ifndef SUBKALMAN_H
 #define SUBKALMAN_H
 
-#include "SubMain/SubPrerequisites.h"
-#include "SubMain/SubAttitudeHelpers.h"
-#include "SubMain/SubMILQuaternion.h"
+#include "LibSub/Math/AttitudeHelpers.h"
+#include "LibSub/Math/Quaternion.h"
+#include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
 #include <cmath>
 
@@ -59,17 +59,13 @@ namespace subjugator
 		void Reset();
 		boost::shared_ptr<KalmanData> GetData()
 		{
-			datalock.lock();
 			boost::shared_ptr<KalmanData> temp(prevData);
-			datalock.unlock();
 
 			return temp;
 		}
 	private:
 		static const double SECPERNANOSEC = 1e-9;
 
-		boost::mutex lock;
-		boost::mutex datalock;
 		bool initialized;
 
 		RowVector27d ones2LXp1;

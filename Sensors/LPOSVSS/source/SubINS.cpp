@@ -32,19 +32,17 @@ INS::INS(double lat, Vector3d w_dif_prev, Vector3d a_body_prev, Vector3d p_prev,
 	w_ie_n(0) = w_ie_e*std::cos(lat);
 	w_ie_n(1) = 0.0;
 	w_ie_n(2) = -1.0*w_ie_e*std::sin(lat);
-
-	initialized = true;
 }
 
-void INS::Update(const IMUInfo& info)
+void INS::Update(const IMUInfo& imu)
 {
 	// Validate the contents of the packet
-    Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, info.getAngularRate());
-    Vector3d a_body = -1.0*gMag*MILQuaternionOps::QuatRotate(q_SUB_IMU, info.getAcceleration());	// Convert the IMU to m/s^2 - ADIS wtf coordinate system
+    Vector3d w_body = MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.ang_rate);
+    Vector3d a_body = -1.0*gMag*MILQuaternionOps::QuatRotate(q_SUB_IMU, imu.acceleration);	// Convert the IMU to m/s^2 - ADIS wtf coordinate system
 
     // Update dt
-    dt = (info.getTimestamp() - imuPreviousTime)*SECPERNANOSEC;
-    imuPreviousTime = info.getTimestamp();
+    dt = (imu.timestamp - imuPreviousTime)*SECPERNANOSEC;
+    imuPreviousTime = imu.timestamp;
 
     //Protect the INS against the debugger and non monotonic time
     if((dt <= 0) || (dt > .050))
@@ -58,9 +56,6 @@ void INS::Update(const IMUInfo& info)
     }
     if(w_body.norm() > MAX_ANG_RATE)
     	return;
-
-	// Lock so a reset can't overwrite mid way through
-	lock.lock();
 
     w_en_n(0) = v_prev(1) / (r_earth - p_prev(2));
     w_en_n(1) = -v_prev(0) / (r_earth - p_prev(2));
@@ -100,17 +95,11 @@ void INS::Update(const IMUInfo& info)
     Vector3d g_body = MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(q), g);
     //Vector3d a_body_no_gravity = a_dif + g_body;
 
-    datalock.lock();
     prevData = boost::shared_ptr<INSData>(new INSData(p, v, q, g_body, a_dif, a_body, w_dif, a_bias, w_bias));
-    datalock.unlock();
-
-    lock.unlock();
 }
 
 void INS::Reset(const KalmanData& kData, bool tare, const Vector3d& tarePosition)
 {
-	lock.lock();
-
 	if(tare)
 		p_prev = tarePosition;
 	else
@@ -126,10 +115,6 @@ void INS::Reset(const KalmanData& kData, bool tare, const Vector3d& tarePosition
 	Vector3d a_body_no_gravity = a_body_prev - a_bias;
 	Vector3d w_dif_temp = w_dif_prev - w_bias;
 
-	datalock.lock();
 	prevData = boost::shared_ptr<INSData>(new INSData(p_prev, v_prev, q_prev, g_body, a_body_no_gravity, a_body_no_gravity, w_dif_temp, a_bias, w_bias));
-	datalock.unlock();
-
-	lock.unlock();
 }
 

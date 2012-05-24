@@ -1,0 +1,10 @@
+struct LPOSVSSMessage {
+	long state;
+	unsigned long long timestamp;
+	double position_NED[3];
+	double quaternion_NED_B[4];
+	double velocity_NED[3];
+	double angularRate_BODY[3];
+	double acceleration_BODY[3];
+};
+

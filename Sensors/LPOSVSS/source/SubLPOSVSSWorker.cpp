@@ -1,172 +1,104 @@
 #include "LPOSVSS/SubLPOSVSSWorker.h"
+#include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace subjugator;
+using namespace boost;
+using namespace boost::property_tree;
 using namespace std;
 
-LPOSVSSWorker::LPOSVSSWorker(boost::asio::io_service& io, int64_t rate, bool useDVL)
-	: Worker(io, rate), navComputer(new NavigationComputer(io)), useDVL(useDVL)
+LPOSVSSWorker::LPOSVSSWorker(const WorkerConfigLoader &configloader) :
+	Worker("LPOSVSS", 200, configloader),
+	dvlmailbox(WorkerMailbox<DVLVelocity>::Args()
+	           .setName("dvl")
+	           .setCallback(bind(&LPOSVSSWorker::setDVL, this, _1))),
+	imumailbox(WorkerMailbox<IMUInfo>::Args()
+	           .setName("imu")
+	           .setCallback(bind(&LPOSVSSWorker::setIMU, this, _1))),
+	depthmailbox(WorkerMailbox<DepthInfo>::Args()
+	             .setName("depth")
+	             .setCallback(bind(&LPOSVSSWorker::setDepth, this, _1))),
+	currentmailbox(WorkerMailbox<PDInfo>::Args()
+	               .setName("current")
+	               .setCallback(bind(&LPOSVSSWorker::setCurrents, this, _1))),
+	useDVL(getConfig().get<bool>("usedvl"))
 {
-	mStateManager.SetStateCallback(SubStates::INITIALIZE,
-			STATE_INITIALIZE_STRING,
-			boost::bind(&LPOSVSSWorker::initializeState, this));
-	mStateManager.SetStateCallback(SubStates::READY,
-			STATE_READY_STRING,
-			boost::bind(&LPOSVSSWorker::readyState, this));
-	mStateManager.SetStateCallback(SubStates::EMERGENCY,
-			STATE_EMERGENCY_STRING,
-			boost::bind(&LPOSVSSWorker::emergencyState, this));
-	mStateManager.SetStateCallback(SubStates::FAIL,
-			STATE_FAIL_STRING,
-			boost::bind(&LPOSVSSWorker::failState, this));
-	mStateManager.SetStateCallback(SubStates::ALL,
-			STATE_ALL_STRING,
-			boost::bind(&LPOSVSSWorker::allState, this));
+	registerStateUpdater(dvlmailbox);
+	registerStateUpdater(imumailbox);
+	registerStateUpdater(depthmailbox);
+	registerStateUpdater(currentmailbox);
 
-	// Set the command vector
-	mInputTokenList.resize(5);
+	const ptree &config = getConfig();
+	NavigationComputer::Config navconf;
 
-	setControlToken((int)LPOSVSSWorkerCommands::SetDepth, boost::bind(&LPOSVSSWorker::setDepth, this, _1));
-	setControlToken((int)LPOSVSSWorkerCommands::SetIMU, boost::bind(&LPOSVSSWorker::setIMU, this, _1));
-	setControlToken((int)LPOSVSSWorkerCommands::SetDVL, boost::bind(&LPOSVSSWorker::setDVL, this, _1));
-	setControlToken((int)LPOSVSSWorkerCommands::SetTare, boost::bind(&LPOSVSSWorker::setTare, this, _1));
-	setControlToken((int)LPOSVSSWorkerCommands::SetCurrents, boost::bind(&LPOSVSSWorker::setCurrents, this, _1));
+	navconf.currentconfigs.resize(8);
+	const ptree &currentconfigs = config.get_child("currentconfigs");
+	for (int i=0; i<8; i++) {
+		const ptree &pt = currentconfigs.get_child(lexical_cast<string>(i));
+
+		ThrusterCurrentCorrector::Config &config = navconf.currentconfigs[i];
+
+		ptree::const_iterator forward = pt.get_child("forward").begin();
+		ptree::const_iterator reverse = pt.get_child("reverse").begin();
+		for (int j=0; j<4; j++) {
+			config.forward[j] = forward++->second.get_value<Vector3d>();
+			config.reverse[j] = reverse++->second.get_value<Vector3d>();
+		}
+	}
+
+	navconf.q_MagCorrection = config.get<Vector4d>("q_MagCorrection");
+	navconf.magShift = config.get<Vector3d>("magShift");
+	navconf.magScale = config.get<Vector3d>("magScale");
+	navconf.referenceNorthVector = config.get<Vector3d>("referenceNorthVector");
+	navconf.latitudeDeg = config.get<double>("latitudeDeg");
+	navconf.dvl_sigma = config.get<Vector3d>("dvl_sigma");
+	navconf.att_sigma = config.get<Vector3d>("att_sigma");
+	navComputer.reset(new NavigationComputer(navconf));
 }
 
-/* DO NOT CHANGE CALLBACKS IN HANDLERS! DEADLOCK*/
-void LPOSVSSWorker::setDepth(const DataObject& dobj)
+void LPOSVSSWorker::setDepth(const optional<DepthInfo>& info)
 {
-	const DepthInfo *info = dynamic_cast<const DepthInfo *>(&dobj);
-	if(!info)
-		return;
-
-	lock.lock();
-
-	depthInfo = std::auto_ptr<DepthInfo>(new DepthInfo(*info));
-
-	lock.unlock();
+	if (isActive() && info)
+		navComputer->UpdateDepth(*info);
 }
 
-void LPOSVSSWorker::setCurrents(const DataObject& dobj)
+void LPOSVSSWorker::setCurrents(const optional<PDInfo>& info)
 {
+	if (isActive() && info)
+		navComputer->UpdateCurrents(*info);
 	return;
 }
 
-
-void LPOSVSSWorker::setIMU(const DataObject& dobj)
+void LPOSVSSWorker::setIMU(const optional<IMUInfo>& info)
 {
-	const IMUInfo *info = dynamic_cast<const IMUInfo *>(&dobj);
-	if(!info)
-		return;
-
-	lock.lock();
-
-	imuInfo = std::auto_ptr<IMUInfo>(new IMUInfo(*info));
-
-	lock.unlock();
+	if (isActive() && info)
+		navComputer->UpdateIMU(*info);
 }
 
-void LPOSVSSWorker::setDVL(const DataObject& dobj)
+void LPOSVSSWorker::setDVL(const optional<DVLVelocity>& info)
 {
-	const DVLHighresBottomTrack *info = dynamic_cast<const DVLHighresBottomTrack *>(&dobj);
-	if(!info)
-		return;
-
-	lock.lock();
-
-	dvlInfo = std::auto_ptr<DVLHighresBottomTrack>(new DVLHighresBottomTrack(*info));
-
-	lock.unlock();
+	if (isActive() && info)
+		navComputer->UpdateDVL(*info);
 }
 
-void LPOSVSSWorker::setTare(const DataObject& dobj)
+void LPOSVSSWorker::enterActive()
 {
-	navComputer->TarePosition(Vector3d::Zero());
+	navComputer->Init(*imumailbox, *dvlmailbox, *depthmailbox, useDVL);
 }
 
-bool LPOSVSSWorker::Startup()
+void LPOSVSSWorker::work(double dt)
 {
-	mStateManager.ChangeState(SubStates::INITIALIZE);
-	return true;
+	LPOSVSSInfo info;
+
+	navComputer->Update((boost::int64_t)(dt * 1000));
+	navComputer->GetNavInfo(info);
+
+	// Emit the LPOSInfo every iteration
+	signal.emit(info);
 }
 
-void LPOSVSSWorker::initializeState()
-{
-	// The packets must be present to start up
-	lock.lock();
-
-	if(!imuInfo.get() || !depthInfo.get())
-	{
-		lock.unlock();
-		return;
-	}
-	cout << "In initialize" << endl;
-	if(useDVL)
-	{
-		cout << "Waiting for good DVL" << endl;
-		if(!dvlInfo.get() || !dvlInfo->isGood())
-		{
-			lock.unlock();
-			return;
-		}
-	}
-	else
-		cout << "Faking DVL" << endl;
-
-	// Packets are present - go ahead and init
-	navComputer->Init(imuInfo, dvlInfo, depthInfo, useDVL);
-
-	lock.unlock();
-
-	// Okay, now flip the callbacks to the navcomputer directly
-	changeControlTokenCallback((int)LPOSVSSWorkerCommands::SetDepth, boost::bind(&NavigationComputer::UpdateDepth, boost::ref(*navComputer), _1));
-	changeControlTokenCallback((int)LPOSVSSWorkerCommands::SetIMU, boost::bind(&NavigationComputer::UpdateIMU, boost::ref(*navComputer), _1));
-	changeControlTokenCallback((int)LPOSVSSWorkerCommands::SetDVL, boost::bind(&NavigationComputer::UpdateDVL, boost::ref(*navComputer), _1));
-	changeControlTokenCallback((int)LPOSVSSWorkerCommands::SetCurrents, boost::bind(&NavigationComputer::UpdateCurrents, boost::ref(*navComputer), _1));
-
-	// And push to ready state
-	mStateManager.ChangeState(SubStates::READY);
-}
-
-void LPOSVSSWorker::readyState()
-{
-	// publishes in all state
-}
-
-void LPOSVSSWorker::allState()
-{
-	// Get the data
-	boost::shared_ptr<LPOSVSSInfo> info(new LPOSVSSInfo(mStateManager.GetCurrentStateCode(), getTimestamp()));
-
-	if(navComputer->getInitialized()) {
-		navComputer->GetNavInfo(*info);
-
-		// Emit the LPOSInfo every iteration
-		onEmitting(info);
-	}
-}
-
-void LPOSVSSWorker::emergencyState()
-{
-
-}
-
-void LPOSVSSWorker::failState()
-{
-
-}
-
-void LPOSVSSWorker::Shutdown()
+LPOSVSSWorker::~LPOSVSSWorker()
 {
 	if(navComputer->getInitialized())
 		navComputer->Shutdown();
-	shutdown = true;
 }
-
-boost::int64_t LPOSVSSWorker::getTimestamp(void)
-{
-	timespec t;
-	clock_gettime(CLOCK_MONOTONIC, &t);
-
-	return ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
-}
-
