@@ -29,10 +29,10 @@ int main(int argc, char **argv) {
 	dds.worker(worker);
 	dds.killMonitor(worker.killmon);
 
-	dds.receiver(worker.waypointmailbox, dds.topic<SetWaypointMessage>("SetWaypoint", TopicQOS::LEGACY));
-	dds.receiver(worker.initialpoint, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
+	dds.receiver(worker.waypointmailbox, dds.topic<SetWaypointMessage>("SetWaypoint", TopicQOS::RELIABLE));
+	dds.receiver(worker.initialpoint, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::PERSISTENT));
 
-	dds.sender(worker.trajsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
+	dds.sender(worker.trajsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::PERSISTENT));
 
 	builder.runWorker();
 }

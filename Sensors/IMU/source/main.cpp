@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	DDSBuilder dds(io);
 	dds.worker(worker);
 
-	dds.sender(worker.signal, dds.topic<IMUMessage>("IMU", TopicQOS::LEGACY));
+	dds.sender(worker.signal, dds.topic<IMUMessage>("IMU", TopicQOS::LIVELINESS | TopicQOS::EXCLUSIVE));
 
 	// Start the worker
 	builder.runWorker();

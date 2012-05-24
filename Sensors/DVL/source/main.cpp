@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
 	dds.killMonitor(worker.killmon);
 	dds.killSignal(worker.hobkillsignal);
-	dds.sender(worker.signal, dds.topic<DVLMessage>("DVL", TopicQOS::LEGACY));
+	dds.sender(worker.signal, dds.topic<DVLMessage>("DVL"));
 
 
 	// Start the worker

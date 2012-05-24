@@ -37,11 +37,11 @@ int main(int argc, char **argv) {
 
 	DDSBuilder dds(io);
 	dds.worker(worker);
-	dds.receiver(worker.dvlmailbox, dds.topic<DVLMessage>("DVL", TopicQOS::LEGACY));
-	dds.receiver(worker.imumailbox, dds.topic<IMUMessage>("IMU", TopicQOS::LEGACY));
-	dds.receiver(worker.depthmailbox, dds.topic<DepthMessage>("Depth", TopicQOS::LEGACY));
-	dds.receiver(worker.currentmailbox, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
-	dds.sender(worker.signal, dds.topic<LPOSVSSMessage>("LPOSVSS", TopicQOS::LEGACY));
+	dds.receiver(worker.dvlmailbox, dds.topic<DVLMessage>("DVL"));
+	dds.receiver(worker.imumailbox, dds.topic<IMUMessage>("IMU", TopicQOS::LIVELINESS | TopicQOS::EXCLUSIVE));
+	dds.receiver(worker.depthmailbox, dds.topic<DepthMessage>("Depth"));
+	dds.receiver(worker.currentmailbox, dds.topic<PDStatusMessage>("PDStatus"));
+	dds.sender(worker.signal, dds.topic<LPOSVSSMessage>("LPOSVSS"));
 
 	builder.runWorker();
 }

@@ -34,9 +34,9 @@ int main(int argc, char **argv) {
 	dds.killMonitor(worker.killmon);
 	dds.killSignal(worker.estopsignal);
 
-	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
+	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench"));
 	dds.receiver(worker.effortmailbox, dds.topic<PDEffortMessage>("PDEffort", TopicQOS::RELIABLE));
-	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus", TopicQOS::LEGACY));
+	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus"));
 
 	// Start the worker
 	builder.runWorker();

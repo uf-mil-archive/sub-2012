@@ -35,14 +35,14 @@ int main(int argc, char **argv) {
 	dds.worker(worker);
 	dds.killMonitor(worker.killmon);
 
-	dds.receiver(worker.lposvssmailbox, dds.topic<LPOSVSSMessage>("LPOSVSS", TopicQOS::LEGACY));
-	dds.receiver(worker.trajectorymailbox, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
+	dds.receiver(worker.lposvssmailbox, dds.topic<LPOSVSSMessage>("LPOSVSS"));
+	dds.receiver(worker.trajectorymailbox, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::PERSISTENT));
 	dds.receiver(worker.gainsmailbox, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::PERSISTENT));
 
-	dds.sender(worker.wrenchsignal, dds.topic<PDWrenchMessage>("PDWrench", TopicQOS::LEGACY));
-	dds.sender(worker.logsignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog", TopicQOS::LEGACY));
+	dds.sender(worker.wrenchsignal, dds.topic<PDWrenchMessage>("PDWrench"));
+	dds.sender(worker.logsignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog"));
 	dds.sender(worker.gainssignal, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::PERSISTENT));
-	dds.sender(worker.initialpointsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::LEGACY));
+	dds.sender(worker.initialpointsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::PERSISTENT));
 
 	// Start the worker
 	builder.runWorker();
