@@ -1,1 +1,1 @@
-sub_executable(C3Trajectory Sub DDS LegacyDDS)
+sub_executable(C3Trajectory Sub DDS)

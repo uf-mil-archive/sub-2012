@@ -1,19 +1,17 @@
 #include "C3Trajectory/C3Trajectory.h"
+#include "LibSub/Math/AttitudeHelpers.h"
 #include "boost/tuple/tuple.hpp"
-
-#include <iostream>
 
 using namespace subjugator;
 using namespace Eigen;
 using namespace boost;
 using namespace std;
 
-C3Trajectory::C3Trajectory(const Vector6d &qinit, const Vector6d &qdotinit, const Limits &limits) :
-	q(qinit),
-	qdot(qdotinit),
+C3Trajectory::C3Trajectory(const Point &start, const Limits &limits) :
+	q(start.q),
+	qdot(start.qdot),
 	qdotdot_b(Vector6d::Zero()),
 	u_b(Vector6d::Zero()),
-	u_b_prev(Vector6d::Zero()),
 	limits(limits) { }
 
 C3Trajectory::Point C3Trajectory::getCurrentPoint() const {
@@ -23,13 +21,22 @@ C3Trajectory::Point C3Trajectory::getCurrentPoint() const {
    	return p;
 }
 
+static Vector6d apply(const Matrix4d &T, const Vector6d &q, double w) {
+	Vector6d q_t;
+	q_t << q.head(3), w, 0, 0;
+	q_t.head(4) = T * q_t.head(4);
+	q_t.tail(3) = q.tail(3);
+	return q_t;
+}
+
 void C3Trajectory::update(double dt, const Vector6d &r) {
-	Matrix6d J = jacobian(q.tail(3));
-	Vector6d q_b = J*q;
-	Vector6d r_b = J*r;
-	r_b.head(3) -= q_b.head(3);
-	q_b.head(3).fill(0);
-	Vector6d qdot_b = J*qdot;
+	pair<Matrix4d, Matrix4d> Ts = transformation_pair(q);
+	const Matrix4d &T = Ts.first;
+	const Matrix4d &T_inv = Ts.second;
+
+	Vector6d q_b = apply(T, q, 1);
+	Vector6d r_b = apply(T, r, 1);
+	Vector6d qdot_b = apply(T, qdot, 0);
 
 	Vector6d vmin_b_prime = limits.vmin_b;
 	Vector6d vmax_b_prime = limits.vmax_b;
@@ -40,15 +47,28 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 		vmax_b_prime.head(3) = result.second;
 	}
 
-	u_b_prev = u_b;
+	for (int i=2; i<6; i++) {
+		while (r_b(i) - q_b(i) > M_PI)
+			r_b(i) -= 2*M_PI;
+		while (r_b(i) - q_b(i) < -M_PI)
+			r_b(i) += 2*M_PI;
+	}
+
 	for (int i=0; i<6; i++) {
 		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), 0, 0, vmin_b_prime(i), vmax_b_prime(i), limits.amin_b(i), limits.amax_b(i), limits.umax_b(i));
 	}
 
-	qdotdot_b += dt*u_b_prev;
-	Vector6d qdotdot = J.lu().solve(qdotdot_b);
+	qdotdot_b += dt*u_b;
+	Vector6d qdotdot = apply(T_inv, qdotdot_b, 0);
 	qdot += dt*qdotdot;
 	q += dt*qdot;
+
+	for (int i=2; i<6; i++) {
+		while (q(i) > M_PI)
+			q(i) -= 2*M_PI;
+		while (q(i) < -M_PI)
+			q(i) += 2*M_PI;
+	}
 }
 
 static double deltav(double v, double edot, double edotdot) {
@@ -104,29 +124,23 @@ double C3Trajectory::c3filter(double q, double qdot, double qdotdot,
 	return max(uv_emin, min(uc, uv_emax));
 }
 
-Matrix6d C3Trajectory::jacobian(const Vector3d &rpy) {
-	double sphi = sin(rpy(0));
-	double cphi = cos(rpy(0));
+pair<Matrix4d, Matrix4d> C3Trajectory::transformation_pair(const Vector6d &q) {
+	Matrix4d R;
+	R.block<3,3>(0, 0) = AttitudeHelpers::EulerToRotation(q.tail(3));
+	R.block<1,3>(3, 0).fill(0);
+	R.block<3,1>(0, 3).fill(0);
+	R(3, 3) = 1;
 
-	double stheta = sin(rpy(1));
-	double ctheta = cos(rpy(1));
-	double tantheta = tan(rpy(1));
+	Matrix4d T = Matrix4d::Identity();
+	T.block<3,1>(0, 3) = q.head(3);
 
-	double spsi = sin(rpy(2));
-	double cpsi = cos(rpy(2));
+	pair<Matrix4d, Matrix4d> result;
+	result.first = R.transpose()*T; // NED -> BODY
 
-	Matrix6d j;
-	j.block<3,3>(0, 0) <<
-		cpsi*ctheta, -spsi*cphi + cpsi*stheta*sphi, spsi*sphi + cphi*cphi*stheta,
-		spsi*ctheta, cpsi*cphi + sphi*stheta*spsi, -cpsi*sphi + stheta*spsi*cphi,
-		-stheta, ctheta*sphi, ctheta*cphi;
-	j.block<3,3>(0, 3).fill(0);
-	j.block<3,3>(3, 0).fill(0);
-	j.block<3,3>(3, 3) <<
-		1, sphi*tantheta, cphi*tantheta,
-		0, cphi, -sphi,
-		0, sphi/ctheta, cphi/ctheta;
-	return j;
+	T.block<3,1>(0, 3) = -q.head(3);
+	result.second = T*R; // BODY -> NED
+
+	return result;
 }
 
 std::pair<Vector3d, Vector3d> C3Trajectory::limit(const Vector3d &vmin, const Vector3d &vmax, const Vector3d &delta) {

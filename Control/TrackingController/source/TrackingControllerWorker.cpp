@@ -29,7 +29,6 @@ void TrackingControllerWorker::initialize() {
 }
 
 void TrackingControllerWorker::enterActive() {
-	setCurrentPosWaypoint();
 	resetController();
 }
 
@@ -41,6 +40,9 @@ void TrackingControllerWorker::work(double dt) {
 	            MILQuaternionOps::Quat2Euler(lpos.quaternion_ned_b);
 	state.vb << MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(lpos.quaternion_ned_b), lpos.velocity_ned),
 	            lpos.angularrate_body;
+
+	if (!trajectorymailbox)
+		setCurrentPosWaypoint();
 
 	// update controller
 	TrackingController::Output out = controllerptr->update(dt, *trajectorymailbox, state);
@@ -108,10 +110,11 @@ void TrackingControllerWorker::setCurrentPosWaypoint() {
 
 	TrackingController::TrajectoryPoint tp;
 	tp.xd << lposvssmailbox->position_ned,
-	         0,
 	         abs(rpy(0)) < M_PI/2 ? 0 : M_PI,
+	         0,
 	         rpy(2);
-	tp.xd_dot = Vector6d::Zero();
+	tp.xd_dot.fill(0);
 	trajectorymailbox.set(tp);
+	initialpointsignal.emit(tp);
 }
 

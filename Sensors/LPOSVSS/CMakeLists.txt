@@ -1,1 +1,1 @@
-sub_executable(LPOSVSS LegacyDDS SubMain LegacyHAL DataObjects)
+sub_executable(LPOSVSS DDS Sub)

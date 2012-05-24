@@ -1,45 +1,55 @@
 #ifndef SUBNAVIGATIONCOMPUTER_H
 #define SUBNAVIGATIONCOMPUTER_H
 
-#include "SubMain/SubPrerequisites.h"
 #include "LPOSVSS/SubThrusterCurrentCorrector.h"
-#include "DataObjects/DVL/DVLHighresBottomTrack.h"
-#include "DataObjects/IMU/IMUInfo.h"
-#include "DataObjects/Depth/DepthInfo.h"
-#include "DataObjects/PD/PDInfo.h"
-#include "DataObjects/LPOSVSS/LPOSVSSInfo.h"
-#include "SubMain/SubTriad.h"
-#include "SubMain/SubAttitudeHelpers.h"
-#include "SubMain/SubMILQuaternion.h"
+#include "LPOSVSS/DataObjects/DVLVelocity.h"
+#include "LPOSVSS/DataObjects/IMUInfo.h"
+#include "LPOSVSS/DataObjects/DepthInfo.h"
+#include "LPOSVSS/DataObjects/PDInfo.h"
+#include "LPOSVSS/DataObjects/LPOSVSSInfo.h"
+#include "LPOSVSS/Triad.h"
+#include "LibSub/Math/AttitudeHelpers.h"
+#include "LibSub/Math/Quaternion.h"
+#include "LibSub/Math/EigenUtils.h"
 #include "LPOSVSS/SubINS.h"
 #include "LPOSVSS/SubKalman.h"
 #include <cmath>
 #include <Eigen/Dense>
+#include <ctime>
 
-#include <time.h>
-
-using namespace Eigen;
-
-namespace subjugator
-{
-	class NavigationComputer
-	{
+namespace subjugator {
+	class NavigationComputer {
 	public:
-		typedef Matrix<double,7,1> Vector7d;
-	public:
-		NavigationComputer(boost::asio::io_service& io);
-		void Init(std::auto_ptr<IMUInfo> imuInfo, std::auto_ptr<DVLHighresBottomTrack> dvlInfo, std::auto_ptr<DepthInfo> depthInfo, bool useDVL);
+		struct Config {
+			std::vector<ThrusterCurrentCorrector::Config> currentconfigs;
+			Vector4d q_MagCorrection;
+			Vector3d magShift;
+			Vector3d magScale;
+
+			Vector3d referenceNorthVector;
+			double latitudeDeg;
+
+			Vector3d dvl_sigma;
+			Vector3d att_sigma;
+		};
+
+		NavigationComputer(const Config &config);
+		void Init(const IMUInfo &imuInfo, const DVLVelocity &dvlInfo, const DepthInfo &depthInfo, bool useDVL);
 		bool getInitialized() { return initialized; }
-		void UpdateIMU(const DataObject& dobj);
-		void UpdateDepth(const DataObject& dobj);
-		void UpdateDVL(const DataObject& dobj);
-		void UpdateCurrents(const DataObject& dobj);
+		void UpdateIMU(const IMUInfo& imu);
+		void UpdateDepth(const DepthInfo& dobj);
+		void UpdateDVL(const DVLVelocity& dvl);
+		void UpdateCurrents(const PDInfo& dobj);
 
 		void Shutdown();
 		void TarePosition(const Vector3d& position);
 		void GetNavInfo(LPOSVSSInfo& info);
 
+		void Update(boost::int64_t dtms);
+
 	private:
+		Config conf;
+
 		static const double latitudeDeg = 29.651388889; /*gainesville*/
 		static const double alpha = 0.4082;
 		static const double beta = 2.0;
@@ -53,21 +63,13 @@ namespace subjugator
 		static const double MAX_DEPTH = 15; // m
 		static const double MAX_DVL_NORM = 10; // Sub can't run at 10m/s
 
-		boost::asio::io_service& io;
-
-		Vector3d referenceNorthVector;
 		Vector3d referenceGravityVector;
 		Vector3d initialPosition;
 		Vector3d initialVelocity;
 		Vector3d white_noise_sigma_f;
 		Vector3d white_noise_sigma_w;
-		Vector3d dvl_sigma;
-		Vector3d att_sigma;
 		Vector4d q_SUB_DVL;
 		Vector4d q_SUB_IMU;
-		Vector4d q_MagCorrection;
-		Vector3d magShift;
-		Vector3d magScale;
 		Matrix<double, 13, 13>covariance;
 
 		std::vector<ThrusterCurrentCorrector> thrusterCurrentCorrectors;
@@ -85,7 +87,6 @@ namespace subjugator
 		Vector4d attRef;
 		Vector3d velRef;
 		Vector7d z;
-
 		Vector3d r_ORIGIN_NAV;
 
 		Vector3d magSum;
@@ -98,20 +99,17 @@ namespace subjugator
 
 		bool initialized;
 
-		boost::shared_mutex kLock;
-		boost::mutex tareLock;
-		boost::mutex currentLock;
-
 		bool shutdown;
 
 		int kalmanCount;
 		boost::int64_t kTimerMs;
-		std::auto_ptr<boost::asio::deadline_timer> kTimer;
+		boost::int64_t kTimer;
 		boost::int64_t dvlTimerMs;
-		std::auto_ptr<boost::asio::deadline_timer> dvlTimer;
-		void fakeDVL(const boost::system::error_code& /*e*/);
+		boost::int64_t dvlTimer;
+		bool useDVL;
+		void fakeDVL();
 
-		void updateKalman(const boost::system::error_code& /*e*/);
+		void updateKalman();
 		boost::int64_t getTimestamp(void);
 		void resetErrors(bool tare, const Vector3d& tarePosition);
 	};

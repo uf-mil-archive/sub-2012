@@ -4,7 +4,6 @@ from collections import namedtuple
 
 part = dds.Participant()
 lib = dds.Library('libdds_c.so')
-oldlib = dds.Library('libddsmessages_c.so')
 
 LEGACY = ['legacy']
 UNRELIABLE = []
@@ -19,15 +18,15 @@ _TopicConf = namedtuple('TopicConf', 'type qos')
 
 _topic_qoses = {
     'WorkerLog': _TopicConf(lib.WorkerLogMessage, DEEP_PERSISTENT),
-    'PDStatus': _TopicConf(lib.PDStatusMessage, LEGACY),
-    'PDEffort': _TopicConf(lib.PDEffortMessage, RELIABLE),
-    'IMU': _TopicConf(lib.IMUMessage,  LEGACY),
-    'DVL': _TopicConf(lib.DVLMessage,  LEGACY),
-    'Depth': _TopicConf(lib.DepthMessage, LEGACY),
+    'PDStatus': _TopicConf(lib.PDStatusMessage, DEFAULT),
+    'PDEffort': _TopicConf(lib.PDEffortMessage, DEFAULT),
+    'IMU': _TopicConf(lib.IMUMessage,  EXCLUSIVE+LIVELINESS),
+    'DVL': _TopicConf(lib.DVLMessage,  DEFAULT),
+    'Depth': _TopicConf(lib.DepthMessage, DEFAULT),
     'ControllerGains': _TopicConf(lib.ControllerGainsMessage, PERSISTENT),
-    'Trajectory': _TopicConf(lib.TrajectoryMessage, LEGACY),
-    'SetWaypoint': _TopicConf(oldlib.SetWaypointMessage, LEGACY),
-    'LPOSVSS': _TopicConf(oldlib.LPOSVSSMessage, LEGACY),
+    'Trajectory': _TopicConf(lib.TrajectoryMessage, PERSISTENT),
+    'SetWaypoint': _TopicConf(lib.SetWaypointMessage, RELIABLE),
+    'LPOSVSS': _TopicConf(lib.LPOSVSSMessage, DEFAULT),
 }
 
 def get(name):
@@ -46,6 +45,6 @@ def make_qos(qoslist):
                 qos.history.kind = dds.HistoryQosPolicyKind.KEEP_ALL
             qos.durability.kind = dds.DurabilityQosPolicyKind.TRANSIENT_LOCAL
         if 'liveliness' in qoslist:
-            qos.livelines.lease_duration.sec = 0
-            qos.livelines.lease_duration.nanosec = 500E6
+            qos.liveliness.lease_duration.sec = 0
+            qos.liveliness.lease_duration.nanosec = long(500E6)
     return qos

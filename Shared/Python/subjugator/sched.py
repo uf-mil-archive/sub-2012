@@ -282,6 +282,18 @@ def ddswait(topic):
     finally:
         topicmon.cancel()
 
+def ddswait_timeout(topic, timeout):
+    task = current_task()
+    topicmon = TopicMonitor(topic, task._resume)
+    timer = Timer(time.time() + timeout, task._resume)
+
+    try:
+        task._suspend('ddswait_timeout')
+        return not timer.activated
+    finally:
+        topicmon.cancel()
+        timer.cancel()
+
 def yield_():
     _switch_sched()
 

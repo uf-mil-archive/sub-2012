@@ -144,6 +144,10 @@ namespace subjugator {
 				return &*data;
 			}
 
+			bool operator!() const {
+				return !data;
+			}
+
 			/**
 			\brief Takes the most recent data if it has not yet been taken, or returns a default value
 			*/
