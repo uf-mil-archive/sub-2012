@@ -47,6 +47,16 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 		vmax_b_prime.head(3) = result.second;
 	}
 
+	Vector6d amin_b_prime = limits.amin_b;
+	Vector6d amax_b_prime = limits.amax_b;
+
+	for (int i=0; i<3; i++) {
+		if (qdot_b(i) < 0) {
+			amin_b_prime(i) += limits.arevoffset_b(i);
+			amax_b_prime(i) += limits.arevoffset_b(i);
+		}
+	}
+
 	for (int i=2; i<6; i++) {
 		while (r_b(i) - q_b(i) > M_PI)
 			r_b(i) -= 2*M_PI;
@@ -55,7 +65,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	}
 
 	for (int i=0; i<6; i++) {
-		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), 0, 0, vmin_b_prime(i), vmax_b_prime(i), limits.amin_b(i), limits.amax_b(i), limits.umax_b(i));
+		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), 0, 0, vmin_b_prime(i), vmax_b_prime(i), amin_b_prime(i), amax_b_prime(i), limits.umax_b(i));
 	}
 
 	qdotdot_b += dt*u_b;

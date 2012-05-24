@@ -11,6 +11,7 @@ namespace subjugator {
 			Vector6d vmax_b;
 			Vector6d amin_b;
 			Vector6d amax_b;
+			Vector3d arevoffset_b;
 			Vector6d umax_b;
 		};
 
@@ -28,7 +29,6 @@ namespace subjugator {
 		inline void setLimits(const Limits &limits) { this->limits = limits; }
 
 		void update(double dt, const Vector6d &r);
-
 
 		Point getCurrentPoint() const;
 

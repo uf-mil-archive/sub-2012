@@ -43,6 +43,7 @@ void C3TrajectoryWorker::loadConfig() {
 	limits.vmax_b = config.get<Vector6d>("vmax_b");
 	limits.amin_b = config.get<Vector6d>("amin_b");
 	limits.amax_b = config.get<Vector6d>("amax_b");
+	limits.arevoffset_b = config.get<Vector3d>("arevoffset_b");
 	limits.umax_b = config.get<Vector6d>("umax_b");
 	traj_dt = config.get<double>("traj_dt");
 }
