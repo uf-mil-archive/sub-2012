@@ -207,7 +207,7 @@ class Visualizer(object):
                     self.contents[name].data.append((t, value))
 
             for line in self.contents.itervalues():
-                while line.data and line.data[0][0] < t - math.pi*3: # having the period not be rational helps the tick marks
+                while line.data and line.data[0][0] < t - math.pi*6: # having the period not be rational helps the tick marks
                     line.data.pop(0)
 
             self.redraw()
@@ -301,25 +301,23 @@ class Visualizer(object):
         self.waypoint_current_set = False
 
     def waypoint_apply(self, widget):
-        for name in 'zRPY':
-            val = float(self.wTree.get_object('wp_cur_' + name).get_text())
-            new = val + float(self.wTree.get_object('wp_del_' + name).get_text())
-            self.wTree.get_object('wp_del_' + name).set_text('0')
-            self.wTree.get_object('wp_cur_' + name).set_text(str(new))
+        cur = dict((name, float(self.wTree.get_object('wp_cur_' + name).get_text())) for name in 'xyzRPY')
+        delta = dict((name, float(self.wTree.get_object('wp_del_' + name).get_text())) for name in 'xyzRPY')
 
-        dx = float(self.wTree.get_object('wp_del_x').get_text())
-        x = float(self.wTree.get_object('wp_cur_x').get_text())
-        dy = float(self.wTree.get_object('wp_del_y').get_text())
-        y = float(self.wTree.get_object('wp_cur_y').get_text())
-        yaw = math.radians(float(self.wTree.get_object('wp_cur_Y').get_text()))
-        self.wTree.get_object('wp_cur_x').set_text(str(x + dx*math.cos(yaw)-dy*math.sin(yaw)))
-        self.wTree.get_object('wp_cur_y').set_text(str(y + dx*math.sin(yaw)+dy*math.cos(yaw)))
+        yaw = math.radians(cur['Y'])
+        cur['x'] += delta['x']*math.cos(yaw) - delta['y']*math.sin(yaw)
+        cur['y'] += delta['x']*math.sin(yaw) + delta['y']*math.cos(yaw)
+        for name in 'zRPY':
+            cur[name] += delta[name]
 
         self.setwaypoint_topic.send(dict(
             isRelative=False,
-            position_ned=[float(self.wTree.get_object('wp_cur_' + name).get_text()) for name in 'xyz'],
-            rpy=[math.radians(float(self.wTree.get_object('wp_cur_' + name).get_text())) for name in 'RPY'],
+            position_ned=[cur[name] for name in 'xyz'],
+            rpy=[math.radians(cur[name]) for name in 'RPY'],
         ))
+        for name in 'xyzRPY':
+            self.wTree.get_object('wp_cur_' + name).set_text(str(cur[name]))
+            self.wTree.get_object('wp_del_' + name).set_text('0')
 
 
 def main():
