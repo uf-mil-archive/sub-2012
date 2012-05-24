@@ -135,10 +135,10 @@ pair<Matrix4d, Matrix4d> C3Trajectory::transformation_pair(const Vector6d &q) {
 	T.block<3,1>(0, 3) = q.head(3);
 
 	pair<Matrix4d, Matrix4d> result;
-	result.first = R*T; // NED -> BODY
+	result.first = R.transpose()*T; // NED -> BODY
 
 	T.block<3,1>(0, 3) = -q.head(3);
-	result.second = T*R.transpose(); // BODY -> NED
+	result.second = T*R; // BODY -> NED
 
 	return result;
 }
