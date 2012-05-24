@@ -47,6 +47,13 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 		vmax_b_prime.head(3) = result.second;
 	}
 
+	for (int i=2; i<6; i++) {
+		while (r_b(i) - q_b(i) > M_PI)
+			r_b(i) -= 2*M_PI;
+		while (r_b(i) - q_b(i) < -M_PI)
+			r_b(i) += 2*M_PI;
+	}
+
 	for (int i=0; i<6; i++) {
 		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), 0, 0, vmin_b_prime(i), vmax_b_prime(i), limits.amin_b(i), limits.amax_b(i), limits.umax_b(i));
 	}
@@ -55,6 +62,13 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	Vector6d qdotdot = apply(T_inv, qdotdot_b, 0);
 	qdot += dt*qdotdot;
 	q += dt*qdot;
+
+	for (int i=2; i<6; i++) {
+		while (q(i) > M_PI)
+			q(i) -= 2*M_PI;
+		while (q(i) < -M_PI)
+			q(i) += 2*M_PI;
+	}
 }
 
 static double deltav(double v, double edot, double edotdot) {
@@ -121,10 +135,10 @@ pair<Matrix4d, Matrix4d> C3Trajectory::transformation_pair(const Vector6d &q) {
 	T.block<3,1>(0, 3) = q.head(3);
 
 	pair<Matrix4d, Matrix4d> result;
-	result.first = R*T; // NED -> BODY
+	result.first = R.transpose()*T; // NED -> BODY
 
 	T.block<3,1>(0, 3) = -q.head(3);
-	result.second = T*R.transpose(); // BODY -> NED
+	result.second = T*R; // BODY -> NED
 
 	return result;
 }
