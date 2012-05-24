@@ -4,7 +4,6 @@ from collections import namedtuple
 
 part = dds.Participant()
 lib = dds.Library('libdds_c.so')
-oldlib = dds.Library('libddsmessages_c.so')
 
 LEGACY = ['legacy']
 UNRELIABLE = []
@@ -26,8 +25,8 @@ _topic_qoses = {
     'Depth': _TopicConf(lib.DepthMessage, LEGACY),
     'ControllerGains': _TopicConf(lib.ControllerGainsMessage, PERSISTENT),
     'Trajectory': _TopicConf(lib.TrajectoryMessage, LEGACY),
-    'SetWaypoint': _TopicConf(oldlib.SetWaypointMessage, LEGACY),
-    'LPOSVSS': _TopicConf(oldlib.LPOSVSSMessage, LEGACY),
+    'SetWaypoint': _TopicConf(lib.SetWaypointMessage, LEGACY),
+    'LPOSVSS': _TopicConf(lib.LPOSVSSMessage, LEGACY),
 }
 
 def get(name):
