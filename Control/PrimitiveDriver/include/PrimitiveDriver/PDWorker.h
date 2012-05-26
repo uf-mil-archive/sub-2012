@@ -27,10 +27,12 @@ namespace subjugator {
 
 		WorkerSignal<std::vector<double> > currentsignal;
 		WorkerSignal<PDInfo> infosignal;
+		WorkerSignal<VectorXd> effortsignal;
 		WorkerKillSignal estopsignal;
 
 	protected:
 		virtual void initialize();
+		virtual void enterActive();
 		virtual void work(double dt);
 		virtual void leaveActive();
 

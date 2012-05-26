@@ -1,3 +1,4 @@
+
 #include "PrimitiveDriver/PDWorker.h"
 #include "PrimitiveDriver/DataObjects/HeartBeat.h"
 #include "PrimitiveDriver/DataObjects/HeartBeatDataObjectFormatter.h"
@@ -56,13 +57,15 @@ void PDWorker::wrenchSet(const boost::optional<Vector6d> &optwrench) {
 		return;
 
 	VectorXd efforts = thrustermapper.mapWrenchToEfforts(optwrench.get_value_or(Vector6d::Zero()));
+	effortsignal.emit(efforts);
 	thrustermanager.setEfforts(efforts);
 }
 
 void PDWorker::effortSet(const boost::optional<VectorXd> &optefforts) {
 	if (!isActive())
 		return;
-
+	if (wrenchmailbox.hasData())
+		return;
 	thrustermanager.setEfforts(optefforts.get_value_or(VectorXd::Zero(8)));
 }
 
@@ -81,6 +84,10 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 void PDWorker::estopChanged(bool estop) {
 	estopsignal.setKill(estop);
 	logger.log(string("ESTOP ") + (estop ? "engaged" : "disengaged"));
+}
+
+void PDWorker::enterActive() {
+	effortsignal.emit(VectorXd::Zero(8, 1));
 }
 
 void PDWorker::work(double dt) {
@@ -102,4 +109,5 @@ void PDWorker::work(double dt) {
 
 void PDWorker::leaveActive() {
 	thrustermanager.zeroEfforts();
+	effortsignal.emit(VectorXd::Zero(8, 1));
 }

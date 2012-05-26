@@ -265,14 +265,14 @@ void MainWindow::updateStats() {
 	}
 
 	if (data.efforts.avail) {
-		ui.thrusterLFORLabel->setText(QString("%1%%").arg(data.efforts.lfor, 0, 'f', 2));
-		ui.thrusterRFORLabel->setText(QString("%1%%").arg(data.efforts.rfor, 0, 'f', 2));
-		ui.thrusterFSLabel->setText(QString("%1%%").arg(data.efforts.fs, 0, 'f', 2));
-		ui.thrusterRSLabel->setText(QString("%1%%").arg(data.efforts.rs, 0, 'f', 2));
-		ui.thrusterFLVLabel->setText(QString("%1%%").arg(data.efforts.flv, 0, 'f', 2));
-		ui.thrusterFRVLabel->setText(QString("%1%%").arg(data.efforts.frv, 0, 'f', 2));
-		ui.thrusterRLVLabel->setText(QString("%1%%").arg(data.efforts.rlv, 0, 'f', 2));
-		ui.thrusterRRVLabel->setText(QString("%1%%").arg(data.efforts.rrv, 0, 'f', 2));
+		ui.thrusterLFORLabel->setText(QString("%1%").arg(data.efforts.lfor, 0, 'f', 2));
+		ui.thrusterRFORLabel->setText(QString("%1%").arg(data.efforts.rfor, 0, 'f', 2));
+		ui.thrusterFSLabel->setText(QString("%1%").arg(data.efforts.fs, 0, 'f', 2));
+		ui.thrusterRSLabel->setText(QString("%1%").arg(data.efforts.rs, 0, 'f', 2));
+		ui.thrusterFLVLabel->setText(QString("%1%").arg(data.efforts.flv, 0, 'f', 2));
+		ui.thrusterFRVLabel->setText(QString("%1%").arg(data.efforts.frv, 0, 'f', 2));
+		ui.thrusterRLVLabel->setText(QString("%1%").arg(data.efforts.rlv, 0, 'f', 2));
+		ui.thrusterRRVLabel->setText(QString("%1%").arg(data.efforts.rrv, 0, 'f', 2));
 	} else {
 		ui.thrusterLFORLabel->setText(QString("Unavailable"));
 		ui.thrusterRFORLabel->setText(QString("Unavailable"));

@@ -9,7 +9,7 @@ using namespace std;
 Stats::Stats(Participant &part) :
 	lposvsstopic(part, "LPOSVSS"),
 	lposvssreceiver(lposvsstopic),
-	efforttopic(part, "PDEfforts", TopicQOS::RELIABLE),
+	efforttopic(part, "PDEffort", TopicQOS::RELIABLE),
 	effortreceiver(efforttopic),
 	statustopic(part, "PDStatus"),
 	statusreceiver(statustopic)

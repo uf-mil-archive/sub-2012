@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
 
 	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench"));
 	dds.receiver(worker.effortmailbox, dds.topic<PDEffortMessage>("PDEffort", TopicQOS::RELIABLE));
+	dds.sender(worker.effortsignal, dds.topic<PDEffortMessage>("PDEffort", TopicQOS::RELIABLE));
 	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus"));
 
 	// Start the worker
@@ -56,6 +57,12 @@ namespace subjugator {
 		vec.resize(8);
 		for (int i=0; i<8; i++)
 			vec(i) = msg.efforts[i];
+	}
+
+	template <>
+	void to_dds(PDEffortMessage &msg, const VectorXd &vec) {
+		for (int i=0; i<8; i++)
+			msg.efforts[i] = vec.size() > i ? vec(i) : 0;
 	}
 
 	template <>
