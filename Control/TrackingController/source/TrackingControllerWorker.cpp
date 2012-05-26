@@ -30,6 +30,7 @@ void TrackingControllerWorker::initialize() {
 
 void TrackingControllerWorker::enterActive() {
 	resetController();
+	setCurrentPosWaypoint();
 }
 
 void TrackingControllerWorker::work(double dt) {
