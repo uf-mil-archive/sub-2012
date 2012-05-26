@@ -204,8 +204,8 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 			MILQuaternionOps::QuatRotate(MILQuaternionOps::QuatInverse(info.quaternion_NED_B), referenceGravityVector);
 
 	//cout << "INS V\n" << insdata->Velocity_NED << endl;
-	cout<<"RPY:" << endl;
-	cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
+	//cout<<"RPY:" << endl;
+	//cout << MILQuaternionOps::Quat2Euler(info.quaternion_NED_B)*180.0/boost::math::constants::pi<double>() << endl;
 }
 
 void NavigationComputer::UpdateIMU(const IMUInfo& imu)
