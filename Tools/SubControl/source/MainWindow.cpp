@@ -11,19 +11,20 @@ using namespace boost;
 using namespace std;
 
 MainWindow::MainWindow() :
-timer(this),
-updating(false),
-statustopic(part, "WorkerManagerStatus", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
-statusreceiver(statustopic),
-commandtopic(part, "WorkerManagerCommand", TopicQOS::RELIABLE),
-commandsender(commandtopic),
-statetopic(part, "WorkerState", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
-statereceiver(statetopic),
-logtopic(part, "WorkerLog", TopicQOS::DEEP_PERSISTENT),
-logreceiver(logtopic),
-killtopic(part, "WorkerKill", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
-killreceiver(killtopic),
-killsender(killtopic)
+	timer(this),
+	updating(false),
+	statustopic(part, "WorkerManagerStatus", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
+	statusreceiver(statustopic),
+	commandtopic(part, "WorkerManagerCommand", TopicQOS::RELIABLE),
+	commandsender(commandtopic),
+	statetopic(part, "WorkerState", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
+	statereceiver(statetopic),
+	logtopic(part, "WorkerLog", TopicQOS::DEEP_PERSISTENT),
+	logreceiver(logtopic),
+	killtopic(part, "WorkerKill", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
+	killreceiver(killtopic),
+	killsender(killtopic),
+	stats(part)
 {
 	ui.setupUi(this);
 	ui.workerStatusTable->setHorizontalHeaderLabels(QStringList() << "En" << "Worker" << "Status" << "Message");
@@ -47,6 +48,7 @@ void MainWindow::update() {
 	updateWorkers();
 	updateKills();
 	updateLog();
+	updateStats();
 	updating = false;
 }
 
@@ -71,7 +73,7 @@ void MainWindow::unkillClicked() {
 	sendKill(false);
 }
 
-void MainWindow::updateWorkers() {	
+void MainWindow::updateWorkers() {
 	vector<boost::shared_ptr<WorkerManagerStatusMessage> > statusmessages = statusreceiver.readAll();
 	vector<boost::shared_ptr<WorkerStateMessage> > statemessages = statereceiver.readAll();
 
@@ -96,7 +98,7 @@ void MainWindow::updateWorkers() {
 
 	QTableWidget &table = *ui.workerStatusTable;
 	DisableSorting disablesorting(table);
-	
+
 	for (int row=0; row<table.rowCount();) {
 		string name = table.item(row, 1)->text().toStdString();
 
@@ -105,7 +107,7 @@ void MainWindow::updateWorkers() {
 			const Entry &entry = i->second;
 			updateWorker(row, name, entry.first, entry.second);
 			row++;
-			entrymap.erase(i);	
+			entrymap.erase(i);
 		} else {
 			table.removeRow(row);
 		}
@@ -133,7 +135,7 @@ void MainWindow::updateWorker(int row, const std::string &name, const boost::opt
 		cstate = static_cast<CombinedState>(state->code + 3);
 		msg = state->msg;
 	}
-	
+
 	QTableWidget &table = *ui.workerStatusTable;
 	DisableSorting disablesorting(table);
 	static const QColor statecolors[] = {
@@ -164,7 +166,7 @@ void MainWindow::updateWorker(int row, const std::string &name, const boost::opt
 void MainWindow::updateKills() {
 	typedef map<string, boost::shared_ptr<WorkerKillMessage> > KillMap;
 	KillMap killmap;
-	
+
 	vector<boost::shared_ptr<WorkerKillMessage> > killmessages = killreceiver.readAll();
 	for (unsigned int i=0; i<killmessages.size(); i++) {
 		killmap[killmessages[i]->name] = killmessages[i];
@@ -235,10 +237,58 @@ void MainWindow::updateLog() {
 	}
 }
 
+void MainWindow::updateStats() {
+	Stats::Data data = stats.getData();
+
+	if (data.rails.avail) {
+		ui.power16Label->setText(QString("%1A @ %2V").arg(data.rails.r16.current, 0, 'f', 2).arg(data.rails.r16.voltage, 0, 'f', 2));
+		ui.power32Label->setText(QString("%1A @ %2V").arg(data.rails.r32.current, 0, 'f', 2).arg(data.rails.r32.voltage, 0, 'f', 2));
+	} else {
+		ui.power16Label->setText("Unavailable");
+		ui.power32Label->setText("Unavailable");
+	}
+
+	if (data.lposvss.avail) {
+		ui.LPOSVSSXLabel->setText(QString("%1 m").arg(data.lposvss.x, 0, 'f', 2));
+		ui.LPOSVSSYLabel->setText(QString("%1 m").arg(data.lposvss.y, 0, 'f', 2));
+		ui.LPOSVSSZLabel->setText(QString("%1 m").arg(data.lposvss.z, 0, 'f', 2));
+		ui.LPOSVSSRollLabel->setText(QString("%1 deg").arg(data.lposvss.R*180/M_PI, 0, 'f', 2));
+		ui.LPOSVSSPitchLabel->setText(QString("%1 deg").arg(data.lposvss.P*180/M_PI, 0, 'f', 2));
+		ui.LPOSVSSYawLabel->setText(QString("%1 deg").arg(data.lposvss.Y*180/M_PI, 0, 'f', 2));
+	} else {
+		ui.LPOSVSSXLabel->setText(QString("Unavailable"));
+		ui.LPOSVSSYLabel->setText(QString("Unavailable"));
+		ui.LPOSVSSZLabel->setText(QString("Unavailable"));
+		ui.LPOSVSSRollLabel->setText(QString("Unavailable"));
+		ui.LPOSVSSPitchLabel->setText(QString("Unavailable"));
+		ui.LPOSVSSYawLabel->setText(QString("Unavailable"));
+	}
+
+	if (data.efforts.avail) {
+		ui.thrusterLFORLabel->setText(QString("%1%%").arg(data.efforts.lfor, 0, 'f', 2));
+		ui.thrusterRFORLabel->setText(QString("%1%%").arg(data.efforts.rfor, 0, 'f', 2));
+		ui.thrusterFSLabel->setText(QString("%1%%").arg(data.efforts.fs, 0, 'f', 2));
+		ui.thrusterRSLabel->setText(QString("%1%%").arg(data.efforts.rs, 0, 'f', 2));
+		ui.thrusterFLVLabel->setText(QString("%1%%").arg(data.efforts.flv, 0, 'f', 2));
+		ui.thrusterFRVLabel->setText(QString("%1%%").arg(data.efforts.frv, 0, 'f', 2));
+		ui.thrusterRLVLabel->setText(QString("%1%%").arg(data.efforts.rlv, 0, 'f', 2));
+		ui.thrusterRRVLabel->setText(QString("%1%%").arg(data.efforts.rrv, 0, 'f', 2));
+	} else {
+		ui.thrusterLFORLabel->setText(QString("Unavailable"));
+		ui.thrusterRFORLabel->setText(QString("Unavailable"));
+		ui.thrusterFSLabel->setText(QString("Unavailable"));
+		ui.thrusterRSLabel->setText(QString("Unavailable"));
+		ui.thrusterFLVLabel->setText(QString("Unavailable"));
+		ui.thrusterFRVLabel->setText(QString("Unavailable"));
+		ui.thrusterRLVLabel->setText(QString("Unavailable"));
+		ui.thrusterRRVLabel->setText(QString("Unavailable"));
+	}
+}
+
 void MainWindow::updateTableItem(QTableWidget &table, int row, int col, const QColor &color, const std::string &str) {
 	QTableWidgetItem *item = new QTableWidgetItem(QString::fromStdString(str));
 	item->setBackground(color);
-	table.setItem(row, col, item);	
+	table.setItem(row, col, item);
 }
 
 void MainWindow::sendKill(bool killed) {

@@ -82,6 +82,24 @@ namespace subjugator {
 				}
 			}
 
+			boost::shared_ptr<MessageT> read() {
+				typename BaseReceiver<MessageT>::MessageSeq messageseq;
+				DDS_SampleInfoSeq infoseq;
+
+				DDS_ReturnCode_t code = messagereader->read(messageseq, infoseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ALIVE_INSTANCE_STATE);
+				typename BaseReceiver<MessageT>::Loan loan(messageseq, infoseq, messagereader);
+
+				if (code == DDS_RETCODE_NO_DATA)
+					return boost::shared_ptr<MessageT>();
+				else if (code != DDS_RETCODE_OK)
+					throw DDSException("Failed to read from messagereader", code);
+
+				if (infoseq[0].valid_data)
+					return toSharedPtr(messageseq[0]);
+				else
+					return boost::shared_ptr<MessageT>();
+			}
+
 			std::vector<boost::shared_ptr<MessageT> > readAll() {
 				typename BaseReceiver<MessageT>::MessageSeq messageseq;
 				DDS_SampleInfoSeq infoseq;
