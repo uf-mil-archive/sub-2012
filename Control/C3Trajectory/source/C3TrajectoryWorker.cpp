@@ -22,6 +22,7 @@ void C3TrajectoryWorker::enterActive() {
 
 void C3TrajectoryWorker::leaveActive() {
 	waypointmailbox.clear();
+	initialpoint.clear();
 }
 
 void C3TrajectoryWorker::work(double dt) {
