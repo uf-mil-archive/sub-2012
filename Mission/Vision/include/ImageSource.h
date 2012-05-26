@@ -37,6 +37,22 @@ class CvCamera : public Camera {
 		void getImageAsync_thread(void(*)(cv::Mat image));
 };
 
+#ifdef USE_FLYCAPTURE
+#include "flycapture/FlyCapture2.h"
+class FlyCamera : public Camera {
+	public:
+		FlyCamera(boost::asio::io_service* io, int cameraNumber);
+		virtual cv::Mat getImage(void);
+		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
+		virtual void setExposure(float time);
+		virtual void setGain(float gain);
+
+	private:
+		FlyCapture2::Camera cam;
+};
+#endif
+
+
 class CAL {
 	public:
 		CAL(boost::asio::io_service& io);

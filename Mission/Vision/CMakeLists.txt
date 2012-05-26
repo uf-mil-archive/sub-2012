@@ -1,1 +1,6 @@
-sub_executable(Vision OpenCV DDS Sub)
+if(FLYCAPTURE_FOUND)
+	sub_executable(Vision OpenCV DDS Sub FlyCapture)
+	add_definitions(-DUSE_FLYCAPTURE)
+else()
+	sub_executable(Vision OpenCV DDS Sub)
+endif()

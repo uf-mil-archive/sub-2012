@@ -1,7 +1,7 @@
 {
 	"imageSource": {
-		"type": "camera",
-		"number": 0
+		"type": "flycap",
+		"number": 1
 	},
 	"cameraId": 0,
 	"logImages": false,
