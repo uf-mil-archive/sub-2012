@@ -92,6 +92,7 @@ if(BUILD_PC)
 
 	if(PYTHONINTERP_FOUND)
 		add_subdirectory(Shared/Python)
+        add_subdirectory(Mission/MissionPlanner)
 	endif()
 
 	add_subdirectory(Sensors/Hydrophone)
