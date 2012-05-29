@@ -1,8 +1,11 @@
-#include "VisionWorker.h"
-#include <opencv/highgui.h>
 #include <sstream>
+
+#include <opencv/highgui.h>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <stdio.h>
+#include <boost/property_tree/json_parser.hpp>
+
+#include "VisionWorker.h"
 
 using namespace cv;
 using namespace boost;
@@ -18,7 +21,6 @@ VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader) :
 {
 	this->cameraId = getConfig().get<int>("cameraId");
 	this->showDebugImages = getConfig().get<bool>("showDebugImages");
-	this->ioimages = new IOImages();
 	
 	this->frameCnt = 0;
 	this->logImages = getConfig().get<bool>("logImages");
@@ -66,34 +68,37 @@ void VisionWorker::work(double dt)
 	}
 
 	// Grab a frame from the camera, copy into ioimages object
-	camera->getImage().copyTo(ioimages->src);
+	camera->getImage().copyTo(ioimages.src);
 
 	for(unsigned int i=0; i<listOfFinders.size(); i++)
 	{
-		printf("Looking for objectID: ");
+		cout<< "Looking for objectID: ";
 		for(unsigned int idcnt=0; idcnt < listOfFinders[i]->oIDs.size(); idcnt++)
-			printf("%d ",listOfFinders[i]->oIDs[idcnt]);
-		printf("\n");
+			cout << listOfFinders[i]->oIDs[idcnt] << " ";
+		cout << endl;
 
 		// RUN THE FINDER!
-		vector<FinderResult> fResult = listOfFinders[i]->find(ioimages);
+		vector<property_tree::ptree> fResult = listOfFinders[i]->find(&ioimages);
 
-		for(unsigned int j=0; j< fResult.size(); j++)
-			printf("Found ObjectID: %d!\n",fResult[j].objectID);
+		for(unsigned int j=0; j< fResult.size(); j++) {
+			ostringstream s;
+			property_tree::json_parser::write_json(s, fResult[j]);
+			cout << "Found object: " << s.str() << endl;
+		}
 		
 		outputsignal.emit(make_pair(cameraId, fResult));
 	}
 
-	//imshow("Source",ioimages->src);
+	//imshow("Source",ioimages.src);
 	if(showDebugImages)
 	{
 		if(frameCnt%20==0)
 		{
 			if(listOfFinders.size() == 0)
-				imshow("Processed",ioimages->src);
+				imshow("Processed",ioimages.src);
 			else
-				imshow("Processed",ioimages->prcd);
-			imshow("Debug",ioimages->dbg);
+				imshow("Processed",ioimages.prcd);
+			imshow("Debug",ioimages.dbg);
 			waitKey(10);
 		}
 	}
@@ -101,11 +106,11 @@ void VisionWorker::work(double dt)
 	{
 		std::stringstream str;
 		str << "log/" << cameraId << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.jpg";
-		imwrite(str.str(),ioimages->src);
+		imwrite(str.str(),ioimages.src);
 		std::stringstream str2;
 		str2 << "log/" << cameraId << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.jpg";
-		imwrite(str2.str(),ioimages->prcd);
-		//printf("Logging image: %d-%d.jpg\n",cameraNumber,frameCnt);
+		imwrite(str2.str(),ioimages.prcd);
+		//cout << "Logging image: " << cameraNumber << "-" << frameCnt << ".jpg" << endl;
 	}
 	frameCnt++;
 }

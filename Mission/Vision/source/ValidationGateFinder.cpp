@@ -1,16 +1,17 @@
 #include "ValidationGateFinder.h"
+#include "Line.h"
+#include <stdio.h>
 
-ValidationGateFinder::ValidationGateFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
-{
+using namespace boost;
+
+ValidationGateFinder::ValidationGateFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
-	result = 0;
 }
 
-vector<FinderResult> ValidationGateFinder::find(IOImages* ioimages)
-{
-	vector<FinderResult> resultVector;
+vector<property_tree::ptree> ValidationGateFinder::find(IOImages* ioimages) {
+	vector<property_tree::ptree> resultVector;
 	// call to normalizer here
 	n->norm(ioimages);
 
@@ -19,26 +20,26 @@ vector<FinderResult> ValidationGateFinder::find(IOImages* ioimages)
 
 	//printf("im here\n");
 
-	for(unsigned int i=0; i<oIDs.size(); i++)
-	{
+	for(unsigned int i=0; i<oIDs.size(); i++) {
 		// call to thresholder here
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
 		Line line(1);
-		result = line.findLines(ioimages);
+		int result = line.findLines(ioimages);
 		line.drawResult(ioimages,oIDs[i]);
 		//printf("result: %d\n",result);
+		
+		if(!result)
+			continue; // XXX
 
 		// Prepare results
-		FinderResult fResult;
-		if(result) {
-			fResult.objectID = oIDs[i];
-			fResult.u = line.avgLines[0].centroid.x;
-			fResult.v = line.avgLines[0].centroid.y;
-			fResult.scale = line.avgLines[0].length;
-			printf("scale: %f\n",line.avgLines[0].length);
-		}
+		property_tree::ptree fResult;
+		fResult.put("objectID", oIDs[i]);
+		fResult.put("u", line.avgLines[0].centroid.x);
+		fResult.put("v", line.avgLines[0].centroid.y);
+		fResult.put("scale", line.avgLines[0].length);
+		printf("scale: %f\n",line.avgLines[0].length);
 		resultVector.push_back(fResult);
 	}
 	return resultVector;

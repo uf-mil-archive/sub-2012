@@ -1,5 +1,7 @@
 #include "ThresholderRGB.h"
 
+using namespace cv;
+
 ThresholderRGB::ThresholderRGB(void)
 {
 }

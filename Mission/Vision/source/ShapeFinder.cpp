@@ -1,21 +1,21 @@
 #include "ShapeFinder.h"
+#include "Contours.h"
+//#include "Shape.h"
 
-ShapeFinder::ShapeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
-{
+using namespace boost;
+
+ShapeFinder::ShapeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
-	result = 0;
 }
 
-vector<FinderResult> ShapeFinder::find(IOImages* ioimages)
-{
-	vector<FinderResult> resultVector;
+vector<property_tree::ptree> ShapeFinder::find(IOImages* ioimages) {
 	// call to normalizer here
 	n->norm(ioimages);
 
-	for(unsigned int i=0; i<oIDs.size(); i++)
-	{
+	vector<property_tree::ptree> resultVector;
+	for(unsigned int i=0; i<oIDs.size(); i++) {
 		// blur the image to remove noise
 		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(5,5),10,15,BORDER_DEFAULT);
 
@@ -28,25 +28,25 @@ vector<FinderResult> ShapeFinder::find(IOImages* ioimages)
 
 		// call to specific member function here
 		Contours contours(100,50000,1500);
-		result = contours.identifyShape(ioimages);
+		int result = contours.identifyShape(ioimages);
 
 		// Prepare results
-		FinderResult fResult;
-		if(result)
-		{
-			// Draw result
-			contours.drawResult(ioimages,oIDs[i]);
+		if(!result)
+			continue; // XXX
 
-			// find the largest shape
-			int index = contours.findLargestShape();
-			if(contours.shapes[index].shape_x)
-				fResult.objectID = MIL_OBJECTID_BIN_X;
-			else
-				fResult.objectID = MIL_OBJECTID_BIN_O;
-			fResult.scale = contours.shapes[index].area;
-			fResult.u = contours.shapes[index].centroid.x;
-			fResult.v = contours.shapes[index].centroid.y;
-		}
+		// Draw result
+		contours.drawResult(ioimages,oIDs[i]);
+
+		// find the largest shape
+		int index = contours.findLargestShape();
+		property_tree::ptree fResult;
+		if(contours.shapes[index].shape_x)
+			fResult.put("objectID", MIL_OBJECTID_BIN_X);
+		else
+			fResult.put("objectID", MIL_OBJECTID_BIN_O);
+		fResult.put("scale", contours.shapes[index].area);
+		fResult.put("u", contours.shapes[index].centroid.x);
+		fResult.put("v", contours.shapes[index].centroid.y);
 		resultVector.push_back(fResult);
 	}
 	return resultVector;

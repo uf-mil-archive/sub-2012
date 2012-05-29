@@ -12,7 +12,6 @@
 
 #include "IOImages.h"
 #include "FinderGenerator.h"
-#include "FinderResult.h"
 #include "MILObjectIDs.h"
 #include "ImageSource.h"
 #include "VisionSetIDs.h"
@@ -42,7 +41,7 @@ public:
 
 	WorkerMailbox<VisionSetIDs> setidsmailbox;
 
-	WorkerSignal<std::pair<int, vector<FinderResult> > > outputsignal;
+	WorkerSignal<std::pair<int, vector<boost::property_tree::ptree> > > outputsignal;
 
 protected:
 	virtual void enterActive();
@@ -52,7 +51,7 @@ protected:
 private:
 	CAL cal;
 	boost::property_tree::ptree cameraDesc;
-	IOImages* ioimages;
+	IOImages ioimages;
 	int inputMode;
 	bool showDebugImages;
 	bool logImages;

@@ -5,17 +5,13 @@
 using namespace std;
 using namespace boost;
 
-FinderGenerator::FinderGenerator(void)
-{
-}
+FinderGenerator::FinderGenerator(void) { }
 
-FinderGenerator::~FinderGenerator(void)
-{
+FinderGenerator::~FinderGenerator(void) {
 	// HOW TO MAKE SURE THAT listOfFinders is emptied and the thresholders and normalizer memory locations get cleared?
 }
 
-vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oIDs)
-{
+vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oIDs) {
 	clearFinders();	
 
 	vector<int> buoyIDs;
@@ -77,8 +73,7 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 	return listOfFinders;
 }
 
-void FinderGenerator::clearFinders()
-{
+void FinderGenerator::clearFinders() {
 	printf("Clearing the finder list!\n");
 	// clear the finder list
 	listOfFinders.clear();

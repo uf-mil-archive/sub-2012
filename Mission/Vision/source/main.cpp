@@ -1,3 +1,5 @@
+#include <boost/property_tree/json_parser.hpp>
+
 #include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
 
@@ -47,15 +49,13 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(FinderMessageList &msg, const pair<int, vector<FinderResult> > &finderresults) {
+	void to_dds(FinderMessageList &msg, const pair<int, vector<property_tree::ptree> > &finderresults) {
 		msg.cameraid = finderresults.first;
 		msg.messages.ensure_length(finderresults.second.size(), finderresults.second.size());
 		for(unsigned int i = 0; i < finderresults.second.size(); i++) {
-			msg.messages[i].objectid = finderresults.second[i].objectID;
-			msg.messages[i].u = finderresults.second[i].u;
-			msg.messages[i].v = finderresults.second[i].v;
-			msg.messages[i].scale = finderresults.second[i].scale;
-			msg.messages[i].angle = finderresults.second[i].angle;
+			ostringstream s;
+			property_tree::json_parser::write_json(s, finderresults.second[i]);
+			msg.messages[i] = DDS_String_dup(s.str().c_str()); // memory leak? this allocates, but sequence supposedly frees the memory
 		}
 	}
 }
