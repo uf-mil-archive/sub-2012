@@ -26,6 +26,8 @@ VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader) :
 	this->logImages = getConfig().get<bool>("logImages");
 	this->shutterVal = getConfig().get<float>("shutterVal");
 	this->gainVal = getConfig().get<float>("gainVal");
+
+	setidsmailbox.set(VisionSetIDs(this->cameraId, vector<int>(1, getConfig().get<int>("defaultID"))));
 }
 
 VisionWorker::~VisionWorker(void)
