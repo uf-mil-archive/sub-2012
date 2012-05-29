@@ -8,8 +8,7 @@
 class ShooterFinder : public IFinder
 {
 	public:
-		ShooterFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
-		~ShooterFinder(void);
+		ShooterFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> n, boost::shared_ptr<IThresholder> t);
 		vector<FinderResult> find(IOImages* ioimages);
 
 	private:

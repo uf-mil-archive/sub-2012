@@ -1,17 +1,11 @@
 #include "BuoyFinder.h"
 
-BuoyFinder::BuoyFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+BuoyFinder::BuoyFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
 	result = 0;
-}
-
-BuoyFinder::~BuoyFinder(void)
-{
-	delete n;
-	delete t;
 }
 
 vector<FinderResult> BuoyFinder::find(IOImages* ioimages)

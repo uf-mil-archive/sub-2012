@@ -1,17 +1,11 @@
 #include "TubeFinder.h"
 
-TubeFinder::TubeFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+TubeFinder::TubeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
 	result = 0;
-}
-
-TubeFinder::~TubeFinder(void)
-{
-	delete n;
-	delete t;
 }
 
 vector<FinderResult> TubeFinder::find(IOImages* ioimages)

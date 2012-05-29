@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <boost/thread/mutex.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerMailbox.h"
@@ -59,7 +60,7 @@ private:
 	FinderGenerator finderGen;
 	vector<boost::shared_ptr<IFinder> > listOfFinders;
 	vector<int> finderIDs;
-	Camera *camera;
+	boost::shared_ptr<Camera> camera;
 	int frameCnt;
 	float shutterVal;
 	float gainVal;

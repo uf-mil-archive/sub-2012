@@ -1,17 +1,11 @@
 #include "BinsFinder.h"
 
-BinsFinder::BinsFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+BinsFinder::BinsFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
 	result = 0;
-}
-
-BinsFinder::~BinsFinder(void)
-{
-	delete n;
-	delete t;
 }
 
 vector<FinderResult> BinsFinder::find(IOImages* ioimages)

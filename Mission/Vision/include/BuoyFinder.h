@@ -8,8 +8,7 @@
 class BuoyFinder : public IFinder
 {
 	public:
-		BuoyFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
-		~BuoyFinder(void);
+		BuoyFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> n, boost::shared_ptr<IThresholder> t);
 		vector<FinderResult> find(IOImages* ioimages);
 
 	private:

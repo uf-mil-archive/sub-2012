@@ -8,8 +8,7 @@
 class BinsFinder : public IFinder
 {
 	public:
-		BinsFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
-		~BinsFinder(void);
+		BinsFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> n, boost::shared_ptr<IThresholder> t);
 		vector<FinderResult> find(IOImages* ioimages);
 
 	private:

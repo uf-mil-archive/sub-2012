@@ -39,7 +39,7 @@ void VisionWorker::enterActive()
 		//namedWindow("Debug",1);
 	}
 
-	camera = cal.getCamera(getConfig().get_child("imageSource"));
+	camera = boost::shared_ptr<Camera>(cal.getCamera(getConfig().get_child("imageSource")));
 	camera->setExposure(shutterVal);
 	camera->setGain(gainVal);
 }
@@ -51,7 +51,7 @@ void VisionWorker::leaveActive()
 		cvDestroyWindow("Processed");
 		cvDestroyWindow("Debug");
 	}
-	delete camera;
+	camera.reset();
 }
 
 void VisionWorker::work(double dt)

@@ -9,8 +9,7 @@
 class ValidationGateFinder : public IFinder
 {
 	public:
-		ValidationGateFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
-		~ValidationGateFinder(void);
+		ValidationGateFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> n, boost::shared_ptr<IThresholder> t);
 		vector<FinderResult> find(IOImages* ioimages);
 
 	private:

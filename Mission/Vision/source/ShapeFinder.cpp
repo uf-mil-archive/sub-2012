@@ -1,17 +1,11 @@
 #include "ShapeFinder.h"
 
-ShapeFinder::ShapeFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+ShapeFinder::ShapeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
 	result = 0;
-}
-
-ShapeFinder::~ShapeFinder(void)
-{
-	delete n;
-	delete t;
 }
 
 vector<FinderResult> ShapeFinder::find(IOImages* ioimages)

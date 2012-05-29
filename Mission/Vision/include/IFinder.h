@@ -1,6 +1,8 @@
 #ifndef IFINDER_H
 #define IFINDER_H
 
+#include <boost/shared_ptr.hpp>
+
 #include "IOImages.h"
 #include "INormalizer.h"
 #include "IThresholder.h"
@@ -11,9 +13,8 @@ class IFinder
 {
 	public:
 		vector<int> oIDs;
-		INormalizer* n;
-		IThresholder* t;
-		virtual ~IFinder() {}
+		boost::shared_ptr<INormalizer> n;
+		boost::shared_ptr<IThresholder> t;
 		virtual vector<FinderResult> find(IOImages* ioimages)=0;
 };
 

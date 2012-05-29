@@ -8,8 +8,7 @@
 class HedgeFinder : public IFinder
 {
 	public:
-		HedgeFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
-		~HedgeFinder(void);
+		HedgeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> n, boost::shared_ptr<IThresholder> t);
 		vector<FinderResult> find(IOImages* ioimages);
 
 	private:

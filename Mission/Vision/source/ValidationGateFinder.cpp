@@ -1,17 +1,11 @@
 #include "ValidationGateFinder.h"
 
-ValidationGateFinder::ValidationGateFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+ValidationGateFinder::ValidationGateFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
 	result = 0;
-}
-
-ValidationGateFinder::~ValidationGateFinder(void)
-{
-	delete n;
-	delete t;
 }
 
 vector<FinderResult> ValidationGateFinder::find(IOImages* ioimages)

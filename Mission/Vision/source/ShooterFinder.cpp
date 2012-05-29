@@ -1,18 +1,12 @@
 #include "ShooterFinder.h"
 #include <stdio.h>
 
-ShooterFinder::ShooterFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+ShooterFinder::ShooterFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
 	result = 0;
-}
-
-ShooterFinder::~ShooterFinder(void)
-{
-	delete n;
-	delete t;
 }
 
 vector<FinderResult> ShooterFinder::find(IOImages* ioimages)

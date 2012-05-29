@@ -1,6 +1,9 @@
+#include <boost/make_shared.hpp>
+
 #include "FinderGenerator.h"
 
 using namespace std;
+using namespace boost;
 
 FinderGenerator::FinderGenerator(void)
 {
@@ -55,21 +58,21 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 			gateIDs.push_back(oIDs[i]);
 	}
 	if(buoyIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<BuoyFinder>(new BuoyFinder( buoyIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<BuoyFinder>(buoyIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(pipeIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<PipeFinder>(new PipeFinder( pipeIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<PipeFinder>(pipeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(hedgeIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<HedgeFinder>(new HedgeFinder( hedgeIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<HedgeFinder>(hedgeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(tubeIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<TubeFinder>(new TubeFinder( tubeIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<TubeFinder>(tubeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(shooterIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<ShooterFinder>(new ShooterFinder( shooterIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<ShooterFinder>(shooterIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(binsIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<BinsFinder>(new BinsFinder( binsIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<BinsFinder>(binsIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(shapeIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<BinsFinder>(new BinsFinder (shapeIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<BinsFinder>(shapeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(gateIDs.size() > 0)
-		listOfFinders.push_back( boost::shared_ptr<ValidationGateFinder>(new ValidationGateFinder (gateIDs, new NormalizerRGB(), new ThresholderRGB() ) ) );
+		listOfFinders.push_back(make_shared<ValidationGateFinder>(gateIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 
 	return listOfFinders;
 }

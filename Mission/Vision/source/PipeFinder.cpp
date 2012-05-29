@@ -1,17 +1,11 @@
 #include "PipeFinder.h"
 
-PipeFinder::PipeFinder(vector<int> objectIDs, INormalizer* normalizer, IThresholder* thresholder)
+PipeFinder::PipeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
 	this->n = normalizer;
 	this->t = thresholder;
 	result = 0;
-}
-
-PipeFinder::~PipeFinder(void)
-{
-	delete n;
-	delete t;
 }
 
 vector<FinderResult> PipeFinder::find(IOImages* ioimages)

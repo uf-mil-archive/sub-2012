@@ -8,8 +8,7 @@
 class PipeFinder : public IFinder
 {
 	public:
-		PipeFinder(vector<int> objectIDs, INormalizer* n, IThresholder* t);
-		~PipeFinder(void);
+		PipeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> n, boost::shared_ptr<IThresholder> t);
 		vector<FinderResult> find(IOImages* ioimages);
 
 	private:
