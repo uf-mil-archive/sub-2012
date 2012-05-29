@@ -23,6 +23,19 @@ class Camera : public ImageSource {
 		virtual void setGain(float gain) = 0;
 };
 
+class ImageCamera : public Camera {
+	public:
+		ImageCamera(boost::asio::io_service* io, const std::string& filename);
+		virtual cv::Mat getImage(void);
+		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
+		virtual void setExposure(float time);
+		virtual void setGain(float gain);
+	private:
+		boost::asio::io_service* io;
+		std::vector<std::string> filenames;
+		int index;
+};
+
 class CvCamera : public Camera {
 	public:
 		CvCamera(boost::asio::io_service* io, int cameraNumber);

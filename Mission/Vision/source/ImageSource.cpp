@@ -1,7 +1,50 @@
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
 #include "ImageSource.h"
+
+using namespace boost;
+using namespace std;
+
+
+ImageCamera::ImageCamera(boost::asio::io_service* io, const std::string& filename) {
+	filesystem::path p(filename);
+	if(filesystem::is_directory(p)) {
+		BOOST_FOREACH(filesystem::path f, make_pair(filesystem::directory_iterator(p), filesystem::directory_iterator()))
+			filenames.push_back(f.native());
+		if(!filenames.size())
+			throw runtime_error("no files in directory");
+		sort(filenames.begin(), filenames.end());
+	} else
+		filenames.push_back(p.native());
+
+	index = 0;
+}
+
+cv::Mat ImageCamera::getImage(void) {
+	string filename = filenames[index];
+	index = (index + 1) % filenames.size();
+
+	cout << "Reading " << filename << endl;
+	cv::Mat res = cv::imread(filename);
+	if(res.empty())
+		throw runtime_error("couldn't read " + filename);
+	return res;
+}
+
+void ImageCamera::getImageAsync(void(*completion_handler)(cv::Mat image)) {
+	throw std::runtime_error("not implemented!");
+}
+
+void ImageCamera::setExposure(float time) {
+}
+
+void ImageCamera::setGain(float gain) {
+}
+
+
 
 CvCamera::CvCamera(boost::asio::io_service* io, int cameraNumber) :
 	cap(cameraNumber) {
@@ -34,6 +77,7 @@ void CvCamera::setExposure(float time) {
 void CvCamera::setGain(float gain) {
 	cap.set(CV_CAP_PROP_GAIN, gain);
 }
+
 
 
 #ifdef USE_FLYCAPTURE
@@ -104,11 +148,14 @@ void FlyCamera::setGain(float gain) {
 #endif
 
 
+
 CAL::CAL(boost::asio::io_service& io) : io(io) {
 }
 
 Camera* CAL::getCamera(const boost::property_tree::ptree& cameraDesc) {
-	if(cameraDesc.get<std::string>("type") == "video") {
+	if(cameraDesc.get<std::string>("type") == "image") {
+		return new ImageCamera(&this->io, cameraDesc.get<std::string>("filename"));
+	} else if(cameraDesc.get<std::string>("type") == "video") {
 		return new CvCamera(&this->io, cameraDesc.get<std::string>("filename"));
 	} else if(cameraDesc.get<std::string>("type") == "opencv") {
 		return new CvCamera(&this->io, cameraDesc.get<int>("number"));
