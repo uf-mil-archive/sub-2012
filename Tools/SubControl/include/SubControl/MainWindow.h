@@ -4,6 +4,9 @@
 #include "SubControl/Stats.h"
 #include "WorkerManager/Messages/WorkerManagerStatusMessageSupport.h"
 #include "WorkerManager/Messages/WorkerManagerCommandMessageSupport.h"
+#include "MissionPlanner/Messages/InteractionCommandMessageSupport.h"
+#include "MissionPlanner/Messages/InteractionStatusMessageSupport.h"
+#include "MissionPlanner/Messages/InteractionOutputMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerKillMessageSupport.h"
@@ -23,8 +26,23 @@ DECLARE_MESSAGE_TRAITS(WorkerManagerCommandMessage);
 DECLARE_MESSAGE_TRAITS(WorkerStateMessage);
 DECLARE_MESSAGE_TRAITS(WorkerLogMessage);
 DECLARE_MESSAGE_TRAITS(WorkerKillMessage);
+DECLARE_MESSAGE_TRAITS(InteractionCommandMessage);
+DECLARE_MESSAGE_TRAITS(InteractionStatusMessage);
+DECLARE_MESSAGE_TRAITS(InteractionOutputMessage);
 
 namespace subjugator {
+	class InteractTextEditFilter : public QObject {
+		Q_OBJECT
+	public:
+		InteractTextEditFilter() { }
+
+	signals:
+		void sendCommandTyped();
+
+	private:
+		bool eventFilter(QObject *obj, QEvent *event);
+	};
+
 	class MainWindow : public QMainWindow {
 		Q_OBJECT
 
@@ -36,6 +54,8 @@ namespace subjugator {
 		void cellChanged(int row, int col);
 		void killClicked();
 		void unkillClicked();
+		void interactRunClicked();
+		void interactStopClicked();
 
 	private:
 		Ui::MainWindow ui;
@@ -54,13 +74,22 @@ namespace subjugator {
 		Topic<WorkerKillMessage> killtopic;
 		PollingReceiver<WorkerKillMessage> killreceiver;
 		Sender<WorkerKillMessage> killsender;
+		Topic<InteractionCommandMessage> interactioncommandtopic;
+		Sender<InteractionCommandMessage> interactioncommandsender;
+		Topic<InteractionStatusMessage> interactionstatustopic;
+		PollingReceiver<InteractionStatusMessage> interactionstatusreceiver;
+		Topic<InteractionOutputMessage> interactionoutputtopic;
+		PollingReceiver<InteractionOutputMessage> interactionoutputreceiver;
 
+		InteractTextEditFilter filter;
 		Stats stats;
 
 		void updateWorkers();
 		void updateKills();
 		void updateLog();
 		void updateStats();
+		void updateInteract();
+		void updateInteractOutput();
 
 		void updateWorker(int row, const std::string &name, const boost::optional<WorkerManagerProcessStatus> &status, const boost::optional<State> &state);
 		void updateKill(int row, const WorkerKillMessage &msg);

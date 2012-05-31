@@ -1,0 +1,4 @@
+struct InteractionCommandMessage {
+	string<1024> cmd;
+	boolean stop;
+};

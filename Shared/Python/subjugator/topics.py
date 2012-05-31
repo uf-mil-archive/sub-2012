@@ -27,6 +27,9 @@ _topic_qoses = {
     'Trajectory': _TopicConf(lib.TrajectoryMessage, PERSISTENT),
     'SetWaypoint': _TopicConf(lib.SetWaypointMessage, RELIABLE),
     'LPOSVSS': _TopicConf(lib.LPOSVSSMessage, DEFAULT),
+    'InteractionCommand': _TopicConf(lib.InteractionCommandMessage, RELIABLE),
+    'InteractionStatus': _TopicConf(lib.InteractionStatusMessage, PERSISTENT+EXCLUSIVE),
+    'InteractionOutput': _TopicConf(lib.InteractionOutputMessage, DEEP_PERSISTENT)
 }
 
 def get(name):

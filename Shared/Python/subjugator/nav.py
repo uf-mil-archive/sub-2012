@@ -132,5 +132,4 @@ def go_seq(points, rel=False, autoyaw=True, base=None):
     if rel:
         base = get_waypoint()
     for point in points:
-        print point
         go(*point, base=base, autoyaw=autoyaw)

@@ -1,0 +1,11 @@
+enum InteractionOutputType {
+	IOT_CMD,
+	IOT_STATUS,
+	IOT_OUTPUT,
+	IOT_ERROR
+};
+
+struct InteractionOutputMessage {
+	InteractionOutputType type;
+	string<1024> data;
+};

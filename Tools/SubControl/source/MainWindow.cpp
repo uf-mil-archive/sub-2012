@@ -24,6 +24,12 @@ MainWindow::MainWindow() :
 	killtopic(part, "WorkerKill", TopicQOS::PERSISTENT | TopicQOS::LIVELINESS),
 	killreceiver(killtopic),
 	killsender(killtopic),
+	interactioncommandtopic(part, "InteractionCommand", TopicQOS::RELIABLE),
+	interactioncommandsender(interactioncommandtopic),
+	interactionstatustopic(part, "InteractionStatus", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
+	interactionstatusreceiver(interactionstatustopic),
+	interactionoutputtopic(part, "InteractionOutput", TopicQOS::DEEP_PERSISTENT),
+	interactionoutputreceiver(interactionoutputtopic),
 	stats(part)
 {
 	ui.setupUi(this);
@@ -34,21 +40,28 @@ MainWindow::MainWindow() :
 	ui.killStatusTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
 
 	ui.unkillButton->setVisible(false);
+	ui.interactCommandTextEdit->installEventFilter(&filter);
 
 	connect(&timer, SIGNAL(timeout()), this, SLOT(update()));
 	connect(ui.workerStatusTable, SIGNAL(cellChanged(int, int)), this, SLOT(cellChanged(int, int)));
 	connect(ui.killButton, SIGNAL(clicked()), this, SLOT(killClicked()));
 	connect(ui.unkillButton, SIGNAL(clicked()), this, SLOT(unkillClicked()));
 	connect(ui.runButton, SIGNAL(clicked()), this, SLOT(unkillClicked()));
+	connect(ui.interactRunButton, SIGNAL(clicked()), this, SLOT(interactRunClicked()));
+	connect(ui.interactStopButton, SIGNAL(clicked()), this, SLOT(interactStopClicked()));
+	connect(&filter, SIGNAL(sendCommandTyped()), this, SLOT(interactRunClicked()));
+
 	timer.start(100);
 }
 
 void MainWindow::update() {
 	updating = true;
-	updateWorkers();
+ 	updateWorkers();
 	updateKills();
 	updateLog();
 	updateStats();
+	updateInteract();
+	updateInteractOutput();
 	updating = false;
 }
 
@@ -71,6 +84,23 @@ void MainWindow::killClicked() {
 
 void MainWindow::unkillClicked() {
 	sendKill(false);
+}
+
+void MainWindow::interactRunClicked() {
+	QString cmd = ui.interactCommandTextEdit->toPlainText();
+	ui.interactCommandTextEdit->clear();
+
+	InteractionCommandMessage msg;
+	to_dds(msg.cmd, cmd.toStdString());
+	msg.stop = false;
+	interactioncommandsender.send(msg);
+}
+
+void MainWindow::interactStopClicked() {
+	InteractionCommandMessage msg;
+	msg.cmd = const_cast<char *>("");
+	msg.stop = true;
+	interactioncommandsender.send(msg);
 }
 
 void MainWindow::updateWorkers() {
@@ -285,6 +315,39 @@ void MainWindow::updateStats() {
 	}
 }
 
+void MainWindow::updateInteract() {
+	boost::shared_ptr<InteractionStatusMessage> msg = interactionstatusreceiver.take();
+	if (!msg)
+		return;
+
+	const char *strs[] = {"Done", "Running", "Error"};
+	ui.interactStatusLabel->setText(QString(strs[msg->status]));
+}
+
+void MainWindow::updateInteractOutput() {
+	boost::shared_ptr<InteractionOutputMessage> msg;
+	while (msg = interactionoutputreceiver.take()) {
+		static const char *colors[] = {"black", "black", "blue", "red"};
+
+		QString data = msg->data;
+		while (data.endsWith('\n'))
+			data.chop(1);
+
+		ostringstream out;
+		out << "<span style=\"";
+		out << "color: " << colors[msg->type] << ";";
+		out << "white-space: pre;";
+		if (msg->type == IOT_STATUS)
+			out << "font-style: italic;";
+		out << "\">";
+		out << data.toStdString();
+		out << "</span>";
+
+		ui.interactOutputTextEdit->moveCursor(QTextCursor::End);
+		ui.interactOutputTextEdit->append(QString(out.str().c_str()));
+	}
+}
+
 void MainWindow::updateTableItem(QTableWidget &table, int row, int col, const QColor &color, const std::string &str) {
 	QTableWidgetItem *item = new QTableWidgetItem(QString::fromStdString(str));
 	item->setBackground(color);
@@ -305,3 +368,13 @@ ostream &subjugator::operator<<(ostream &out, CombinedState state) {
 	return out;
 }
 
+bool InteractTextEditFilter::eventFilter(QObject *obj, QEvent *event) {
+	 if (event->type() == QEvent::KeyPress) {
+         QKeyEvent &evt = *static_cast<QKeyEvent *>(event);
+         if (evt.modifiers().testFlag(Qt::ControlModifier) && evt.key() == Qt::Key_Return) {
+	         emit sendCommandTyped();
+	         return true;
+         }
+	 }
+	 return QObject::eventFilter(obj, event);
+}

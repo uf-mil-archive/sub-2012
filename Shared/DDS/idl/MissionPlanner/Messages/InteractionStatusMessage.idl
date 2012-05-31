@@ -1,0 +1,10 @@
+enum InteractionStatusCode {
+	ISC_DONE,
+	ISC_RUNNING,
+	ISC_ERROR
+};
+
+struct InteractionStatusMessage {
+	InteractionStatusCode status;
+	string<1024> cmd;
+};

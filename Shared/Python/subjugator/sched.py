@@ -38,7 +38,7 @@ class Task:
 	"""Constructs a task given a name, and optionally a function to run"""
         self.func = func
         self.name = name
-        self.greenlet = greenlet.greenlet(self._entry)
+        self.greenlet = greenlet.greenlet(self._entry, Sched.sched_greenlet)
         self.stopcallbacks = set()
         self.wait = None
         self.throwex = None
