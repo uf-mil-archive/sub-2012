@@ -18,6 +18,7 @@ C3TrajectoryWorker::C3TrajectoryWorker(const WorkerConfigLoader &configloader) :
 
 void C3TrajectoryWorker::enterActive() {
 	trajptr.reset(new C3Trajectory(*initialpoint, limits));
+	initialwaypointsignal.emit(initialpoint->q);
 }
 
 void C3TrajectoryWorker::leaveActive() {

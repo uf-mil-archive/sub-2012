@@ -29,9 +29,10 @@ int main(int argc, char **argv) {
 	dds.worker(worker);
 	dds.killMonitor(worker.killmon);
 
-	dds.receiver(worker.waypointmailbox, dds.topic<SetWaypointMessage>("SetWaypoint", TopicQOS::RELIABLE));
+	dds.receiver(worker.waypointmailbox, dds.topic<SetWaypointMessage>("SetWaypoint", TopicQOS::PERSISTENT));
 	dds.receiver(worker.initialpoint, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::PERSISTENT));
 
+	dds.sender(worker.initialwaypointsignal, dds.topic<SetWaypointMessage>("SetWaypoint", TopicQOS::PERSISTENT));
 	dds.sender(worker.trajsignal, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::PERSISTENT));
 
 	builder.runWorker();
@@ -43,6 +44,12 @@ namespace subjugator {
 		//assert(!msg.isRelative); // relative waypoints were agreed to be a bad idea at this level, sub tends to drift downward as error keeps getting added into waypoints
 		waypoint.head(3) = Vector3d(msg.position_ned); // TODO from_dds should work here but it doesn't
 		waypoint.tail(3) = Vector3d(msg.rpy);
+	}
+
+	template <>
+	void to_dds(SetWaypointMessage &msg, const Vector6d &waypoint) {
+		to_dds(msg.position_ned, Vector3d(waypoint.head(3)));
+		to_dds(msg.rpy, Vector3d(waypoint.tail(3)));
 	}
 
 	template <>

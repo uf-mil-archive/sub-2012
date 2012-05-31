@@ -19,6 +19,7 @@ namespace subjugator {
 		WorkerMailbox<Point> initialpoint;
 		WorkerKillMonitor killmon;
 
+		WorkerSignal<Vector6d> initialwaypointsignal;
 		WorkerSignal<Point> trajsignal;
 
 	protected:
