@@ -20,7 +20,7 @@ def setup():
             pass
         sched.sleep(.1) # todo multi-topic ddswait
 
-def waypoint(x=0, y=0, z=0, R=0, P=0, Y=0):
+def make_waypoint(x=0, y=0, z=0, R=0, P=0, Y=0):
     return Waypoint([x, y, z, R, P, Y])
 
 class Waypoint(object):
@@ -105,7 +105,7 @@ def get_waypoint():
     topic = topics.get('SetWaypoint')
     try:
         msg = topic.read()
-        waypoint = waypoint()
+        waypoint = make_waypoint()
         waypoint.xyz = msg['position_ned']
         waypoint.RPY = msg['rpy']
         return waypoint
@@ -141,7 +141,7 @@ def waitopts(func):
 
 @waitopts
 def fd(dist):
-    set_waypoint_rel(waypoint(x=dist))
+    set_waypoint_rel(make_waypoint(x=dist))
 
 @waitopts
 def bk(dist):
@@ -149,7 +149,7 @@ def bk(dist):
 
 @waitopts
 def rstrafe(dist):
-    set_waypoint_rel(waypoint(y=dist))
+    set_waypoint_rel(make_waypoint(y=dist))
 
 @waitopts
 def lstrafe(dist):
@@ -157,7 +157,7 @@ def lstrafe(dist):
 
 @waitopts
 def down(dist):
-    set_waypoint_rel(waypoint(z=dist))
+    set_waypoint_rel(make_waypoint(z=dist))
 
 @waitopts
 def up(dist):
@@ -165,7 +165,7 @@ def up(dist):
 
 @waitopts
 def rturn(deg):
-    set_waypoint_rel(waypoint(Y=math.radians(deg)))
+    set_waypoint_rel(make_waypoint(Y=math.radians(deg)))
 
 @waitopts
 def lturn(deg):
@@ -183,10 +183,9 @@ def heading(heading):
     waypoint.Y = heading
     set_waypoint(waypoint)
 
-@waitopts
-def go(x, y, z=None, rel=False, autoyaw=True, base=None):
+def go(x, y, z=None, rel=False, base=None):
     curpoint = get_waypoint()
-    waypoint = waypoint(x, y)
+    waypoint = make_waypoint(x, y)
     if rel:
         base = curpoint
     if base is not None:
@@ -196,11 +195,10 @@ def go(x, y, z=None, rel=False, autoyaw=True, base=None):
     if z is not None:
         waypoint.z = z
     waypoint.RP = curpoint.RP
-    if autoyaw:
-        waypoint.Y = math.atan2(waypoint.y - curpoint.y, waypoint.x - curpoint.x)
-    else:
-        waypoint.Y = curpoint.Y
+    waypoint.Y = math.atan2(waypoint.y - curpoint.y, waypoint.x - curpoint.x)
+    heading(waypoint.Y)
     set_waypoint(waypoint)
+    wait()
 
 def go_seq(points, rel=False, autoyaw=True, base=None):
     if rel:
