@@ -66,10 +66,10 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 						boxes.push_back(outerBox);
 						
 						Point2f src[4];
-						for(int i = 0; i < approx.size(); i++)
+						for(unsigned int i = 0; i < approx.size(); i++)
 							src[i] = Point2f(approx[i].x, approx[i].y);
 						if(!(norm(src[1] - src[0]) > norm(src[3] - src[0]))) // make sure long edge matches long edge so image isn't squished
-							for(int i = 0; i < approx.size(); i++)
+							for(unsigned int i = 0; i < approx.size(); i++)
 								src[i] = Point2f(approx[(i+1)%4].x, approx[(i+1)%4].y);
 						Point2f dst[4];
 						int crop = 15;
