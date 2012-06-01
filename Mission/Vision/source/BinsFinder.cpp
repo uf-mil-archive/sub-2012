@@ -23,7 +23,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Contours contours(100,50000,2000);
+		Contours contours(300,50000,2000);
 		int result;
 		if(oIDs[i] == MIL_OBJECTID_BIN_SINGLE || oIDs[i] == MIL_OBJECTID_BIN_ALL)
 			result = contours.findContours(ioimages, false);

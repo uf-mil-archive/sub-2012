@@ -23,10 +23,11 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 	Mat dbg_temp = ioimages->dbg.clone();
 	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
 
+	int k = 0;
 	for( size_t i = 0; i < contours.size(); i++ )
 	{
-		//Scalar color(255,255,255);
-		//drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
+		Scalar color(255,255,255);
+		drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
 
 		area_holder = (float)fabs(contourArea(Mat(contours[i])));
 		perimeter_holder = (float)arcLength(Mat(contours[i]),true);
@@ -37,7 +38,11 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 			if(hierarchy[i][2] >= 0 || !findInnerContours)
 			{
 				// approximate contour with accuracy proportional to the contour perimeter
-				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.02, true);
+				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.03, true);
+		/*Scalar color(255,255,0);
+		vector<vector<Point> > x;
+		x.push_back(approx);
+		drawContours( ioimages->prcd, x, i, color, 1, 8, hierarchy, 0);*/
 				// square contours should have 4 vertices after approximation and be convex.
 				if( approx.size() == 4 && isContourConvex(Mat(approx)) ) {
 					double maxCosine = 0;
@@ -48,7 +53,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 					}
 					// if cosines of all angles are small (all angles are ~90 degree) then write quandrange
 					// vertices to resultant sequence
-					if( maxCosine < 0.5 ) {
+					if( maxCosine < 0.4 ) {
 						// push to vector of saved boxes
 						OuterBox outerBox;
 						outerBox.corners = approx;
@@ -59,6 +64,45 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 						outerBox.contour.push_back(contours[i]);
 						populateAngleOfOuterBox(&outerBox);
 						boxes.push_back(outerBox);
+						
+						Point2f src[4];
+						for(int i = 0; i < approx.size(); i++)
+							src[i] = Point2f(approx[i].x, approx[i].y);
+						if(!(norm(src[1] - src[0]) > norm(src[3] - src[0]))) // make sure long edge matches long edge so image isn't squished
+							for(int i = 0; i < approx.size(); i++)
+								src[i] = Point2f(approx[(i+1)%4].x, approx[(i+1)%4].y);
+						Point2f dst[4];
+						int crop = 15;
+						dst[0] = Point2f(-2*crop, -crop);
+						dst[1] = Point2f(300+2*crop, -crop);
+						dst[2] = Point2f(300+2*crop, 150+crop);
+						dst[3] = Point2f(-2*crop, 150+crop);
+						Mat t = getPerspectiveTransform(src, dst);
+						Mat bin;warpPerspective(ioimages->src, bin, t, Size(300, 150));
+						Mat srcHSV;cvtColor(bin,srcHSV,CV_BGR2HSV);
+						std::vector<Mat> channelsBGR(srcHSV.channels());split(bin,channelsBGR);
+						std::vector<Mat> channelsHSV(srcHSV.channels());split(srcHSV,channelsHSV);
+						Mat out1;threshold(channelsHSV[1], out1, 40, 255, THRESH_BINARY);
+						Mat out2;threshold(channelsHSV[0], out2, 20, 255, THRESH_BINARY_INV);
+						Mat out3;threshold(channelsHSV[0], out3, 180-20, 255, THRESH_BINARY);
+						Mat out4;bitwise_or(out2, out3, out4);
+						//subtract(channelsHSV[1],channelsBGR[1],out);
+						//if(k == 1) {
+						//adaptiveThreshold(out,out,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,201,-30);
+						
+						//
+						Mat out;bitwise_and(out1, out4, out);
+						//dilate(out,out,Mat(),Point(-1, -1),2);
+						//erode(out,out,Mat(),Point(-1, -1),4);
+						
+						stringstream name;
+						name << k++;
+						imshow("out" + name.str(), out1);
+						/*
+							imshow("out0", channelsLAB[0]);
+							imshow("out1", channelsLAB[1]);
+							imshow("out2", channelsLAB[2]); */
+						//}
 					}
 				}
 			}
@@ -91,6 +135,11 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 			}
 		}
 
+	}
+	for(int i=0; i<10; i++) {
+		stringstream name;
+		name << k++;
+		cvDestroyWindow(("out" + name.str()).c_str());
 	}
 	if(boxes.size() > 0)
 		return 1;

@@ -164,38 +164,28 @@ void ThresholderRGB::threshGreen(IOImages *ioimages)
 
 void ThresholderRGB::threshBlack(IOImages *ioimages)
 {
-	// create two vectors to hold rgb and hsv colors
-	std::vector<Mat> channelsRGB(ioimages->src.channels());
-	std::vector<Mat> channelsLAB(ioimages->src.channels());
-	std::vector<Mat> channelsHSV(ioimages->src.channels());
-	Mat srcLAB, srcHSV;
-	// split original image into rgb color channels
-	split(ioimages->prcd,channelsRGB);
-	// convert to lab color space
-	cvtColor(ioimages->prcd,srcLAB,CV_RGB2Lab);
-	cvtColor(ioimages->prcd,srcHSV,CV_BGR2HSV);
-	split(srcLAB,channelsLAB);
-	split(srcHSV,channelsHSV);
+	Mat srcLAB;cvtColor(ioimages->prcd,srcLAB,CV_RGB2Lab);
+	Mat srcHSV;cvtColor(ioimages->prcd,srcHSV,CV_BGR2HSV);
 	
-	
-	//imshow("rgb0",channelsRGB[0]);
-	//imshow("rgb1",channelsRGB[1]);
-	//imshow("rgb2",channelsRGB[2]);
-	//imshow("hsv0",channelsHSV[0]);
-	//imshow("hsv1",channelsHSV[1]);
-	//imshow("hsv2",channelsHSV[2]);
-	
-	
-	
-	
-	add(channelsRGB[2],channelsRGB[0],channelsRGB[2]);
-	threshold(channelsRGB[2], channelsRGB[2], 130, 255, THRESH_BINARY_INV);
-	//adaptiveThreshold(channelsHSV[1],ioimages->dbg,255,0,THRESH_BINARY,171,-10);
-	threshold(channelsRGB[1], channelsRGB[1], 130, 255, THRESH_BINARY_INV);
-	bitwise_and(channelsRGB[1], channelsRGB[2], ioimages->dbg);
+	std::vector<Mat> channelsRGB(ioimages->prcd.channels());split(ioimages->prcd,channelsRGB);
+	std::vector<Mat> channelsLAB(srcLAB.channels());split(srcLAB,channelsLAB);
+	std::vector<Mat> channelsHSV(srcHSV.channels());split(srcHSV,channelsHSV);
+/*	
+	imshow("rgb0",channelsRGB[0]);
+	imshow("rgb1",channelsRGB[1]);
+	imshow("rgb2",channelsRGB[2]);
+	imshow("hsv0",channelsHSV[0]);
+	imshow("hsv1",channelsHSV[1]);
+	imshow("hsv2",channelsHSV[2]);
+*/	
+	//add(channelsRGB[2],channelsRGB[0],channelsRGB[2]);
+	adaptiveThreshold(channelsRGB[0], ioimages->dbg,255,0,THRESH_BINARY_INV,171,40); // used incorrectly, but seems to work very robustly!
+	////adaptiveThreshold(channelsHSV[1],ioimages->dbg,255,0,THRESH_BINARY,171,-10);
+	//threshold(channelsRGB[1], channelsRGB[1], 70, 255, THRESH_BINARY_INV);
+	//bitwise_and(channelsRGB[1], channelsHSV[2], ioimages->dbg);
 
-	//erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
+	////erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
-	//bitwise_and(channelsRGB[2], ioimages->dbg, ioimages->dbg);
-
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
+	////bitwise_and(channelsRGB[2], ioimages->dbg, ioimages->dbg);
 }

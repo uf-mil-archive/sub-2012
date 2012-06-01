@@ -94,14 +94,14 @@ void VisionWorker::work(double dt)
 	//imshow("Source",ioimages.src);
 	if(showDebugImages)
 	{
-		if(frameCnt%20==0)
+		if(true)
 		{
 			if(listOfFinders.size() == 0)
 				imshow("Processed",ioimages.src);
 			else
 				imshow("Processed",ioimages.prcd);
 			imshow("Debug",ioimages.dbg);
-			waitKey(10);
+			waitKey(0);
 		}
 	}
 	if(logImages && frameCnt%30 == 0)
