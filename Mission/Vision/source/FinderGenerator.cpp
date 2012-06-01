@@ -5,15 +5,7 @@
 using namespace std;
 using namespace boost;
 
-FinderGenerator::FinderGenerator(void) { }
-
-FinderGenerator::~FinderGenerator(void) {
-	// HOW TO MAKE SURE THAT listOfFinders is emptied and the thresholders and normalizer memory locations get cleared?
-}
-
 vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oIDs) {
-	clearFinders();	
-
 	vector<int> buoyIDs;
 	vector<int> pipeIDs;
 	vector<int> hedgeIDs;
@@ -53,6 +45,8 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 		else if( oIDs[i]==MIL_OBJECTID_GATE_VALIDATION)
 			gateIDs.push_back(oIDs[i]);
 	}
+	
+	vector<boost::shared_ptr<IFinder> > listOfFinders;
 	if(buoyIDs.size() > 0)
 		listOfFinders.push_back(make_shared<BuoyFinder>(buoyIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(pipeIDs.size() > 0)
@@ -71,10 +65,4 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 		listOfFinders.push_back(make_shared<ValidationGateFinder>(gateIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 
 	return listOfFinders;
-}
-
-void FinderGenerator::clearFinders() {
-	printf("Clearing the finder list!\n");
-	// clear the finder list
-	listOfFinders.clear();
 }

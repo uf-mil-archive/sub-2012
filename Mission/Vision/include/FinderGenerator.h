@@ -22,11 +22,8 @@
 class FinderGenerator
 {
 public:
-	vector<boost::shared_ptr<IFinder> > listOfFinders;
-	FinderGenerator(void);
-	~FinderGenerator(void);
+	FinderGenerator(void) { };
 	vector<boost::shared_ptr<IFinder> > buildFinders(vector<int>);
-	void clearFinders();
 };
 
 #endif
