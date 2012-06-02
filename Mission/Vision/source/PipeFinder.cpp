@@ -1,7 +1,9 @@
 #include "PipeFinder.h"
 #include "Line.h"
 
+using namespace cv;
 using namespace boost;
+using namespace std;
 
 PipeFinder::PipeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;

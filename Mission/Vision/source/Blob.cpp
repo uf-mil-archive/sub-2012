@@ -1,6 +1,8 @@
 #include "Blob.h"
 #include <cstdio>
 
+using namespace cv;
+
 Blob::Blob(float minContour, float maxContour, float maxPerimeter)
 {
 	area_holder = 0.0;

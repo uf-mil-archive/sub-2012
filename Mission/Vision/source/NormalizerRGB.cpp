@@ -1,5 +1,7 @@
 #include "NormalizerRGB.h"
 
+using namespace cv;
+
 NormalizerRGB::NormalizerRGB(void)
 {
 }

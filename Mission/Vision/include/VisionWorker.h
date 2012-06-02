@@ -16,9 +16,6 @@
 #include "ImageSource.h"
 #include "VisionSetIDs.h"
 
-using namespace cv;
-using namespace std;
-
 class VisionWorkerCommands
 {
 public:
@@ -41,7 +38,7 @@ public:
 
 	WorkerMailbox<VisionSetIDs> setidsmailbox;
 
-	WorkerSignal<std::pair<int, vector<boost::property_tree::ptree> > > outputsignal;
+	WorkerSignal<std::pair<int, std::vector<boost::property_tree::ptree> > > outputsignal;
 
 protected:
 	virtual void enterActive();
@@ -57,8 +54,8 @@ private:
 	bool logImages;
 	int cameraId;
 	FinderGenerator finderGen;
-	vector<boost::shared_ptr<IFinder> > listOfFinders;
-	vector<int> finderIDs;
+	std::vector<boost::shared_ptr<IFinder> > listOfFinders;
+	std::vector<int> finderIDs;
 	boost::shared_ptr<Camera> camera;
 	int frameCnt;
 	float shutterVal;

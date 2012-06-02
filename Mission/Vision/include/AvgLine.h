@@ -8,20 +8,20 @@
 class AvgLine
 {
 public:
-	Point centroid;
+	cv::Point centroid;
 	double length;
-	Point startPoint;
-	Point endPoint;
+	cv::Point startPoint;
+	cv::Point endPoint;
 	double angle;
-	Point startPoint_sum;
-	Point endPoint_sum;
+	cv::Point startPoint_sum;
+	cv::Point endPoint_sum;
 	double angle_sum;
 	int cnt;
 	bool populated;
 
 	AvgLine(void);
 	~AvgLine(void);
-	void updateAverage(Point a, Point b, double angle);
+	void updateAverage(cv::Point a, cv::Point b, double angle);
 	
 
 };

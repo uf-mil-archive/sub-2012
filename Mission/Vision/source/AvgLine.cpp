@@ -1,5 +1,7 @@
 #include "AvgLine.h"
 
+using namespace cv;
+
 AvgLine::AvgLine(void)
 {
 	centroid.x = 0;

@@ -13,10 +13,10 @@
 class IFinder
 {
 	public:
-		vector<int> oIDs;
+		std::vector<int> oIDs;
 		boost::shared_ptr<INormalizer> n;
 		boost::shared_ptr<IThresholder> t;
-		virtual vector<boost::property_tree::ptree> find(IOImages* ioimages) = 0;
+		virtual std::vector<boost::property_tree::ptree> find(IOImages* ioimages) = 0;
 };
 
 #endif

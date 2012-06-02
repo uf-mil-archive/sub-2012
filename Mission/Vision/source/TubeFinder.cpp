@@ -2,6 +2,7 @@
 #include "Line.h"
 
 using namespace boost;
+using namespace std;
 
 TubeFinder::TubeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;

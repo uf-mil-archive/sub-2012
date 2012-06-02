@@ -11,7 +11,7 @@ class Blob
 		struct BlobData {
 			float area;
 			float perimeter;
-			Point centroid;
+			cv::Point centroid;
 			float radius;
 
 			bool operator==(const BlobData &bdata) const {
@@ -32,10 +32,10 @@ class Blob
 
 
 	private:
-		vector<vector<Point> > contours;
-		vector<Vec4i> hierarchy;
+		std::vector<std::vector<cv::Point> > contours;
+		std::vector<cv::Vec4i> hierarchy;
 		char str[200];
-		Point2f center_holder;
+		cv::Point2f center_holder;
 		float area_holder;
 		float radius_holder;
 		double perimeter_holder;

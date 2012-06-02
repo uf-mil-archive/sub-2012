@@ -23,7 +23,7 @@ class FinderGenerator
 {
 public:
 	FinderGenerator(void) { };
-	vector<boost::shared_ptr<IFinder> > buildFinders(vector<int>);
+	std::vector<boost::shared_ptr<IFinder> > buildFinders(std::vector<int>);
 };
 
 #endif

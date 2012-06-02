@@ -1,5 +1,6 @@
 #include "Contours.h"
 
+using namespace cv;
 using namespace std;
 
 Contours::Contours(float minContour, float maxContour, float maxPerimeter)

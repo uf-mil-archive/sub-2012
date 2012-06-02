@@ -9,7 +9,7 @@
 class Line
 {
 public:
-	vector<AvgLine> avgLines;
+	std::vector<AvgLine> avgLines;
 	Line(int num);
 	~Line(void);
 	int findLines(IOImages* ioimages);
@@ -18,8 +18,8 @@ public:
 
 private:
 	int numberOfLinesToFind;
-	Mat edgeImage;
-	vector<Vec4i> lines;	
+	cv::Mat edgeImage;
+	std::vector<cv::Vec4i> lines;	
 	double tmpAngle;
 	
 	

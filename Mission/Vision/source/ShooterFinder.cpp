@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 using namespace boost;
+using namespace cv;
+using namespace std;
 
 ShooterFinder::ShooterFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;

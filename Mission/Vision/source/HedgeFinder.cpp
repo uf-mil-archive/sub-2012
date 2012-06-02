@@ -2,6 +2,8 @@
 #include "Line.h"
 
 using namespace boost;
+using namespace cv;
+using namespace std;
 
 HedgeFinder::HedgeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;

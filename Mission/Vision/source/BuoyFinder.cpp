@@ -2,6 +2,7 @@
 #include "Blob.h"
 
 using namespace boost;
+using namespace cv;
 
 BuoyFinder::BuoyFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {

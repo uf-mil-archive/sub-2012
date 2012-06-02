@@ -2,6 +2,7 @@
 #include "Contours.h"
 
 using namespace boost;
+using namespace cv;
 
 BinsFinder::BinsFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;

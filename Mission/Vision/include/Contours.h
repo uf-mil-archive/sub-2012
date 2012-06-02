@@ -10,45 +10,45 @@ class Contours
 {
 	public:
 		struct InnerContour {
-			Point centroid;
+			cv::Point centroid;
 			float area;
 			float perimeter;
 			float radius;
-			vector<vector<Point> > contour;
+			std::vector<std::vector<cv::Point> > contour;
 			int objectID;
 			bool shape_x;
 		};
 
 		struct OuterBox {
 			float perimeter;
-			Point centroid;
+			cv::Point centroid;
 			float area;
 			float angle;
-			Point orientation;
-			vector<Point> corners;
-			vector<vector<Point> > contour;
+			cv::Point orientation;
+			std::vector<cv::Point> corners;
+			std::vector<std::vector<cv::Point> > contour;
 			double orientationError;
 		};
-		vector<InnerContour> shapes; // output holder
-		vector<OuterBox> boxes; // output holder
+		std::vector<InnerContour> shapes; // output holder
+		std::vector<OuterBox> boxes; // output holder
 
 		Contours(float minContour, float maxContour, float maxPerimeter);
 		~Contours(void);
 		int findContours(IOImages* ioimages, bool findInnerContours);
 		void drawResult(IOImages* ioimages, int objectID);
-		double angle(Point pt1, Point pt2, Point pt0);
+		double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 		int findLargestShape();
 		int findSmallestShape();
-		Point calcCentroidOfAllBoxes();
+		cv::Point calcCentroidOfAllBoxes();
 		float calcAngleOfAllBoxes();
 		void sortBoxes();
 		int identifyShape(IOImages* ioimages);
 		void orientationError();
 
 	private:
-		vector<Vec4i> hierarchy; // heirarchy holder for the contour tree
+		std::vector<cv::Vec4i> hierarchy; // heirarchy holder for the contour tree
 		char str[200]; // to print stuffz
-		Point2f center_holder; // temp variable
+		cv::Point2f center_holder; // temp variable
 		float area_holder; // temp variable
 		float radius_holder; // temp variable
 		float perimeter_holder; // temp variable

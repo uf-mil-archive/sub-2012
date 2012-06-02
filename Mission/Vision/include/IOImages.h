@@ -5,20 +5,18 @@
 #include <opencv/highgui.h>
 #include <stdio.h>
 
-using namespace cv;
-
 class IOImages
 {
 public:
-	Mat src;
-	Mat prcd;
-	Mat dbg;
+	cv::Mat src;
+	cv::Mat prcd;
+	cv::Mat dbg;
 
-	IOImages(Size size);
+	IOImages(cv::Size size);
 	IOImages(void);
 	~IOImages(void);
 
-	int setNewSource(Mat newSrc);
+	int setNewSource(cv::Mat newSrc);
 
 };
 

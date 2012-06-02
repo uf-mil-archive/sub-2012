@@ -9,8 +9,9 @@
 #include "VisionWorker.h"
 #include "ImageSource.h"
 
-using namespace subjugator;
 using namespace boost;
+using namespace std;
+using namespace subjugator;
 
 DECLARE_MESSAGE_TRAITS(FinderMessageList);
 DECLARE_MESSAGE_TRAITS(VisionSetIDsMessage);

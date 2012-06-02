@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cmath>
 
+using namespace cv;
 using namespace std;
 
 Line::Line(int num)
