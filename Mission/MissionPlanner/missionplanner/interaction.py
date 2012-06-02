@@ -14,25 +14,29 @@ class CommandTask(sched.Task):
         self.env = env
 
     def run(self):
-        self.set_status('running')
         self.send_output(self.cmd, 'cmd')
-        code = compile(self.cmd, '<interaction>', 'exec')
 
         err = False
         try:
-            exec code in self.env
-        except Exception, ex:
-            if isinstance(ex, greenlet.GreenletExit):
-                raise
+            try:
+                expr = compile(self.cmd+'\n', '<interaction>', 'eval')
+            except:
+                expr = None
+                code = compile(self.cmd, '<interaction>', 'exec')
+
+            self.set_status('running')
+            if expr is not None:
+                self.send_output(repr(eval(expr, self.env)), 'status')
             else:
-                traceback.print_exc()
-                err = True
+                eval(code, self.env)
+                self.send_output('Done', 'status')
+        except Exception, ex:
+            traceback.print_exc()
+            self.set_status('error')
+            err = True
         finally:
             if not err:
                 self.set_status('done')
-                self.send_output('Done', 'status')
-            else:
-                self.set_status('error')
 
     def send_output(self, data, outtype):
         outtopic = topics.get('InteractionOutput')
@@ -79,7 +83,7 @@ class DDSInteractionStream(object):
 
 def make_env():
     env = {}
-    for modname in ['subjugator.nav', 'subjugator.sched', 'subjugator.topics', 'dds']:
+    for modname in ['subjugator.nav', 'subjugator.sched', 'subjugator.topics', 'dds', 'math']:
         name = modname.split('.')[-1]
         env[name] = __import__(modname, fromlist=[modname])
     return env

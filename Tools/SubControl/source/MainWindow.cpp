@@ -372,6 +372,8 @@ void MainWindow::updateInteractOutput() {
 		out << "\">";
 		out << data.toStdString();
 		out << "</span>";
+		if (msg->type == IOT_STATUS)
+			out << "<br />";
 
 		ui.interactOutputTextEdit->moveCursor(QTextCursor::End);
 		ui.interactOutputTextEdit->insertHtml(QString(out.str().c_str()));
