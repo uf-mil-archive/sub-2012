@@ -1,36 +1,28 @@
 #include "Line.h"
 #include <cstdio>
 #include <cmath>
+#include "LibSub/Math/AttitudeHelpers.h"
 
 using namespace cv;
 using namespace std;
+using namespace subjugator;
 
 Line::Line(int num)
 {
 	numberOfLinesToFind = num;
-	tmpAngle = 0.0;
-	AvgLine line1;
-	avgLines.push_back(line1);
-	if(num == 2)
-	{
-		AvgLine line2;
-		avgLines.push_back(line2);
-	}
-}
-
-Line::~Line(void)
-{
+	for(int i = 0; i < numberOfLinesToFind; i++)
+		avgLines.push_back(AvgLine());
 }
 
 int Line::findLines(IOImages* ioimages)
 {
-	Canny(ioimages->dbg, edgeImage, 50, 200, 3 );
-	HoughLinesP(edgeImage, lines, 1, CV_PI/360, 80, 60, 50 );
+	cv::Mat edgeImage;Canny(ioimages->dbg, edgeImage, 50, 200, 3 );
+	std::vector<cv::Vec4i> lines;HoughLinesP(edgeImage, lines, 1, CV_PI/360, 80, 60, 50 );
 
 	for( size_t i = 0; i < lines.size(); i++ )
 	{
 		line( ioimages->prcd, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(0,0,255), 1, 8 );
-		tmpAngle = atan2((double)lines[i][1]-(double)lines[i][3],(double)lines[i][0]-(double)lines[i][2]); // (y1-y2)/(x1-x2)
+		double tmpAngle = atan2((double)lines[i][1]-(double)lines[i][3],(double)lines[i][0]-(double)lines[i][2]); // (y1-y2)/(x1-x2)
 		if(tmpAngle != 0) tmpAngle += 3.1415/2.0; // offset to vertical
 		if(tmpAngle > 0) tmpAngle -= 3.1415;
 		//printf("%f\n",tmpAngle);
@@ -66,18 +58,18 @@ int Line::findLines(IOImages* ioimages)
 			// if a new angle comes in and the first average is populated and the second average is open
 			// and the new angle is far from the first average, save it as the second average
 			else if(avgLines[0].populated == true && avgLines[1].populated == false &&
-				abs(dAngleDiff(avgLines[0].angle,tmpAngle)) > 20*3.14159/180.0)
+				abs(AttitudeHelpers::DAngleDiff(avgLines[0].angle,tmpAngle)) > 20*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 				avgLines[1].populated = true;
 			}
 			// if a new angle comes in and both averages are populated, find which average it is closest to,
 			// then call the update average helper
-			else if(abs(dAngleDiff(avgLines[0].angle,tmpAngle)) < 20*3.14159/180.0)
+			else if(abs(AttitudeHelpers::DAngleDiff(avgLines[0].angle,tmpAngle)) < 20*3.14159/180.0)
 			{
 				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 			}
-			else if(abs(dAngleDiff(avgLines[1].angle,tmpAngle)) < 20*3.14159/180.0)
+			else if(abs(AttitudeHelpers::DAngleDiff(avgLines[1].angle,tmpAngle)) < 20*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 			}
@@ -106,16 +98,4 @@ void Line::drawResult(IOImages *ioimages, int objectID)
 			putText(ioimages->prcd,str,Point(10,10+i*15),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,0,0),1);
 		}
 	}
-}
-
-double Line::dAngleDiff(double a, double b)
-{
-	static double Pi = 3.14159;
-	static double TwoPi = 2*Pi;
-
-	double res = b-a;
-	while(res < -1*Pi) res += TwoPi;
-	while(res > Pi) res-= TwoPi;
-
-	return res;
 }

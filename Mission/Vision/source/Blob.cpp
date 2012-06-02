@@ -6,25 +6,11 @@
 
 using namespace cv;
 
-Blob::Blob(float minContour, float maxContour, float maxPerimeter)
+Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPerimeter)
 {
-	area_holder = 0.0;
-	perimeter_holder = 0;
-	radius_holder = 0;
-	smallestContourSize = minContour;
-	largestContourSize = maxContour;
-	largestContourPerimeter = maxPerimeter;
-}
-
-Blob::~Blob(void)
-{
-}
-
-int Blob::findBlob(IOImages* ioimages)
-{
-	Rect result;
-	vector<Point> approx;
 	Mat dbg_temp = ioimages->dbg.clone();
+	std::vector<std::vector<cv::Point> > contours;
+	std::vector<cv::Vec4i> hierarchy;
 	findContours(dbg_temp,contours,hierarchy,RETR_CCOMP,CHAIN_APPROX_SIMPLE);
 
 	//if(contours.size() > 0)
@@ -39,11 +25,13 @@ int Blob::findBlob(IOImages* ioimages)
 
 	for( size_t i = 0; i < contours.size(); i++ )
 	{
-		area_holder = (float)fabs(contourArea(Mat(contours[i])));
-		perimeter_holder = arcLength(Mat(contours[i]),true);
-		if(area_holder > smallestContourSize && area_holder < largestContourSize
-			&& perimeter_holder < largestContourPerimeter /*&& isContourConvex(Mat(contours[i]))*/)
+		float area_holder = (float)fabs(contourArea(Mat(contours[i])));
+		double perimeter_holder = arcLength(Mat(contours[i]),true);
+		if(area_holder > minContour && area_holder < maxContour
+			&& perimeter_holder < maxPerimeter /*&& isContourConvex(Mat(contours[i]))*/)
 		{
+			cv::Point2f center_holder;
+			float radius_holder;
 			minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
 			if(center_holder.x != 0 && center_holder.y != 0)
 			{
@@ -64,17 +52,10 @@ int Blob::findBlob(IOImages* ioimages)
 	reverse(data.begin(),data.end());
 	if(data.size() > 2)
 		data.resize(2);
-
-	if (data.size() > 0)
-		return 1;
-	return 0;
 }
 
 void Blob::drawResult(IOImages* ioimages, int objectID)
 {
-	if (data.empty())
-		return;
-
 	Scalar color;
 	Point position;
 	//printf("oid: %d\n",objectID);
@@ -96,6 +77,7 @@ void Blob::drawResult(IOImages* ioimages, int objectID)
 	for(unsigned int i=0; i<data.size(); i++)
 	{
 		circle(ioimages->prcd,data[i].centroid,(int)data[i].radius,color,2,8,0);
+		char str[200];
 		sprintf(str,"Area: %.0f",data[i].area);
 		putText(ioimages->prcd,str,Point(data[i].centroid.x-30,data[i].centroid.y-10),FONT_HERSHEY_DUPLEX,0.4,CV_RGB(0,0,0),1.5);
 	}

@@ -28,23 +28,8 @@ class Blob
 
 		std::vector<BlobData> data;
 
-		Blob(float minContour, float maxContour, float maxPerimeter);
-		~Blob(void);
-		int findBlob(IOImages* ioimages);
+		Blob(IOImages* ioimages, float minContour, float maxContour, float maxPerimeter);
 		void drawResult(IOImages* ioimages, int objectID);
-
-
-	private:
-		std::vector<std::vector<cv::Point> > contours;
-		std::vector<cv::Vec4i> hierarchy;
-		char str[200];
-		cv::Point2f center_holder;
-		float area_holder;
-		float radius_holder;
-		double perimeter_holder;
-		float smallestContourSize;
-		float largestContourSize;
-		float largestContourPerimeter;
 };
 
 #endif

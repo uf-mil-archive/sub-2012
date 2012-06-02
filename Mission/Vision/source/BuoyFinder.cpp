@@ -26,12 +26,12 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Blob blob(100,80000,2000);
-		blob.findBlob(ioimages);
+		Blob blob(ioimages,100,80000,2000);
+
+		// Draw result
+		blob.drawResult(ioimages,oIDs[i]);
 
 		for (unsigned int j=0; j<blob.data.size(); j++) {
-			// Draw result
-			blob.drawResult(ioimages,oIDs[i]);
 			//printf("buoy finder!\n");
 			// Prepare results
 			property_tree::ptree fResult;
