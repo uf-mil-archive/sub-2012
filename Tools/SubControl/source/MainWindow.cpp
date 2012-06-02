@@ -26,11 +26,13 @@ MainWindow::MainWindow() :
 	killsender(killtopic),
 	interactioncommandtopic(part, "InteractionCommand", TopicQOS::RELIABLE),
 	interactioncommandsender(interactioncommandtopic),
+	interactioncommandreceiver(interactioncommandtopic),
 	interactionstatustopic(part, "InteractionStatus", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
 	interactionstatusreceiver(interactionstatustopic),
 	interactionoutputtopic(part, "InteractionOutput", TopicQOS::DEEP_PERSISTENT),
 	interactionoutputreceiver(interactionoutputtopic),
-	stats(part)
+	stats(part),
+	commandhistorypos(0)
 {
 	ui.setupUi(this);
 	ui.workerStatusTable->setHorizontalHeaderLabels(QStringList() << "En" << "Worker" << "Status" << "Message");
@@ -50,6 +52,8 @@ MainWindow::MainWindow() :
 	connect(ui.interactRunButton, SIGNAL(clicked()), this, SLOT(interactRunClicked()));
 	connect(ui.interactStopButton, SIGNAL(clicked()), this, SLOT(interactStopClicked()));
 	connect(&filter, SIGNAL(sendCommandTyped()), this, SLOT(interactRunClicked()));
+	connect(&filter, SIGNAL(recallCommandTyped()), this, SLOT(interactRecall()));
+	connect(&filter, SIGNAL(unrecallCommandTyped()), this, SLOT(interactUnrecall()));
 
 	timer.start(100);
 }
@@ -94,6 +98,8 @@ void MainWindow::interactRunClicked() {
 	to_dds(msg.cmd, cmd.toStdString());
 	msg.stop = false;
 	interactioncommandsender.send(msg);
+	commandhistorypos = 0;
+	commandhistory.push_back(cmd.toStdString());
 }
 
 void MainWindow::interactStopClicked() {
@@ -101,6 +107,30 @@ void MainWindow::interactStopClicked() {
 	msg.cmd = const_cast<char *>("");
 	msg.stop = true;
 	interactioncommandsender.send(msg);
+}
+
+void MainWindow::interactRecall() {
+	string cmd;
+	if (commandhistorypos >= commandhistory.size()) {
+		commandhistorypos = 0;
+	} else {
+		commandhistorypos++;
+		cmd = commandhistory[commandhistory.size()-commandhistorypos];
+	}
+
+	ui.interactCommandTextEdit->setPlainText(cmd.c_str());
+}
+
+void MainWindow::interactUnrecall() {
+	string cmd;
+	if (commandhistorypos <= 1) {
+		commandhistorypos = 0;
+	} else {
+		commandhistorypos--;
+		cmd = commandhistory[commandhistory.size()-commandhistorypos];
+	}
+
+	ui.interactCommandTextEdit->setPlainText(cmd.c_str());
 }
 
 void MainWindow::updateWorkers() {
@@ -374,6 +404,12 @@ bool InteractTextEditFilter::eventFilter(QObject *obj, QEvent *event) {
          QKeyEvent &evt = *static_cast<QKeyEvent *>(event);
          if (evt.modifiers().testFlag(Qt::ControlModifier) && evt.key() == Qt::Key_Return) {
 	         emit sendCommandTyped();
+	         return true;
+         } else if (evt.modifiers().testFlag(Qt::ControlModifier) && evt.key() == Qt::Key_Up) {
+	         emit recallCommandTyped();
+	         return true;
+         } else if (evt.modifiers().testFlag(Qt::ControlModifier) && evt.key() == Qt::Key_Down) {
+	         emit unrecallCommandTyped();
 	         return true;
          }
 	 }
