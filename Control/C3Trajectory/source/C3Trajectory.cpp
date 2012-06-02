@@ -142,12 +142,12 @@ pair<Matrix4d, Matrix4d> C3Trajectory::transformation_pair(const Vector6d &q) {
 	R(3, 3) = 1;
 
 	Matrix4d T = Matrix4d::Identity();
-	T.block<3,1>(0, 3) = q.head(3);
+	T.block<3,1>(0, 3) = -q.head(3);
 
 	pair<Matrix4d, Matrix4d> result;
 	result.first = R.transpose()*T; // NED -> BODY
 
-	T.block<3,1>(0, 3) = -q.head(3);
+	T.block<3,1>(0, 3) = q.head(3);
 	result.second = T*R; // BODY -> NED
 
 	return result;
