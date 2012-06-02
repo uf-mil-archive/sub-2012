@@ -1,9 +1,12 @@
 #ifndef BLOB_H
 #define BLOB_H
 
-#include "MILObjectIDs.h"
-#include "IOImages.h"
 #include <vector>
+
+#include <opencv/cv.h>
+
+#include "IOImages.h"
+
 
 class Blob
 {

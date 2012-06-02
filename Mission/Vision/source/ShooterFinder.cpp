@@ -1,6 +1,9 @@
-#include "ShooterFinder.h"
-#include "Contours.h"
 #include <stdio.h>
+
+#include "Contours.h"
+#include "MILObjectIDs.h"
+
+#include "ShooterFinder.h"
 
 using namespace boost;
 using namespace cv;

@@ -1,5 +1,7 @@
-#include "HedgeFinder.h"
 #include "Line.h"
+#include "MILObjectIDs.h"
+
+#include "HedgeFinder.h"
 
 using namespace boost;
 using namespace cv;

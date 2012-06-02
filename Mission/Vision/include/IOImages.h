@@ -2,8 +2,6 @@
 #define IOIMAGES_H
 
 #include <opencv/cv.h>
-#include <opencv/highgui.h>
-#include <stdio.h>
 
 class IOImages
 {

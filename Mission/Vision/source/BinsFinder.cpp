@@ -1,5 +1,9 @@
-#include "BinsFinder.h"
+#include <stdio.h>
+
 #include "Contours.h"
+#include "MILObjectIDs.h"
+
+#include "BinsFinder.h"
 
 using namespace boost;
 using namespace cv;

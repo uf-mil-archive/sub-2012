@@ -1,6 +1,8 @@
 #ifndef HEDGE_FINDER_H
 #define HEDGE_FINDER_H
 
+#include <vector>
+
 #include "IFinder.h"
 
 class HedgeFinder : public IFinder

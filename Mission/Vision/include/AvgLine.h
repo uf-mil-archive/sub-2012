@@ -1,9 +1,7 @@
 #ifndef AVG_LINE_H
 #define AVG_LINE_H
 
-#include "MILObjectIDs.h"
-#include "IOImages.h"
-#include <vector>
+#include <opencv/cv.h>
 
 class AvgLine
 {

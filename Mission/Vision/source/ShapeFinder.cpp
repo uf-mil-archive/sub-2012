@@ -1,6 +1,7 @@
-#include "ShapeFinder.h"
 #include "Contours.h"
-//#include "Shape.h"
+#include "MILObjectIDs.h"
+
+#include "ShapeFinder.h"
 
 using namespace boost;
 using namespace cv;

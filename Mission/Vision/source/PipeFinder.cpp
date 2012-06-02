@@ -1,5 +1,7 @@
-#include "PipeFinder.h"
 #include "Line.h"
+#include "MILObjectIDs.h"
+
+#include "PipeFinder.h"
 
 using namespace cv;
 using namespace boost;

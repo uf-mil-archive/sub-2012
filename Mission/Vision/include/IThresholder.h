@@ -1,7 +1,6 @@
 #ifndef ITHRESHOLDER_H
 #define ITHRESHOLDER_H
 
-#include "MILObjectIDs.h"
 #include "IOImages.h"
 
 class IThresholder

@@ -1,10 +1,10 @@
 #ifndef LINE_H
 #define LINE_H
 
-#include "MILObjectIDs.h"
-#include "IOImages.h"
 #include <vector>
+
 #include "AvgLine.h"
+#include "IOImages.h"
 
 class Line
 {

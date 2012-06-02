@@ -2,6 +2,22 @@
 
 #include "FinderGenerator.h"
 
+#include "IOImages.h"
+#include "MILObjectIDs.h"
+
+#include "NormalizerRGB.h"
+#include "ThresholderRGB.h"
+
+#include "BuoyFinder.h"
+#include "PipeFinder.h"
+#include "HedgeFinder.h"
+#include "TubeFinder.h" 
+#include "ShooterFinder.h"
+#include "BinsFinder.h" 
+#include "ShapeFinder.h"
+#include "ValidationGateFinder.h"
+#include <stdio.h>
+
 using namespace std;
 using namespace boost;
 

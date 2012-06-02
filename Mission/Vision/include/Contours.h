@@ -1,10 +1,11 @@
 #ifndef CONTOURS_H
 #define CONTOURS_H
 
-#include "MILObjectIDs.h"
-#include "IOImages.h"
 #include <vector>
-#include <cmath>
+
+#include <opencv/cv.h>
+
+#include "IOImages.h"
 
 class Contours
 {

@@ -1,9 +1,7 @@
 #ifndef DATAOBJECTS_VISION_H
 #define DATAOBJECTS_VISION_H
 
-#include <boost/array.hpp>
-#include <boost/cstdint.hpp>
-#include <cassert>
+#include <vector>
 
 namespace subjugator {
 	class VisionSetIDs {

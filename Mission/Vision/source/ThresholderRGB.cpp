@@ -1,3 +1,5 @@
+#include "MILObjectIDs.h"
+
 #include "ThresholderRGB.h"
 
 using namespace cv;

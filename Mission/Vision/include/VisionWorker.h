@@ -2,17 +2,15 @@
 #define VISION_WORKER_H
 
 #include <vector>
-#include <boost/thread/mutex.hpp>
+
 #include <boost/shared_ptr.hpp>
 
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
-#include "LibSub/Worker/WorkerKill.h"
 
 #include "IOImages.h"
 #include "FinderGenerator.h"
-#include "MILObjectIDs.h"
 #include "ImageSource.h"
 #include "VisionSetIDs.h"
 

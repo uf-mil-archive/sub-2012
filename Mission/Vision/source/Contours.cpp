@@ -1,3 +1,9 @@
+#include <stdio.h>
+
+#include <opencv/highgui.h>
+
+#include "MILObjectIDs.h"
+
 #include "Contours.h"
 
 using namespace cv;
