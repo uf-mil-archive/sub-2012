@@ -41,7 +41,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	Vector6d vmin_b_prime = limits.vmin_b;
 	Vector6d vmax_b_prime = limits.vmax_b;
 	Vector3d posdelta = r_b.head(3);
-	if (posdelta.norm() > 0.1) {
+	if (posdelta.norm() > 0.01) {
 		pair<Vector3d, Vector3d> result = limit(limits.vmin_b.head(3), limits.vmax_b.head(3), posdelta);
 		vmin_b_prime.head(3) = result.first;
 		vmax_b_prime.head(3) = result.second;
@@ -57,7 +57,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 		}
 	}
 
-	for (int i=2; i<6; i++) {
+	for (int i=3; i<6; i++) {
 		while (r_b(i) - q_b(i) > M_PI)
 			r_b(i) -= 2*M_PI;
 		while (r_b(i) - q_b(i) < -M_PI)
@@ -73,7 +73,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	qdot += dt*qdotdot;
 	q += dt*qdot;
 
-	for (int i=2; i<6; i++) {
+	for (int i=3; i<6; i++) {
 		while (q(i) > M_PI)
 			q(i) -= 2*M_PI;
 		while (q(i) < -M_PI)
