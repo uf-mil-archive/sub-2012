@@ -15,10 +15,11 @@ def setup():
         try:
             settopic.read()
             trajtopic.read()
-            return
+            break
         except dds.Error:
             pass
         sched.sleep(.1) # todo multi-topic ddswait
+    wait()
 
 def make_waypoint(x=0, y=0, z=0, R=0, P=0, Y=0):
     return Waypoint([x, y, z, R, P, Y])
@@ -187,18 +188,28 @@ def heading(deg=None, rad=None):
         waypoint.Y = rad
     set_waypoint(waypoint)
 
-def go(x, y, z=None, rel=False, base=None):
+def xyz_to_waypoint(x, y, z=None, rel=False, base=None):
     curpoint = get_waypoint()
     waypoint = make_waypoint(x, y)
     if rel:
         base = curpoint
     if base is not None:
         waypoint = waypoint.resolve_relative(base)
-    else:
-        waypoint.z = curpoint.z # z is always relative
-    if z is not None:
+    elif z is not None:
         waypoint.z = z
-    waypoint.RP = curpoint.RP
+    else:
+        waypoint.z = curpoint.z
+    waypoint.RPY = curpoint.RPY
+    return waypoint
+
+@waitopts
+def go(*args, **kwargs):
+    waypoint = xyz_to_waypoint(*args, **kwargs)
+    set_waypoint(waypoint)
+
+def point_shoot(*args, **kwargs):
+    waypoint = xyz_to_waypoint(*args, **kwargs)
+    curpoint = get_waypoint()
     waypoint.Y = math.atan2(waypoint.y - curpoint.y, waypoint.x - curpoint.x)
     heading(rad=waypoint.Y)
     set_waypoint(waypoint)
