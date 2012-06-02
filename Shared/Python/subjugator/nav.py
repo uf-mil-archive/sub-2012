@@ -84,7 +84,7 @@ class Waypoint(object):
         for i in xrange(0, 3):
             if math.fabs(otherpoint.array[i] - self.array[i]) > pos_tol:
                 return False
-            if math.fabs(otherpoint.array[i+3] - self.array[i+3]) > rad_tol:
+            if mathutils.angle_wrap(math.radians(math.fabs(otherpoint.array[i+3] - self.array[i+3]))) > rad_tol:
                 return False
         return True
 
@@ -178,9 +178,13 @@ def depth(depth):
     set_waypoint(waypoint)
 
 @waitopts
-def heading(heading):
+def heading(deg=None, rad=None):
+    assert(deg is not None or rad is not None)
     waypoint = get_waypoint()
-    waypoint.Y = heading
+    if deg is not None:
+        waypoint.Y = math.radians(deg)
+    else:
+        waypoint.Y = rad
     set_waypoint(waypoint)
 
 def go(x, y, z=None, rel=False, base=None):
@@ -196,7 +200,7 @@ def go(x, y, z=None, rel=False, base=None):
         waypoint.z = z
     waypoint.RP = curpoint.RP
     waypoint.Y = math.atan2(waypoint.y - curpoint.y, waypoint.x - curpoint.x)
-    heading(waypoint.Y)
+    heading(rad=waypoint.Y)
     set_waypoint(waypoint)
     wait()
 
