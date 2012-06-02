@@ -223,16 +223,13 @@ void Contours::drawResult(IOImages* ioimages, int objectID)
 int Contours::findLargestShape()
 {
 	int _largestIndex = 0;
-	if(shapes.size() > 0)
+	double _largestArea = 0;
+	for(unsigned i=0; i<shapes.size(); i++)
 	{
-		double _largestArea = 0;
-		for(unsigned i=0; i<shapes.size(); i++)
+		if(shapes[i].area > _largestArea)
 		{
-			if(shapes[i].area > _largestArea)
-			{
-				_largestArea = shapes[i].area;
-				_largestIndex = i;
-			}
+			_largestArea = shapes[i].area;
+			_largestIndex = i;
 		}
 	}
 	return _largestIndex;
@@ -241,16 +238,13 @@ int Contours::findLargestShape()
 int Contours::findSmallestShape()
 {
 	int _smallestIndex = 0;
-	if(shapes.size() > 0)
+	double _smallestArea = 5000;
+	for(unsigned i=0; i<shapes.size(); i++)
 	{
-		double _smallestArea = 5000;
-		for(unsigned i=0; i<shapes.size(); i++)
+		if(shapes[i].area < _smallestArea && shapes[i].area > 0)
 		{
-			if(shapes[i].area < _smallestArea && shapes[i].area > 0)
-			{
-				_smallestArea = shapes[i].area;
-				_smallestIndex = i;
-			}
+			_smallestArea = shapes[i].area;
+			_smallestIndex = i;
 		}
 	}
 	return _smallestIndex;
