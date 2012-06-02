@@ -330,8 +330,8 @@ void MainWindow::updateInteractOutput() {
 		static const char *colors[] = {"black", "black", "blue", "red"};
 
 		QString data = msg->data;
-		while (data.endsWith('\n'))
-			data.chop(1);
+		data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+		data.replace("\n", "<br />");
 
 		ostringstream out;
 		out << "<span style=\"";
@@ -344,7 +344,8 @@ void MainWindow::updateInteractOutput() {
 		out << "</span>";
 
 		ui.interactOutputTextEdit->moveCursor(QTextCursor::End);
-		ui.interactOutputTextEdit->append(QString(out.str().c_str()));
+		ui.interactOutputTextEdit->insertHtml(QString(out.str().c_str()));
+		ui.interactOutputTextEdit->ensureCursorVisible();
 	}
 }
 

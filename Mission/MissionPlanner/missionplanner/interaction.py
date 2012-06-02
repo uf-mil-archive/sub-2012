@@ -36,7 +36,7 @@ class CommandTask(sched.Task):
 
     def send_output(self, data, outtype):
         outtopic = topics.get('InteractionOutput')
-        outtopic.send({'type': 'IOT_'+outtype.upper(), 'data': data})
+        outtopic.send({'type': 'IOT_'+outtype.upper(), 'data': data+'\n'})
 
     def set_status(self, code):
         statustopic = topics.get('InteractionStatus')
@@ -74,9 +74,8 @@ class DDSInteractionStream(object):
 
     def write(self, data):
         self.realstream.write(data)
-        if data != '\n':
-            outtopic = topics.get('InteractionOutput')
-            outtopic.send({'type': 'IOT_'+self.outtype.upper(), 'data': data})
+        outtopic = topics.get('InteractionOutput')
+        outtopic.send({'type': 'IOT_'+self.outtype.upper(), 'data': data})
 
 def make_env():
     env = {}
