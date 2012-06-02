@@ -3,7 +3,7 @@
 using namespace subjugator;
 using namespace boost::property_tree;
 
-C3TrajectoryWorker::C3TrajectoryWorker(const WorkerConfigLoader &configloader) :
+C3TrajectoryWorker::C3TrajectoryWorker(bool testmode, const WorkerConfigLoader &configloader) :
 	Worker("C3Trajectory", 50, configloader),
 	waypointmailbox(WorkerMailbox<Vector6d>::Args()
 	                .setName("waypoint")),
@@ -12,6 +12,9 @@ C3TrajectoryWorker::C3TrajectoryWorker(const WorkerConfigLoader &configloader) :
 {
 	registerStateUpdater(initialpoint);
 	registerStateUpdater(killmon);
+
+	if (testmode)
+		initialpoint.set(Point(Vector6d::Zero(), Vector6d::Zero()));
 
 	loadConfig();
 }

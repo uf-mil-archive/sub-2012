@@ -13,7 +13,7 @@ namespace subjugator {
 	public:
 		typedef C3Trajectory::Point Point;
 
-		C3TrajectoryWorker(const WorkerConfigLoader &configloader);
+		C3TrajectoryWorker(bool testmode, const WorkerConfigLoader &configloader);
 
 		WorkerMailbox<Vector6d> waypointmailbox;
 		WorkerMailbox<Point> initialpoint;

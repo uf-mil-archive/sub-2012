@@ -7,22 +7,45 @@
 #include "LibSub/Math/Quaternion.h"
 #include <boost/asio.hpp>
 
-using namespace std;
-using namespace boost::asio;
 using namespace subjugator;
+using namespace boost::asio;
+namespace po = boost::program_options;
+using namespace std;
 
 DECLARE_MESSAGE_TRAITS(SetWaypointMessage);
 DECLARE_MESSAGE_TRAITS(TrajectoryMessage);
 DECLARE_MESSAGE_TRAITS(LPOSVSSMessage);
 
+namespace {
+	class CustomOptions : public WorkerBuilderOptions {
+	public:
+		CustomOptions(const std::string &name) :
+			WorkerBuilderOptions(name) {
+			desc.add_options()
+				("test-mode,t", "test mode, starts trajectory at 0,0 and doesn't require a functioning lposvss");
+		}
+
+		bool getTestMode() const { return testmode; }
+
+	protected:
+		virtual bool setVariables(const po::variables_map &vm) {
+			testmode = vm.count("test-mode") > 0;
+			return true;
+		}
+
+	private:
+		bool testmode;
+	};
+}
+
 int main(int argc, char **argv) {
 	io_service io;
 
-	WorkerBuilderOptions options("C3Trajectory");
+	CustomOptions options("C3Trajectory");
 	if (!options.parse(argc, argv))
 		return 1;
 
-	WorkerBuilder<C3TrajectoryWorker, DefaultWorkerConstructionPolicy> builder(options, io);
+	WorkerBuilder<C3TrajectoryWorker, ArgumentWorkerConstructionPolicy<bool>::Type> builder(options, io, options.getTestMode());
 	C3TrajectoryWorker &worker = builder.getWorker();
 
 	DDSBuilder dds(io);
