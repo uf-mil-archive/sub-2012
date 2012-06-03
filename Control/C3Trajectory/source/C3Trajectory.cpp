@@ -50,10 +50,10 @@ void C3Trajectory::update(double dt, const Waypoint &waypoint, double waypoint_t
 	}
 
 	for (int i=0; i<6; i++) {
-		if (waypoint.speed(i) == 0)
+		if (abs(waypoint.speed(i)) < 0.0001)
 			continue;
-		vmin_b_prime(i) = max(vmin_b_prime(i), -waypoint.speed(i));
-		vmax_b_prime(i) = min(vmax_b_prime(i), waypoint.speed(i));
+		vmin_b_prime(i) = max(vmin_b_prime(i), -abs(waypoint.speed(i)));
+		vmax_b_prime(i) = min(vmax_b_prime(i), abs(waypoint.speed(i)));
 	}
 
 	Vector6d amin_b_prime = limits.amin_b;
