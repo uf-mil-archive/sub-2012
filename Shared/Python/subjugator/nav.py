@@ -19,6 +19,7 @@ def setup():
         except dds.Error:
             sched.ddswait(trajtopic)
 
+    sched.sleep(1) # TODO: Without this we seem to end up with old trajectory messages? DDS, how does it work?
     set_waypoint(Waypoint(get_trajectory().pos))
 
     while True:
