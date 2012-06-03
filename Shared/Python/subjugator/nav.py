@@ -4,6 +4,7 @@ from . import sched
 import dds
 
 import numpy
+from scipy import linalg
 import functools
 import math
 
@@ -89,8 +90,12 @@ class Point(object):
     def __repr__(self):
         return "Point(" + str(self) + ")"
 
-def make_waypoint(x=0, y=0, z=0, R=0, P=0, Y=0, velx=0, vely=0, velz=0, velR=0, velP=0, velY=0):
-    return Waypoint(Point([x, y, z, R, P, Y]), Point([velx, vely, velz, velR, velP, velY]))
+def make_waypoint(x=0, y=0, z=0, R=0, P=0, Y=0,
+                  velx=0, vely=0, velz=0, velR=0, velP=0, velY=0,
+                  spdx=0, spdy=0, spdz=0, spdR=0, spdP=0, spdY=0):
+    return Waypoint(Point([x, y, z, R, P, Y]),
+                    Point([velx, vely, velz, velR, velP, velY]),
+                    Point([spdx, spdy, spdz, spdR, spdP, spdY]))
 
 class Waypoint(object):
     def __init__(self, pos, vel=None, speed=None):
@@ -109,7 +114,10 @@ class Waypoint(object):
         vel = numpy.empty(6)
         vel[0:3] = mathutils.from_homog(Tinv.dot(mathutils.to_homog(self.vel.xyz, 0)))
         vel[3:6] = self.vel.RPY
-        return Waypoint(Point(pos), Point(vel))
+        speed = numpy.empty(6)
+        speed[0:3] = mathutils.from_homog(Tinv.dot(mathutils.to_homog(self.speed.xyz, 0)))
+        speed[3:6] = self.speed.RPY
+        return Waypoint(Point(pos), Point(vel), Point(speed))
 
     def relative_from(self, basepoint):
         if isinstance(basepoint, Waypoint):
@@ -122,7 +130,10 @@ class Waypoint(object):
         relvel = numpy.empty(6)
         relvel[0:3] = mathutils.from_homog(T.dot(mathutils.to_homog(self.vel.xyz, 0)))
         relvel[3:6] = self.vel.RPY
-        return Waypoint(Point(relpos), Point(relvel))
+        relspeed = numpy.empty(6)
+        relspeed[0:3] = mathutils.from_homog(T.dot(mathutils.to_homog(self.speed.xyz, 0)))
+        relspeed[3:6] = self.speed.RPY
+        return Waypoint(Point(relpos), Point(relvel), Point(speed))
 
     def __str__(self):
         return str(self.pos) + " @ " + str(self.vel)
@@ -138,7 +149,7 @@ def set_waypoint(waypoint):
                 'coordinate_unaligned': True})
 
 def set_waypoint_rel(relpoint):
-    set_waypoint(relpoint.resolve_relative(get_waypoint()))
+    set_waypoint(relpoint.resolve_relative(Waypoint(get_trajectory().pos)))
 
 def get_waypoint():
     topic = topics.get('Waypoint')
@@ -158,7 +169,7 @@ def get_trajectory():
 def wait():
     while True:
         waypoint = get_waypoint()
-        assert list(waypoint.vel.xyzRPY) == [0]*6
+        assert linalg.norm(waypoint.vel.xyzRPY) < 0.00001
         trajectory = get_trajectory()
 
         if trajectory.pos.approx_equal(waypoint.pos):
@@ -178,55 +189,63 @@ def waitopts(func):
     return wrapper
 
 @waitopts
-def fd(dist):
-    set_waypoint_rel(make_waypoint(x=dist))
+def fd(dist, spd=0):
+    set_waypoint_rel(make_waypoint(x=dist, spdx=spd))
 
 @waitopts
-def bk(dist):
-    fd(-dist)
+def bk(dist, spd=0):
+    fd(-dist, spd=spd)
 
 @waitopts
-def rstrafe(dist):
-    set_waypoint_rel(make_waypoint(y=dist))
+def rstrafe(dist, spd=0):
+    set_waypoint_rel(make_waypoint(y=dist, spdy=spd))
 
 @waitopts
-def lstrafe(dist):
-    rstrafe(-dist)
+def lstrafe(dist, spd=0):
+    rstrafe(-dist, spd=spd)
 
 @waitopts
-def down(dist):
-    set_waypoint_rel(make_waypoint(z=dist))
+def down(dist, spd=0):
+    set_waypoint_rel(make_waypoint(z=dist, spdz=spd))
 
 @waitopts
-def up(dist):
-    down(-dist)
+def up(dist, spd=0):
+    down(-dist, spd=spd)
 
 @waitopts
-def rturn(deg):
-    set_waypoint_rel(make_waypoint(Y=math.radians(deg)))
+def rturn(deg, spd=0):
+    set_waypoint_rel(make_waypoint(Y=math.radians(deg), spdY=spd))
 
 @waitopts
-def lturn(deg):
-    rturn(-deg)
+def lturn(deg, spd):
+    rturn(-deg, spd=spd)
 
 @waitopts
-def depth(depth):
-    waypoint = get_waypoint()
+def depth(depth, spd=0):
+    waypoint = Waypoint(get_trajectory().pos)
     waypoint.pos.z = depth
+    waypoint.speed.z = spd
     set_waypoint(waypoint)
 
 @waitopts
 def heading(deg=None, rad=None):
     assert(deg is not None or rad is not None)
-    waypoint = get_waypoint()
+    waypoint = Waypoint(get_trajectory().pos)
     if deg is not None:
         waypoint.pos.Y = math.radians(deg)
     else:
         waypoint.pos.Y = rad
     set_waypoint(waypoint)
 
+def vel(x=0, y=0, z=0):
+    set_waypoint_rel(make_waypoint(velx=x, vely=y, velz=z))
+
+@waitopts
+def stop():
+    set_waypoint_rel(make_waypoint())
+
 def xyz_to_waypoint(x, y, z=None, rel=False, base=None):
-    curpoint = get_waypoint()
+    curpoint = get_trajectory()
     waypoint = make_waypoint(x, y)
     if rel:
         base = curpoint
@@ -246,7 +265,7 @@ def go(*args, **kwargs):
 
 def point_shoot(*args, **kwargs):
     waypoint = xyz_to_waypoint(*args, **kwargs)
-    curpoint = get_waypoint()
+    curpoint = Waypoint(get_trajectory().pos)
     waypoint.pos.Y = math.atan2(waypoint.pos.y - curpoint.pos.y, waypoint.pos.x - curpoint.pos.x)
     heading(rad=waypoint.pos.Y)
     set_waypoint(waypoint)
@@ -254,6 +273,6 @@ def point_shoot(*args, **kwargs):
 
 def go_seq(points, rel=False, autoyaw=True, base=None):
     if rel:
-        base = get_waypoint()
+        base = Waypoint(get_trajectory().pos)
     for point in points:
         go(*point, base=base, autoyaw=autoyaw)
