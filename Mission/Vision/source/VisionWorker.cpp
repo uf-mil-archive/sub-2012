@@ -5,6 +5,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
+#include "FinderGenerator.h"
+
 #include "VisionWorker.h"
 
 using namespace cv;
@@ -17,40 +19,32 @@ using namespace std;
 VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, unsigned int cameraId) :
 	Worker("Vision", 50, configloader),
 	setidsmailbox(WorkerMailbox<VisionSetIDs>::Args().setName("setids")),
+	configmailbox(WorkerMailbox<property_tree::ptree>::Args().setName("config")),
 	cal(cal),
 	cameraId(cameraId)
 {
-	this->showDebugImages = getConfig().get<bool>("showDebugImages");
-	
 	this->frameCnt = 0;
-	this->logImages = getConfig().get<bool>("logImages");
-	this->shutterVal = getConfig().get<float>("shutterVal");
-	this->gainVal = getConfig().get<float>("gainVal");
-
-	setidsmailbox.set(VisionSetIDs(this->cameraId, vector<int>(1, getConfig().get<int>("defaultID"))));
-}
-
-VisionWorker::~VisionWorker(void)
-{
+	handleConfig(getConfig());
+	setidsmailbox.set(VisionSetIDs(this->cameraId, vector<int>(1, config.get<int>("defaultID"))));
 }
 
 void VisionWorker::enterActive()
 {
-	if(showDebugImages)
+	configsignal.emit(getConfig());
+
+	if(config.get<bool>("showDebugImages"))
 	{
 		namedWindow("Processed",1);
 		//moveWindow("Processed",500,500);
 		//namedWindow("Debug",1);
 	}
 
-	camera = boost::shared_ptr<Camera>(cal.getCamera(getConfig().get_child("imageSource")));
-	camera->setExposure(shutterVal);
-	camera->setGain(gainVal);
+	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
 }
 
 void VisionWorker::leaveActive()
 {
-	if(showDebugImages)
+	if(config.get<bool>("showDebugImages"))
 	{
 		cvDestroyWindow("Processed");
 		cvDestroyWindow("Debug");
@@ -60,14 +54,21 @@ void VisionWorker::leaveActive()
 
 void VisionWorker::work(double dt)
 {
+	if(configmailbox.takeOptional()) {
+		handleConfig(configmailbox.get());
+	}
+
 	if(setidsmailbox.takeOptional()) {
 		VisionSetIDs vids = setidsmailbox.get();
 
 		if (vids.cameraID == cameraId && vids.ids != finderIDs) {
 			finderIDs = vids.ids;
-			listOfFinders = finderGen.buildFinders(vids.ids);
+			listOfFinders = FinderGenerator().buildFinders(vids.ids);
 		}
 	}
+	
+	camera->setExposure(config.get<float>("shutterVal"));
+	camera->setGain(config.get<float>("gainVal"));
 
 	// Grab a frame from the camera, copy into ioimages object
 	camera->getImage().copyTo(ioimages.src);
@@ -96,7 +97,7 @@ void VisionWorker::work(double dt)
 	debugsignal.emit(make_pair(cameraId, images));
 
 	//imshow("Source",ioimages.src);
-	if(showDebugImages)
+	if(config.get<bool>("showDebugImages"))
 	{
 		if(true)
 		{
@@ -108,7 +109,7 @@ void VisionWorker::work(double dt)
 			waitKey(0);
 		}
 	}
-	if(logImages && frameCnt%30 == 0)
+	if(config.get<bool>("logImages") && frameCnt%30 == 0)
 	{
 		std::stringstream str;
 		str << "log/" << cameraId << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.jpg";
@@ -121,7 +122,15 @@ void VisionWorker::work(double dt)
 	frameCnt++;
 }
 
-void VisionWorker::emergencyState() { }
+void VisionWorker::handleConfig(property_tree::ptree new_config) {
+	config.clear();
 
-void VisionWorker::failState() { }
+	subjugator::merge(config, new_config.get_child("default"));
+
+	stringstream s; s << cameraId;
+	if(new_config.get_child_optional("camera" + s.str()))
+		subjugator::merge(config, new_config.get_child("camera" + s.str()));
+
+	saveConfig(new_config);
+}
 

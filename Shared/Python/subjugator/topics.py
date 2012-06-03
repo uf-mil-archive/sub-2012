@@ -30,6 +30,7 @@ _topic_qoses = {
     'InteractionCommand': _TopicConf(lib.InteractionCommandMessage, RELIABLE),
     'InteractionStatus': _TopicConf(lib.InteractionStatusMessage, PERSISTENT+EXCLUSIVE),
     'InteractionOutput': _TopicConf(lib.InteractionOutputMessage, DEEP_PERSISTENT),
+    'VisionConfig': _TopicConf(lib.VisionConfigMessage, PERSISTENT),
     'VisionDebug': _TopicConf(lib.VisionDebugMessage, UNRELIABLE),
 }
 

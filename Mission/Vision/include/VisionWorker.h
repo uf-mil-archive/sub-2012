@@ -10,18 +10,9 @@
 #include "LibSub/Worker/WorkerSignal.h"
 
 #include "IOImages.h"
-#include "FinderGenerator.h"
 #include "ImageSource.h"
 #include "VisionSetIDs.h"
-
-class VisionWorkerCommands
-{
-public:
-	enum VisionWorkerCommandCode
-	{
-		UpdateIDs = 0
-	};
-};
+#include "IFinder.h"
 
 namespace subjugator {
 
@@ -29,14 +20,15 @@ class VisionWorker : public Worker
 {
 public:
 	VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, unsigned int cameraId);
-	~VisionWorker(void);
 
 	bool Startup();
 	void Shutdown();
 
 	WorkerMailbox<VisionSetIDs> setidsmailbox;
+	WorkerMailbox<boost::property_tree::ptree> configmailbox;
 
 	WorkerSignal<std::pair<int, std::vector<boost::property_tree::ptree> > > outputsignal;
+	WorkerSignal<boost::property_tree::ptree> configsignal;
 	WorkerSignal<std::pair<int, std::vector<std::pair<std::string, std::string> > > > debugsignal;
 
 protected:
@@ -45,26 +37,15 @@ protected:
 	virtual void work(double dt);
 
 private:
+	void handleConfig(boost::property_tree::ptree new_config);
+	boost::property_tree::ptree config;
 	CAL cal;
-	boost::property_tree::ptree cameraDesc;
 	IOImages ioimages;
-	int inputMode;
-	bool showDebugImages;
-	bool logImages;
 	int cameraId;
-	FinderGenerator finderGen;
 	std::vector<boost::shared_ptr<IFinder> > listOfFinders;
 	std::vector<int> finderIDs;
 	boost::shared_ptr<Camera> camera;
 	int frameCnt;
-	float shutterVal;
-	float gainVal;
-
-	void readyState();
-	void emergencyState();
-	void failState();
-
-	void updateIDs(const VisionSetIDs &vids);
 };
 
 }

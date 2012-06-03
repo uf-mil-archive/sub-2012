@@ -6,6 +6,7 @@
 #include "Vision/FinderMessageListSupport.h"
 #include "Vision/VisionSetIDsMessageSupport.h"
 #include "Vision/VisionDebugMessageSupport.h"
+#include "Vision/VisionConfigMessageSupport.h"
 
 #include "VisionWorker.h"
 #include "ImageSource.h"
@@ -17,6 +18,7 @@ using namespace subjugator;
 DECLARE_MESSAGE_TRAITS(FinderMessageList);
 DECLARE_MESSAGE_TRAITS(VisionSetIDsMessage);
 DECLARE_MESSAGE_TRAITS(VisionDebugMessage);
+DECLARE_MESSAGE_TRAITS(VisionConfigMessage);
 
 class VisionWorkerBuilderOptions : public WorkerBuilderOptions {
 	public:
@@ -66,9 +68,11 @@ int main(int argc, char **argv)
 	dds.worker(worker);
 
 	dds.receiver(worker.setidsmailbox, dds.topic<VisionSetIDsMessage>("VisionSetIDs", TopicQOS::LEGACY));
+	dds.receiver(worker.configmailbox, dds.topic<VisionConfigMessage>("VisionConfig", TopicQOS::PERSISTENT));
 
 	dds.sender(worker.outputsignal, dds.topic<FinderMessageList>("Vision", TopicQOS::LEGACY));
 	dds.sender(worker.debugsignal, dds.topic<VisionDebugMessage>("VisionDebug", TopicQOS::UNRELIABLE));
+	dds.sender(worker.configsignal, dds.topic<VisionConfigMessage>("VisionConfig", TopicQOS::PERSISTENT));
 
 	// Start the worker
 	builder.runWorker();
@@ -102,5 +106,18 @@ namespace subjugator {
 			//msg.images[i].data.ensure_length(data.second[i].second.length(), data.second[i].second.length());
 			assert(msg.images[i].data.from_array(data.second[i].second.data(), data.second[i].second.length()));
 		}
+	}
+
+	template <>
+	void to_dds(VisionConfigMessage &msg, const property_tree::ptree& config) {
+		ostringstream s;
+		property_tree::json_parser::write_json(s, config);
+		msg.config = DDS_String_dup(s.str().c_str());
+	}
+
+	template <>
+	void from_dds(property_tree::ptree& config, const VisionConfigMessage& msg) {
+		istringstream s(msg.config);
+		property_tree::json_parser::read_json(s, config);
 	}
 }
