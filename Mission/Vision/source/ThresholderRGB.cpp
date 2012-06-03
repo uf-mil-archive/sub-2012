@@ -57,14 +57,16 @@ void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 	split(srcLAB,channelsLAB);
 	split(srcHSV,channelsHSV);
 
-	imshow("0",channelsRGB[0]);
-	imshow("1",channelsRGB[1]);
-	imshow("2",channelsRGB[2]);
+	//imshow("0",channelsRGB[0]);
+	//imshow("1",channelsRGB[1]);
+	//imshow("2",channelsRGB[2]);
 
 	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,201,30); // use lab channel hack --  higher offset = less yellow
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
 	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(90,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
+	inRange(channelsHSV[1],Scalar(0,0,0,0),Scalar(65,0,0,0),channelsHSV[1]);
+	subtract(ioimages->dbg,channelsHSV[1],ioimages->dbg); // filter whites
 	//subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	////subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
 	//adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-170);

@@ -27,7 +27,7 @@
 #define		MIL_OBJECTID_BIN_SINGLE   14
 //#define		MIL_OBJECTID_BIN_SMALL_O   15
 
-// TUBE
+// TUBE - WREATH
 #define		MIL_OBJECTID_TUBE   16
 
 // GATES
