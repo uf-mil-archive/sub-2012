@@ -36,7 +36,7 @@ class Visualizer(object):
 
         self.gain_topic = topics.get('ControllerGains')
         self.lposvss_topic = topics.get('LPOSVSS')
-        self.setwaypoint_topic = topics.get('SetWaypoint')
+        self.setwaypoint_topic = topics.get('Waypoint')
         self.waypoint_current_set = False
 
     def start(self):
@@ -311,10 +311,10 @@ class Visualizer(object):
             cur[name] += delta[name]
 
         self.setwaypoint_topic.send(dict(
-            isRelative=False,
-            position_ned=[cur[name] for name in 'xyz'],
-            rpy=[math.radians(cur[name]) for name in 'RPY'],
-        ))
+            r=[cur[name] for name in 'xyzRPY'],
+            rdot=[0]*6,
+            coordinate_unaligned=True,
+            speed=[0]*6))
         for name in 'xyzRPY':
             self.wTree.get_object('wp_cur_' + name).set_text(str(cur[name]))
             self.wTree.get_object('wp_del_' + name).set_text('0')

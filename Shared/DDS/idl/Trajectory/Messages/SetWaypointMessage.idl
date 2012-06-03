@@ -1,6 +1,0 @@
-struct SetWaypointMessage {
-    boolean isRelative;
-	double position_ned[3];
-	double rpy[3];
-};
-

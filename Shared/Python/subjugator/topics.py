@@ -25,7 +25,7 @@ _topic_qoses = {
     'Depth': _TopicConf(lib.DepthMessage, DEFAULT),
     'ControllerGains': _TopicConf(lib.ControllerGainsMessage, PERSISTENT),
     'Trajectory': _TopicConf(lib.TrajectoryMessage, PERSISTENT),
-    'SetWaypoint': _TopicConf(lib.SetWaypointMessage, PERSISTENT),
+    'Waypoint': _TopicConf(lib.WaypointMessage, PERSISTENT),
     'LPOSVSS': _TopicConf(lib.LPOSVSSMessage, DEFAULT),
     'InteractionCommand': _TopicConf(lib.InteractionCommandMessage, RELIABLE),
     'InteractionStatus': _TopicConf(lib.InteractionStatusMessage, PERSISTENT+EXCLUSIVE),

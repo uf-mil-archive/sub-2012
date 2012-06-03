@@ -29,14 +29,16 @@ static Vector6d apply(const Matrix4d &T, const Vector6d &q, double w) {
 	return q_t;
 }
 
-void C3Trajectory::update(double dt, const Vector6d &r) {
+void C3Trajectory::update(double dt, const Waypoint &waypoint, double waypoint_t) {
 	pair<Matrix4d, Matrix4d> Ts = transformation_pair(q);
 	const Matrix4d &T = Ts.first;
 	const Matrix4d &T_inv = Ts.second;
 
 	Vector6d q_b = apply(T, q, 1);
+	Vector6d r = waypoint.r.q + waypoint_t*waypoint.r.qdot;
 	Vector6d r_b = apply(T, r, 1);
 	Vector6d qdot_b = apply(T, qdot, 0);
+	Vector6d rdot_b = apply(T, waypoint.r.qdot, 0);
 
 	Vector6d vmin_b_prime = limits.vmin_b;
 	Vector6d vmax_b_prime = limits.vmax_b;
@@ -45,6 +47,13 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 		pair<Vector3d, Vector3d> result = limit(limits.vmin_b.head(3), limits.vmax_b.head(3), posdelta);
 		vmin_b_prime.head(3) = result.first;
 		vmax_b_prime.head(3) = result.second;
+	}
+
+	for (int i=0; i<6; i++) {
+		if (waypoint.speed(i) == 0)
+			continue;
+		vmin_b_prime(i) = max(vmin_b_prime(i), -waypoint.speed(i));
+		vmax_b_prime(i) = min(vmax_b_prime(i), waypoint.speed(i));
 	}
 
 	Vector6d amin_b_prime = limits.amin_b;
@@ -65,7 +74,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	}
 
 	for (int i=0; i<6; i++) {
-		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), 0, 0, vmin_b_prime(i), vmax_b_prime(i), amin_b_prime(i), amax_b_prime(i), limits.umax_b(i));
+		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), rdot_b(i), 0, vmin_b_prime(i), vmax_b_prime(i), amin_b_prime(i), amax_b_prime(i), limits.umax_b(i));
 	}
 
 	qdotdot_b += dt*u_b;

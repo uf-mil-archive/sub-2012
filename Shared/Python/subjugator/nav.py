@@ -8,49 +8,43 @@ import functools
 import math
 
 def setup():
-    settopic = topics.get('SetWaypoint')
+    wpttopic = topics.get('Waypoint')
     trajtopic = topics.get('Trajectory')
 
     while True:
         try:
-            settopic.read()
             trajtopic.read()
             break
         except dds.Error:
-            pass
-        sched.sleep(.1) # todo multi-topic ddswait
-    wait()
+            sched.ddswait(trajtopic)
 
-def make_waypoint(x=0, y=0, z=0, R=0, P=0, Y=0):
-    return Waypoint([x, y, z, R, P, Y])
+    set_waypoint(Waypoint(get_trajectory().pos))
 
-class Waypoint(object):
+    while True:
+        try:
+            wpttopic.read()
+            break
+        except dds.Error:
+            sched.ddswait(wpttopic)
+
+def make_point(x=0, y=0, z=0, R=0, P=0, Y=0):
+    return Point([x, y, z, R, P, Y])
+
+class Point(object):
     def __init__(self, array):
         self.array = numpy.array(array, dtype=float)
         self._transform = None
         self._inverse_transform = None
 
-    @property
-    def transform(self):
-        if self._transform is None:
-            self._transform = mathutils.rpy_to_mat4(self.RPY).transpose().dot(mathutils.pos_to_mat4(-self.xyz))
-        return self._transform
-
-    @property
-    def inverse_transform(self):
-        if self.inv_T is None:
-            self._inverse_transform = mathutils.pos_to_mat4(self.xyz).dot(mathutils.rpy_to_mat4(self.RPY))
-        return self._inverse_transform
-
     _char_positions = dict(zip("xyzRPY", xrange(6)))
 
     # Implements swizzling attributes, all permutations of xyzRPY like .xy, .RPY, .z, etc.
     def __getattr__(self, name):
-        if not all(ch in Waypoint._char_positions for ch in name):
+        if not all(ch in Point._char_positions for ch in name):
             return
         vals = []
         for ch in name:
-            pos = Waypoint._char_positions.get(ch)
+            pos = Point._char_positions.get(ch)
             vals.append(self.array[pos])
         if len(vals) == 1:
             return vals[0]
@@ -58,28 +52,16 @@ class Waypoint(object):
             return numpy.array(vals)
 
     def __setattr__(self, name, value):
-        if not all(ch in Waypoint._char_positions for ch in name):
+        if not all(ch in Point._char_positions for ch in name):
             return object.__setattr__(self, name, value)
         if isinstance(value, float) or isinstance(value, int):
             value = [value]
         assert len(name) == len(value)
         for valpos in xrange(len(value)):
-            pos = Waypoint._char_positions.get(name[valpos], -1)
+            pos = Point._char_positions.get(name[valpos], -1)
             if pos == -1:
                 raise AttributeError()
             self.array[pos] = value[valpos]
-
-    def resolve_relative(self, basepoint):
-        waypoint = numpy.empty(6)
-        waypoint[0:3] = mathutils.from_homog(basepoint.inverse_transform.dot(mathutils.to_homog(self.xyz)))
-        waypoint[3:6] = mathutils.angle_wrap_vec(basepoint.RPY + self.RPY)
-        return Waypoint(waypoint)
-
-    def relative_from(self, basepoint):
-        relpoint = numpy.empty(6)
-        relpoint[0:3] = mathutils.from_homog(basepoint.transform.dot(mathutils.to_homog(self.xyz)))
-        relpoint[3:6] = mathutils.angle_wrap_vec(-basepoint.RPY + self.RPY)
-        return Waypoint(relpoint)
 
     def approx_equal(self, otherpoint, pos_tol=.01, rad_tol=.01):
         for i in xrange(0, 3):
@@ -89,42 +71,97 @@ class Waypoint(object):
                 return False
         return True
 
+    @property
+    def transform(self):
+        if self._transform is None:
+            self._transform = mathutils.rpy_to_mat4(self.RPY).transpose().dot(mathutils.pos_to_mat4(-self.xyz))
+        return self._transform
+
+    @property
+    def inverse_transform(self):
+        if self._inverse_transform is None:
+            self._inverse_transform = mathutils.pos_to_mat4(self.xyz).dot(mathutils.rpy_to_mat4(self.RPY))
+        return self._inverse_transform
+
     def __str__(self):
         return "[%f,%f,%f,%f,%f,%f]" % tuple(self.array)
 
     def __repr__(self):
-        return "Waypoint(" + str(self) + ")"
+        return "Point(" + str(self) + ")"
+
+def make_waypoint(x=0, y=0, z=0, R=0, P=0, Y=0, velx=0, vely=0, velz=0, velR=0, velP=0, velY=0):
+    return Waypoint(Point([x, y, z, R, P, Y]), Point([velx, vely, velz, velR, velP, velY]))
+
+class Waypoint(object):
+    def __init__(self, pos, vel=None, speed=None):
+        self.pos = pos
+        self.vel = vel if vel is not None else make_point()
+        self.speed = speed if speed is not None else make_point()
+
+    def resolve_relative(self, basepoint):
+        if isinstance(basepoint, Waypoint):
+            basepoint = basepoint.pos
+        Tinv = basepoint.inverse_transform
+
+        pos = numpy.empty(6)
+        pos[0:3] = mathutils.from_homog(Tinv.dot(mathutils.to_homog(self.pos.xyz)))
+        pos[3:6] = mathutils.angle_wrap_vec(basepoint.RPY + self.pos.RPY) # TODO wrong
+        vel = numpy.empty(6)
+        vel[0:3] = mathutils.from_homog(Tinv.dot(mathutils.to_homog(self.vel.xyz, 0)))
+        vel[3:6] = self.vel.RPY
+        return Waypoint(Point(pos), Point(vel))
+
+    def relative_from(self, basepoint):
+        if isinstance(basepoint, Waypoint):
+            basepoint = basepoint.pos
+        T = basepoint.transform
+
+        relpos = numpy.empty(6)
+        relpos[0:3] = mathutils.from_homog(T.dot(mathutils.to_homog(self.xyz)))
+        relpos[3:6] = mathutils.angle_wrap_vec(-basepoint.RPY + self.RPY) # TODO wrong
+        relvel = numpy.empty(6)
+        relvel[0:3] = mathutils.from_homog(T.dot(mathutils.to_homog(self.vel.xyz, 0)))
+        relvel[3:6] = self.vel.RPY
+        return Waypoint(Point(relpos), Point(relvel))
+
+    def __str__(self):
+        return str(self.pos) + " @ " + str(self.vel)
+
+    def __repr__(self):
+        return "Waypoint(" + repr(self.pos) + ", " + repr(self.vel) + ")"
 
 def set_waypoint(waypoint):
-    topic = topics.get('SetWaypoint')
-    topic.send({'timestamp': 0, 'position_ned': list(waypoint.xyz), 'rpy': list(waypoint.RPY), 'isRelative': False})
+    topic = topics.get('Waypoint')
+    topic.send({'r': list(waypoint.pos.xyzRPY),
+                'rdot': list(waypoint.vel.xyzRPY),
+                'speed': list(waypoint.speed.xyzRPY),
+                'coordinate_unaligned': True})
 
 def set_waypoint_rel(relpoint):
     set_waypoint(relpoint.resolve_relative(get_waypoint()))
 
 def get_waypoint():
-    topic = topics.get('SetWaypoint')
+    topic = topics.get('Waypoint')
     try:
         msg = topic.read()
-        waypoint = make_waypoint()
-        waypoint.xyz = msg['position_ned']
-        waypoint.RPY = msg['rpy']
-        return waypoint
+        return Waypoint(Point(msg['r']), Point(msg['rdot']), Point(msg['speed']))
     except dds.Error:
         raise RuntimeError('No waypoint set')
 
 def get_trajectory():
     topic = topics.get('Trajectory')
     try:
-        return Waypoint(topic.read()['xd'])
+        return Waypoint(Point(topic.read()['xd']), Point(topic.read()['xd_dot']))
     except dds.Error:
         raise RuntimeError('No current trajectory')
 
 def wait():
     while True:
         waypoint = get_waypoint()
+        assert list(waypoint.vel.xyzRPY) == [0]*6
         trajectory = get_trajectory()
-        if trajectory.approx_equal(waypoint):
+
+        if trajectory.pos.approx_equal(waypoint.pos):
             return
         sched.ddswait(topics.get('Trajectory'))
 
@@ -175,7 +212,7 @@ def lturn(deg):
 @waitopts
 def depth(depth):
     waypoint = get_waypoint()
-    waypoint.z = depth
+    waypoint.pos.z = depth
     set_waypoint(waypoint)
 
 @waitopts
@@ -183,9 +220,9 @@ def heading(deg=None, rad=None):
     assert(deg is not None or rad is not None)
     waypoint = get_waypoint()
     if deg is not None:
-        waypoint.Y = math.radians(deg)
+        waypoint.pos.Y = math.radians(deg)
     else:
-        waypoint.Y = rad
+        waypoint.pos.Y = rad
     set_waypoint(waypoint)
 
 def xyz_to_waypoint(x, y, z=None, rel=False, base=None):
@@ -196,10 +233,10 @@ def xyz_to_waypoint(x, y, z=None, rel=False, base=None):
     if base is not None:
         waypoint = waypoint.resolve_relative(base)
     elif z is not None:
-        waypoint.z = z
+        waypoint.pos.z = z
     else:
-        waypoint.z = curpoint.z
-    waypoint.RPY = curpoint.RPY
+        waypoint.pos.z = curpoint.pos.z
+    waypoint.pos.RPY = curpoint.pos.RPY
     return waypoint
 
 @waitopts
@@ -210,8 +247,8 @@ def go(*args, **kwargs):
 def point_shoot(*args, **kwargs):
     waypoint = xyz_to_waypoint(*args, **kwargs)
     curpoint = get_waypoint()
-    waypoint.Y = math.atan2(waypoint.y - curpoint.y, waypoint.x - curpoint.x)
-    heading(rad=waypoint.Y)
+    waypoint.pos.Y = math.atan2(waypoint.pos.y - curpoint.pos.y, waypoint.pos.x - curpoint.pos.x)
+    heading(rad=waypoint.pos.Y)
     set_waypoint(waypoint)
     wait()
 
