@@ -91,8 +91,8 @@ void Blob::drawResult(IOImages* ioimages, int objectID)
 	for(unsigned int i=0; i<data.size(); i++)
 	{
 		circle(ioimages->prcd,data[i].centroid,(int)data[i].radius,color,2,8,0);
-		//sprintf(str,"x: %2.0d | y: %2.0d",data[i].centroid.x,data[i].centroid.y);
-		//putText(ioimages->prcd,str,Point(position.x,position.y+i*10),FONT_HERSHEY_SIMPLEX,0.3,color,1);
+		sprintf(str,"Area: %.0f",data[i].area);
+		putText(ioimages->prcd,str,Point(data[i].centroid.x-30,data[i].centroid.y-10),FONT_HERSHEY_DUPLEX,0.4,CV_RGB(0,0,0),1.5);
 	}
 
 }
