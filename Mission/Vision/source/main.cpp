@@ -18,17 +18,47 @@ DECLARE_MESSAGE_TRAITS(FinderMessageList);
 DECLARE_MESSAGE_TRAITS(VisionSetIDsMessage);
 DECLARE_MESSAGE_TRAITS(VisionDebugMessage);
 
+class VisionWorkerBuilderOptions : public WorkerBuilderOptions {
+	public:
+		VisionWorkerBuilderOptions(const std::string &workername) : WorkerBuilderOptions(workername) {
+			desc.add_options()
+				("cameraid,c", program_options::value<unsigned int>(), "camera id number");
+		}
+		unsigned int cameraId;
+	protected:
+		virtual bool setVariables(const boost::program_options::variables_map &vm) {
+			if (!vm.count("cameraid"))
+				throw runtime_error("need cameraid option (-c 1)");
+			cameraId = vm["cameraid"].as<unsigned int>();
+			return true;
+		}
+};
+
+template <class WorkerT>
+class VisionWorkerConstructionPolicy {
+	public:
+		struct ExtraArg {};
+
+		VisionWorkerConstructionPolicy(boost::asio::io_service &io, const WorkerBuilderOptions &options, const ExtraArg &ignored)
+		: cal(io), worker(cal, options.getConfigLoader(), dynamic_cast<const VisionWorkerBuilderOptions&>(options).cameraId) { }
+
+		WorkerT &getWorker() { return worker; }
+	private:
+		CAL cal;
+		WorkerT worker;
+};
+
 int main(int argc, char **argv)
 {
 	asio::io_service io;
 
 	// Parse options
-	WorkerBuilderOptions options("Vision");
+	VisionWorkerBuilderOptions options("Vision");
 	if (!options.parse(argc, argv))
 		return 1;
 
 	// Build the worker from the options
-	WorkerBuilder<VisionWorker, CALWorkerConstructionPolicy> builder(options, io);
+	WorkerBuilder<VisionWorker, VisionWorkerConstructionPolicy> builder(options, io);
 	VisionWorker &worker = builder.getWorker();
 
 	// Get DDS up

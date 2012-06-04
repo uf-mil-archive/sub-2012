@@ -9,8 +9,6 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
-#include "LibSub/Worker/WorkerBuilder.h"
-
 class ImageSource {
 	public:
 		virtual cv::Mat getImage(void) = 0;
@@ -73,22 +71,5 @@ class CAL {
 	private:
 		boost::asio::io_service& io;
 };
-
-namespace subjugator {
-	template <class WorkerT>
-	class CALWorkerConstructionPolicy {
-		public:
-			struct ExtraArg {};
-
-			CALWorkerConstructionPolicy(boost::asio::io_service &io, const WorkerBuilderOptions &options, const ExtraArg &ignored)
-			: cal(io), worker(cal, options.getConfigLoader()) { }
-
-			CAL &getCal() { return cal; }
-			WorkerT &getWorker() { return worker; }
-		private:
-			CAL cal;
-			WorkerT worker;
-	};
-}
 
 #endif

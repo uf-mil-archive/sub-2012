@@ -28,7 +28,7 @@ namespace subjugator {
 class VisionWorker : public Worker
 {
 public:
-	VisionWorker(CAL& cal, const WorkerConfigLoader &configloader);
+	VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, unsigned int cameraId);
 	~VisionWorker(void);
 
 	bool Startup();

@@ -3,7 +3,6 @@
 		"type": "flycap",
 		"number": 1
 	},
-	"cameraId": 0,
 	"logImages": false,
 	"showDebugImages": true,
 	"shutterVal": 42,

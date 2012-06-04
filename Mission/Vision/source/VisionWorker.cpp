@@ -14,12 +14,12 @@ using namespace boost::posix_time;
 using namespace subjugator;
 using namespace std;
 
-VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader) :
+VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, unsigned int cameraId) :
 	Worker("Vision", 50, configloader),
 	setidsmailbox(WorkerMailbox<VisionSetIDs>::Args().setName("setids")),
-	cal(cal)
+	cal(cal),
+	cameraId(cameraId)
 {
-	this->cameraId = getConfig().get<int>("cameraId");
 	this->showDebugImages = getConfig().get<bool>("showDebugImages");
 	
 	this->frameCnt = 0;
