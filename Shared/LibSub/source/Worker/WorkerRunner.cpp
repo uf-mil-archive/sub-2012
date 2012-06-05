@@ -11,7 +11,7 @@ void WorkerRunner::start() {
 		return;
 
 	running = true;
-	prevtime = posix_time::microsec_clock::local_time();
+	prevtime = posix_time::microsec_clock::universal_time();
 	timer.expires_from_now(timer_period);
 	timer.async_wait(bind(&WorkerRunner::tick, this, _1));
 }
@@ -20,14 +20,14 @@ void WorkerRunner::tick(const system::error_code& error) {
 	if (error == asio::error::operation_aborted)
 		return;
 
-	posix_time::ptime curtime = posix_time::microsec_clock::local_time();
+	posix_time::ptime curtime = posix_time::microsec_clock::universal_time();
 	posix_time::time_duration dt = curtime - prevtime;
 	prevtime = curtime;
 
 	if (!dt.is_negative() && dt < timer_period * 10) // protect against debugger or non-monotonic time
 		worker.update(dt.total_microseconds() / 1E6);
 
-	curtime = posix_time::microsec_clock::local_time();
+	curtime = posix_time::microsec_clock::universal_time();
 	posix_time::ptime expiretime = timer.expires_at() + timer_period;
 	if (expiretime < curtime)
 		expiretime = curtime;
