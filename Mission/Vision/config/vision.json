@@ -2,6 +2,7 @@
 	"default": {
 		"logImages": false,
 		"showDebugImages": true,
+		"sendDebugImage": false,
 		"shutterVal": 42,
 		"gainVal": 42.5,
 		"bins": {

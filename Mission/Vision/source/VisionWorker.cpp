@@ -98,7 +98,9 @@ void VisionWorker::work(double dt)
 		outputsignal.emit(make_pair(cameraId, fResult));
 	}
 	
-	vector<uchar> buf;imencode(".jpg", ioimages.dbg, buf);
+	Mat n;resize(config.get<bool>("sendDebugImage") ? ioimages.dbg : (listOfFinders.size() ? ioimages.prcd : ioimages.src), n, Size(320, 240));
+	vector<uchar> buf;imencode(".jpg", n, buf);
+	cout << "Image size: " << buf.size() << endl;
 	vector<pair<string, string> > images;images.push_back(make_pair("debug", string(buf.begin(), buf.end())));
 	debugsignal.emit(make_pair(cameraId, images));
 
