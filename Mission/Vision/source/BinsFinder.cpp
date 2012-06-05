@@ -8,8 +8,9 @@
 using namespace boost;
 using namespace cv;
 
-BinsFinder::BinsFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
+BinsFinder::BinsFinder(vector<int> objectIDs, property_tree::ptree config, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;
+	this->config = config;
 	this->n = normalizer;
 	this->t = thresholder;
 }
@@ -28,7 +29,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Contours contours(300,50000,2000);
+		Contours contours(config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 		int result;
 		if(oIDs[i] == MIL_OBJECTID_BIN_SINGLE || oIDs[i] == MIL_OBJECTID_BIN_ALL)
 			result = contours.findContours(ioimages, false);

@@ -21,7 +21,7 @@
 using namespace std;
 using namespace boost;
 
-vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oIDs) {
+vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oIDs, const property_tree::ptree& config) {
 	vector<int> buoyIDs;
 	vector<int> pipeIDs;
 	vector<int> hedgeIDs;
@@ -74,9 +74,9 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 	if(shooterIDs.size() > 0)
 		listOfFinders.push_back(make_shared<ShooterFinder>(shooterIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(binsIDs.size() > 0)
-		listOfFinders.push_back(make_shared<BinsFinder>(binsIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
+		listOfFinders.push_back(make_shared<BinsFinder>(binsIDs, config.get_child("bins"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(shapeIDs.size() > 0)
-		listOfFinders.push_back(make_shared<BinsFinder>(shapeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
+		listOfFinders.push_back(make_shared<BinsFinder>(shapeIDs, config.get_child("bins"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(gateIDs.size() > 0)
 		listOfFinders.push_back(make_shared<ValidationGateFinder>(gateIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 

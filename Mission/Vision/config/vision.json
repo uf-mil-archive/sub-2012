@@ -3,7 +3,12 @@
 		"logImages": false,
 		"showDebugImages": true,
 		"shutterVal": 42,
-		"gainVal": 42.5
+		"gainVal": 42.5,
+		"bins": {
+			"minContour": 300,
+			"maxContour": 50000,
+			"maxPerimeter": 2000
+		}
 	},
 	"camera1": {
 		"imageSource": {

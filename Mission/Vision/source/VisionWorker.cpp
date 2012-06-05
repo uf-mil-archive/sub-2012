@@ -63,7 +63,7 @@ void VisionWorker::work(double dt)
 
 		if (vids.cameraID == cameraId && vids.ids != finderIDs) {
 			finderIDs = vids.ids;
-			listOfFinders = FinderGenerator().buildFinders(vids.ids);
+			listOfFinders = FinderGenerator().buildFinders(vids.ids, config);
 		}
 	}
 	
