@@ -9,7 +9,7 @@ using namespace boost;
 using namespace std;
 
 
-ImageCamera::ImageCamera(boost::asio::io_service* io, const std::string& filename) {
+ImageCamera::ImageCamera(boost::asio::io_service* io, const std::string& filename, float delay) {
 	filesystem::path p(filename);
 	if(filesystem::is_directory(p)) {
 		BOOST_FOREACH(filesystem::path f, make_pair(filesystem::directory_iterator(p), filesystem::directory_iterator()))
@@ -21,11 +21,17 @@ ImageCamera::ImageCamera(boost::asio::io_service* io, const std::string& filenam
 		filenames.push_back(p.native());
 
 	index = 0;
+	this->delay = delay;
+	next_adv = posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(delay);
 }
 
 cv::Mat ImageCamera::getImage(void) {
+	if(posix_time::microsec_clock::universal_time() > next_adv) {
+		index = (index + 1) % filenames.size();
+		next_adv = posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(delay);
+	}
+	
 	string filename = filenames[index];
-	index = (index + 1) % filenames.size();
 
 	cout << "Reading " << filename << endl;
 	cv::Mat res = cv::imread(filename);
@@ -154,7 +160,7 @@ CAL::CAL(boost::asio::io_service& io) : io(io) {
 
 Camera* CAL::getCamera(const boost::property_tree::ptree& cameraDesc) {
 	if(cameraDesc.get<std::string>("type") == "image") {
-		return new ImageCamera(&this->io, cameraDesc.get<std::string>("filename"));
+		return new ImageCamera(&this->io, cameraDesc.get<std::string>("filename"), cameraDesc.get<float>("delay"));
 	} else if(cameraDesc.get<std::string>("type") == "video") {
 		return new CvCamera(&this->io, cameraDesc.get<std::string>("filename"));
 	} else if(cameraDesc.get<std::string>("type") == "opencv") {

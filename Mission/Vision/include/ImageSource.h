@@ -5,6 +5,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
@@ -23,7 +24,7 @@ class Camera : public ImageSource {
 
 class ImageCamera : public Camera {
 	public:
-		ImageCamera(boost::asio::io_service* io, const std::string& filename);
+		ImageCamera(boost::asio::io_service* io, const std::string& filename, float delay);
 		virtual cv::Mat getImage(void);
 		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
 		virtual void setExposure(float time);
@@ -32,6 +33,8 @@ class ImageCamera : public Camera {
 		boost::asio::io_service* io;
 		std::vector<std::string> filenames;
 		int index;
+		float delay;
+		boost::posix_time::ptime next_adv;
 };
 
 class CvCamera : public Camera {
