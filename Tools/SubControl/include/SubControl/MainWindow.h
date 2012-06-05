@@ -38,6 +38,8 @@ namespace subjugator {
 
 	signals:
 		void sendCommandTyped();
+		void recallCommandTyped();
+		void unrecallCommandTyped();
 
 	private:
 		bool eventFilter(QObject *obj, QEvent *event);
@@ -56,6 +58,8 @@ namespace subjugator {
 		void unkillClicked();
 		void interactRunClicked();
 		void interactStopClicked();
+		void interactRecall();
+		void interactUnrecall();
 
 	private:
 		Ui::MainWindow ui;
@@ -76,6 +80,7 @@ namespace subjugator {
 		Sender<WorkerKillMessage> killsender;
 		Topic<InteractionCommandMessage> interactioncommandtopic;
 		Sender<InteractionCommandMessage> interactioncommandsender;
+		PollingReceiver<InteractionCommandMessage> interactioncommandreceiver;
 		Topic<InteractionStatusMessage> interactionstatustopic;
 		PollingReceiver<InteractionStatusMessage> interactionstatusreceiver;
 		Topic<InteractionOutputMessage> interactionoutputtopic;
@@ -83,6 +88,8 @@ namespace subjugator {
 
 		InteractTextEditFilter filter;
 		Stats stats;
+		std::vector<std::string> commandhistory;
+		unsigned int commandhistorypos;
 
 		void updateWorkers();
 		void updateKills();

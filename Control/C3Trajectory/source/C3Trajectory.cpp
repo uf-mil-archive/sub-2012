@@ -29,22 +29,31 @@ static Vector6d apply(const Matrix4d &T, const Vector6d &q, double w) {
 	return q_t;
 }
 
-void C3Trajectory::update(double dt, const Vector6d &r) {
+void C3Trajectory::update(double dt, const Waypoint &waypoint, double waypoint_t) {
 	pair<Matrix4d, Matrix4d> Ts = transformation_pair(q);
 	const Matrix4d &T = Ts.first;
 	const Matrix4d &T_inv = Ts.second;
 
 	Vector6d q_b = apply(T, q, 1);
+	Vector6d r = waypoint.r.q + waypoint_t*waypoint.r.qdot;
 	Vector6d r_b = apply(T, r, 1);
 	Vector6d qdot_b = apply(T, qdot, 0);
+	Vector6d rdot_b = apply(T, waypoint.r.qdot, 0);
 
 	Vector6d vmin_b_prime = limits.vmin_b;
 	Vector6d vmax_b_prime = limits.vmax_b;
 	Vector3d posdelta = r_b.head(3);
-	if (posdelta.norm() > 0.1) {
+	if (posdelta.norm() > 0.01) {
 		pair<Vector3d, Vector3d> result = limit(limits.vmin_b.head(3), limits.vmax_b.head(3), posdelta);
 		vmin_b_prime.head(3) = result.first;
 		vmax_b_prime.head(3) = result.second;
+	}
+
+	for (int i=0; i<6; i++) {
+		if (abs(waypoint.speed(i)) < 0.0001)
+			continue;
+		vmin_b_prime(i) = max(vmin_b_prime(i), -abs(waypoint.speed(i)));
+		vmax_b_prime(i) = min(vmax_b_prime(i), abs(waypoint.speed(i)));
 	}
 
 	Vector6d amin_b_prime = limits.amin_b;
@@ -57,7 +66,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 		}
 	}
 
-	for (int i=2; i<6; i++) {
+	for (int i=3; i<6; i++) {
 		while (r_b(i) - q_b(i) > M_PI)
 			r_b(i) -= 2*M_PI;
 		while (r_b(i) - q_b(i) < -M_PI)
@@ -65,7 +74,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	}
 
 	for (int i=0; i<6; i++) {
-		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), 0, 0, vmin_b_prime(i), vmax_b_prime(i), amin_b_prime(i), amax_b_prime(i), limits.umax_b(i));
+		u_b(i) = c3filter(q_b(i), qdot_b(i), qdotdot_b(i), r_b(i), rdot_b(i), 0, vmin_b_prime(i), vmax_b_prime(i), amin_b_prime(i), amax_b_prime(i), limits.umax_b(i));
 	}
 
 	qdotdot_b += dt*u_b;
@@ -73,7 +82,7 @@ void C3Trajectory::update(double dt, const Vector6d &r) {
 	qdot += dt*qdotdot;
 	q += dt*qdot;
 
-	for (int i=2; i<6; i++) {
+	for (int i=3; i<6; i++) {
 		while (q(i) > M_PI)
 			q(i) -= 2*M_PI;
 		while (q(i) < -M_PI)
@@ -142,12 +151,12 @@ pair<Matrix4d, Matrix4d> C3Trajectory::transformation_pair(const Vector6d &q) {
 	R(3, 3) = 1;
 
 	Matrix4d T = Matrix4d::Identity();
-	T.block<3,1>(0, 3) = q.head(3);
+	T.block<3,1>(0, 3) = -q.head(3);
 
 	pair<Matrix4d, Matrix4d> result;
 	result.first = R.transpose()*T; // NED -> BODY
 
-	T.block<3,1>(0, 3) = -q.head(3);
+	T.block<3,1>(0, 3) = q.head(3);
 	result.second = T*R; // BODY -> NED
 
 	return result;

@@ -168,6 +168,8 @@ namespace subjugator {
 				return data;
 			}
 
+			inline double getAge() const { return age; }
+
 			virtual const State &getState() const { return state; }
 
 			virtual void updateState(double dt) {

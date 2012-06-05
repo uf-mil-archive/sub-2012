@@ -25,10 +25,17 @@ namespace subjugator {
 				q(q), qdot(qdot) { }
 		};
 
-		C3Trajectory(const Point &start, const Limits &limits);
-		inline void setLimits(const Limits &limits) { this->limits = limits; }
+		struct Waypoint {
+			Point r;
+			bool coordinate_unaligned;
+			Vector6d speed;
 
-		void update(double dt, const Vector6d &r);
+			Waypoint() { }
+			Waypoint(const Point &r) : r(r), coordinate_unaligned(false), speed(Vector6d::Zero()) { }
+		};
+
+		C3Trajectory(const Point &start, const Limits &limits);
+		void update(double dt, const Waypoint &waypoint, double waypoint_t);
 
 		Point getCurrentPoint() const;
 

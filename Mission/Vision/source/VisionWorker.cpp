@@ -60,7 +60,7 @@ void VisionWorker::leaveActive()
 
 void VisionWorker::work(double dt)
 {
-	if(setidsmailbox.hasData()) {
+	if(setidsmailbox.takeOptional()) {
 		VisionSetIDs vids = setidsmailbox.get();
 
 		if (vids.cameraID == cameraId && vids.ids != finderIDs) {

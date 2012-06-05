@@ -423,6 +423,8 @@ map(_define_func, [
 ] + [
     ('DynamicData_get_string', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(DDS_UnsignedLong), ctypes.c_char_p, DDS_DynamicDataMemberId]),
     ('DynamicData_get_wstring', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(ctypes.c_wchar_p), ctypes.POINTER(DDS_UnsignedLong), ctypes.c_char_p, DDS_DynamicDataMemberId]),
+    ('DynamicData_get_char_array', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(DDS_Char), ctypes.POINTER(DDS_UnsignedLong), ctypes.c_char_p, DDS_DynamicDataMemberId]),
+    ('DynamicData_get_octet_array', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(DDS_Octet), ctypes.POINTER(DDS_UnsignedLong), ctypes.c_char_p, DDS_DynamicDataMemberId]),
     ('DynamicData_set_string', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.c_char_p, DDS_DynamicDataMemberId, ctypes.c_char_p]),
     ('DynamicData_set_wstring', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.c_char_p, DDS_DynamicDataMemberId, ctypes.c_wchar_p]),
     ('DynamicData_bind_complex_member', check_code, DDS_ReturnCode_t, [ctypes.POINTER(DDSType.DynamicData), ctypes.POINTER(DDSType.DynamicData), ctypes.c_char_p, DDS_DynamicDataMemberId]),
@@ -549,6 +551,18 @@ def unpack_dd_member(dd, member_name=None, member_id=DDS_DYNAMIC_DATA_MEMBER_ID_
         try:
             dd.bind_complex_member(inner, member_name, member_id)
             try:
+                # special case character/octet arrays into strings
+                if kind == TCKind.SEQUENCE or kind == TCKind.ARRAY:
+                    child_tc = ctypes.POINTER(DDSType.TypeCode)()
+                    inner.get_member_type(ctypes.byref(child_tc), None, 1, ex()) # seems to work even for empty strings, though we're requesting the first member's type
+                    child_tk = child_tc.kind(ex())
+                    if child_tk in [TCKind.OCTET, TCKind.CHAR]:
+                        res = ctypes.create_string_buffer(inner.get_member_count())
+                        res_p = ctypes.cast(res, ctypes.POINTER(_dyn_basic_types[child_tk][1]))
+                        (dd.get_octet_array if child_tk == TCKind.OCTET else dd.get_char_array)(
+                            res_p, ctypes.byref(DDS_UnsignedLong(inner.get_member_count())), member_name, member_id)
+                        return res.raw
+                
                 return unpack_dd(inner)
             finally:
                 dd.unbind_complex_member(inner)
