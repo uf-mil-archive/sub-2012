@@ -26,6 +26,7 @@ VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, uns
 	this->frameCnt = 0;
 	handleConfig(getConfig());
 	setidsmailbox.set(VisionSetIDs(this->cameraId, vector<int>(1, config.get<int>("defaultID"))));
+	rebuildFinders = true;
 }
 
 void VisionWorker::enterActive()
@@ -63,8 +64,13 @@ void VisionWorker::work(double dt)
 
 		if (vids.cameraID == cameraId && vids.ids != finderIDs) {
 			finderIDs = vids.ids;
-			listOfFinders = FinderGenerator().buildFinders(vids.ids, config);
+			rebuildFinders = true;
 		}
+	}
+	
+	if(rebuildFinders) {
+		listOfFinders = FinderGenerator().buildFinders(finderIDs, config);
+		rebuildFinders = false;
 	}
 	
 	camera->setExposure(config.get<float>("shutterVal"));
@@ -130,6 +136,8 @@ void VisionWorker::handleConfig(property_tree::ptree new_config) {
 	stringstream s; s << cameraId;
 	if(new_config.get_child_optional("camera" + s.str()))
 		subjugator::merge(config, new_config.get_child("camera" + s.str()));
+
+	rebuildFinders = true;
 
 	saveConfig(new_config);
 }

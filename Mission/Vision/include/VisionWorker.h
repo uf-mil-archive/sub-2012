@@ -46,6 +46,7 @@ private:
 	std::vector<int> finderIDs;
 	boost::shared_ptr<Camera> camera;
 	int frameCnt;
+	bool rebuildFinders;
 };
 
 }
