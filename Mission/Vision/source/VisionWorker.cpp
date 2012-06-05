@@ -114,7 +114,7 @@ void VisionWorker::work(double dt)
 			else
 				imshow("Processed",ioimages.prcd);
 			imshow("Debug",ioimages.dbg);
-			waitKey(0);
+			waitKey(1); // required to update window
 		}
 	}
 	if(config.get<bool>("logImages") && frameCnt%30 == 0)
