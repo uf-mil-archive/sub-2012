@@ -29,7 +29,8 @@ _topic_qoses = {
     'LPOSVSS': _TopicConf(lib.LPOSVSSMessage, DEFAULT),
     'InteractionCommand': _TopicConf(lib.InteractionCommandMessage, RELIABLE),
     'InteractionStatus': _TopicConf(lib.InteractionStatusMessage, PERSISTENT+EXCLUSIVE),
-    'InteractionOutput': _TopicConf(lib.InteractionOutputMessage, DEEP_PERSISTENT)
+    'InteractionOutput': _TopicConf(lib.InteractionOutputMessage, DEEP_PERSISTENT),
+    'VisionDebug': _TopicConf(lib.VisionDebugMessage, UNRELIABLE),
 }
 
 def get(name):

@@ -90,6 +90,10 @@ void VisionWorker::work(double dt)
 		
 		outputsignal.emit(make_pair(cameraId, fResult));
 	}
+	
+	vector<uchar> buf;imencode(".jpg", ioimages.dbg, buf);
+	vector<pair<string, string> > images;images.push_back(make_pair("debug", string(buf.begin(), buf.end())));
+	debugsignal.emit(make_pair(cameraId, images));
 
 	//imshow("Source",ioimages.src);
 	if(showDebugImages)

@@ -37,6 +37,7 @@ public:
 	WorkerMailbox<VisionSetIDs> setidsmailbox;
 
 	WorkerSignal<std::pair<int, std::vector<boost::property_tree::ptree> > > outputsignal;
+	WorkerSignal<std::pair<int, std::vector<std::pair<std::string, std::string> > > > debugsignal;
 
 protected:
 	virtual void enterActive();
