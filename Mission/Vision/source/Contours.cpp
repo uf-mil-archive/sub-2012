@@ -104,7 +104,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 						
 						stringstream name;
 						name << k++;
-						imshow("out" + name.str(), out1);
+						//imshow("out" + name.str(), out1);
 						/*
 							imshow("out0", channelsLAB[0]);
 							imshow("out1", channelsLAB[1]);
