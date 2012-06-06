@@ -317,6 +317,10 @@ DDSType.OwnershipQosPolicy._fields_ = [
     ('kind', DDS_Enum),
 ]
 
+DDSType.TopicProtocolQosPolicy._fields_ = [
+    ('vendor_specific_entity', DDS_Boolean),
+]
+
 DDSType.TopicQos._fields_ = [
     ('topic_data', DDSType.TopicDataQosPolicy),
     ('durability', DDSType.DurabilityQosPolicy),
@@ -331,6 +335,7 @@ DDSType.TopicQos._fields_ = [
     ('transport_priority', DDSType.TransportPriorityQosPolicy),
     ('lifespan', DDSType.LifespanQosPolicy),
     ('ownership', DDSType.OwnershipQosPolicy),
+    ('protocol', DDSType.TopicProtocolQosPolicy),
 ]
 
 DDSType.Listener._fields_ = [
