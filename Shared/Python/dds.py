@@ -58,8 +58,8 @@ def check_true(result, func, arguments):
 enum = ctypes.c_int
 
 DDS_Char = ctypes.c_char
-DDS_Wchar = ctypes.c_wchar
-DDS_Octet = ctypes.c_ubyte
+DDS_Wchar = ctypes.c_uint32
+DDS_Octet = ctypes.c_uint8
 DDS_Short = ctypes.c_int16
 DDS_UnsignedShort = ctypes.c_uint16
 DDS_Long = ctypes.c_int32
@@ -69,8 +69,8 @@ DDS_UnsignedLongLong = ctypes.c_uint64
 DDS_Float = ctypes.c_float
 DDS_Double = ctypes.c_double
 DDS_LongDouble = ctypes.c_longdouble
-DDS_Boolean = ctypes.c_bool
-DDS_Enum = DDS_UnsignedLong
+DDS_Boolean = ctypes.c_uint8
+DDS_Enum = ctypes.c_uint32
 
 DDS_DynamicDataMemberId = DDS_Long
 DDS_ReturnCode_t = enum
