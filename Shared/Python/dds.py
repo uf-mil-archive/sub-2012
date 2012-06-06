@@ -151,15 +151,15 @@ DDSType.Topic._fields_ = [
 ctypes.POINTER(DDSType.Topic).as_topicdescription = lambda self: self.contents._as_TopicDescription
 
 DDSType.DynamicDataSeq._fields_ = DDSType.SampleInfoSeq._fields_ = DDSType.OctetSeq._fields_ = DDSType.ConditionSeq._fields_ = [
-    ('_owned', ctypes.c_bool),
+    ('_owned', DDS_Boolean),
     ('_contiguous_buffer', ctypes.c_void_p),
     ('_discontiguous_buffer', ctypes.POINTER(ctypes.c_void_p)),
-    ('_maximum', ctypes.c_ulong),
-    ('_length', ctypes.c_ulong),
-    ('_sequence_init', ctypes.c_long),
+    ('_maximum', DDS_UnsignedLong),
+    ('_length', DDS_UnsignedLong),
+    ('_sequence_init', DDS_Long),
     ('_read_token1', ctypes.c_void_p),
     ('_read_token2', ctypes.c_void_p),
-#    ('_elementPointersAllocation', ctypes.c_bool), # gcc says sizeof() should be 64, not 72. The extra 8 bytes ctypes adds breaks the QOS structures
+    ('_elementPointersAllocation', DDS_Boolean),
 ]
 
 DDSType.InstanceHandle_t._fields_ = [
