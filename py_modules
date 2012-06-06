@@ -4,3 +4,4 @@
 # after editing modules.
 
 export PYTHONPATH=$(readlink --canonicalize --no-newline `dirname $BASH_SOURCE`)/Shared/Python
+export LD_LIBRARY_PATH=$(readlink --canonicalize --no-newline `dirname $BASH_SOURCE`)/build/Shared/DDS/:$(readlink --canonicalize --no-newline `dirname $BASH_SOURCE`)/build/Legacy/DDS/:"$LD_LIBRARY_PATH"
