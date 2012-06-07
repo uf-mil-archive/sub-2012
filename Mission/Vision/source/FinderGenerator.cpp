@@ -64,7 +64,7 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 	
 	vector<boost::shared_ptr<IFinder> > listOfFinders;
 	if(buoyIDs.size() > 0)
-		listOfFinders.push_back(make_shared<BuoyFinder>(buoyIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
+		listOfFinders.push_back(make_shared<BuoyFinder>(buoyIDs, config.get_child("buoys"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(pipeIDs.size() > 0)
 		listOfFinders.push_back(make_shared<PipeFinder>(pipeIDs, config.get_child("pipes"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(hedgeIDs.size() > 0)

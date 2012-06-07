@@ -1,12 +1,14 @@
 #include "BuoyFinder.h"
 #include "Blob.h"
+#include "MILObjectIDs.h"
 
 using namespace boost;
 using namespace cv;
 
-BuoyFinder::BuoyFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
+BuoyFinder::BuoyFinder(vector<int> objectIDs, property_tree::ptree config, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
 {
 	this->oIDs = objectIDs;
+	this->config = config;
 	this->n = normalizer;
 	this->t = thresholder;
 }
@@ -23,10 +25,14 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 	for(unsigned int i=0; i<oIDs.size(); i++)
 	{
 		// call to thresholder here
-		t->thresh(ioimages,oIDs[i]);
+		t->thresh(ioimages, config.get_child(std::string("thresh") + (
+			oIDs[i] == MIL_OBJECTID_BUOY_GREEN ? "Green" :
+			oIDs[i] == MIL_OBJECTID_BUOY_RED ? "Red" :
+			"Yellow"
+		)));
 
 		// call to specific member function here
-		Blob blob(ioimages,100,80000,2000);
+		Blob blob(ioimages, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 
 		// Draw result
 		blob.drawResult(ioimages,oIDs[i]);

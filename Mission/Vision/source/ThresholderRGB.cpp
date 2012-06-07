@@ -2,6 +2,7 @@
 
 #include "ThresholderRGB.h"
 
+using namespace boost;
 using namespace cv;
 
 ThresholderRGB::ThresholderRGB(void)
@@ -42,6 +43,27 @@ void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
 		threshBlack(ioimages);
 	else if(objectID == MIL_OBJECTID_GATE_VALIDATION)
 		threshOrange(ioimages, true);
+}
+
+
+void ThresholderRGB::thresh(IOImages* ioimages, property_tree::ptree config)
+{
+	Mat srcHSV; cvtColor(ioimages->prcd, srcHSV, CV_BGR2HSV);
+	std::vector<Mat> channelsHSV(srcHSV.channels()); split(srcHSV, channelsHSV);
+
+	// deal with hue wrapping
+	if(config.get<double>("hHigh") >= config.get<double>("hLow"))
+		inRange(channelsHSV[0], Scalar(config.get<double>("hLow")), Scalar(config.get<double>("hHigh")), channelsHSV[0]);
+	else {
+		inRange(channelsHSV[0], Scalar(config.get<double>("hHigh")), Scalar(config.get<double>("hLow")), channelsHSV[0]);
+		bitwise_not(channelsHSV[0], channelsHSV[0]);
+	}
+
+	inRange(channelsHSV[1], Scalar(config.get<double>("sLow")), Scalar(config.get<double>("sHigh")), channelsHSV[1]);
+	inRange(channelsHSV[2], Scalar(config.get<double>("vLow")), Scalar(config.get<double>("vHigh")), channelsHSV[2]);
+
+	bitwise_and(channelsHSV[0], channelsHSV[1], ioimages->dbg);
+	bitwise_and(channelsHSV[2], ioimages->dbg, ioimages->dbg);
 }
 
 void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)

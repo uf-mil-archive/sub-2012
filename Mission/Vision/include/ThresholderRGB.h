@@ -9,6 +9,7 @@ public:
 	ThresholderRGB(void);
 	~ThresholderRGB(void);
 	void thresh(IOImages* ioimages, int objectID);
+	void thresh(IOImages* ioimages, boost::property_tree::ptree config);
 
 private:
 	void threshOrange(IOImages* ioimages, bool erodeDilateFlag);

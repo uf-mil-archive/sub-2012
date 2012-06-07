@@ -25,6 +25,19 @@
 				"minLineGap": 50
 				},
 			"minAngleDiff": 20
+		},
+		"buoys": {
+			"minContour": 100,
+			"maxContour": 80000,
+			"maxPerimeter": 2000,
+			"threshYellow": {
+				"hLow": 170,
+				"hHigh": 10,
+				"sLow": 120,
+				"sHigh": 255,
+				"vLow": 0,
+				"vHigh": 100
+			}
 		}
 	},
 	"camera1": {
