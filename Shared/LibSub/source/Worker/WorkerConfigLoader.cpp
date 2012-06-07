@@ -29,17 +29,13 @@ ptree WorkerConfigLoader::loadConfig(const string &workername) const {
 	return config;
 }
 
-void WorkerConfigLoader::writeLocalConfig(const string &workername, const ptree &config, bool useLocal) const {
-	filesystem::path configdir;
-	if(useLocal) {
-		configdir = filesystem::path(configPath) / "local";
-		if (!exists(configdir))
-			filesystem::create_directory(configdir);
-	} else
-		configdir = configPath;
+void WorkerConfigLoader::writeLocalConfig(const string &workername, const ptree &config) const {
+	filesystem::path localoverlay = filesystem::path(configPath) / "local";
+	if (!exists(localoverlay))
+		filesystem::create_directory(localoverlay);
 
 	string jsonfile = to_lower_copy(workername + ".json");
-	json_parser::write_json((configdir / jsonfile).string(), config);
+	json_parser::write_json((localoverlay / jsonfile).string(), config);
 }
 
 void subjugator::merge(ptree &dest, const ptree &src) {

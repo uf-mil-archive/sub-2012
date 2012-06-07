@@ -140,6 +140,6 @@ void VisionWorker::handleConfig(property_tree::ptree new_config) {
 	rebuildFinders = true;
 	finderIDs = vector<int>(1, config.get<int>("defaultID"));
 
-	saveConfig(new_config, false);
+	saveConfig(new_config);
 }
 
