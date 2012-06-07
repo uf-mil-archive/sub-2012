@@ -66,11 +66,11 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 	if(buoyIDs.size() > 0)
 		listOfFinders.push_back(make_shared<BuoyFinder>(buoyIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(pipeIDs.size() > 0)
-		listOfFinders.push_back(make_shared<PipeFinder>(pipeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
+		listOfFinders.push_back(make_shared<PipeFinder>(pipeIDs, config.get_child("pipes"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(hedgeIDs.size() > 0)
-		listOfFinders.push_back(make_shared<HedgeFinder>(hedgeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
+		listOfFinders.push_back(make_shared<HedgeFinder>(hedgeIDs, config.get_child("hedge"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(tubeIDs.size() > 0)
-		listOfFinders.push_back(make_shared<TubeFinder>(tubeIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
+		listOfFinders.push_back(make_shared<TubeFinder>(tubeIDs, config.get_child("tube"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(shooterIDs.size() > 0)
 		listOfFinders.push_back(make_shared<ShooterFinder>(shooterIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(binsIDs.size() > 0)
@@ -78,7 +78,7 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<int> oI
 	if(shapeIDs.size() > 0)
 		listOfFinders.push_back(make_shared<BinsFinder>(shapeIDs, config.get_child("bins"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 	if(gateIDs.size() > 0)
-		listOfFinders.push_back(make_shared<ValidationGateFinder>(gateIDs, make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
+		listOfFinders.push_back(make_shared<ValidationGateFinder>(gateIDs, config.get_child("valgate"), make_shared<NormalizerRGB>(), make_shared<ThresholderRGB>()));
 
 	return listOfFinders;
 }

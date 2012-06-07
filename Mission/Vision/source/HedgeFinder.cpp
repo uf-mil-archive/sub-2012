@@ -7,8 +7,9 @@ using namespace boost;
 using namespace cv;
 using namespace std;
 
-HedgeFinder::HedgeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
+HedgeFinder::HedgeFinder(vector<int> objectIDs, property_tree::ptree config, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;
+	this->config = config;
 	this->n = normalizer;
 	this->t = thresholder;
 }
@@ -26,7 +27,7 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Line line(2);
+		Line line(2, config);
 		int result = line.findLines(ioimages);
 		line.drawResult(ioimages,oIDs[i]);
 

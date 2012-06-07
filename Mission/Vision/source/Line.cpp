@@ -6,18 +6,20 @@
 using namespace cv;
 using namespace std;
 using namespace subjugator;
+using namespace boost;
 
-Line::Line(int num)
+Line::Line(int num, property_tree::ptree config)
 {
-	numberOfLinesToFind = num;
+	this->numberOfLinesToFind = num;
+	this->config = config;
 	for(int i = 0; i < numberOfLinesToFind; i++)
 		avgLines.push_back(AvgLine());
 }
 
 int Line::findLines(IOImages* ioimages)
 {
-	cv::Mat edgeImage;Canny(ioimages->dbg, edgeImage, 50, 200, 3 );
-	std::vector<cv::Vec4i> lines;HoughLinesP(edgeImage, lines, 1, CV_PI/360, 80, 60, 50 );
+	cv::Mat edgeImage;Canny(ioimages->dbg, edgeImage, config.get_child("Canny").get<int>("thresh1"), config.get_child("Canny").get<int>("thresh2"), config.get_child("Canny").get<int>("apertureSize") );
+	std::vector<cv::Vec4i> lines;HoughLinesP(edgeImage, lines, config.get_child("Hough").get<double>("rho"), config.get_child("Hough").get<double>("theta"), config.get_child("Hough").get<double>("thresh"), config.get_child("Hough").get<int>("minLineLength"), config.get_child("Hough").get<int>("minLineGap") );
 
 	for( size_t i = 0; i < lines.size(); i++ )
 	{
@@ -58,18 +60,18 @@ int Line::findLines(IOImages* ioimages)
 			// if a new angle comes in and the first average is populated and the second average is open
 			// and the new angle is far from the first average, save it as the second average
 			else if(avgLines[0].populated == true && avgLines[1].populated == false &&
-				abs(AttitudeHelpers::DAngleDiff(avgLines[0].angle,tmpAngle)) > 20*3.14159/180.0)
+				abs(AttitudeHelpers::DAngleDiff(avgLines[0].angle,tmpAngle)) > config.get<float>("minAngleDiff")*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 				avgLines[1].populated = true;
 			}
 			// if a new angle comes in and both averages are populated, find which average it is closest to,
 			// then call the update average helper
-			else if(abs(AttitudeHelpers::DAngleDiff(avgLines[0].angle,tmpAngle)) < 20*3.14159/180.0)
+			else if(abs(AttitudeHelpers::DAngleDiff(avgLines[0].angle,tmpAngle)) < config.get<float>("minAngleDiff")*3.14159/180.0)
 			{
 				avgLines[0].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 			}
-			else if(abs(AttitudeHelpers::DAngleDiff(avgLines[1].angle,tmpAngle)) < 20*3.14159/180.0)
+			else if(abs(AttitudeHelpers::DAngleDiff(avgLines[1].angle,tmpAngle)) < config.get<float>("minAngleDiff")*3.14159/180.0)
 			{
 				avgLines[1].updateAverage(Point(lines[i][0], lines[i][1]),Point(lines[i][2], lines[i][3]),tmpAngle);
 			}

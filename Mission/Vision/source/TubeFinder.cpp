@@ -6,8 +6,9 @@
 using namespace boost;
 using namespace std;
 
-TubeFinder::TubeFinder(vector<int> objectIDs, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
+TubeFinder::TubeFinder(vector<int> objectIDs, boost::property_tree::ptree config, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
 	this->oIDs = objectIDs;
+	this->config = config;
 	this->n = normalizer;
 	this->t = thresholder;
 }
@@ -23,7 +24,7 @@ vector<property_tree::ptree> TubeFinder::find(IOImages* ioimages) {
 		t->thresh(ioimages,oIDs[i]);
 
 		// call to specific member function here
-		Line line(1);
+		Line line(1, config);
 		int result = line.findLines(ioimages);
 		line.drawResult(ioimages,oIDs[i]);
 

@@ -5,16 +5,34 @@
 		"sendDebugImage": false,
 		"shutterVal": 42,
 		"gainVal": 42.5,
+		"defaultID": 8,
 		"bins": {
 			"minContour": 300,
 			"maxContour": 50000,
 			"maxPerimeter": 2000
+		},
+		"pipes": {
+			"Canny": {
+				"thresh1": 50,
+				"thresh2": 200,
+				"apertureSize": 3
+				},
+			"Hough": {
+				"rho": 1,
+				"theta": 0.0087263,
+				"thresh": 80,
+				"minLineLength": 60,
+				"minLineGap": 50
+				},
+			"minAngleDiff": 20
 		}
 	},
 	"camera1": {
 		"imageSource": {
-			"type": "flycap",
-			"number": 1
+			"type": "image",
+			"filename": "CHANGEME",
+			"number": 1,
+			"delay": 5
 		}
 	}
 }
