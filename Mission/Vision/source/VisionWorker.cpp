@@ -25,6 +25,7 @@ VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, uns
 {
 	this->frameCnt = 0;
 	handleConfig(getConfig());
+	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
 	rebuildFinders = true;
 }
 
@@ -137,7 +138,6 @@ void VisionWorker::handleConfig(property_tree::ptree new_config) {
 		subjugator::merge(config, new_config.get_child("camera" + s.str()));
 
 	rebuildFinders = true;
-	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
 	finderIDs = vector<int>(1, config.get<int>("defaultID"));
 
 	saveConfig(new_config, false);
