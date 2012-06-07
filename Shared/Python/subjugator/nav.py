@@ -218,7 +218,7 @@ def rturn(deg, spd=0):
     set_waypoint_rel(make_waypoint(Y=math.radians(deg), spdY=spd))
 
 @waitopts
-def lturn(deg, spd):
+def lturn(deg, spd=0):
     rturn(-deg, spd=spd)
 
 @waitopts

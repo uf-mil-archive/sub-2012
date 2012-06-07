@@ -33,6 +33,7 @@ _topic_qoses = {
     'VisionConfig': _TopicConf(lib.VisionConfigMessage, PERSISTENT),
     'VisionDebug': _TopicConf(lib.VisionDebugMessage, UNRELIABLE),
     'VisionSetIDs': _TopicConf(lib.VisionSetIDsMessage, UNRELIABLE),
+    'Vision': _TopicConf(lib.FinderMessageList, LEGACY),
 }
 
 def get(name):

@@ -18,14 +18,10 @@ def wait():
     topic = topics.get('Vision')
     sched.ddswait(topic)
 
-def get_object(objectid):
+def get_objects(objectid):
     topic = topics.get('Vision') # TODO, multiple camera. Need to change messages and QOS to work correctly here.
     try:
         msg = topic.read()
-        for jsonmsg in msg['messages']:
-            msg = json.loads(jsonmsg)
-            if msg['objectID'] == objectid:
-                return msg
-        return None
+        return [obj in map(json.loads, msg['messages']) if int(obj['objectID']) == objectid]
     except dds.Error:
-        return None
+        return []
