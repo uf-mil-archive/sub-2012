@@ -25,7 +25,6 @@ VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, uns
 {
 	this->frameCnt = 0;
 	handleConfig(getConfig());
-	setidsmailbox.set(VisionSetIDs(this->cameraId, vector<int>(1, config.get<int>("defaultID"))));
 	rebuildFinders = true;
 }
 
@@ -39,8 +38,6 @@ void VisionWorker::enterActive()
 		//moveWindow("Processed",500,500);
 		//namedWindow("Debug",1);
 	}
-
-	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
 }
 
 void VisionWorker::leaveActive()
@@ -140,6 +137,8 @@ void VisionWorker::handleConfig(property_tree::ptree new_config) {
 		subjugator::merge(config, new_config.get_child("camera" + s.str()));
 
 	rebuildFinders = true;
+	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
+	finderIDs = vector<int>(1, config.get<int>("defaultID"));
 
 	saveConfig(new_config);
 }
