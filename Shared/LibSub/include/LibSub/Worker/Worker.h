@@ -63,7 +63,7 @@ namespace subjugator {
 
 		protected:
 			const boost::property_tree::ptree &getConfig() const;
-			void saveConfig(const boost::property_tree::ptree &config) const { configloader.writeLocalConfig(name, config); }
+			void saveConfig(const boost::property_tree::ptree &config, bool useLocal=true) const { configloader.writeLocalConfig(name, config, useLocal); }
 
 		private:
 			std::string name;

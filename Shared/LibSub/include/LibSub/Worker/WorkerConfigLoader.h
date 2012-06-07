@@ -34,7 +34,7 @@ namespace subjugator {
 			/**
 			\brief Saves configuration data to the local overlay for a worker
 			*/
-			void writeLocalConfig(const std::string &workername, const boost::property_tree::ptree &config) const;
+			void writeLocalConfig(const std::string &workername, const boost::property_tree::ptree &config, bool useLocal=true) const;
 
 		private:
 			std::vector<std::string> overlays;
