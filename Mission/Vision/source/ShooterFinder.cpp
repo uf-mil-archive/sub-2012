@@ -52,8 +52,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			int index = contours.findSmallestShape();
 			property_tree::ptree fResult;
 			fResult.put("objectID", oIDs[i]);
-			fResult.put("u", contours.shapes[index].centroid.x);
-			fResult.put("v", contours.shapes[index].centroid.y);
+			fResult.put_child("center", Point_to_ptree(contours.shapes[index].centroid, ioimages->prcd));
 			fResult.put("angle", contours.boxes[index].orientationError);
 			fResult.put("scale", contours.shapes[index].area);
 			resultVector.push_back(fResult);
@@ -61,16 +60,14 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			int index2 = contours.findSmallestShape();
 			property_tree::ptree fResult_2;
 			fResult_2.put("objectID", oIDs[i]);
-			fResult_2.put("u", contours.shapes[index2].centroid.x);
-			fResult_2.put("v", contours.shapes[index2].centroid.y);
+			fResult_2.put_child("center", Point_to_ptree(contours.shapes[index2].centroid, ioimages->prcd));
 			fResult_2.put("angle", contours.boxes[index2].orientationError);
 			fResult_2.put("scale", contours.shapes[index2].area);
 			resultVector.push_back(fResult_2);
 		} else if(oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE || oIDs[i] == MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE) {
 			property_tree::ptree fResult;
 			fResult.put("objectID", oIDs[i]);
-			fResult.put("u", contours.boxes[0].centroid.x);
-			fResult.put("v", contours.boxes[0].centroid.y);
+			fResult.put_child("center", Point_to_ptree(contours.boxes[0].centroid, ioimages->prcd));
 			fResult.put("scale", contours.boxes[0].area);
 			fResult.put("angle", contours.boxes[0].orientationError);
 			resultVector.push_back(fResult);

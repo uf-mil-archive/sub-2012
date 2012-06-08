@@ -47,8 +47,7 @@ vector<property_tree::ptree> ShapeFinder::find(IOImages* ioimages) {
 		else
 			fResult.put("objectID", MIL_OBJECTID_BIN_O);
 		fResult.put("scale", contours.shapes[index].area);
-		fResult.put("u", contours.shapes[index].centroid.x);
-		fResult.put("v", contours.shapes[index].centroid.y);
+		fResult.put_child("center", Point_to_ptree(contours.shapes[index].centroid, ioimages->prcd));
 		resultVector.push_back(fResult);
 	}
 	return resultVector;

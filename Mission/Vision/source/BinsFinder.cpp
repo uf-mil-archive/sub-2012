@@ -52,8 +52,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 			circle(ioimages->prcd,centroidOfBoxes, 5, CV_RGB(255,140,0), -1,8);
 			property_tree::ptree fResult;
 			fResult.put("objectID", oIDs[i]);
-			fResult.put("u", centroidOfBoxes.x);
-			fResult.put("v", centroidOfBoxes.y);
+			fResult.put_child("center", Point_to_ptree(centroidOfBoxes, ioimages->prcd));
 			fResult.put("number_of_boxes", contours.boxes.size());
 			// Scale returns the number of boxes that are currently being found.
 			// The idea is to align to centroid until 4 boxes are found.
@@ -63,8 +62,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 			for(unsigned int j=0; j<contours.boxes.size(); j++) {
 				property_tree::ptree fResult;
 				fResult.put("objectID", oIDs[i]);
-				fResult.put("u", contours.boxes[j].centroid.x);
-				fResult.put("v", contours.boxes[j].centroid.y);
+				fResult.put_child("center", Point_to_ptree(contours.boxes[j].centroid, ioimages->prcd));
 				fResult.put("angle", contours.boxes[j].angle);
 				fResult.put("scale", contours.boxes[j].area);
 				resultVector.push_back(fResult);
@@ -79,8 +77,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 					fResult.put("objectID", MIL_OBJECTID_BIN_X);
 				else
 					fResult.put("objectID", MIL_OBJECTID_BIN_O);
-				fResult.put("u", contours.shapes[j].centroid.x);
-				fResult.put("v", contours.shapes[j].centroid.y);
+				fResult.put_child("center", Point_to_ptree(contours.shapes[j].centroid, ioimages->prcd));
 				fResult.put("angle", contours.shapes[j].shape_x);
 				fResult.put("scale", contours.shapes[j].area);
 				resultVector.push_back(fResult);

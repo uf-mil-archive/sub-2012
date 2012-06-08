@@ -45,8 +45,7 @@ vector<property_tree::ptree> PipeFinder::find(IOImages* ioimages) {
 			if(line.avgLines[j].populated) {
 				property_tree::ptree fResult;
 				fResult.put("objectID", oIDs[i]);
-				fResult.put("u", line.avgLines[j].centroid.x);
-				fResult.put("v", line.avgLines[j].centroid.y);
+				fResult.put_child("center", Point_to_ptree(line.avgLines[j].centroid, ioimages->prcd));
 				fResult.put("angle", line.avgLines[j].angle);
 				fResult.put("scale", line.avgLines[j].length);
 				resultVector.push_back(fResult);

@@ -70,8 +70,7 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 				circle(ioimages->prcd,driveToCenter,5,Scalar(255,255,255),-1);
 				property_tree::ptree fResult;
 				fResult.put("objectID", MIL_OBJECTID_GATE_HEDGE);
-				fResult.put("u", driveToCenter.x);
-				fResult.put("v", driveToCenter.y);
+				fResult.put_child("center", Point_to_ptree(driveToCenter, ioimages->prcd));
 				fResult.put("scale", line.avgLines[j].length);
 				resultVector.push_back(fResult);
 				break;

@@ -38,8 +38,7 @@ vector<property_tree::ptree> TubeFinder::find(IOImages* ioimages) {
 		
 		property_tree::ptree fResult;
 		fResult.put("objectID", oIDs[i]);
-		fResult.put("u", line.avgLines[0].centroid.x);
-		fResult.put("v", line.avgLines[0].centroid.y);
+		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, ioimages->prcd));
 		fResult.put("scale", line.avgLines[0].length);
 		resultVector.push_back(fResult);
 	}
