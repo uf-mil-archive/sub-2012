@@ -5,6 +5,7 @@
 		"sendDebugImage": false,
 		"shutterVal": 42,
 		"gainVal": 42.5,
+		"autoVal": 60,
 		"defaultID": 8,
 		"bins": {
 			"minContour": 300,

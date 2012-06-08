@@ -50,6 +50,10 @@ void ImageCamera::setExposure(float time) {
 void ImageCamera::setGain(float gain) {
 }
 
+void ImageCamera::setAuto(float gain) {
+	// this could actually be implemented
+}
+
 
 
 CvCamera::CvCamera(boost::asio::io_service* io, int cameraNumber) :
@@ -82,6 +86,9 @@ void CvCamera::setExposure(float time) {
 
 void CvCamera::setGain(float gain) {
 	cap.set(CV_CAP_PROP_GAIN, gain);
+}
+
+void CvCamera::setAuto(float averageIntensity) {
 }
 
 
@@ -147,6 +154,14 @@ void FlyCamera::setExposure(float time) {
 void FlyCamera::setGain(float gain) {
 	FlyCapture2::Property prop(FlyCapture2::GAIN);
 	prop.absValue = gain;
+	prop.autoManualMode = false;
+	prop.absControl = true;
+	checkError(cam.SetProperty(&prop, false));
+}
+
+void FlyCamera::setAuto(float averageIntensity) {
+	FlyCapture2::Property prop(FlyCapture2::AUTO_EXPOSURE);
+	prop.absValue = averageIntensity/4;
 	prop.autoManualMode = false;
 	prop.absControl = true;
 	checkError(cam.SetProperty(&prop, false));

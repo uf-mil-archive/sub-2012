@@ -73,6 +73,7 @@ void VisionWorker::work(double dt)
 	
 	camera->setExposure(config.get<float>("shutterVal"));
 	camera->setGain(config.get<float>("gainVal"));
+	camera->setAuto(config.get<float>("autoVal"));
 
 	// Grab a frame from the camera, copy into ioimages object
 	camera->getImage().copyTo(ioimages.src);

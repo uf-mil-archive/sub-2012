@@ -20,6 +20,7 @@ class Camera : public ImageSource {
 	public:
 		virtual void setExposure(float time) = 0;
 		virtual void setGain(float gain) = 0;
+		virtual void setAuto(float averageIntensity) = 0;
 };
 
 class ImageCamera : public Camera {
@@ -29,6 +30,7 @@ class ImageCamera : public Camera {
 		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
 		virtual void setExposure(float time);
 		virtual void setGain(float gain);
+		virtual void setAuto(float averageIntensity);
 	private:
 		boost::asio::io_service* io;
 		std::vector<std::string> filenames;
@@ -45,6 +47,7 @@ class CvCamera : public Camera {
 		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
 		virtual void setExposure(float time);
 		virtual void setGain(float gain);
+		virtual void setAuto(float averageIntensity);
 	private:
 		boost::asio::io_service* io;
 		cv::VideoCapture cap;
@@ -60,6 +63,7 @@ class FlyCamera : public Camera {
 		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
 		virtual void setExposure(float time);
 		virtual void setGain(float gain);
+		virtual void setAuto(float averageIntensity);
 
 	private:
 		FlyCapture2::Camera cam;
