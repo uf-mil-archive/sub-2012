@@ -4,6 +4,9 @@
 		{"name": "TrackingController"},
 		{"name": "TrajectoryGenerator"},
 		{"name": "LPOSVSS"},
-		{"name": "C3Trajectory"}
+		{"name": "C3Trajectory"},
+
+		{"name": "Vision 1", "procname": "vision", "args": "-c 1"},
+		{"name": "Vision 2", "procname": "vision", "args": "-c 2"}
 	]
 }

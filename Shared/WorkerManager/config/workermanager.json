@@ -7,7 +7,10 @@
 
 		{"name": "PrimitiveDriver"},
 		{"name": "TrackingController"},
-		{"name": "TrajectoryGenerator"}
+		{"name": "TrajectoryGenerator"},
+
+		{"name": "Vision 1", "procname": "vision", "args": "-c 1"},
+		{"name": "Vision 2", "procname": "vision", "args": "-c 2"}
 	]
 }
 
