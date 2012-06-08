@@ -146,7 +146,7 @@ void FlyCamera::getImageAsync(void(*completion_handler)(cv::Mat image)) {
 void FlyCamera::setExposure(float time) {
 	FlyCapture2::Property prop(FlyCapture2::SHUTTER);
 	prop.absValue = time;
-	prop.autoManualMode = false;
+	prop.autoManualMode = time < 0;
 	prop.absControl = true;
 	checkError(cam.SetProperty(&prop, false));
 }
@@ -154,7 +154,7 @@ void FlyCamera::setExposure(float time) {
 void FlyCamera::setGain(float gain) {
 	FlyCapture2::Property prop(FlyCapture2::GAIN);
 	prop.absValue = gain;
-	prop.autoManualMode = false;
+	prop.autoManualMode = gain < 0;
 	prop.absControl = true;
 	checkError(cam.SetProperty(&prop, false));
 }
@@ -162,7 +162,7 @@ void FlyCamera::setGain(float gain) {
 void FlyCamera::setAuto(float averageIntensity) {
 	FlyCapture2::Property prop(FlyCapture2::AUTO_EXPOSURE);
 	prop.absValue = averageIntensity/4;
-	prop.autoManualMode = false;
+	prop.autoManualMode = averageIntensity < 0;
 	prop.absControl = true;
 	checkError(cam.SetProperty(&prop, false));
 }

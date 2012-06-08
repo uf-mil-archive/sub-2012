@@ -3,8 +3,8 @@
 		"logImages": false,
 		"showDebugImages": true,
 		"sendDebugImage": false,
-		"shutterVal": 42,
-		"gainVal": 42.5,
+		"shutterVal": -1,
+		"gainVal": -1,
 		"autoVal": 60,
 		"defaultID": 8,
 		"bins": {
