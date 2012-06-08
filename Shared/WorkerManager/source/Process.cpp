@@ -80,10 +80,11 @@ void Process::updateState() {
 
 void Process::doExec() {
 	try {
-		scoped_array<const char *> argv(new const char *[args.size()+1]);
+		scoped_array<const char *> argv(new const char *[1+args.size()+1]);
+		argv[0] = name.c_str(); // XXX should actually be the full path
 		for (unsigned int i=0; i<args.size(); i++)
-			argv[i] = args[i].c_str();
-		argv[args.size()] = NULL;
+			argv[1+i] = args[i].c_str();
+		argv[1+args.size()] = NULL;
 
 		execvp(name.c_str(), const_cast<char *const *>(argv.get()));
 	} catch (...) { }
