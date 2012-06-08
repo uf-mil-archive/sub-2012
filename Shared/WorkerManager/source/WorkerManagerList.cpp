@@ -10,9 +10,7 @@ using namespace std;
 
 WorkerManagerList::WorkerManagerList(Callbacks &callbacks) : callbacks(callbacks) { }
 
-void WorkerManagerList::addWorker(const string &name, const vector<string> &args, const WorkerManager::Options &opts) {
-	string procname = name;
-	to_lower(procname);
+void WorkerManagerList::addWorker(const string &name, const string &procname, const vector<string> &args, const WorkerManager::Options &opts) {
 	auto_ptr<WorkerManager> pm(new WorkerManager(name, procname, args, opts));
 	manmap.insert(name, pm);
 }

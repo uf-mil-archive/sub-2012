@@ -35,7 +35,12 @@ void WorkerManagerWorker::initialize() {
 		split(args, argsstr, is_space(), token_compress_on);
 
 		string name = t.get<string>("name");
-		workerlist.addWorker(name, args, opts);
+
+		string procname = name;
+		to_lower(procname);
+		procname = t.get<string>("procname", procname);
+
+		workerlist.addWorker(name, procname, args, opts);
 		statusupdatesignal.emit(StatusUpdate(name, Process::STOPPED));
 	}
 }

@@ -15,7 +15,7 @@ namespace subjugator {
 			};
 
 			WorkerManagerList(Callbacks &callbacks);
-			void addWorker(const std::string &name, const std::vector<std::string> &args, const WorkerManager::Options &opts);
+			void addWorker(const std::string &name, const std::string &procname, const std::vector<std::string> &args, const WorkerManager::Options &opts);
 
 			WorkerManager *getWorkerManager(const std::string &name) const;
 
