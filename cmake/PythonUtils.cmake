@@ -4,3 +4,7 @@ function(python_install_module_dirs)
 		install(DIRECTORY ${dir}/ DESTINATION ${path} FILES_MATCHING PATTERN "*.py")
 	endforeach()
 endfunction()
+
+function(python_install_runscript)
+    install(PROGRAMS ${ARGN} DESTINATION bin)
+endfunction()
