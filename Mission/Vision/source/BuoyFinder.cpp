@@ -1,34 +1,33 @@
 #include "BuoyFinder.h"
 #include "Blob.h"
-#include "MILObjectIDs.h"
+#include "Normalizer.h"
+#include "Thresholder.h"
 
 using namespace boost;
 using namespace cv;
 
-BuoyFinder::BuoyFinder(vector<int> objectIDs, property_tree::ptree config, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder)
-{
-	this->oIDs = objectIDs;
-	this->config = config;
-	this->n = normalizer;
-	this->t = thresholder;
-}
-
 vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 {
 	// call to normalizer here
-	n->norm(ioimages);
+	Normalizer::norm(ioimages);
 
 	// blur the image to remove noise
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(7,7),10,15,BORDER_DEFAULT);
 
 	vector<property_tree::ptree> resultVector;
-	for(unsigned int i=0; i<oIDs.size(); i++)
+	for(unsigned int i=0; i<objectNames.size(); i++)
 	{
-		// call to thresholder here
-		t->thresh(ioimages, oIDs[i]);
-		/* t->thresh(ioimages, config.get_child(std::string("thresh") + (
-			oIDs[i] == MIL_OBJECTID_BUOY_GREEN ? "Green" :
-			oIDs[i] == MIL_OBJECTID_BUOY_RED ? "Red" :
+		if(objectNames[i] == "buoy/red")
+			Thresholder::threshOrange(ioimages, true);
+		else if(objectNames[i] == "buoy/yellow")
+			Thresholder::threshYellow(ioimages);
+		else if(objectNames[i] == "buoy/green")
+			Thresholder::threshGreen(ioimages);
+		else
+			throw std::runtime_error("unknown objectName in BuoyFinder::find:" + objectNames[i]);
+		/* Thresholder::threshConfig(ioimages, config.get_child(std::string("thresh") + (
+			objectNames[i] == "buoy/green" ? "Green" :
+			objectNames[i] == "buoy/red" ? "Red" :
 			"Yellow"
 		))); */
 
@@ -36,13 +35,13 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 		Blob blob(ioimages, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 
 		// Draw result
-		blob.drawResult(ioimages,oIDs[i]);
+		blob.drawResult(ioimages, objectNames[i]);
 
 		for (unsigned int j=0; j<blob.data.size(); j++) {
 			//printf("buoy finder!\n");
 			// Prepare results
 			property_tree::ptree fResult;
-			fResult.put("objectID", oIDs[i]);
+			fResult.put("objectName", objectNames[i]);
 			fResult.put_child("center", Point_to_ptree(blob.data[j].centroid, ioimages->prcd));
 			fResult.put("scale", blob.data[j].area);
 			resultVector.push_back(fResult);

@@ -4,7 +4,7 @@
 #include "LibSub/Worker/WorkerBuilder.h"
 
 #include "Vision/FinderMessageListSupport.h"
-#include "Vision/VisionSetIDsMessageSupport.h"
+#include "Vision/VisionSetObjectsMessageSupport.h"
 #include "Vision/VisionDebugMessageSupport.h"
 #include "Vision/VisionConfigMessageSupport.h"
 
@@ -16,7 +16,7 @@ using namespace std;
 using namespace subjugator;
 
 DECLARE_MESSAGE_TRAITS(FinderMessageList);
-DECLARE_MESSAGE_TRAITS(VisionSetIDsMessage);
+DECLARE_MESSAGE_TRAITS(VisionSetObjectsMessage);
 DECLARE_MESSAGE_TRAITS(VisionDebugMessage);
 DECLARE_MESSAGE_TRAITS(VisionConfigMessage);
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	DDSBuilder dds(io);
 	dds.worker(worker);
 
-	dds.receiver(worker.setidsmailbox, dds.topic<VisionSetIDsMessage>("VisionSetIDs", TopicQOS::LEGACY));
+	dds.receiver(worker.setobjectsmailbox, dds.topic<VisionSetObjectsMessage>("VisionSetObjects", TopicQOS::LEGACY));
 	dds.receiver(worker.configmailbox, dds.topic<VisionConfigMessage>("VisionConfig", TopicQOS::PERSISTENT));
 
 	dds.sender(worker.outputsignal, dds.topic<FinderMessageList>("Vision", TopicQOS::LEGACY));
@@ -80,10 +80,10 @@ int main(int argc, char **argv)
 
 namespace subjugator {
 	template <>
-	void from_dds(VisionSetIDs &ids, const VisionSetIDsMessage &msg) {
-		ids.cameraID = msg.cameraid;
-		for (int i=0; i < msg.visionids.length(); i++)
-			ids.ids.push_back(msg.visionids[i]);
+	void from_dds(std::pair<int, std::vector<std::string> > &data, const VisionSetObjectsMessage &msg) {
+		data.first = msg.cameraid;
+		for (int i = 0; i < msg.objectnames.length(); i++)
+			data.second.push_back(string(msg.objectnames[i]));
 	}
 
 	template <>

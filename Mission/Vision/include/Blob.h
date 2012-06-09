@@ -29,7 +29,7 @@ class Blob
 		std::vector<BlobData> data;
 
 		Blob(IOImages* ioimages, float minContour, float maxContour, float maxPerimeter);
-		void drawResult(IOImages* ioimages, int objectID);
+		void drawResult(IOImages* ioimages, std::string objectName);
 };
 
 #endif

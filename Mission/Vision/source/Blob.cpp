@@ -1,6 +1,5 @@
 #include <cstdio>
-
-#include "MILObjectIDs.h"
+#include <stdexcept>
 
 #include "Blob.h"
 
@@ -54,26 +53,18 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 		data.resize(2);
 }
 
-void Blob::drawResult(IOImages* ioimages, int objectID)
+void Blob::drawResult(IOImages* ioimages, std::string objectName)
 {
 	Scalar color;
-	Point position;
-	//printf("oid: %d\n",objectID);
-	switch(objectID)
-	{
-	case MIL_OBJECTID_BUOY_RED:
+	if(objectName == "buoy/red")
 		color = CV_RGB(255,100,0);
-		position = Point(10,15);
-		break;
-	case MIL_OBJECTID_BUOY_YELLOW:
+	else if(objectName == "buoy/yellow")
 		color = CV_RGB(230,230,0);
-		position = Point(10,25);
-		break;
-	case MIL_OBJECTID_BUOY_GREEN:
+	else if(objectName == "buoy/green")
 		color = CV_RGB(0,200,0);
-		position = Point(10,35);
-		break;
-	}
+	else
+		throw std::runtime_error("unknown objectName in Blob::drawResult: " + objectName);
+
 	for(unsigned int i=0; i<data.size(); i++)
 	{
 		circle(ioimages->prcd,data[i].centroid,(int)data[i].radius,color,2,8,0);

@@ -14,7 +14,7 @@ public:
 	std::vector<AvgLine> avgLines;
 	Line(int num, boost::property_tree::ptree config);
 	int findLines(IOImages* ioimages);
-	void drawResult(IOImages* ioimages, int objectID);
+	void drawResult(IOImages* ioimages);
 
 private:
 	int numberOfLinesToFind;

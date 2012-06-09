@@ -1,16 +1,8 @@
-#include "NormalizerRGB.h"
+#include "Normalizer.h"
 
 using namespace cv;
 
-NormalizerRGB::NormalizerRGB(void)
-{
-}
-
-NormalizerRGB::~NormalizerRGB(void)
-{
-}
-
-void NormalizerRGB::norm(IOImages* ioimages)
+void Normalizer::norm(IOImages* ioimages)
 {
 	std::vector<Mat> channels(ioimages->src.channels());
 	split(ioimages->src,channels);

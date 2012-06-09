@@ -1,43 +1,33 @@
 #include "Line.h"
-#include "MILObjectIDs.h"
+#include "Normalizer.h"
+#include "Thresholder.h"
 
 #include "TubeFinder.h"
 
 using namespace boost;
 using namespace std;
 
-TubeFinder::TubeFinder(vector<int> objectIDs, boost::property_tree::ptree config, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
-	this->oIDs = objectIDs;
-	this->config = config;
-	this->n = normalizer;
-	this->t = thresholder;
-}
-
 vector<property_tree::ptree> TubeFinder::find(IOImages* ioimages) {
 	// call to normalizer here
-	n->norm(ioimages);
+	Normalizer::norm(ioimages);
 
 	vector<property_tree::ptree> resultVector;
-	for(unsigned int i=0; i<oIDs.size(); i++)
+	for(unsigned int i=0; i<objectNames.size(); i++)
 	{
 		// call to thresholder here
-		t->thresh(ioimages,oIDs[i]);
+		Thresholder::threshOrange(ioimages, true);
 
 		// call to specific member function here
 		Line line(1, config);
 		int result = line.findLines(ioimages);
-		line.drawResult(ioimages,oIDs[i]);
+		line.drawResult(ioimages);
 
 		// Prepare results
-		if(!result) {
-			property_tree::ptree fResult;
-			fResult.put("objectID", MIL_OBJECTID_NO_OBJECT);
-			resultVector.push_back(fResult);
+		if(!result)
 			continue;
-		}
 		
 		property_tree::ptree fResult;
-		fResult.put("objectID", oIDs[i]);
+		fResult.put("objectName", objectNames[i]);
 		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, ioimages->prcd));
 		fResult.put("scale", line.avgLines[0].length);
 		resultVector.push_back(fResult);

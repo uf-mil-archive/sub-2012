@@ -36,7 +36,7 @@ class Contours
 		Contours(float minContour, float maxContour, float maxPerimeter);
 		~Contours(void);
 		int findContours(IOImages* ioimages, bool findInnerContours);
-		void drawResult(IOImages* ioimages, int objectID);
+		void drawResult(IOImages* ioimages, std::string objectName);
 		double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 		int findLargestShape();
 		int findSmallestShape();

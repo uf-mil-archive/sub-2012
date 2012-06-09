@@ -11,7 +11,6 @@
 
 #include "IOImages.h"
 #include "ImageSource.h"
-#include "VisionSetIDs.h"
 #include "IFinder.h"
 
 namespace subjugator {
@@ -24,7 +23,7 @@ public:
 	bool Startup();
 	void Shutdown();
 
-	WorkerMailbox<VisionSetIDs> setidsmailbox;
+	WorkerMailbox<std::pair<int, std::vector<std::string> > > setobjectsmailbox;
 	WorkerMailbox<boost::property_tree::ptree> configmailbox;
 
 	WorkerSignal<std::pair<int, std::vector<boost::property_tree::ptree> > > outputsignal;
@@ -43,7 +42,7 @@ private:
 	IOImages ioimages;
 	int cameraId;
 	std::vector<boost::shared_ptr<IFinder> > listOfFinders;
-	std::vector<int> finderIDs;
+	std::vector<std::string> objectNames;
 	boost::shared_ptr<Camera> camera;
 	int frameCnt;
 	bool rebuildFinders;
