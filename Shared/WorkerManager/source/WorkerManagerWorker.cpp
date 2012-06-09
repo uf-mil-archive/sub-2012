@@ -30,11 +30,16 @@ void WorkerManagerWorker::initialize() {
 		opts.errorrestarttime = t.get<double>("error_restart_time", numeric_limits<double>::infinity());
 		opts.stopkilltime = t.get<double>("stop_kill_time", 5);
 
-		string argsstr = t.get<string>("args", "");
-		vector<string> args;
-		split(args, argsstr, is_space(), token_compress_on);
-
 		string name = t.get<string>("name");
+
+		vector<string> args;
+		boost::optional<string> argsstr = t.get_optional<string>("args");
+		if (argsstr) {
+			split(args, *argsstr, is_space(), token_compress_on);
+		} else {
+			args.push_back(to_lower_copy(name));
+		}
+
 		workerlist.addWorker(name, args, opts);
 		statusupdatesignal.emit(StatusUpdate(name, Process::STOPPED));
 	}

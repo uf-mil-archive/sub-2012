@@ -6,8 +6,8 @@ using namespace boost;
 using namespace boost::system;
 using namespace std;
 
-WorkerManager::WorkerManager(const string &name, const std::string &procname, const vector<string> &args, const Options &opts)
-: name(name), opts(opts), proc(procname, args), started(false), restarting(false), stoptimer(0), standbytimer(0), errortimer(0) { }
+WorkerManager::WorkerManager(const string &name, const vector<string> &argv, const Options &opts)
+: name(name), opts(opts), proc(argv), started(false), restarting(false), stoptimer(0), standbytimer(0), errortimer(0) { }
 
 void WorkerManager::start() {
 	if (started)

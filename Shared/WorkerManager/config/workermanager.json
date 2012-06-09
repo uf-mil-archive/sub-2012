@@ -7,7 +7,8 @@
 
 		{"name": "PrimitiveDriver"},
 		{"name": "TrackingController"},
-		{"name": "TrajectoryGenerator"}
+		{"name": "C3Trajectory"},
+		{"name": "MissionPlanner", "args": "run_missionplanner.py"}
 	]
 }
 

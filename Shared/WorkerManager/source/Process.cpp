@@ -19,8 +19,8 @@ T handleErrno(T result) {
 	return result;
 }
 
-Process::Process(const std::string &name, const std::vector<std::string> &args)
-: name(name), args(args), pid(-1), state(STOPPED) { }
+Process::Process(const std::vector<std::string> &argv)
+: argv(argv), pid(-1), state(STOPPED) { }
 
 void Process::start() {
 	if (state == STARTED)
@@ -80,12 +80,12 @@ void Process::updateState() {
 
 void Process::doExec() {
 	try {
-		scoped_array<const char *> argv(new const char *[args.size()+1]);
-		for (unsigned int i=0; i<args.size(); i++)
-			argv[i] = args[i].c_str();
-		argv[args.size()] = NULL;
+		scoped_array<const char *> array(new const char *[argv.size()]);
+		for (unsigned int i=0; i<argv.size()-1; i++)
+			array[i] = argv[i+1].c_str();
+		array[argv.size()-1] = NULL;
 
-		execvp(name.c_str(), const_cast<char *const *>(argv.get()));
+		execvp(argv[0].c_str(), const_cast<char *const *>(array.get()));
 	} catch (...) { }
 	exit(99);
 }
