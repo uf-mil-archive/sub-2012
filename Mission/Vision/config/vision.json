@@ -6,7 +6,7 @@
 		"shutterVal": -1,
 		"gainVal": -1,
 		"autoVal": 60,
-		"defaultID": 8,
+		"defaultObjectName": "buoy/red",
 		"bins": {
 			"minContour": 300,
 			"maxContour": 50000,
