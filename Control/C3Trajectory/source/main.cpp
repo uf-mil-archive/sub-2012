@@ -80,8 +80,8 @@ namespace subjugator {
 
 	template <>
 	void from_dds(C3TrajectoryWorker::Point &point, const TrajectoryMessage &msg) {
-		point.q = Vector6d(msg.xd);
-		point.qdot = Vector6d(msg.xd_dot);
+		from_dds(point.q, msg.xd);
+		from_dds(point.qdot, msg.xd_dot);
 	}
 
 	template <>

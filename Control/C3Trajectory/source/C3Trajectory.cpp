@@ -43,17 +43,17 @@ void C3Trajectory::update(double dt, const Waypoint &waypoint, double waypoint_t
 	Vector6d vmin_b_prime = limits.vmin_b;
 	Vector6d vmax_b_prime = limits.vmax_b;
 	Vector3d posdelta = r_b.head(3);
-	if (posdelta.norm() > 0.01) {
+	if (posdelta.norm() > 0.01 && waypoint.coordinate_unaligned) {
 		pair<Vector3d, Vector3d> result = limit(limits.vmin_b.head(3), limits.vmax_b.head(3), posdelta);
 		vmin_b_prime.head(3) = result.first;
 		vmax_b_prime.head(3) = result.second;
 	}
 
-	for (int i=0; i<6; i++) {
-		if (abs(waypoint.speed(i)) < 0.0001)
-			continue;
-		vmin_b_prime(i) = max(vmin_b_prime(i), -abs(waypoint.speed(i)));
-		vmax_b_prime(i) = min(vmax_b_prime(i), abs(waypoint.speed(i)));
+	if (waypoint.speed > 0) {
+		for (int i=0; i<6; i++) {
+			vmin_b_prime(i) = max(vmin_b_prime(i), -waypoint.speed);
+			vmax_b_prime(i) = min(vmax_b_prime(i), waypoint.speed);
+		}
 	}
 
 	Vector6d amin_b_prime = limits.amin_b;

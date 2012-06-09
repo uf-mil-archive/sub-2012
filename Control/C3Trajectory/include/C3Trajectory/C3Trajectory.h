@@ -27,11 +27,11 @@ namespace subjugator {
 
 		struct Waypoint {
 			Point r;
+			double speed;
 			bool coordinate_unaligned;
-			Vector6d speed;
 
 			Waypoint() { }
-			Waypoint(const Point &r) : r(r), coordinate_unaligned(false), speed(Vector6d::Zero()) { }
+		Waypoint(const Point &r) : r(r), speed(0), coordinate_unaligned(true) { }
 		};
 
 		C3Trajectory(const Point &start, const Limits &limits);

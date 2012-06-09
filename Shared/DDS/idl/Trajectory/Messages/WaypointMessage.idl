@@ -2,6 +2,6 @@ struct WaypointMessage {
 	double r[6];
 	double rdot[6];
 	boolean coordinate_unaligned;
-	double speed[6]; // 0 to use maximum speed
+	double speed; // 0 to use maximum speed
 };
 
