@@ -16,10 +16,9 @@ def maintask():
     dt = .2
     basepoint = nav.get_waypoint()
     while True:
-        pos = 2*math.sin(2*math.pi*t/100.0)
-        print pos
-        nav.go(0, pos, base=basepoint, wait=False)
-        sched.sleep(dt)
+        vel = .3*math.sin(2*math.pi*t/25.0)
+	nav.vel(0, vel)
+	sched.sleep(dt)
         t += dt
 
 sched.run()

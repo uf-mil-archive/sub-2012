@@ -32,6 +32,8 @@ _topic_qoses = {
     'InteractionOutput': _TopicConf(lib.InteractionOutputMessage, DEEP_PERSISTENT),
     'VisionConfig': _TopicConf(lib.VisionConfigMessage, PERSISTENT),
     'VisionDebug': _TopicConf(lib.VisionDebugMessage, UNRELIABLE),
+    'VisionSetIDs': _TopicConf(lib.VisionSetIDsMessage, UNRELIABLE),
+    'Vision': _TopicConf(lib.FinderMessageList, LEGACY),
 }
 
 def get(name):
