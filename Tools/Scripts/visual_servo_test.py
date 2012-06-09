@@ -12,12 +12,11 @@ def maintask():
     sched.sleep(2)
     print 'Running'
 
-    oid = 6
-    vision.set_ids([oid], 0)
+    vision.set_objects(["buoy/red"], 0)
 
     while True:
         vision.wait()
-        objs = vision.get_objects(oid)
+        objs = vision.get_objects("buoy/red")
 	if len(objs) == 0:
             print 'Object not seen'
             nav.stop()
@@ -27,8 +26,8 @@ def maintask():
 
         ky = .0015
         kz = .0015
-        yvel = ky*(int(obj['u'])-320) # Assumes u,v origin in top left
-        zvel = kz*(int(obj['v'])-240)
+        yvel = +ky*float(obj['center'][0])
+        zvel = -kz*float(obj['center'][1])
 
         scale = float(obj['scale'])
         if scale < 2000:
