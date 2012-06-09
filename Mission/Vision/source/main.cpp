@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	dds.receiver(worker.configmailbox, dds.topic<VisionConfigMessage>("VisionConfig", TopicQOS::PERSISTENT));
 	dds.receiver(worker.setobjectsmailbox, dds.topic<VisionSetObjectsMessage>("VisionSetObjects"));
 
-	dds.sender(worker.configsignal, dds.topic<VisionConfigMessage>("VisionConfig"));
+	dds.sender(worker.configsignal, dds.topic<VisionConfigMessage>("VisionConfig", TopicQOS::PERSISTENT));
 	dds.sender(worker.debugsignal, dds.topic<VisionDebugMessage>("VisionDebug", TopicQOS::UNRELIABLE));
 	dds.sender(worker.outputsignal, dds.topic<VisionResultsMessage>("VisionResults"));
 
