@@ -1,4 +1,4 @@
-struct FinderMessageList {
+struct VisionResultsMessage {
 	sequence<string> messages;
 	long cameraid;
 };

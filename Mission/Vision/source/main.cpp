@@ -3,10 +3,10 @@
 #include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
 
-#include "Vision/FinderMessageListSupport.h"
-#include "Vision/VisionSetObjectsMessageSupport.h"
-#include "Vision/VisionDebugMessageSupport.h"
 #include "Vision/VisionConfigMessageSupport.h"
+#include "Vision/VisionDebugMessageSupport.h"
+#include "Vision/VisionResultsMessageSupport.h"
+#include "Vision/VisionSetObjectsMessageSupport.h"
 
 #include "VisionWorker.h"
 #include "ImageSource.h"
@@ -15,10 +15,10 @@ using namespace boost;
 using namespace std;
 using namespace subjugator;
 
-DECLARE_MESSAGE_TRAITS(FinderMessageList);
-DECLARE_MESSAGE_TRAITS(VisionSetObjectsMessage);
-DECLARE_MESSAGE_TRAITS(VisionDebugMessage);
 DECLARE_MESSAGE_TRAITS(VisionConfigMessage);
+DECLARE_MESSAGE_TRAITS(VisionDebugMessage);
+DECLARE_MESSAGE_TRAITS(VisionResultsMessage);
+DECLARE_MESSAGE_TRAITS(VisionSetObjectsMessage);
 
 class VisionWorkerBuilderOptions : public WorkerBuilderOptions {
 	public:
@@ -67,12 +67,12 @@ int main(int argc, char **argv)
 	DDSBuilder dds(io);
 	dds.worker(worker);
 
-	dds.receiver(worker.setobjectsmailbox, dds.topic<VisionSetObjectsMessage>("VisionSetObjects", TopicQOS::LEGACY));
 	dds.receiver(worker.configmailbox, dds.topic<VisionConfigMessage>("VisionConfig", TopicQOS::PERSISTENT));
+	dds.receiver(worker.setobjectsmailbox, dds.topic<VisionSetObjectsMessage>("VisionSetObjects"));
 
-	dds.sender(worker.outputsignal, dds.topic<FinderMessageList>("Vision", TopicQOS::LEGACY));
+	dds.sender(worker.configsignal, dds.topic<VisionConfigMessage>("VisionConfig"));
 	dds.sender(worker.debugsignal, dds.topic<VisionDebugMessage>("VisionDebug", TopicQOS::UNRELIABLE));
-	dds.sender(worker.configsignal, dds.topic<VisionConfigMessage>("VisionConfig", TopicQOS::PERSISTENT));
+	dds.sender(worker.outputsignal, dds.topic<VisionResultsMessage>("VisionResults"));
 
 	// Start the worker
 	builder.runWorker();
@@ -87,7 +87,7 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(FinderMessageList &msg, const pair<int, vector<property_tree::ptree> > &finderresults) {
+	void to_dds(VisionResultsMessage &msg, const pair<int, vector<property_tree::ptree> > &finderresults) {
 		msg.cameraid = finderresults.first;
 		msg.messages.ensure_length(finderresults.second.size(), finderresults.second.size());
 		for(unsigned int i = 0; i < finderresults.second.size(); i++) {
