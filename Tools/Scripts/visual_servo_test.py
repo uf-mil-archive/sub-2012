@@ -24,8 +24,8 @@ def maintask():
         objs.sort(key=lambda obj: float(obj['scale']))
 	obj = objs[0]
 
-        ky = .0015
-        kz = .0015
+        ky = .4
+        kz = .4
         yvel = +ky*float(obj['center'][0])
         zvel = -kz*float(obj['center'][1])
 
