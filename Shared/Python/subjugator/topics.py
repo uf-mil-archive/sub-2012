@@ -18,6 +18,8 @@ _TopicConf = namedtuple('TopicConf', 'type qos')
 
 _topic_qoses = {
     'WorkerLog': _TopicConf(lib.WorkerLogMessage, DEEP_PERSISTENT),
+    'WorkerState': _TopicConf(lib.WorkerStateMessage, PERSISTENT+LIVELINESS),
+    'WorkerKill': _TopicConf(lib.WorkerKillMessage, PERSISTENT+LIVELINESS),
     'PDStatus': _TopicConf(lib.PDStatusMessage, DEFAULT),
     'PDEffort': _TopicConf(lib.PDEffortMessage, DEFAULT),
     'IMU': _TopicConf(lib.IMUMessage,  EXCLUSIVE+LIVELINESS),

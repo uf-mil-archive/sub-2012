@@ -225,7 +225,7 @@ def _run_block():
     elif len(Sched.timers) > 0:
         sleeptime = max(Sched.timers[0].get_remaining(), 0)
     else:
-        sleeptime = 0
+        sleeptime = -1
 
     result = waitset.wait(sleeptime)
     for topicmon in result:

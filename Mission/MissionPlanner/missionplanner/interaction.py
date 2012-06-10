@@ -1,5 +1,6 @@
 from subjugator import topics
 from subjugator import sched
+from subjugator import worker
 import dds
 
 import codeop
@@ -50,17 +51,29 @@ class InteractionTask(sched.Task):
     def __init__(self):
         sched.Task.__init__(self, 'Interaction')
         self.cmdtask = None
+        self.enabled = True
         self.env = make_env()
 
     def run(self):
         while True:
             cmd = self.get_command()
+            if not self.enabled:
+                continue
             if self.cmdtask is not None:
                 self.cmdtask.stop()
             if cmd['stop']:
                 self.cmdtask = None
             else:
                 self.cmdtask = CommandTask(cmd['cmd'], self.env)
+
+    def disable(self):
+        self.enabled = False
+        if self.cmdtask is not None:
+            self.cmdtask.stop()
+            self.cmdtask = None
+
+    def enable(self):
+        self.enabled = True
 
     def get_command(self):
         cmdtopic = topics.get('InteractionCommand')
@@ -91,3 +104,5 @@ def make_env():
 interaction_task = InteractionTask()
 sys.stdout = DDSInteractionStream('output', sys.stdout)
 sys.stderr = DDSInteractionStream('error', sys.stderr)
+
+worker.killmonitor.register_callbacks(lambda killedby: interaction_task.disable(), interaction_task.enable)

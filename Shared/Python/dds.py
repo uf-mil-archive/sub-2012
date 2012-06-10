@@ -85,6 +85,7 @@ DDS_ViewStateMask = DDS_UnsignedLong
 DDS_InstanceStateMask = DDS_UnsignedLong
 DDS_StatusMask = DDS_UnsignedLong
 
+DDS_NOT_READ_SAMPLE_STATE = 1 << 1
 DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED = 0
 
 class TCKind(object):
@@ -567,7 +568,7 @@ def unpack_dd_member(dd, member_name=None, member_id=DDS_DYNAMIC_DATA_MEMBER_ID_
                         (dd.get_octet_array if child_tk == TCKind.OCTET else dd.get_char_array)(
                             res_p, ctypes.byref(DDS_UnsignedLong(inner.get_member_count())), member_name, member_id)
                         return res.raw
-                
+
                 return unpack_dd(inner)
             finally:
                 dd.unbind_complex_member(inner)
@@ -668,7 +669,7 @@ class Topic(object):
         self._dyn_narrowed_reader = WrappedObject(DDSFunc.DynamicDataReader_narrow(self._reader), self._reader)
 
         self._reader_readcondition = WrappedObject(
-            self._reader.create_readcondition(get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE),
+            self._reader.create_readcondition(DDS_NOT_READ_SAMPLE_STATE, get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE),
             self._reader,
             self._reader.delete_readcondition)
 
@@ -751,6 +752,21 @@ class Topic(object):
         finally:
             self._dyn_narrowed_reader.return_loan(ctypes.byref(data_seq), ctypes.byref(info_seq))
 
+    def read_all(self):
+        if self._reader is None:
+            self._create_reader()
+
+        data_seq = DDSType.DynamicDataSeq()
+        data_seq.initialize()
+        info_seq = DDSType.SampleInfoSeq()
+        info_seq.initialize()
+        self._dyn_narrowed_reader.read(ctypes.byref(data_seq), ctypes.byref(info_seq), get('LENGTH_UNLIMITED', DDS_Long), get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE)
+
+        try:
+            return [unpack_dd(data_seq.get_reference(i)) for i in xrange(data_seq.get_length())]
+        finally:
+            self._dyn_narrowed_reader.return_loan(ctypes.byref(data_seq), ctypes.byref(info_seq))
+
     def get_condition(self):
         if self._reader is None:
             self._create_reader()
@@ -780,10 +796,13 @@ class WaitSet(object):
         DDSFunc.ConditionSeq_initialize(cond_seq)
 
         try:
-            self._waitset.wait(ctypes.byref(cond_seq), ctypes.byref(duration(timeout)))
+            if timeout > 0:
+                d = duration(timeout)
+            else:
+                d = get('DURATION_INFINITE', DDSType.Duration_t)
+            self._waitset.wait(ctypes.byref(cond_seq), ctypes.byref(d))
 
-            objs = [obj for cond, obj in self._objcond.iteritems() if cond.get_trigger_value()]
-            return objs
+            return [obj for cond, obj in self._objcond.iteritems() if cond.get_trigger_value()]
         except Error, e:
             if e.message == 'timeout':
                 return []
