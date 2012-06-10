@@ -17,10 +17,10 @@ def wait():
 def get_objects(objectnames):
     if isinstance(objectnames, str):
         objectnames = [objectnames]
-    topic = topics.get('VisionResults') # TODO, multiple camera. Need to change messages and QOS to work correctly here.
+    topic = topics.get('VisionResults')
     try:
-        msg = topic.read()
-        return [obj for obj in map(json.loads, msg['messages']) if obj['objectName'] in objectnames]
+        samples = topic.read_all()
+        return [obj for obj in map(json.loads, sample['messages']) for sample in samples if obj['objectName'] in objectnames]
     except dds.Error:
         return []
 
