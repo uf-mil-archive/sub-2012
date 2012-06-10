@@ -161,9 +161,11 @@ void FlyCamera::setGain(float gain) {
 
 void FlyCamera::setAuto(float averageIntensity) {
 	FlyCapture2::Property prop(FlyCapture2::AUTO_EXPOSURE);
-	prop.absValue = averageIntensity/4;
+	prop.absValue = averageIntensity; // multiplied by 4
+	prop.valueA = averageIntensity;
 	prop.autoManualMode = averageIntensity < 0;
 	prop.absControl = false;
+	prop.onOff = true;
 	checkError(cam.SetProperty(&prop, false));
 }
 #endif

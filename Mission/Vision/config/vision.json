@@ -41,11 +41,22 @@
 			}
 		}
 	},
+	"camera0": {
+		"imageSource": {
+			"type": "flycap",
+			"number": 0
+		}
+	},
 	"camera1": {
+		"imageSource": {
+			"type": "flycap",
+			"number": 1
+		}
+	},
+	"camera9": {
 		"imageSource": {
 			"type": "image",
 			"filename": "CHANGEME",
-			"number": 1,
 			"delay": 5
 		}
 	}

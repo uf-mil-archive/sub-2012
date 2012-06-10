@@ -84,7 +84,7 @@ void Thresholder::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	//subtract(ioimages->dbg,channelsRGB[0],ioimages->dbg); // filter white/green/yellow
-	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-10);
+	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-15);
 	if(erodeDilateFlag)
 	{
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
@@ -139,10 +139,10 @@ void Thresholder::threshGreen(IOImages *ioimages)
 
 	//imshow("0",channelsLAB[1]);
 
-	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,171,10); // used incorrectly, but seems to work very robustly!
+	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,171,20); // used incorrectly, but seems to work very robustly!
 	subtract(channelsLAB[1],channelsRGB[2],ioimages->dbg); // subtract out white/red/yellow
 	bitwise_and(ioimages->dbg,channelsHSV[1],ioimages->dbg);
-	threshold(ioimages->dbg,ioimages->dbg,120,255,THRESH_BINARY);
+	threshold(ioimages->dbg,ioimages->dbg,130,255,THRESH_BINARY);
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,5,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,5,CV_8UC1));
 }
