@@ -3,15 +3,16 @@
 		"logImages": false,
 		"showDebugImages": true,
 		"sendDebugImage": false,
-		"shutterVal": 42,
-		"gainVal": 42.5,
-		"defaultID": 8,
+		"shutterVal": -1,
+		"gainVal": -1,
+		"autoVal": 60,
+		"defaultObjectName": "buoy/red",
 		"bins": {
 			"minContour": 300,
 			"maxContour": 50000,
 			"maxPerimeter": 2000
 		},
-		"pipes": {
+		"pipe": {
 			"Canny": {
 				"thresh1": 50,
 				"thresh2": 200,
@@ -26,7 +27,7 @@
 				},
 			"minAngleDiff": 20
 		},
-		"buoys": {
+		"buoy": {
 			"minContour": 100,
 			"maxContour": 80000,
 			"maxPerimeter": 2000,

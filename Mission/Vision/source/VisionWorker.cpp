@@ -18,7 +18,7 @@ using namespace std;
 
 VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, unsigned int cameraId) :
 	Worker("Vision", 50, configloader),
-	setidsmailbox(WorkerMailbox<VisionSetIDs>::Args().setName("setids")),
+	setobjectsmailbox(WorkerMailbox<std::pair<int, std::vector<std::string> > >::Args().setName("setobjects")),
 	configmailbox(WorkerMailbox<property_tree::ptree>::Args().setName("config")),
 	cal(cal),
 	cameraId(cameraId)
@@ -57,31 +57,32 @@ void VisionWorker::work(double dt)
 		handleConfig(configmailbox.get());
 	}
 
-	if(setidsmailbox.takeOptional()) {
-		VisionSetIDs vids = setidsmailbox.get();
+	if(setobjectsmailbox.takeOptional()) {
+		pair<int, vector<string> > msg = setobjectsmailbox.get();
 
-		if (vids.cameraID == cameraId && vids.ids != finderIDs) {
-			finderIDs = vids.ids;
+		if (msg.first == cameraId && msg.second != objectNames) {
+			objectNames = msg.second;
 			rebuildFinders = true;
 		}
 	}
 	
 	if(rebuildFinders) {
-		listOfFinders = FinderGenerator().buildFinders(finderIDs, config);
+		listOfFinders = FinderGenerator::buildFinders(objectNames, config);
 		rebuildFinders = false;
 	}
 	
 	camera->setExposure(config.get<float>("shutterVal"));
 	camera->setGain(config.get<float>("gainVal"));
+	camera->setAuto(config.get<float>("autoVal"));
 
 	// Grab a frame from the camera, copy into ioimages object
 	camera->getImage().copyTo(ioimages.src);
 
 	for(unsigned int i=0; i<listOfFinders.size(); i++)
 	{
-		cout<< "Looking for objectID: ";
-		for(unsigned int idcnt=0; idcnt < listOfFinders[i]->oIDs.size(); idcnt++)
-			cout << listOfFinders[i]->oIDs[idcnt] << " ";
+		cout<< "Looking for objectName: ";
+		for(unsigned int idcnt=0; idcnt < listOfFinders[i]->objectNames.size(); idcnt++)
+			cout << listOfFinders[i]->objectNames[idcnt] << " ";
 		cout << endl;
 
 		// RUN THE FINDER!
@@ -138,7 +139,7 @@ void VisionWorker::handleConfig(property_tree::ptree new_config) {
 		subjugator::merge(config, new_config.get_child("camera" + s.str()));
 
 	rebuildFinders = true;
-	finderIDs = vector<int>(1, config.get<int>("defaultID"));
+	objectNames = vector<string>(1, config.get<string>("defaultObjectName"));
 
 	saveConfig(new_config);
 }

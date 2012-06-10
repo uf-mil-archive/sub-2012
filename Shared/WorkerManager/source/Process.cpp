@@ -19,8 +19,8 @@ T handleErrno(T result) {
 	return result;
 }
 
-Process::Process(const std::vector<std::string> &argv)
-: argv(argv), pid(-1), state(STOPPED) { }
+Process::Process(const std::vector<std::string> &cmdline) :
+	cmdline(cmdline), pid(-1), state(STOPPED) { }
 
 void Process::start() {
 	if (state == STARTED)
@@ -78,14 +78,17 @@ void Process::updateState() {
 	pid = -1;
 }
 
+#include <iostream>
+
 void Process::doExec() {
 	try {
-		scoped_array<const char *> array(new const char *[argv.size()]);
-		for (unsigned int i=0; i<argv.size()-1; i++)
-			array[i] = argv[i+1].c_str();
-		array[argv.size()-1] = NULL;
+		scoped_array<const char *> argv(new const char *[cmdline.size()+1]);
+		for (unsigned int i=0; i<cmdline.size(); i++)
+			argv[i] = cmdline[i].c_str();
+		argv[cmdline.size()] = NULL;
 
-		execvp(argv[0].c_str(), const_cast<char *const *>(array.get()));
+		cout << argv[0] << endl;
+		execvp(argv[0], const_cast<char *const *>(argv.get())); // ok for argv[0] to not be absolute, p suffix exec fixes this by searching PATH
 	} catch (...) { }
 	exit(99);
 }

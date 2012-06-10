@@ -23,7 +23,7 @@ namespace subjugator {
 				RESTART_ERROR
 			};
 
-			WorkerManager(const std::string &name, const std::vector<std::string> &argv, const Options &opts);
+			WorkerManager(const std::string &name, const std::vector<std::string> &args, const Options &opts);
 
 			const std::string &getName() const { return name; }
 

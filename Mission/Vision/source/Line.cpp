@@ -87,7 +87,7 @@ int Line::findLines(IOImages* ioimages)
 
 }
 
-void Line::drawResult(IOImages *ioimages, int objectID)
+void Line::drawResult(IOImages *ioimages)
 {
 	for(unsigned int i=0; i<avgLines.size(); i++)
 	{

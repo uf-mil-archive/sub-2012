@@ -1,5 +1,6 @@
 #include "Line.h"
-#include "MILObjectIDs.h"
+#include "Normalizer.h"
+#include "Thresholder.h"
 
 #include "HedgeFinder.h"
 
@@ -7,37 +8,26 @@ using namespace boost;
 using namespace cv;
 using namespace std;
 
-HedgeFinder::HedgeFinder(vector<int> objectIDs, property_tree::ptree config, boost::shared_ptr<INormalizer> normalizer, boost::shared_ptr<IThresholder> thresholder) {
-	this->oIDs = objectIDs;
-	this->config = config;
-	this->n = normalizer;
-	this->t = thresholder;
-}
-
 vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 	// call to normalizer here
-	n->norm(ioimages);
+	Normalizer::norm(ioimages);
 
 	// blur the image to remove noise
 	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 
 	vector<property_tree::ptree> resultVector;
-	for(unsigned int i=0; i<oIDs.size(); i++) {
+	for(unsigned int i=0; i<objectNames.size(); i++) {
 		// call to thresholder here
-		t->thresh(ioimages,oIDs[i]);
+		Thresholder::threshGreen(ioimages);
 
 		// call to specific member function here
 		Line line(2, config);
 		int result = line.findLines(ioimages);
-		line.drawResult(ioimages,oIDs[i]);
+		line.drawResult(ioimages);
 
 		// Prepare results
-		if(!result) {
-			property_tree::ptree fResult;
-			fResult.put("objectID", MIL_OBJECTID_NO_OBJECT);
-			resultVector.push_back(fResult);
+		if(!result)
 			continue;
-		}
 		
 		/*if(line.avgLines[0].populated && line.avgLines[1].populated)
 		{
@@ -69,19 +59,14 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 				driveToCenter.y = line.avgLines[j].centroid.y;
 				circle(ioimages->prcd,driveToCenter,5,Scalar(255,255,255),-1);
 				property_tree::ptree fResult;
-				fResult.put("objectID", MIL_OBJECTID_GATE_HEDGE);
-				fResult.put("u", driveToCenter.x);
-				fResult.put("v", driveToCenter.y);
+				fResult.put("objectName", objectNames[i]);
+				fResult.put_child("center", Point_to_ptree(driveToCenter, ioimages->prcd));
 				fResult.put("scale", line.avgLines[j].length);
 				resultVector.push_back(fResult);
 				break;
 			}
-			if(j==line.avgLines.size()-1) {
-				property_tree::ptree fResult;
-				fResult.put("objectID", MIL_OBJECTID_NO_OBJECT);
-				resultVector.push_back(fResult);
+			if(j==line.avgLines.size()-1)
 				break;
-			}
 		}
 	}
 	return resultVector;

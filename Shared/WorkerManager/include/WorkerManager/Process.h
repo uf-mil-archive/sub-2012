@@ -17,10 +17,10 @@ namespace subjugator {
 				STOPPING
 			};
 
-			Process(const std::vector<std::string> &argv);
+			Process(const std::vector<std::string> &cmdline);
 
-			const std::string &getName() const { return argv[0]; }
-			const std::vector<std::string> &getArgv() const { return argv; }
+			const std::string &getName() const { return cmdline[0]; }
+			const std::vector<std::string> &getCommandLine() const { return cmdline; }
 
 			void start();
 			void stop();
@@ -33,7 +33,7 @@ namespace subjugator {
 		private:
 			void doExec();
 
-			std::vector<std::string> argv;
+			std::vector<std::string> cmdline;
 
 			pid_t pid;
 			std::string terminationreason;

@@ -1,8 +1,7 @@
 #include <stdio.h>
+#include <stdexcept>
 
 #include <opencv/highgui.h>
-
-#include "MILObjectIDs.h"
 
 #include "Contours.h"
 
@@ -163,41 +162,19 @@ double Contours::angle( Point pt1, Point pt2, Point pt0 )
 	return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
-void Contours::drawResult(IOImages* ioimages, int objectID)
+void Contours::drawResult(IOImages* ioimages, string objectName)
 {
 	Scalar color;
-	Point position;
-	switch(objectID)
-	{
-	case MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE:
+	if(objectName == "shooter/red/large" || objectName == "shooter/red/small")
 		color = CV_RGB(178,34,34);
-		position = Point(10,15);
-		break;
-	case MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE:
+	else if(objectName == "shooter/blue/large" || objectName == "shooter/blue/small")
 		color = CV_RGB(0,0,128);
-		position = Point(10,25);
-		break;
-	case MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL:
-		color = CV_RGB(178,34,34);
-		position = Point(10,15);
-		break;
-	case MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL:
-		color = CV_RGB(0,0,128);
-		position = Point(10,25);
-		break;
-	case MIL_OBJECTID_BIN_ALL:
+	else if(objectName == "bins/all" || objectName == "bins/shape")
 		color = CV_RGB(127,255,133);
-		position = Point(10,15);
-		break;
-	case MIL_OBJECTID_BIN_SINGLE:
+	else if(objectName == "bins/single")
 		color = CV_RGB(0,255,0);
-		position = Point(10,15);
-		break;
-	case MIL_OBJECTID_BIN_SHAPE:
-		color = CV_RGB(127,255,133);
-		position = Point(10,15);
-		break;
-	}
+	else
+		throw std::runtime_error("unknown objectName in Contours::drawResult: " + objectName);
 
 	char str[10];
 	for(size_t i=0; i<boxes.size(); i++)

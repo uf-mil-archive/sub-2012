@@ -1,28 +1,24 @@
+import json
+
 from subjugator import topics
 from subjugator import sched
 from subjugator import nav
 
-import json
+import dds
 
-# IMO we should change from IDs to strings
-OBJECTID_BUOY_YELLOW = 5
-OBJECTID_BUOY_RED = 6
-OBJECTID_BUOY_GREEN = 7
-OBJECTID_PIPE = 8
-
-def set_ids(objectids, cameraid):
-    topic = topics.get('VisionSetIDs')
-    topic.send({'visionids': objectids, 'cameraid': cameraid})
+def set_objects(objectnames, cameraid):
+    topic = topics.get('VisionSetObjects')
+    topic.send({'objectnames': objectnames, 'cameraid': cameraid})
 
 def wait():
-    topic = topics.get('Vision')
+    topic = topics.get('VisionResults')
     sched.ddswait(topic)
 
-def get_objects(objectid):
-    topic = topics.get('Vision') # TODO, multiple camera. Need to change messages and QOS to work correctly here.
+def get_objects(objectname):
+    topic = topics.get('VisionResults') # TODO, multiple camera. Need to change messages and QOS to work correctly here.
     try:
         msg = topic.read()
-        return [obj for obj in map(json.loads, msg['messages']) if int(obj['objectID']) == objectid]
+        return [obj for obj in map(json.loads, msg['messages']) if int(obj['objectName']) == objectid]
     except dds.Error:
         return []
 
@@ -83,8 +79,8 @@ class StrafeVisualServo(ForwardVisualAlgorithm):
 
     def update(self, obj):
         xvel = self._get_vel(obj)
-        yvel = self.ky*(int(obj['u'])-320)
-        zvel = self.kz*(int(obj['v'])-240)
+        yvel = self.ky*float(obj['u'])
+        zvel = self.kz*float(obj['v'])
 
         if xvel == 0 and yvel < 0.005 and zvel < 0.005:
             return True
@@ -100,8 +96,8 @@ class YawVisualServo(ForwardVisualAlgorithm):
 
     def update(obj):
         xvel = self._get_vel(obj)
-        Yvel = self.kY*(int(obj['u'])-320)
-        zvel = self.kz*(int(obj['v'])-240)
+        Yvel = self.kY*float(obj['u'])
+        zvel = self.kz*float(obj['v'])
 
         if xvel == 0 and Yvel < 0.005 and zvel < 0.005:
             return True
@@ -117,8 +113,8 @@ class BottomVisualServo(VisualAlgorithm):
         self.kY = kY
 
     def update(obj):
-        xvel = self.kX*(int(obj['u'])-320)
-        yvel = self.ky*(int(obj['v'])-240)
+        xvel = self.kX*float(obj['u'])
+        yvel = self.ky*float(obj['v'])
         Yvel = self.kY*float(obj['angle'])
 
         if Yvel < 0.005:

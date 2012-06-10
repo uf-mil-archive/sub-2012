@@ -10,8 +10,8 @@ servo = vision.StrafeVisualServo(objectid=6,
                                  slowscale=2000,
                                  slowvel=.2,
                                  maxscale=15000,
-                                 ky=.0015,
-                                 kz=.0015)
+                                 ky=.3,
+                                 kz=.3)
 
 
 @sched.Task('maintask')

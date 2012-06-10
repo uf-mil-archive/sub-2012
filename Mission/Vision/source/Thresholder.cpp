@@ -1,52 +1,9 @@
-#include "MILObjectIDs.h"
-
-#include "ThresholderRGB.h"
+#include "Thresholder.h"
 
 using namespace boost;
 using namespace cv;
 
-ThresholderRGB::ThresholderRGB(void)
-{
-}
-
-ThresholderRGB::~ThresholderRGB(void)
-{
-}
-
-void ThresholderRGB::thresh(IOImages* ioimages, int objectID)
-{
-	if(objectID == MIL_OBJECTID_BUOY_RED)
-		threshOrange(ioimages, true);
-	else if(objectID == MIL_OBJECTID_BUOY_YELLOW)
-		threshYellow(ioimages);
-	else if(objectID == MIL_OBJECTID_BUOY_GREEN)
-		threshGreen(ioimages);	
-	else if(objectID == MIL_OBJECTID_PIPE)
-		threshOrange(ioimages, true);
-	else if(objectID == MIL_OBJECTID_GATE_HEDGE)
-		threshGreen(ioimages);/*threshOrange(ioimages, true);*/
-	else if(objectID == MIL_OBJECTID_TUBE)
-		threshOrange(ioimages, true);
-	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_SMALL)
-		threshRed(ioimages, true);
-	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_SMALL) {}
-		//threshBlue(ioimages, true); // TODO Implement blue thresholding!
-	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_RED_LARGE)
-		threshRed(ioimages, true);
-	else if(objectID == MIL_OBJECTID_SHOOTERWINDOW_BLUE_LARGE) {}
-		//threshBlue(ioimages, true); // TODO Implement blue thresholding!
-	else if(objectID == MIL_OBJECTID_BIN_ALL)
-		threshBlack(ioimages);
-	else if(objectID == MIL_OBJECTID_BIN_SINGLE)
-		threshBlack(ioimages);
-	else if(objectID == MIL_OBJECTID_BIN_SHAPE)
-		threshBlack(ioimages);
-	else if(objectID == MIL_OBJECTID_GATE_VALIDATION)
-		threshOrange(ioimages, true);
-}
-
-
-void ThresholderRGB::thresh(IOImages* ioimages, property_tree::ptree config)
+void Thresholder::threshConfig(IOImages* ioimages, property_tree::ptree config)
 {
 	Mat srcHSV; cvtColor(ioimages->prcd, srcHSV, CV_BGR2HSV);
 	std::vector<Mat> channelsHSV(srcHSV.channels()); split(srcHSV, channelsHSV);
@@ -66,7 +23,7 @@ void ThresholderRGB::thresh(IOImages* ioimages, property_tree::ptree config)
 	bitwise_and(channelsHSV[2], ioimages->dbg, ioimages->dbg);
 }
 
-void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
+void Thresholder::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 {
 	// create two vectors to hold rgb and hsv colors
 	std::vector<Mat> channelsRGB(ioimages->src.channels());
@@ -102,7 +59,7 @@ void ThresholderRGB::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 	}
 }
 
-void ThresholderRGB::threshRed(IOImages *ioimages, bool erodeDilateFlag)
+void Thresholder::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 {
 	// create two vectors to hold rgb and hsv colors
 	std::vector<Mat> channelsRGB(ioimages->src.channels());
@@ -135,7 +92,7 @@ void ThresholderRGB::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 	}
 }
 
-void ThresholderRGB::threshYellow(IOImages *ioimages)
+void Thresholder::threshYellow(IOImages *ioimages)
 {
 	// create two vectors to hold rgb and hsv colors
 	std::vector<Mat> channelsRGB(ioimages->src.channels());
@@ -165,7 +122,7 @@ void ThresholderRGB::threshYellow(IOImages *ioimages)
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 }
 
-void ThresholderRGB::threshGreen(IOImages *ioimages)
+void Thresholder::threshGreen(IOImages *ioimages)
 {	// WORKS BETTER WHEN IMAGE IS DARKER...
 	// create two vectors to hold rgb and hsv colors
 	std::vector<Mat> channelsRGB(ioimages->src.channels());
@@ -190,7 +147,7 @@ void ThresholderRGB::threshGreen(IOImages *ioimages)
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,5,CV_8UC1));
 }
 
-void ThresholderRGB::threshBlack(IOImages *ioimages)
+void Thresholder::threshBlack(IOImages *ioimages)
 {
 	Mat srcLAB;cvtColor(ioimages->prcd,srcLAB,CV_RGB2Lab);
 	Mat srcHSV;cvtColor(ioimages->prcd,srcHSV,CV_BGR2HSV);
