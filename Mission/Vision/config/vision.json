@@ -12,7 +12,7 @@
 			"maxContour": 50000,
 			"maxPerimeter": 2000
 		},
-		"pipes": {
+		"pipe": {
 			"Canny": {
 				"thresh1": 50,
 				"thresh2": 200,
@@ -27,7 +27,7 @@
 				},
 			"minAngleDiff": 20
 		},
-		"buoys": {
+		"buoy": {
 			"minContour": 100,
 			"maxContour": 80000,
 			"maxPerimeter": 2000,

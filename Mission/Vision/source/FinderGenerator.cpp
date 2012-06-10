@@ -11,7 +11,7 @@
 #include "TubeFinder.h" 
 #include "ShooterFinder.h"
 #include "BinsFinder.h"
-#include "ValidationGateFinder.h"
+#include "GateFinder.h"
 #include <stdio.h>
 
 using namespace std;
@@ -45,9 +45,9 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<string>
 	
 	vector<boost::shared_ptr<IFinder> > finders;
 	if(buoyNames.size() > 0)
-		finders.push_back(make_shared<BuoyFinder>(buoyNames, config.get_child("buoys")));
+		finders.push_back(make_shared<BuoyFinder>(buoyNames, config.get_child("buoy")));
 	if(pipeNames.size() > 0)
-		finders.push_back(make_shared<PipeFinder>(pipeNames, config.get_child("pipes")));
+		finders.push_back(make_shared<PipeFinder>(pipeNames, config.get_child("pipe")));
 	if(hedgeNames.size() > 0)
 		finders.push_back(make_shared<HedgeFinder>(hedgeNames, config.get_child("hedge")));
 	if(tubeNames.size() > 0)
@@ -57,7 +57,7 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<string>
 	if(binsNames.size() > 0)
 		finders.push_back(make_shared<BinsFinder>(binsNames, config.get_child("bins")));
 	if(gateNames.size() > 0)
-		finders.push_back(make_shared<ValidationGateFinder>(gateNames, config.get_child("valgate")));
+		finders.push_back(make_shared<GateFinder>(gateNames, config.get_child("gate")));
 
 	return finders;
 }

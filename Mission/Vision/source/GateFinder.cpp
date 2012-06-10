@@ -1,4 +1,4 @@
-#include "ValidationGateFinder.h"
+#include "GateFinder.h"
 #include "Line.h"
 #include "Normalizer.h"
 #include "Thresholder.h"
@@ -7,7 +7,7 @@
 using namespace boost;
 using namespace std;
 
-vector<property_tree::ptree> ValidationGateFinder::find(IOImages* ioimages) {
+vector<property_tree::ptree> GateFinder::find(IOImages* ioimages) {
 	// call to normalizer here
 	Normalizer::norm(ioimages);
 
