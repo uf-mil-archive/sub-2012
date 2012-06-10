@@ -4,9 +4,7 @@ from subjugator import vision
 import math
 import dds
 
-servo = vision.StrafeVisualServo(objectid=6,
-                                 cameraid=1,
-                                 fastvel=.6,
+servo = vision.StrafeVisualServo(fastvel=.6,
                                  slowscale=2000,
                                  slowvel=.2,
                                  maxscale=15000,
@@ -22,7 +20,7 @@ def maintask():
     sched.sleep(2)
     print 'Running'
 
-    if servo():
+    if servo('buoy/red'):
         print 'bump!'
         nav.fd(1)
         nav.bk(4)

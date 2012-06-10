@@ -6,7 +6,7 @@ from subjugator import nav
 
 import dds
 
-def set_objects(objectnames, cameraid):
+def set_object_names(objectnames, cameraid):
     topic = topics.get('VisionSetObjects')
     topic.send({'objectnames': objectnames, 'cameraid': cameraid})
 
@@ -14,11 +14,13 @@ def wait():
     topic = topics.get('VisionResults')
     sched.ddswait(topic)
 
-def get_objects(objectname):
+def get_objects(objectnames):
+    if isinstance(objectnames, str):
+        objectnames = [objectnames]
     topic = topics.get('VisionResults') # TODO, multiple camera. Need to change messages and QOS to work correctly here.
     try:
         msg = topic.read()
-        return [obj for obj in map(json.loads, msg['messages']) if int(obj['objectName']) == objectid]
+        return [obj for obj in map(json.loads, msg['messages']) if obj['objectName'] in objectnames]
     except dds.Error:
         return []
 
@@ -28,17 +30,19 @@ def get_largest_object(objectid, field='scale'):
         return None
     return max(objs, lambda obj: float(obj[field]))
 
+DOWN_CAMERA = 1
+FORWARD_CAMERA = 2
+
 class VisualAlgorithm(object):
-    def __init__(self, objectid, cameraid):
-        self.objectid = objectid
+    def __init__(self, cameraid):
         self.cameraid = cameraid
 
-    def run(self):
-        set_ids([objectid], cameraid)
+    def run(self, objectname):
+        set_object_names([objectname], cameraid)
         failctr = 0
         while True:
             vision.wait()
-            obj = get_largest_object(self.objectid, self.cameraid)
+            obj = get_largest_object(objectname, self.cameraid)
             if obj is not None:
                 if update(obj):
                     break
@@ -55,8 +59,8 @@ class VisualAlgorithm(object):
         raise NotImplementedError()
 
 class ForwardVisualAlgorithm(VisualAlgorithm):
-    def __init__(self, objectid, cameraid, fastvel, slowscale, slowvel, maxscale):
-        VisualAlgorithm.__init__(self, objectid, cameraid)
+    def __init__(self, fastvel, slowscale, slowvel, maxscale):
+        VisualAlgorithm.__init__(self, FORWARD_CAMERA)
         self.fastvel = fastvel
         self.slowscale = slowscale
         self.slowvel = slowvel
@@ -72,8 +76,8 @@ class ForwardVisualAlgorithm(VisualAlgorithm):
             return 0
 
 class StrafeVisualServo(ForwardVisualAlgorithm):
-    def __init__(self, objectid, cameraid, fastvel, slowscale, slowvel, maxscale, ky, kz):
-        ForwardVisualAlgorithm.__init__(self, objectid, cameraid, fastvel, slowscale, slowvel, maxscale)
+    def __init__(self, fastvel, slowscale, slowvel, maxscale, ky, kz):
+        ForwardVisualAlgorithm.__init__(self, fastvel, slowscale, slowvel, maxscale)
         self.ky = ky
         self.kz = kz
 
@@ -89,8 +93,8 @@ class StrafeVisualServo(ForwardVisualAlgorithm):
         return False
 
 class YawVisualServo(ForwardVisualAlgorithm):
-    def __init__(self, objectid, cameraid, kY, kz, fastvel, slowscale, slowvel, maxscale):
-        ForwardVisualAlgorithm.__init__(self, objectid, cameraid, fastvel, slowscale, slowvel, maxscale)
+    def __init__(self, kY, kz, fastvel, slowscale, slowvel, maxscale):
+        ForwardVisualAlgorithm.__init__(self, fastvel, slowscale, slowvel, maxscale)
         self.kY = kY
         self.kz = kz
 
@@ -106,19 +110,37 @@ class YawVisualServo(ForwardVisualAlgorithm):
         return False
 
 class BottomVisualServo(VisualAlgorithm):
-    def __init__(self, objectid, cameraid, kx, ky, kY):
-        VisualAlgorithm.__init__(self, objectid, cameraid)
+    def __init__(self, kx, ky):
+        VisualAlgorithm.__init__(self, DOWN_CAMERA)
         self.kx = kx
         self.ky = ky
-        self.kY = kY
 
     def update(obj):
         xvel = self.kX*float(obj['u'])
         yvel = self.ky*float(obj['v'])
-        Yvel = self.kY*float(obj['angle'])
+        yaw = nav.get_trajectory().Y + float(obj['angle'])
 
         if Yvel < 0.005:
             return True
 
-        nav.vel(xvel, yvel, Y=Yvel)
+        nav.set_waypoint(nav.make_waypoint(Y=yaw, xvel=xvel, yvel=yvel), coordinate=False)
         return False
+
+def wait_visible(objectnames, cameraid, timeout=None):
+    if isinstance(objectnames, str):
+        objectnames = [objectnames]
+    set_object_names(objectnames, cameraid)
+
+    def inner(objectnames=objectnames):
+        while True:
+            wait()
+            objs = get_objects(objectnames)
+            if len(objs) > 0:
+                return objs
+
+    if timeout is not None: # TODO this is fairly awkward
+        with sched.Timeout(timeout):
+            return inner()
+        return []
+    else:
+        return inner()
