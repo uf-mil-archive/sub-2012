@@ -29,7 +29,7 @@ vector<property_tree::ptree> PipeFinder::find(IOImages* ioimages) {
 
 		if(!result)
 			continue;
-		
+
 		for(unsigned int j=0; j<line.avgLines.size(); j++) {
 			if(line.avgLines[j].populated) {
 				property_tree::ptree fResult;

@@ -84,7 +84,7 @@ class StrafeVisualServo(ForwardVisualAlgorithm):
     def update(self, obj):
         xvel = self._get_vel(obj)
         yvel = self.ky*float(obj['u'])
-        zvel = self.kz*float(obj['v'])
+        zvel = -self.kz*float(obj['v'])
 
         if xvel == 0 and yvel < 0.005 and zvel < 0.005:
             return True
@@ -116,11 +116,11 @@ class BottomVisualServo(VisualAlgorithm):
         self.ky = ky
 
     def update(obj):
-        xvel = self.kX*float(obj['u'])
-        yvel = self.ky*float(obj['v'])
+        xvel = self.kx*float(obj['v'])
+        yvel = self.ky*float(obj['u'])
         yaw = nav.get_trajectory().Y + float(obj['angle'])
 
-        if Yvel < 0.005:
+        if abs(float(obj['angle'])) < math.degrees(2) and xvel < 0.005 and yvel < 0.005:
             return True
 
         nav.set_waypoint(nav.make_waypoint(Y=yaw, xvel=xvel, yvel=yvel), coordinate=False)
