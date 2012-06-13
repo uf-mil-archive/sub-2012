@@ -78,7 +78,7 @@ void Thresholder::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 	//imshow("1",channelsHSV[1]);
 	//imshow("2",channelsHSV[2]);
 
-	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,251,5); // use lab channel hack
+	adaptiveThreshold(channelsLAB[2],channelsLAB[2],255,0,THRESH_BINARY_INV,251,10); // use lab channel hack
 	add(channelsLAB[2],channelsRGB[2],ioimages->dbg); // combine with red channel
 	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(120,0,0,0),channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,channelsHSV[2],ioimages->dbg); // filter out blacks
@@ -139,7 +139,7 @@ void Thresholder::threshGreen(IOImages *ioimages)
 
 	//imshow("0",channelsLAB[1]);
 
-	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,171,20); // used incorrectly, but seems to work very robustly!
+	adaptiveThreshold(channelsLAB[1],channelsLAB[1],255,0,THRESH_BINARY_INV,171,10); // used incorrectly, but seems to work very robustly!
 	subtract(channelsLAB[1],channelsRGB[2],ioimages->dbg); // subtract out white/red/yellow
 	bitwise_and(ioimages->dbg,channelsHSV[1],ioimages->dbg);
 	threshold(ioimages->dbg,ioimages->dbg,130,255,THRESH_BINARY);
