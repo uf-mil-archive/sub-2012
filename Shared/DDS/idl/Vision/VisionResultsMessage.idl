@@ -1,5 +1,5 @@
 struct VisionResultsMessage {
 	long cameraid; //@key
-	sequence<string> messages;
+	sequence<string<2000> > messages;
 };
 
