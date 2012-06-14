@@ -24,6 +24,8 @@ class Window(object):
     def __init__(self):
         self.debug_topic = topics.get('VisionDebug')
         self.config_topic = topics.get('VisionConfig')
+        self.result_topic = topics.get('VisionResults')
+        self.setobjects_topic = topics.get('VisionSetObjects')
 
     def start(self):
         self.wTree = gtk.Builder()
@@ -36,6 +38,14 @@ class Window(object):
         self.loop()
     
     def loop(self):
+        try:
+            msg = self.result_topic.take()
+        except dds.Error, e:
+            if e.message != 'no data':
+                raise
+        else:
+            self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
+        
         try:
             msg = self.config_topic.take()
         except dds.Error, e:
@@ -76,6 +86,12 @@ class Window(object):
             dialog.show()
         else:
             self.config_topic.send(dict(config=text))
+    
+    def setobjects(self, button):
+        self.setobjects_topic.send(dict(
+            cameraid=int(self.wTree.get_object('cameraid_entry').get_text()),
+            objectnames=[x for x in self.wTree.get_object('objects_entry').get_text().split(',') if x], 
+        ))
 
     def window_closed(self, window):
         glib.source_remove(self.loop_timer)
