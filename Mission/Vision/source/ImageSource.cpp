@@ -121,6 +121,11 @@ FlyCamera::FlyCamera(boost::asio::io_service* io, int cameraNumber) {
 	checkError(cam.StartCapture());
 }
 
+FlyCamera::~FlyCamera() {
+	checkError(cam.StopCapture());
+	checkError(cam.Disconnect());
+}
+
 cv::Mat FlyCamera::getImage(void) {
 	FlyCapture2::Image rawImage;
 	checkError(cam.RetrieveBuffer(&rawImage));

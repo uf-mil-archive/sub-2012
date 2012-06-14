@@ -14,6 +14,7 @@ class ImageSource {
 	public:
 		virtual cv::Mat getImage(void) = 0;
 		virtual void getImageAsync(void(*)(cv::Mat image)) = 0;
+		virtual ~ImageSource(void) {};
 };
 
 class Camera : public ImageSource {
@@ -64,6 +65,7 @@ class FlyCamera : public Camera {
 		virtual void setExposure(float time);
 		virtual void setGain(float gain);
 		virtual void setAuto(float averageIntensity);
+		virtual ~FlyCamera(void);
 
 	private:
 		FlyCapture2::Camera cam;
