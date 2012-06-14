@@ -209,7 +209,7 @@ def lturn(deg, *args, **kwargs):
     rturn(-deg, *args, **kwargs)
 
 @waitopts
-def depth(depth, speed):
+def depth(depth, speed=0):
     waypoint = Waypoint(get_trajectory().pos)
     waypoint.pos.z = depth
     set_waypoint(waypoint, speed)

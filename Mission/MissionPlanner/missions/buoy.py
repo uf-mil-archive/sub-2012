@@ -6,21 +6,24 @@ import dds
 
 # Not really a mission yet, still just a script
 
-servo = vision.StrafeVisualServo(fastvel=.6,
+servo = vision.StrafeVisualServo(fastvel=.4,
                                  slowscale=2000,
                                  slowvel=.2,
-                                 maxscale=15000,
+                                 maxscale=9000,
                                  ky=.3,
-                                 kz=.3)
+                                 kz=.3,
+                                 debug=True)
 
 def panForBuoy(name):
+    print 'Panning right'
     nav.vel(Y=.1)
-    objs = vision.wait_visible(name, vision.FORWARD_CAMERA, 5)
+    objs = vision.wait_visible(name, vision.FORWARD_CAMERA, 3)
     if len(objs) > 0:
         nav.stop(wait=False)
         return True
+    print 'Panning left'
     nav.vel(Y=-.1)
-    objs = vision.wait_visible(name, vision.FORWARD_CAMERA, 12)
+    objs = vision.wait_visible(name, vision.FORWARD_CAMERA, 6)
     if len(objs) > 0:
         nav.stop(wait=False)
         return True
@@ -28,6 +31,7 @@ def panForBuoy(name):
 
 def bumpBuoy(name):
     while True:
+        print 'Servoing for ' + name
         if not servo(name):
             if not panForBuoy(name):
                 return False
@@ -38,21 +42,26 @@ def bumpBuoy(name):
         nav.bk(2)
         return True
 
+FIRST_BUOY = 'buoy/red'
+SECOND_BUOY = 'buoy/green'
+
 def run():
-    nav.vel(1)
-    vision.wait_visible('buoy/red', vision.FORWARD_CAMERA)
+    nav.depth(.5)
+    nav.vel(.2)
+    print 'Forward until buoy seen'
+    vision.wait_visible(FIRST_BUOY, vision.FORWARD_CAMERA)
 
     start = nav.get_trajectory().pos
-    if not bumpBuoy('buoy/red'):
+    if not bumpBuoy(FIRST_BUOY):
         return False
 
-    nav.point_shoot(start.x, start.y) # TODO function?
-    nav.heading(rad=start.Y)
+    nav.depth(.5)
+    nav.bk(3)
 
-    if not bumpBuoy('buoy/green'):
+    if not bumpBuoy(SECOND_BUOY):
         return False
 
-    nav.up(.5)
+    nav.depth(.2)
     return True
 
 @sched.Task('maintask')

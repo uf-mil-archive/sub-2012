@@ -4,7 +4,7 @@ from subjugator import vision
 import math
 import dds
 
-servo = vision.BottomVisualServo(kx=.1, ky=.1)
+servo = vision.BottomVisualServo(kx=.1, ky=.1, debug=True)
 
 def run():
     nav.vel(.5)

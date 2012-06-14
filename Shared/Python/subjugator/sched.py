@@ -117,6 +117,7 @@ class Task:
 
     def _resume(self):
         assert self.state == 'wait'
+        self.wait = None
         Sched.active_tasks.append(self)
 
     def _remove_from_active(self):
@@ -192,9 +193,9 @@ def run():
     assert(Sched.sched_greenlet == greenlet.getcurrent())
 
     while len(Sched.active_tasks) > 0 or len(Sched.timers) > 0 or len(Sched.topics) > 0:
+        _run_block()
         _run_timers()
         _run_active_tasks()
-        _run_block()
 
     Sched.topics.clear()
 
@@ -216,21 +217,23 @@ def _run_active_tasks():
     Sched.active_tasks_nextpos = 0
 
 def _run_block():
-    waitset = dds.WaitSet()
-    for topicmon in Sched.topics:
-        waitset.attach(topicmon.topic, topicmon)
-
     if len(Sched.active_tasks) > 0:
         sleeptime = 0
+        if len(Sched.topics) == 0:
+            return
     elif len(Sched.timers) > 0:
         sleeptime = max(Sched.timers[0].get_remaining(), 0)
     else:
         sleeptime = -1
 
+    waitset = dds.WaitSet()
+    for topicmon in Sched.topics:
+        waitset.attach(topicmon.topic, topicmon)
+
     result = waitset.wait(sleeptime)
     for topicmon in result:
         topicmon.run()
-        Sched.topics.remove(topicmon)
+        Sched.topics.discard(topicmon)
 
 # High level
 

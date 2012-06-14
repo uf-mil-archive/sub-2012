@@ -20,7 +20,7 @@ parser.add_argument(metavar='CAMERAID',
     help='use this cameraid (ex: "0")',
     dest='cameraid', type=int,
 )
-parser.add_argument(metavar='OBJECTNAME', nargs='+',
+parser.add_argument(metavar='OBJECTNAME', nargs='*',
     help='broadcast messages about this object (ex: "buoy/red")',
     dest='objectnames',
 )
@@ -33,7 +33,7 @@ t = topics.get('VisionResults')
 
 while True:
     messages=[dict(
-            objectname=objectname,
+            objectName=objectname,
             center=args.center if args.center is not None else (random.uniform(-1, 1), random.uniform(-1, 1)),
             scale=args.scale if args.scale is not None else random.expovariate(1/1000),
     ) for objectname in args.objectnames]
