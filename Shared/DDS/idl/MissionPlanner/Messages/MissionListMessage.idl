@@ -1,0 +1,4 @@
+struct MissionListMessage {
+	string name; //@key
+	sequence<string> missions;
+};

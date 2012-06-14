@@ -62,6 +62,7 @@ class Task:
 
         self.greenlet.parent = greenlet.getcurrent()
         self.greenlet.throw()
+        self.greenlet = None
 
     def throw(self, ex):
 	"""Throws an exception in the task. The exception will appear to originate

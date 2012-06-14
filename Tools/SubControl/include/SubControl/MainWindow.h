@@ -7,6 +7,9 @@
 #include "MissionPlanner/Messages/InteractionCommandMessageSupport.h"
 #include "MissionPlanner/Messages/InteractionStatusMessageSupport.h"
 #include "MissionPlanner/Messages/InteractionOutputMessageSupport.h"
+#include "MissionPlanner/Messages/AvailableMissionsMessageSupport.h"
+#include "MissionPlanner/Messages/MissionListMessageSupport.h"
+#include "MissionPlanner/Messages/MissionCommandMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerKillMessageSupport.h"
@@ -29,6 +32,9 @@ DECLARE_MESSAGE_TRAITS(WorkerKillMessage);
 DECLARE_MESSAGE_TRAITS(InteractionCommandMessage);
 DECLARE_MESSAGE_TRAITS(InteractionStatusMessage);
 DECLARE_MESSAGE_TRAITS(InteractionOutputMessage);
+DECLARE_MESSAGE_TRAITS(AvailableMissionsMessage);
+DECLARE_MESSAGE_TRAITS(MissionListMessage);
+DECLARE_MESSAGE_TRAITS(MissionCommandMessage);
 
 namespace subjugator {
 	class InteractTextEditFilter : public QObject {
@@ -60,6 +66,8 @@ namespace subjugator {
 		void interactStopClicked();
 		void interactRecall();
 		void interactUnrecall();
+		void missionListAdd();
+		void missionListRemove();
 
 	private:
 		Ui::MainWindow ui;
@@ -85,6 +93,12 @@ namespace subjugator {
 		PollingReceiver<InteractionStatusMessage> interactionstatusreceiver;
 		Topic<InteractionOutputMessage> interactionoutputtopic;
 		PollingReceiver<InteractionOutputMessage> interactionoutputreceiver;
+		Topic<AvailableMissionsMessage> availablemissionstopic;
+		PollingReceiver<AvailableMissionsMessage> availablemissionsreceiver;
+		Topic<MissionListMessage> missionlisttopic;
+		PollingReceiver<MissionListMessage> missionlistreceiver;
+		Topic<MissionCommandMessage> missioncommandtopic;
+		Sender<MissionCommandMessage> missioncommandsender;
 
 		InteractTextEditFilter filter;
 		Stats stats;
@@ -97,6 +111,9 @@ namespace subjugator {
 		void updateStats();
 		void updateInteract();
 		void updateInteractOutput();
+		void updateAvailableMissions();
+		void updateMissionLists();
+		void updateMissionList();
 
 		void updateWorker(int row, const std::string &name, const boost::optional<WorkerManagerProcessStatus> &status, const boost::optional<State> &state);
 		void updateKill(int row, const WorkerKillMessage &msg);

@@ -5,6 +5,7 @@
 #include <boost/optional.hpp>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 using namespace subjugator;
 using namespace boost;
@@ -31,6 +32,12 @@ MainWindow::MainWindow() :
 	interactionstatusreceiver(interactionstatustopic),
 	interactionoutputtopic(part, "InteractionOutput", TopicQOS::DEEP_PERSISTENT),
 	interactionoutputreceiver(interactionoutputtopic),
+	availablemissionstopic(part, "AvailableMissions", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
+	availablemissionsreceiver(availablemissionstopic),
+	missionlisttopic(part, "MissionList", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
+	missionlistreceiver(missionlisttopic),
+	missioncommandtopic(part, "MissionCommand", TopicQOS::RELIABLE),
+	missioncommandsender(missioncommandtopic),
 	stats(part),
 	commandhistorypos(0)
 {
@@ -54,6 +61,8 @@ MainWindow::MainWindow() :
 	connect(&filter, SIGNAL(sendCommandTyped()), this, SLOT(interactRunClicked()));
 	connect(&filter, SIGNAL(recallCommandTyped()), this, SLOT(interactRecall()));
 	connect(&filter, SIGNAL(unrecallCommandTyped()), this, SLOT(interactUnrecall()));
+	connect(ui.missionAddButton, SIGNAL(clicked()), this, SLOT(missionListAdd()));
+	connect(ui.missionRemoveButton, SIGNAL(clicked()), this, SLOT(missionListRemove()));
 
 	timer.start(100);
 }
@@ -66,6 +75,9 @@ void MainWindow::update() {
 	updateStats();
 	updateInteract();
 	updateInteractOutput();
+	updateAvailableMissions();
+	updateMissionLists();
+	updateMissionList();
 	updating = false;
 }
 
@@ -131,6 +143,34 @@ void MainWindow::interactUnrecall() {
 	}
 
 	ui.interactCommandTextEdit->setPlainText(cmd.c_str());
+}
+
+void MainWindow::missionListAdd() {
+	QListWidgetItem *item = ui.availableMissionsList->currentItem();
+	if (!item)
+		return;
+	string mission = item->text().toStdString();
+	string list = ui.missionListCombo->currentText().toStdString();
+
+	MissionCommandMessage msg;
+	msg.type = MISSIONCOMMANDTYPE_ADD_MISSION;
+	msg.pos = -1;
+	msg.list = const_cast<char *>(list.c_str());
+	msg.mission = const_cast<char *>(mission.c_str());
+	missioncommandsender.send(msg);
+}
+
+void MainWindow::missionListRemove() {
+	if (ui.missionList->currentRow() == -1)
+		return;
+	string list = ui.missionListCombo->currentText().toStdString();
+
+	MissionCommandMessage msg;
+	msg.type = MISSIONCOMMANDTYPE_REMOVE_MISSION;
+	msg.pos = ui.missionList->currentRow();
+	msg.list = const_cast<char *>(list.c_str());
+	msg.mission = const_cast<char *>("");
+	missioncommandsender.send(msg);
 }
 
 void MainWindow::updateWorkers() {
@@ -325,14 +365,14 @@ void MainWindow::updateStats() {
 	}
 
 	if (data.efforts.avail) {
-		ui.thrusterLFORLabel->setText(QString("%1%").arg(data.efforts.lfor, 0, 'f', 2));
-		ui.thrusterRFORLabel->setText(QString("%1%").arg(data.efforts.rfor, 0, 'f', 2));
-		ui.thrusterFSLabel->setText(QString("%1%").arg(data.efforts.fs, 0, 'f', 2));
-		ui.thrusterRSLabel->setText(QString("%1%").arg(data.efforts.rs, 0, 'f', 2));
-		ui.thrusterFLVLabel->setText(QString("%1%").arg(data.efforts.flv, 0, 'f', 2));
-		ui.thrusterFRVLabel->setText(QString("%1%").arg(data.efforts.frv, 0, 'f', 2));
-		ui.thrusterRLVLabel->setText(QString("%1%").arg(data.efforts.rlv, 0, 'f', 2));
-		ui.thrusterRRVLabel->setText(QString("%1%").arg(data.efforts.rrv, 0, 'f', 2));
+		ui.thrusterLFORLabel->setText(QString("%1%").arg(data.efforts.lfor*100, 0, 'f', 2));
+		ui.thrusterRFORLabel->setText(QString("%1%").arg(data.efforts.rfor*100, 0, 'f', 2));
+		ui.thrusterFSLabel->setText(QString("%1%").arg(data.efforts.fs*100, 0, 'f', 2));
+		ui.thrusterRSLabel->setText(QString("%1%").arg(data.efforts.rs*100, 0, 'f', 2));
+		ui.thrusterFLVLabel->setText(QString("%1%").arg(data.efforts.flv*100, 0, 'f', 2));
+		ui.thrusterFRVLabel->setText(QString("%1%").arg(data.efforts.frv*100, 0, 'f', 2));
+		ui.thrusterRLVLabel->setText(QString("%1%").arg(data.efforts.rlv*100, 0, 'f', 2));
+		ui.thrusterRRVLabel->setText(QString("%1%").arg(data.efforts.rrv*100, 0, 'f', 2));
 	} else {
 		ui.thrusterLFORLabel->setText(QString("Unavailable"));
 		ui.thrusterRFORLabel->setText(QString("Unavailable"));
@@ -378,6 +418,86 @@ void MainWindow::updateInteractOutput() {
 		ui.interactOutputTextEdit->moveCursor(QTextCursor::End);
 		ui.interactOutputTextEdit->insertHtml(QString(out.str().c_str()));
 		ui.interactOutputTextEdit->ensureCursorVisible();
+	}
+}
+
+void MainWindow::updateAvailableMissions() {
+	boost::shared_ptr<AvailableMissionsMessage> msg;
+	if (!(msg = availablemissionsreceiver.take()))
+		return;
+
+	ui.availableMissionsList->clear();
+	for (int i=0; i<msg->missions.length(); i++) {
+		ui.availableMissionsList->addItem(msg->missions[i]);
+	}
+}
+
+static bool by_name_desc(const boost::shared_ptr<MissionListMessage> &a, const boost::shared_ptr<MissionListMessage> &b) {
+	return strcmp(a->name, b->name) > 0;
+}
+
+void MainWindow::updateMissionLists() {
+	vector<boost::shared_ptr<MissionListMessage> > msgs = missionlistreceiver.readAll();
+	sort(msgs.begin(), msgs.end(), by_name_desc);
+
+	bool changed;
+	if (msgs.size() != (unsigned int)ui.missionListCombo->count()) {
+		changed = true;
+	} else {
+		changed = false;
+		for (unsigned int i=0; i<msgs.size(); i++) {
+			cout << msgs[i]->name << endl;
+			if (ui.missionListCombo->itemText(i) != QString(msgs[i]->name)) {
+				changed = true;
+				break;
+			}
+		}
+	}
+
+	if (!changed)
+		return;
+
+	ui.missionListCombo->clear();
+	for (unsigned int i=0; i<msgs.size(); i++) {
+		ui.missionListCombo->addItem(msgs[i]->name);
+	}
+}
+
+void MainWindow::updateMissionList() {
+	string curmission = ui.missionListCombo->currentText().toStdString();
+
+	vector<boost::shared_ptr<MissionListMessage> > msgs = missionlistreceiver.readAll();
+	boost::shared_ptr<MissionListMessage> curmsg;
+
+	for (unsigned int i=0; i<msgs.size(); ++i) {
+		if (string(msgs[i]->name) == curmission) {
+			curmsg = msgs[i];
+			break;
+		}
+	}
+
+	if (!curmsg)
+		return;
+
+	bool changed=false;
+
+	if (curmsg->missions.length() != ui.missionList->count()) {
+		changed = true;
+	} else {
+		for (int i=0; i<curmsg->missions.length(); ++i) {
+			if (QString(curmsg->missions[i]) != ui.missionList->item(i)->text()) {
+				changed = true;
+				break;
+			}
+		}
+	}
+
+	if (!changed)
+		return;
+
+	ui.missionList->clear();
+	for (int i=0; i<curmsg->missions.length(); ++i) {
+		ui.missionList->addItem(curmsg->missions[i]);
 	}
 }
 

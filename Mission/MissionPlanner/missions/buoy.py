@@ -1,6 +1,7 @@
 from subjugator import sched
 from subjugator import nav
 from subjugator import vision
+from missionplanner import mission
 import math
 import dds
 
@@ -64,20 +65,4 @@ def run():
     nav.depth(.2)
     return True
 
-@sched.Task('maintask')
-def maintask():
-    print 'Waiting for nav setup'
-    nav.setup()
-    print 'Beginning in 2 seconds'
-    sched.sleep(2)
-    print 'Running'
-
-    try:
-        if not run():
-            print 'Mission Failed'
-        else:
-            print 'Done'
-    finally:
-        nav.stop()
-
-sched.run()
+mission.missionregistry.register('Buoy', run)

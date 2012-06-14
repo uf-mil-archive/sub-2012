@@ -1,0 +1,13 @@
+enum MissionCommandType {
+	MISSIONCOMMANDTYPE_START,
+	MISSIONCOMMANDTYPE_STOP,
+	MISSIONCOMMANDTYPE_ADD_MISSION,
+	MISSIONCOMMANDTYPE_REMOVE_MISSION
+};
+
+struct MissionCommandMessage {
+	MissionCommandType type;
+	long pos;
+	string list;
+	string mission;
+};

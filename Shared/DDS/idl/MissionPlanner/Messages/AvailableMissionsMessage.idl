@@ -1,0 +1,3 @@
+struct AvailableMissionsMessage {
+	sequence<string> missions;
+};
