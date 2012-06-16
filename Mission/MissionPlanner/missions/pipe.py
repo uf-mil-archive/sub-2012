@@ -4,16 +4,20 @@ from subjugator import vision
 import math
 import dds
 
-servo = vision.BottomVisualServo(kx=.1, ky=.1, debug=True)
+servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
 
 def run():
-    nav.vel(.5)
+    nav.vel(.2)
     vision.wait_visible('pipe', vision.DOWN_CAMERA)
     print 'See pipe!'
 
-    servo('pipe')
+    if not servo('pipe'):
+        print 'Failed to servo on pipe'
+        return False
+
     print 'Going forward!'
-    nav.fd(4)
+    nav.fd(2)
+    return True
 
 @sched.Task('maintask')
 def maintask():

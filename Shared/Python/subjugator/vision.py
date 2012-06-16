@@ -6,6 +6,7 @@ from subjugator import nav
 from subjugator import mathutils
 
 import dds
+import math
 
 def set_object_names(objectnames, cameraid):
     topic = topics.get('VisionSetObjects')
@@ -124,18 +125,23 @@ class BottomVisualServo(VisualAlgorithm):
         self.kx = kx
         self.ky = ky
         self.debug = debug
+        self.stopctr = 0 # TODO needs to be reset
 
     def update(self, obj):
         xvel = self.kx*float(obj['center'][1])
         yvel = self.ky*float(obj['center'][0])
-        yaw = mathutils.angle_wrap(nav.get_trajectory().Y + float(obj['angle']))
+        yaw = mathutils.angle_wrap(nav.get_trajectory().pos.Y + float(obj['angle']))
 
-        if abs(float(obj['angle'])) < math.degrees(2) and xvel < 0.005 and yvel < 0.005:
-            return True
+        if abs(float(obj['angle'])) < math.radians(2) and abs(xvel) < 0.005 and abs(yvel) < 0.005:
+            self.stopctr += 1
+            if self.stopctr > 10:
+                return True
+        else:
+            self.stopctr = 0
 
         if self.debug:
             print 'xvel', xvel, 'yvel', yvel, 'Y', yaw
-        nav.set_waypoint(nav.make_waypoint(Y=yaw, xvel=xvel, yvel=yvel), coordinate=False)
+        nav.set_waypoint(nav.make_waypoint(Y=yaw, velx=xvel, vely=yvel, z=nav.get_trajectory().pos.z), coordinate=False)
         return False
 
 def wait_visible(objectnames, cameraid, timeout=None):
