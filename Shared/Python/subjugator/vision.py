@@ -26,8 +26,8 @@ def get_objects(objectnames, cameraid):
     except dds.Error:
         return []
 
-def get_largest_object(objectid, cameraid, field='scale'):
-    objs = get_objects(objectid, cameraid)
+def get_largest_object(objectid, cameraid, field='scale', obj_filter=lambda obj: True):
+    objs = filter(obj_filter, get_objects(objectid, cameraid))
     if len(objs) == 0:
         return None
     return max(objs, key=lambda obj: float(obj[field]))
@@ -39,12 +39,12 @@ class VisualAlgorithm(object):
     def __init__(self, cameraid):
         self.cameraid = cameraid
 
-    def run(self, objectname):
+    def run(self, objectname, obj_filter=lambda obj: True):
         set_object_names([objectname], self.cameraid)
         failctr = 0
         while True:
             wait()
-            obj = get_largest_object(objectname, self.cameraid)
+            obj = get_largest_object(objectname, self.cameraid, obj_filter=obj_filter)
             if obj is not None:
                 if self.update(obj):
                     break
@@ -56,8 +56,8 @@ class VisualAlgorithm(object):
         nav.stop()
         return True
 
-    def __call__(self, objectname):
-        return self.run(objectname)
+    def __call__(self, objectname, obj_filter=lambda obj: True):
+        return self.run(objectname, obj_filter)
 
     def update(self):
         raise NotImplementedError()
@@ -144,7 +144,7 @@ class BottomVisualServo(VisualAlgorithm):
         nav.set_waypoint(nav.make_waypoint(Y=yaw, velx=xvel, vely=yvel, z=nav.get_trajectory().pos.z), coordinate=False)
         return False
 
-def wait_visible(objectnames, cameraid, timeout=None):
+def wait_visible(objectnames, cameraid, timeout=None, obj_filter=lambda obj: True):
     if isinstance(objectnames, str):
         objectnames = [objectnames]
     set_object_names(objectnames, cameraid)
@@ -153,7 +153,7 @@ def wait_visible(objectnames, cameraid, timeout=None):
         while True:
             wait()
             objs = get_objects(objectnames, cameraid)
-            if len(objs) > 0:
+            if len(filter(obj_filter, objs)) > 0:
                 return objs
 
     if timeout is not None: # TODO this is fairly awkward
