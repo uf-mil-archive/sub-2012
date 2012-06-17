@@ -458,94 +458,58 @@
         <attribute name="title">
          <string>Missions</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_11">
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <layout class="QVBoxLayout" name="verticalLayout_8">
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_8">
-             <item>
-              <widget class="QComboBox" name="missionListCombo"/>
-             </item>
-             <item>
-              <widget class="QListWidget" name="missionList">
-               <property name="editTriggers">
-                <set>QAbstractItemView::NoEditTriggers</set>
-               </property>
-               <property name="showDropIndicator" stdset="0">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QComboBox" name="missionListCombo"/>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_7">
-             <item>
-              <widget class="QPushButton" name="missionAddButton">
-               <property name="text">
-                <string>Add</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="missionRemoveButton">
-               <property name="text">
-                <string>Remove</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_10">
-             <item>
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>All Missions</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListWidget" name="availableMissionsList">
-               <property name="editTriggers">
-                <set>QAbstractItemView::NoEditTriggers</set>
-               </property>
-               <property name="showDropIndicator" stdset="0">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QListWidget" name="missionList">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="showDropIndicator" stdset="0">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1,0,0">
+          <layout class="QVBoxLayout" name="verticalLayout_7">
            <item>
-            <widget class="QLabel" name="label_4">
+            <widget class="QPushButton" name="missionAddButton">
              <property name="text">
-              <string>Mission State:</string>
+              <string>Add</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="missionStateLabel">
+            <widget class="QPushButton" name="missionRemoveButton">
              <property name="text">
-              <string>none</string>
+              <string>Remove</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_10">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>All Missions</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="missionStartButton">
-             <property name="text">
-              <string>Start</string>
+            <widget class="QListWidget" name="availableMissionsList">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="missionStopButton">
-             <property name="text">
-              <string>Stop</string>
+             <property name="showDropIndicator" stdset="0">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -556,6 +520,38 @@
       </widget>
       <widget class="QPlainTextEdit" name="logTextEdit"/>
      </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1,0,0">
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Mission State:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="missionStateLabel">
+        <property name="text">
+         <string>none</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="missionStartButton">
+        <property name="text">
+         <string>Start</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="missionStopButton">
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,1">

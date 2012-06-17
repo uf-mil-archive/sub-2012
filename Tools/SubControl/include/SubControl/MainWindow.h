@@ -10,6 +10,8 @@
 #include "MissionPlanner/Messages/AvailableMissionsMessageSupport.h"
 #include "MissionPlanner/Messages/MissionListMessageSupport.h"
 #include "MissionPlanner/Messages/MissionCommandMessageSupport.h"
+#include "MissionPlanner/Messages/MissionStatusMessageSupport.h"
+#include "MissionPlanner/Messages/MissionStateMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
 #include "LibSub/Messages/WorkerKillMessageSupport.h"
@@ -35,6 +37,7 @@ DECLARE_MESSAGE_TRAITS(InteractionOutputMessage);
 DECLARE_MESSAGE_TRAITS(AvailableMissionsMessage);
 DECLARE_MESSAGE_TRAITS(MissionListMessage);
 DECLARE_MESSAGE_TRAITS(MissionCommandMessage);
+DECLARE_MESSAGE_TRAITS(MissionStateMessage);
 
 namespace subjugator {
 	class InteractTextEditFilter : public QObject {
@@ -68,6 +71,8 @@ namespace subjugator {
 		void interactUnrecall();
 		void missionListAdd();
 		void missionListRemove();
+		void missionStart();
+		void missionStop();
 
 	private:
 		Ui::MainWindow ui;
@@ -99,6 +104,8 @@ namespace subjugator {
 		PollingReceiver<MissionListMessage> missionlistreceiver;
 		Topic<MissionCommandMessage> missioncommandtopic;
 		Sender<MissionCommandMessage> missioncommandsender;
+		Topic<MissionStateMessage> missionstatetopic;
+		PollingReceiver<MissionStateMessage> missionstatereceiver;
 
 		InteractTextEditFilter filter;
 		Stats stats;
@@ -114,6 +121,7 @@ namespace subjugator {
 		void updateAvailableMissions();
 		void updateMissionLists();
 		void updateMissionList();
+		void updateMissionState();
 
 		void updateWorker(int row, const std::string &name, const boost::optional<WorkerManagerProcessStatus> &status, const boost::optional<State> &state);
 		void updateKill(int row, const WorkerKillMessage &msg);

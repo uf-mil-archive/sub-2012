@@ -9,6 +9,7 @@ import dds
 servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
 
 def run():
+    nav.setup()
     nav.vel(.2)
     vision.wait_visible('pipe', vision.DOWN_CAMERA)
     print 'See pipe!'

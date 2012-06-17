@@ -38,6 +38,8 @@ MainWindow::MainWindow() :
 	missionlistreceiver(missionlisttopic),
 	missioncommandtopic(part, "MissionCommand", TopicQOS::RELIABLE),
 	missioncommandsender(missioncommandtopic),
+	missionstatetopic(part, "MissionState", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
+	missionstatereceiver(missionstatetopic),
 	stats(part),
 	commandhistorypos(0)
 {
@@ -63,6 +65,8 @@ MainWindow::MainWindow() :
 	connect(&filter, SIGNAL(unrecallCommandTyped()), this, SLOT(interactUnrecall()));
 	connect(ui.missionAddButton, SIGNAL(clicked()), this, SLOT(missionListAdd()));
 	connect(ui.missionRemoveButton, SIGNAL(clicked()), this, SLOT(missionListRemove()));
+	connect(ui.missionStartButton, SIGNAL(clicked()), this, SLOT(missionStart()));
+	connect(ui.missionStopButton, SIGNAL(clicked()), this, SLOT(missionStop()));
 
 	timer.start(100);
 }
@@ -78,6 +82,7 @@ void MainWindow::update() {
 	updateAvailableMissions();
 	updateMissionLists();
 	updateMissionList();
+	updateMissionState();
 	updating = false;
 }
 
@@ -154,11 +159,13 @@ void MainWindow::missionListAdd() {
 
 	MissionCommandMessage msg;
 	msg.type = MISSIONCOMMANDTYPE_ADD_MISSION;
-	msg.pos = -1;
+	msg.pos = ui.missionList->currentRow();
 	msg.list = const_cast<char *>(list.c_str());
 	msg.mission = const_cast<char *>(mission.c_str());
 	missioncommandsender.send(msg);
 }
+
+static char *const emptystr = const_cast<char *>(""); // oh DDS...
 
 void MainWindow::missionListRemove() {
 	if (ui.missionList->currentRow() == -1)
@@ -169,7 +176,25 @@ void MainWindow::missionListRemove() {
 	msg.type = MISSIONCOMMANDTYPE_REMOVE_MISSION;
 	msg.pos = ui.missionList->currentRow();
 	msg.list = const_cast<char *>(list.c_str());
-	msg.mission = const_cast<char *>("");
+	msg.mission = emptystr;
+	missioncommandsender.send(msg);
+}
+
+void MainWindow::missionStart() {
+	MissionCommandMessage msg;
+	msg.type = MISSIONCOMMANDTYPE_START;
+	msg.pos = -1;
+	msg.list = emptystr;
+	msg.mission = emptystr;
+	missioncommandsender.send(msg);
+}
+
+void MainWindow::missionStop() {
+	MissionCommandMessage msg;
+	msg.type = MISSIONCOMMANDTYPE_STOP;
+	msg.pos = -1;
+	msg.list = emptystr;
+	msg.mission = emptystr;
 	missioncommandsender.send(msg);
 }
 
@@ -446,7 +471,6 @@ void MainWindow::updateMissionLists() {
 	} else {
 		changed = false;
 		for (unsigned int i=0; i<msgs.size(); i++) {
-			cout << msgs[i]->name << endl;
 			if (ui.missionListCombo->itemText(i) != QString(msgs[i]->name)) {
 				changed = true;
 				break;
@@ -498,6 +522,15 @@ void MainWindow::updateMissionList() {
 	ui.missionList->clear();
 	for (int i=0; i<curmsg->missions.length(); ++i) {
 		ui.missionList->addItem(curmsg->missions[i]);
+	}
+}
+
+void MainWindow::updateMissionState() {
+	boost::shared_ptr<MissionStateMessage> msg = missionstatereceiver.read();
+	if (msg && msg->running) {
+		ui.missionStateLabel->setText(msg->state);
+	} else {
+		ui.missionStateLabel->setText("none");
 	}
 }
 

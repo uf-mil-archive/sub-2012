@@ -15,6 +15,7 @@ servo = vision.StrafeVisualServo(fastvel=.4,
                                  kz=.3,
                                  debug=True)
 
+@mission.State('panForBuoy')
 def panForBuoy(name):
     print 'Panning right'
     nav.vel(Y=.1)
@@ -30,6 +31,7 @@ def panForBuoy(name):
         return True
     return False
 
+@mission.State('bumpBuoy')
 def bumpBuoy(name):
     while True:
         print 'Servoing for ' + name
@@ -47,6 +49,7 @@ FIRST_BUOY = 'buoy/red'
 SECOND_BUOY = 'buoy/green'
 
 def run():
+    nav.setup()
     nav.depth(.5)
     nav.vel(.2)
     print 'Forward until buoy seen'

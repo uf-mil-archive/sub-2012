@@ -3,6 +3,11 @@ from subjugator import sched
 
 import dds
 import collections
+import functools
+
+# TODO: Decided to give singletons a try, turned out badly. Need to redo this
+# with a top level class that connects the dots and deals with cross cutting concerns.
+# Then somehow pass this to missions
 
 class StateManager(object):
     def __init__(self):
@@ -21,7 +26,7 @@ class StateManager(object):
         self._run_callbacks()
 
     def pop(self):
-        state = self.stackstate.pop()
+        state = self.statestack.pop()
         self._run_callbacks()
         return state
 
@@ -36,7 +41,7 @@ class State(object):
         self.name = name
 
     def __call__(self, func):
-        @wraps(func)
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             with self:
                 return func(*args, **kwargs)
@@ -45,7 +50,7 @@ class State(object):
     def __enter__(self):
         statemanager.push(self.name)
 
-    def __leave__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         name = statemanager.pop()
         assert(name == self.name)
         return False
@@ -124,13 +129,17 @@ class MissionRunner(sched.Task):
         sched.Task.__init__(self, 'MissionRunner')
         self.task = None
 
+    @property
+    def running(self):
+        return self.task is not None and self.task.state != 'stopped'
+
     def start(self):
-        if self.task is not None and self.task.state != 'stopped':
+        if self.running:
             self.stop()
         self.task = sched.Task('Mission', missionlistmanager.run)
 
     def stop(self):
-        if self.task is None or self.task.state == 'stopped':
+        if self.running:
             return
         self.task.stop()
         self.task = None
@@ -142,7 +151,6 @@ class MissionRunner(sched.Task):
         while True:
             sched.ddswait(cmdtopic)
             msg = cmdtopic.take()
-            print 'got command', msg
             if msg['type'] == 'MISSIONCOMMANDTYPE_START':
                 self.start()
             elif msg['type'] == 'MISSIONCOMMANDTYPE_STOP':
@@ -150,12 +158,12 @@ class MissionRunner(sched.Task):
             elif msg['type'] == 'MISSIONCOMMANDTYPE_ADD_MISSION':
                 missionlist = missionlistmanager.get(msg['list'])
                 mission = missionregistry.get(msg['mission'])
-                print 'missionlist', missionlist
-                print 'mission', mission
                 if missionlist is not None and mission is not None:
                     missionlist.add(mission, msg['pos'] if msg['pos'] != -1 else None)
                     self._send_missionlist(missionlist)
             elif msg['type'] == 'MISSIONCOMMANDTYPE_REMOVE_MISSION':
+                print 'Remove mission'
+                print msg
                 missionlist = missionlistmanager.get(msg['list'])
                 if missionlist is not None:
                     missionlist.remove(msg['pos'])
@@ -172,3 +180,9 @@ class MissionRunner(sched.Task):
         topic.send(dict(name=missionlist.name, missions=[name for (name, func) in missionlist.get_missions()]))
 
 missionrunner = MissionRunner()
+
+def _ddscallback():
+    topic = topics.get('MissionState')
+    topic.send(dict(running=True, state=statemanager.state)) # TODO determine if actually running
+statemanager.add_callback(_ddscallback)
+
