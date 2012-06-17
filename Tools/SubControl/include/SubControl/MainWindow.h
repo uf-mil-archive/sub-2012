@@ -10,7 +10,6 @@
 #include "MissionPlanner/Messages/AvailableMissionsMessageSupport.h"
 #include "MissionPlanner/Messages/MissionListMessageSupport.h"
 #include "MissionPlanner/Messages/MissionCommandMessageSupport.h"
-#include "MissionPlanner/Messages/MissionStatusMessageSupport.h"
 #include "MissionPlanner/Messages/MissionStateMessageSupport.h"
 #include "LibSub/Messages/WorkerStateMessageSupport.h"
 #include "LibSub/Messages/WorkerLogMessageSupport.h"
