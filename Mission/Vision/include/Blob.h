@@ -16,6 +16,7 @@ class Blob
 			float perimeter;
 			cv::Point centroid;
 			float radius;
+			float hue;
 
 			bool operator==(const BlobData &bdata) const {
 				return radius == bdata.radius;

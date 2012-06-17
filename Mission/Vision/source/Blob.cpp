@@ -42,6 +42,17 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 				bdata.centroid.y = (int)center_holder.y;
 				bdata.radius = radius_holder;
 
+				// Check for color of blob
+				Mat tempHSV;
+				Mat tempMask = Mat::zeros(ioimages->src.rows, ioimages->src.cols, CV_8UC1);
+				std::vector<Mat> channelsHSV(ioimages->src.channels());
+				cvtColor(ioimages->prcd,tempHSV,CV_BGR2HSV);
+				split(tempHSV,channelsHSV);
+				std::vector<std::vector<cv::Point> > T = std::vector<std::vector<cv::Point> >(1,contours[i]); 
+				drawContours(tempMask, T, 0, Scalar(255), CV_FILLED);
+				Scalar out = mean(channelsHSV[0],tempMask);
+				bdata.hue = out[0];
+				
 				data.push_back(bdata);
 			}
 		}

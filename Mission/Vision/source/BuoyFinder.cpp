@@ -45,6 +45,7 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 			fResult.put("objectName", objectNames[i]);
 			fResult.put_child("center", Point_to_ptree(blob.data[j].centroid, ioimages->prcd));
 			fResult.put("scale", blob.data[j].area);
+			fResult.put("hue",blob.data[j].hue);
 			resultVector.push_back(fResult);
 		}
 	}
