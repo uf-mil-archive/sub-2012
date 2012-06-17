@@ -153,12 +153,14 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				double shield_moments[7] = {0.19948727909952213,0.010284337716027828,1.2651829313384623e-06,1.1101560718674697e-07,-7.0935021259581704e-15,-1.4947640253828787e-09,-4.0996531526447179e-14};				
 				knowns.push_back(make_pair("shield", vector<double>(shield_moments, shield_moments+7)));
 				string best = "null";
+				property_tree::ptree weights_tree;
 				double best_dist = 1e100;
 				for(unsigned int m = 0; m < knowns.size(); m++) {
 					vector<double> k = knowns[m].second;
 					double this_dist = 0;
 					for(int n = 0; n < 7; n++)
 						this_dist += (k[n]-h[n])*(k[n]-h[n]);
+					weights_tree.push_back(make_pair(knowns[m].first, lexical_cast<string>(this_dist)));
 					if(this_dist < best_dist) {
 						best = knowns[m].first;
 						best_dist = this_dist;
@@ -171,6 +173,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				fResult.put("angle", contours.boxes[j].angle);
 				fResult.put("scale", contours.boxes[j].area);
 				fResult.put("item", best);
+				fResult.put_child("itemweights", weights_tree);
 				putText(ioimages->prcd,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(128,128,128),1);
 				//property_tree::ptree moments_tree;
 				//for(unsigned int m = 0; m < 7; m++)
