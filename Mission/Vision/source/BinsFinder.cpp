@@ -104,6 +104,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				threshold(sat, sat, 75, 255, THRESH_BINARY);
 				
 				Moments m = moments(sat, true);
+				if(m.m00 / sat.rows / sat.cols < 0.05) continue; // bin is probably spurious if it has this little red area
 				double h[7]; HuMoments(m, h);
 				
 				/*
