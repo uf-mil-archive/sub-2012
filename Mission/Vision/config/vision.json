@@ -1,63 +1,77 @@
 {
-	"default": {
-		"logImages": false,
-		"showDebugImages": true,
-		"sendDebugImage": false,
-		"shutterVal": -1,
-		"gainVal": -1,
-		"autoVal": 60,
-		"defaultObjectName": "buoy/red",
-		"bins": {
-			"minContour": 300,
-			"maxContour": 50000,
-			"maxPerimeter": 2000
-		},
-		"pipe": {
-			"Canny": {
-				"thresh1": 50,
-				"thresh2": 200,
-				"apertureSize": 3
-				},
-			"Hough": {
-				"rho": 1,
-				"theta": 0.0087263,
-				"thresh": 80,
-				"minLineLength": 60,
-				"minLineGap": 50
-				},
-			"minAngleDiff": 20
-		},
-		"buoy": {
-			"minContour": 100,
-			"maxContour": 80000,
-			"maxPerimeter": 2000,
-			"threshYellow": {
-				"hLow": 170,
-				"hHigh": 10,
-				"sLow": 120,
-				"sHigh": 255,
-				"vLow": 0,
-				"vHigh": 100
-			}
-		}
-	},
-	"camera0": {
-		"imageSource": {
-			"type": "flycap",
-			"number": 0
-		}
-	},
-	"camera1": {
-		"imageSource": {
-			"type": "flycap",
-			"number": 1
-		}
-	},
-	"camera9": {
-		"imageSource": {
-			"type": "image",
-			"filename": "CHANGEME",
-			"delay": 5
-		}
-	}
+    "default":
+    {
+        "logImages": "true",
+        "showDebugImages": "false",
+        "sendDebugImage": "false",
+        "shutterVal": "-1",
+        "gainVal": "-1",
+        "defaultObjectName": "bins\/single",
+        "bins":
+        {
+            "minContour": "1000",
+            "maxContour": "50000",
+            "maxPerimeter": "2000"
+        },
+        "pipe":
+        {
+            "Canny":
+            {
+                "thresh1": "50",
+                "thresh2": "200",
+                "apertureSize": "3"
+            },
+            "Hough":
+            {
+                "rho": "1",
+                "theta": "0.0087263",
+                "thresh": "80",
+                "minLineLength": "60",
+                "minLineGap": "50"
+            },
+            "minAngleDiff": "20"
+        },
+        "buoy":
+        {
+            "minContour": "100",
+            "maxContour": "80000",
+            "maxPerimeter": "2000",
+            "threshYellow":
+            {
+                "hLow": "170",
+                "hHigh": "10",
+                "sLow": "120",
+                "sHigh": "255",
+                "vLow": "0",
+                "vHigh": "100"
+            }
+        }
+    },
+    "camera0":
+    {
+        "imageSource":
+        {
+            "type": "flycap",
+            "number": "0"
+        },
+        "autoVal": "45"
+    },
+    "camera1":
+    {
+        "imageSource":
+        {
+            "type": "flycap",
+            "number": "1"
+        },
+        "autoVal": "20"
+    },
+    "camera9":
+    {
+        "imageSource":
+        {
+            "type": "image",
+            "filename": "CHANGEME",
+            "delay": "5"
+        }
+    }
 }

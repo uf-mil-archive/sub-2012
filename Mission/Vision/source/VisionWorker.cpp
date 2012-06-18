@@ -112,6 +112,7 @@ void VisionWorker::work(double dt)
 			else
 				imshow("Processed",ioimages.prcd);
 			imshow("Debug",ioimages.dbg);
+			imshow("Source",ioimages.src);
 			waitKey(1); // required to update window
 		}
 	}

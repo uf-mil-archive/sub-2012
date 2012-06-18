@@ -101,7 +101,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				Mat sat;
 				divide(largest, channelsBGR[2], sat, 255);
 				subtract(255, sat, sat);
-				threshold(sat, sat, 75, 255, THRESH_BINARY);
+				threshold(sat, sat, 70, 255, THRESH_BINARY);
 				
 				Moments m = moments(sat, true);
 				if(m.m00 / sat.rows / sat.cols < 0.05) continue; // bin is probably spurious if it has this little red area
@@ -135,8 +135,8 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 					}
 				*/
 				stringstream s; s << j;
-				imshow("mine" + s.str(), sat);
-				imshow("HSV", channelsHSV[1]);
+				//imshow("mine" + s.str(), sat);
+				//imshow("HSV", channelsHSV[1]);
 				/*
 					imshow("out0", channelsLAB[0]);
 					imshow("out1", channelsLAB[1]);
@@ -174,11 +174,11 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				fResult.put("scale", contours.boxes[j].area);
 				fResult.put("item", best);
 				fResult.put_child("itemweights", weights_tree);
-				putText(ioimages->prcd,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(128,128,128),1);
-				//property_tree::ptree moments_tree;
-				//for(unsigned int m = 0; m < 7; m++)
-				//	moments_tree.push_back(make_pair("", lexical_cast<string>(h[m])));
-				//fResult.put_child("moments", moments_tree);
+				putText(ioimages->prcd,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,255,0),1);
+				property_tree::ptree moments_tree;
+				for(unsigned int m = 0; m < 7; m++)
+					moments_tree.push_back(make_pair("", lexical_cast<string>(h[m])));
+				fResult.put_child("moments", moments_tree);
 				resultVector.push_back(fResult);
 			}
 		} else if(objectNames[i] == "bins/shape") {

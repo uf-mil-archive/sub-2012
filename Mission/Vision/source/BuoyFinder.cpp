@@ -9,8 +9,8 @@ using namespace cv;
 vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 {
 	// call to normalizer here
-	Normalizer::norm(ioimages);
-	//ioimages->prcd = ioimages->src;
+	//Normalizer::norm(ioimages);
+	ioimages->prcd = ioimages->src;
 
 	// blur the image to remove noise
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(7,7),10,15,BORDER_DEFAULT);
