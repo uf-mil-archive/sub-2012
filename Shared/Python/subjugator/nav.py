@@ -161,7 +161,7 @@ def get_trajectory():
 def wait():
     while True:
         waypoint = get_waypoint()
-        assert linalg.norm(waypoint.vel.xyzRPY) < 0.00001
+        #assert linalg.norm(waypoint.vel.xyzRPY) < 0.00001
         trajectory = get_trajectory()
 
         if trajectory.pos.approx_equal(waypoint.pos):

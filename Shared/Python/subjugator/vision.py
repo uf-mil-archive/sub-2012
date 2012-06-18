@@ -26,11 +26,11 @@ def get_objects(objectnames, cameraid):
     except dds.Error:
         return []
 
-def get_largest_object(objectid, cameraid, field='scale', obj_filter=lambda obj: True):
+def get_largest_object(objectid, cameraid, key_func=lambda obj: float(obj['scale']), obj_filter=lambda obj: True):
     objs = filter(obj_filter, get_objects(objectid, cameraid))
     if len(objs) == 0:
         return None
-    return max(objs, key=lambda obj: float(obj[field]))
+    return max(objs, key=key_func)
 
 DOWN_CAMERA = 0
 FORWARD_CAMERA = 1
@@ -39,25 +39,25 @@ class VisualAlgorithm(object):
     def __init__(self, cameraid):
         self.cameraid = cameraid
 
-    def run(self, objectname, obj_filter=lambda obj: True):
+    def run(self, objectname, key_func=lambda obj: float(obj['scale']), obj_filter=lambda obj: True):
         set_object_names([objectname], self.cameraid)
         failctr = 0
         while True:
             wait()
-            obj = get_largest_object(objectname, self.cameraid, obj_filter=obj_filter)
+            obj = get_largest_object(objectname, self.cameraid, key_func=key_func, obj_filter=obj_filter)
             if obj is not None:
                 if self.update(obj):
                     break
             else:
                 nav.stop()
                 failctr += 1
-                if failctr > 5:
+                if failctr > 10:
                     return False
         nav.stop()
         return True
 
-    def __call__(self, objectname, obj_filter=lambda obj: True):
-        return self.run(objectname, obj_filter)
+    def __call__(self, *args, **kwargs):
+        return self.run(*args, **kwargs)
 
     def update(self):
         raise NotImplementedError()
@@ -130,18 +130,22 @@ class BottomVisualServo(VisualAlgorithm):
     def update(self, obj):
         xvel = self.kx*float(obj['center'][1])
         yvel = self.ky*float(obj['center'][0])
-        yaw = mathutils.angle_wrap(nav.get_trajectory().pos.Y + float(obj['angle']))
+	if abs(xvel) < .15 and abs(yvel) < .15:
+            yaw = float(obj['angle'])
+        else:
+            yaw = 0
 
-        if abs(float(obj['angle'])) < math.radians(2) and abs(xvel) < 0.005 and abs(yvel) < 0.005:
+        if abs(float(obj['angle'])) < .08 and abs(xvel) < 0.03 and abs(yvel) < 0.03:
             self.stopctr += 1
-            if self.stopctr > 10:
+            print self.stopctr
+            if self.stopctr > 5:
                 return True
         else:
             self.stopctr = 0
 
         if self.debug:
             print 'xvel', xvel, 'yvel', yvel, 'Y', yaw
-        nav.set_waypoint(nav.make_waypoint(Y=yaw, velx=xvel, vely=yvel, z=nav.get_trajectory().pos.z), coordinate=False)
+        nav.set_waypoint_rel(nav.make_waypoint(Y=yaw, velx=xvel, vely=yvel), coordinate=False)
         return False
 
 def wait_visible(objectnames, cameraid, timeout=None, obj_filter=lambda obj: True):

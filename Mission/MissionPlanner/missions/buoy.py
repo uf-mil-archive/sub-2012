@@ -7,10 +7,10 @@ import dds
 
 # Not really a mission yet, still just a script
 
-servo = vision.StrafeVisualServo(fastvel=.4,
+servo = vision.StrafeVisualServo(fastvel=.35,
                                  slowscale=2000,
-                                 slowvel=.2,
-                                 maxscale=9000,
+                                 slowvel=.15,
+                                 maxscale=8000,
                                  ky=.3,
                                  kz=.3,
                                  debug=True)
@@ -35,18 +35,23 @@ def panForBuoy(name):
 def bumpBuoy(name):
     while True:
         print 'Servoing for ' + name
-        if not servo(name):
-            if not panForBuoy(name):
-                return False
-            continue
+	if name == 'buoy/yellow':
+            if not servo(name):
+                if not panForBuoy(name, key_func=lambda obj: float(obj['scale'])*(1-(float(obj['hue'])-50))):
+                   return False
+	else:
+            if not servo(name):
+                if not panForBuoy(name):
+                    return False
+                continue
 
         print 'Bump'
         nav.fd(2)
-        nav.bk(2)
+        nav.bk(1)
         return True
 
-FIRST_BUOY = 'buoy/red'
-SECOND_BUOY = 'buoy/green'
+FIRST_BUOY = 'buoy/green'
+SECOND_BUOY = 'buoy/red'
 
 def run():
     nav.setup()
@@ -65,7 +70,9 @@ def run():
     if not bumpBuoy(SECOND_BUOY):
         return False
 
-    nav.depth(.2)
+    print 'Going over buoys'
+    nav.depth(.25)
+    nav.fd(2)
     return True
 
 mission.missionregistry.register('Buoy', run)
