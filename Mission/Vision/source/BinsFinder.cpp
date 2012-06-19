@@ -81,40 +81,17 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				Mat bin;warpPerspective(ioimages->src, bin, t, Size(300, 150));
 
 				std::vector<Mat> channelsBGR(bin.channels());split(bin,channelsBGR);
+				Mat redness;
+				max(channelsBGR[0], channelsBGR[1], redness);
+				divide(redness, channelsBGR[2], redness, 255);
+				subtract(255, redness, redness);
+				threshold(redness, redness, 70, 255, THRESH_BINARY);
 
-				Mat greybin;cvtColor(bin,greybin,CV_RGB2GRAY);
-				Mat redness;divide(channelsBGR[2], greybin, redness, 100);
-
-				Mat srcHSV;cvtColor(bin,srcHSV,CV_BGR2HSV);
-				std::vector<Mat> channelsHSV(srcHSV.channels());split(srcHSV,channelsHSV);
-				Mat out1;threshold(channelsHSV[1], out1, 40, 255, THRESH_BINARY);
-				Mat out2;threshold(channelsHSV[0], out2, 20, 255, THRESH_BINARY_INV);
-				Mat out3;threshold(channelsHSV[0], out3, 180-20, 255, THRESH_BINARY);
-				Mat out4;bitwise_or(out2, out3, out4);
-				//subtract(channelsHSV[1],channelsBGR[1],out);
-				//if(k == 1) {
-				//adaptiveThreshold(out,out,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,201,-30);
-			
-				//
-				Mat out;bitwise_and(out1, out4, out);
-				//dilate(out,out,Mat(),Point(-1, -1),2);
-				//erode(out,out,Mat(),Point(-1, -1),4);
+				Mat redness_dbg; cvtColor(redness, redness_dbg, CV_GRAY2BGR);
+				warpPerspective(redness_dbg, ioimages->prcd, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
 				
-				Mat smallest;
-				min(channelsBGR[0], channelsBGR[1], smallest);
-				min(smallest, channelsBGR[2], smallest);
-				
-				Mat largest;
-				max(channelsBGR[0], channelsBGR[1], largest);
-				//max(largest, channelsBGR[2], largest);
-				
-				Mat sat;
-				divide(largest, channelsBGR[2], sat, 255);
-				subtract(255, sat, sat);
-				threshold(sat, sat, 70, 255, THRESH_BINARY);
-				
-				Moments m = moments(sat, true);
-				if(m.m00 / sat.rows / sat.cols < 0.05) continue; // bin is probably spurious if it has this little red area
+				Moments m = moments(redness, true);
+				if(m.m00 / redness.rows / redness.cols < 0.05) continue; // bin is probably spurious if it has this little red area
 				double h[7]; HuMoments(m, h);
 				
 				/*
@@ -184,7 +161,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				fResult.put("scale", contours.boxes[j].area);
 				fResult.put("item", best);
 				fResult.put_child("itemweights", weights_tree);
-				putText(ioimages->prcd,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,255,0),1);
+				putText(ioimages->prcd,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
 				property_tree::ptree moments_tree;
 				for(unsigned int m = 0; m < 7; m++)
 					moments_tree.push_back(make_pair("", lexical_cast<string>(h[m])));
