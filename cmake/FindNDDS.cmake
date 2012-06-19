@@ -46,7 +46,7 @@ if(NDDS_RTIDDSGEN)
 		else()
 			message(SEND_ERROR "Unsupported language given to ndds_run_rtiddsgen: ${LANGUAGE}")
 		endif()
-	
+
 		foreach(IDLFILE ${ARGN})
 			set(OUTDIR ${CMAKE_CURRENT_BINARY_DIR}/rtiddsgen_out/${LANGUAGE})
 			file(MAKE_DIRECTORY ${OUTDIR})
@@ -68,6 +68,7 @@ if(NDDS_RTIDDSGEN)
 
 		set(${OUTPUT_SOURCES_VARNAME} ${OUTPUT_SOURCES} PARENT_SCOPE)
 	endfunction()
+
 	function(ndds_run_rtiddsgen_c OUTPUT_SOURCES_VARNAME)
 		foreach(IDLFILE ${ARGN})
 			set(OUTDIR ${CMAKE_CURRENT_BINARY_DIR}/rtiddsgen_out_c)
@@ -105,7 +106,7 @@ endif()
 
 # Libraries
 set(NDDS_LIBDIR_HINT "${NDDS_HOME}/lib/${NDDS_ARCH}")
-foreach(LIB nddscpp nddsc nddscore)
+foreach(LIB nddscpp nddsc nddscore rtimonitoring)
 	find_library(NDDS_LIB_${LIB}_RELEASE ${LIB} HINTS ${NDDS_LIBDIR_HINT} DOC "Path to RTI DDS library ${LIB}")
 	find_library(NDDS_LIB_${LIB}_DEBUG ${LIB}d HINTS ${NDDS_LIBDIR_HINT} DOC "Path to RTI DDS library ${LIB} built for debugging")
 
