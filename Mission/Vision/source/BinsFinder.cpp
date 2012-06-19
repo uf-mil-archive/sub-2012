@@ -53,6 +53,16 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 			for(unsigned int j=0; j<contours.boxes.size(); j++) {
 				vector<Point> approx = contours.boxes[j].corners;
 
+				bool touches_edge = false;
+				for(size_t k = 0; k < approx.size(); k++)
+						if(approx[k].x <= 1 ||
+								approx[k].x >= ioimages->src.cols-2 ||
+								approx[k].y <= 1 ||
+								approx[k].y >= ioimages->src.rows-2)
+							touches_edge = true;
+				if(touches_edge)
+						continue;
+
 				Point2f src[4];
 				for(unsigned int n = 0; n < approx.size(); n++)
 					src[n] = Point2f(approx[n].x, approx[n].y);
