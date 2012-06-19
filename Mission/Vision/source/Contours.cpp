@@ -10,94 +10,77 @@ using namespace std;
 
 Contours::Contours(float minContour, float maxContour, float maxPerimeter)
 {
-	area_holder = 0.0;
-	perimeter_holder = 0;
-	radius_holder = 0;
 	smallestContourSize = minContour;
 	largestContourSize = maxContour;
 	largestContourPerimeter = maxPerimeter;
 }
 
-Contours::~Contours(void)
-{
-}
-
 int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 {
 	vector<vector<Point> > contours;
-	vector<Point> approx;
 	Mat dbg_temp = ioimages->dbg.clone();
 	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
 
-	for( size_t i = 0; i < contours.size(); i++ )
-	{
-		Scalar color(255,255,255);
-		drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
+	for( size_t i = 0; i < contours.size(); i++ ) {
+		drawContours( ioimages->prcd, contours, i, Scalar(255, 255, 255), 1, 8, hierarchy, 0);
 
-		area_holder = (float)fabs(contourArea(Mat(contours[i])));
-		perimeter_holder = (float)arcLength(Mat(contours[i]),true);
-		if(area_holder > smallestContourSize && area_holder < largestContourSize
-			&& perimeter_holder < largestContourPerimeter )
+		float area_holder = (float)fabs(contourArea(Mat(contours[i])));
+		float perimeter_holder = (float)arcLength(Mat(contours[i]),true);
+		if(area_holder < smallestContourSize || area_holder > largestContourSize
+			|| perimeter_holder > largestContourPerimeter )
+			continue;
+		// build vector of outer contours
+		if(hierarchy[i][2] >= 0 || !findInnerContours)
 		{
-			// build vector of outer contours
-			if(hierarchy[i][2] >= 0 || !findInnerContours)
+			// approximate contour with accuracy proportional to the contour perimeter
+			vector<Point> approx;
+			approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.03, true);
+
+			// square contours should have 4 vertices after approximation and be convex.
+			if(approx.size() != 4 || !isContourConvex(Mat(approx)))
+				continue;
+
+			// find the maximum cosine of the angle between joint edges
+			double maxCosine = 0;
+			for(int j = 2; j < 5; j++)
+				maxCosine = MAX(maxCosine, fabs(angle(approx[j%4], approx[j-2], approx[j-1])));
+			if(maxCosine > 0.4)
+				continue;
+
+			// if cosines of all angles are small (all angles are ~90 degree) then write quandrange
+			// vertices to resultant sequence
+			OuterBox outerBox;
+			outerBox.corners = approx;
+			outerBox.area = area_holder;
+			outerBox.perimeter = perimeter_holder;
+			outerBox.centroid.x = (approx[0].x + approx[1].x + approx[2].x + approx[3].x)/4;
+			outerBox.centroid.y = (approx[0].y + approx[1].y + approx[2].y + approx[3].y)/4;
+			outerBox.contour.push_back(contours[i]);
+			populateAngleOfOuterBox(&outerBox);
+			boxes.push_back(outerBox);
+		}
+		// build vector of inner contours
+		else if(hierarchy[i][3] >= 0 && findInnerContours)
+		{
+			Point2f center_holder;float radius_holder;minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
+			//printf("center circle: %f %f\n",center_holder.x,center_holder.y);
+
+			bool insideOuterBox = false;
+			for(size_t k=0; k<boxes.size(); k++)
+				if(abs(center_holder.x-boxes[k].centroid.x) < 30 && abs(center_holder.y-boxes[k].centroid.y) < 30)
+					insideOuterBox = true;
+
+			if(center_holder.x != 0 && center_holder.y != 0 && insideOuterBox)
 			{
-				// approximate contour with accuracy proportional to the contour perimeter
-				approxPolyDP(Mat(contours[i]), approx, perimeter_holder*0.03, true);
-		/*Scalar color(255,255,0);
-		vector<vector<Point> > x;
-		x.push_back(approx);
-		drawContours( ioimages->prcd, x, i, color, 1, 8, hierarchy, 0);*/
-				// square contours should have 4 vertices after approximation and be convex.
-				if( approx.size() == 4 && isContourConvex(Mat(approx)) ) {
-					double maxCosine = 0;
-					for( int j = 2; j < 5; j++ ) {
-						// find the maximum cosine of the angle between joint edges
-						double cosine = fabs(angle(approx[j%4], approx[j-2], approx[j-1]));
-						maxCosine = MAX(maxCosine, cosine);
-					}
-					// if cosines of all angles are small (all angles are ~90 degree) then write quandrange
-					// vertices to resultant sequence
-					if( maxCosine < 0.4 ) {
-						// push to vector of saved boxes
-						OuterBox outerBox;
-						outerBox.corners = approx;
-						outerBox.area = area_holder;
-						outerBox.perimeter = perimeter_holder;
-						outerBox.centroid.x = (approx[0].x + approx[1].x + approx[2].x + approx[3].x)/4;
-						outerBox.centroid.y = (approx[0].y + approx[1].y + approx[2].y + approx[3].y)/4;
-						outerBox.contour.push_back(contours[i]);
-						populateAngleOfOuterBox(&outerBox);
-						boxes.push_back(outerBox);
-					}
-				}
-			}
-			// build vector of inner contours
-			else if(hierarchy[i][3] >= 0)
-			{
-				if(findInnerContours)
-				{
-					bool insideOuterBox = 0;
-					InnerContour innerContour;
-					minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
-					//printf("center circle: %f %f\n",center_holder.x,center_holder.y);
-					for(size_t k=0; k<boxes.size(); k++)
-					{
-						if(abs(center_holder.x-boxes[k].centroid.x) < 30 && abs(center_holder.y-boxes[k].centroid.y) < 30)
-							insideOuterBox = true;
-					}
-					if(center_holder.x != 0 && center_holder.y != 0 && insideOuterBox)
-					{
-						circle(ioimages->prcd,center_holder,2,CV_RGB(0,255,255),-1,8,0);
-						innerContour.perimeter = (float)perimeter_holder;
-						innerContour.area = area_holder;
-						innerContour.centroid.x = (int)center_holder.x;
-						innerContour.centroid.y = (int)center_holder.y;
-						innerContour.radius = radius_holder;
-						innerContour.contour.push_back(contours[i]);
-						shapes.push_back(innerContour);
-					}
-				}
+				circle(ioimages->prcd,center_holder,2,CV_RGB(0,255,255),-1,8,0);
+				InnerContour innerContour;
+				innerContour.perimeter = (float)perimeter_holder;
+				innerContour.area = area_holder;
+				innerContour.centroid.x = (int)center_holder.x;
+				innerContour.centroid.y = (int)center_holder.y;
+				innerContour.radius = radius_holder;
+				innerContour.contour.push_back(contours[i]);
+				shapes.push_back(innerContour);
 			}
 		}
 	}
@@ -271,34 +254,29 @@ int Contours::identifyShape(IOImages* ioimages)
 
 	for( size_t i = 0; i < contours.size(); i++ )
 	{
-		Scalar color(255,255,255);
-		drawContours( ioimages->prcd, contours, i, color, 1, 8, hierarchy, 0);
+		drawContours( ioimages->prcd, contours, i, Scalar(255, 255, 255), 1, 8, hierarchy, 0);
 
-		area_holder = (float)fabs(contourArea(Mat(contours[i])));
-		perimeter_holder = (float)arcLength(Mat(contours[i]),true);
+		float area_holder = (float)fabs(contourArea(Mat(contours[i])));
+		float perimeter_holder = (float)arcLength(Mat(contours[i]),true);
 		if(area_holder > smallestContourSize && area_holder < largestContourSize
 			&& perimeter_holder < largestContourPerimeter )
 		{
 			//approxPolyDP(Mat(contours[i]), approx, 20, true);
 			//printf("Points of approx: %d\n", approx.size());
-			Moments m = moments(Mat(contours[i]),true);
-			double h[7];
-			HuMoments(m,h);
-			InnerContour innerContour;
-			minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
+			Point2f center_holder;float radius_holder;minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
 			if(center_holder.x != 0 && center_holder.y != 0)
 			{
 				circle(ioimages->prcd,center_holder,2,CV_RGB(0,255,255),-1,8,0);
+				InnerContour innerContour;
 				innerContour.perimeter = (float)perimeter_holder;
 				innerContour.area = area_holder;
 				innerContour.centroid.x = (int)center_holder.x;
 				innerContour.centroid.y = (int)center_holder.y;
 				innerContour.radius = radius_holder;
 				innerContour.contour.push_back(contours[i]);
-				if(h[0] > 0.2)
-					innerContour.shape_x = true;
-				else
-					innerContour.shape_x = false;
+				Moments m = moments(Mat(contours[i]),true);
+				double h[7];HuMoments(m,h);
+				innerContour.shape_x = h[0] > 0.2;
 				shapes.push_back(innerContour);
 			}
 		}
