@@ -426,7 +426,6 @@ void MainWindow::updateInteractOutput() {
 
 		QString data = msg->data;
 		data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-		data.replace("\n", "<br />");
 
 		ostringstream out;
 		out << "<span style=\"";
@@ -440,8 +439,8 @@ void MainWindow::updateInteractOutput() {
 		if (msg->type == IOT_STATUS)
 			out << "<br />";
 
+		ui.interactOutputTextEdit->appendHtml(QString(out.str().c_str()));
 		ui.interactOutputTextEdit->moveCursor(QTextCursor::End);
-		ui.interactOutputTextEdit->insertHtml(QString(out.str().c_str()));
 		ui.interactOutputTextEdit->ensureCursorVisible();
 	}
 }
