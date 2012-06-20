@@ -49,7 +49,7 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 				cvtColor(ioimages->prcd,tempHSV,CV_BGR2HSV);
 				split(tempHSV,channelsHSV);
 				std::vector<std::vector<cv::Point> > T = std::vector<std::vector<cv::Point> >(1,contours[i]); 
-				drawContours(tempMask, T, 0, Scalar(255), CV_FILLED);
+				drawContours(tempMask, T, 0, Scalar(255), CV_FILLED, 1, vector<Vec4i>(), 5);
 				Scalar out = mean(channelsHSV[0],tempMask);
 				bdata.hue = out[0];
 				
