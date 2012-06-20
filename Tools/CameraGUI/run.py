@@ -64,9 +64,13 @@ class Window(object):
             x.write(msg['images'][0]['data'])
             x.close()
             self.wTree.get_object('image_view').set_from_pixbuf(x.get_pixbuf())
+            self.pixels = x.get_pixbuf().get_pixels_array()
         
         self.loop_timer = glib.timeout_add(int(1/20*1000), lambda: self.loop() and False) # False prevents it from being called again
-
+    
+    def pixel_clicked(self, widget, event):
+        self.wTree.get_object('pixel_label').set_label(str(self.pixels[event.y, event.x]))
+    
     def apply_config(self, widget):
         b = self.wTree.get_object('config_text').get_buffer()
         text = b.get_text(b.get_start_iter(), b.get_end_iter())
