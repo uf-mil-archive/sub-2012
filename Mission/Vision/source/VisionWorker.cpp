@@ -142,7 +142,6 @@ void VisionWorker::handleConfig(property_tree::ptree new_config) {
 	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
 
 	rebuildFinders = true;
-	objectNames = vector<string>(1, config.get<string>("defaultObjectName"));
 
 	saveConfig(new_config);
 }

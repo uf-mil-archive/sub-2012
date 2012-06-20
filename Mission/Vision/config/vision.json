@@ -6,7 +6,6 @@
         "sendDebugImage": "false",
         "shutterVal": "-1",
         "gainVal": "-1",
-        "defaultObjectName": "bins\/single",
         "bins":
         {
             "minContour": "1000",
