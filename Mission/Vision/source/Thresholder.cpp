@@ -5,6 +5,23 @@ using namespace cv;
 
 void Thresholder::threshConfig(IOImages* ioimages, property_tree::ptree config)
 {
+	if(!config.get_child_optional("hHigh")) {
+		std::vector<Mat> channelsBGR(ioimages->prcd.channels());split(ioimages->prcd, channelsBGR);
+		Mat b; channelsBGR[0].convertTo(b, CV_32FC1, 1/255.);
+		Mat g; channelsBGR[1].convertTo(g, CV_32FC1, 1/255.);
+		Mat r; channelsBGR[2].convertTo(r, CV_32FC1, 1/255.);
+		Mat mag; magnitude(r, g, mag); magnitude(mag, b, mag);
+		std::cout << mag.at<float>(3, 3) << std::endl;
+		std::cout << b.at<float>(3, 3) << std::endl;
+		std::cout << g.at<float>(3, 3) << std::endl;
+		std::cout << r.at<float>(3, 3) << std::endl;
+		Mat res = (r*config.get<float>("r") + g*config.get<float>("g") + b*config.get<float>("b"))/mag;
+		//res.convertTo(ioimages->dbg, CV_8UC1, 255.);
+		//return;
+		ioimages->dbg = res > cos(config.get<float>("angle"))*sqrt(pow(config.get<float>("r"), 2) + pow(config.get<float>("g"), 2) + pow(config.get<float>("b"), 2));
+		return;
+	}
+
 	Mat srcHSV; cvtColor(ioimages->prcd, srcHSV, CV_BGR2HSV);
 	std::vector<Mat> channelsHSV(srcHSV.channels()); split(srcHSV, channelsHSV);
 
