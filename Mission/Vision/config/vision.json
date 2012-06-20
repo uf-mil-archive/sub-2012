@@ -69,6 +69,7 @@
             "type": "image",
             "filename": "CHANGEME",
             "delay": "5"
-        }
+        },
+        "autoVal": "-1"
     }
 }
