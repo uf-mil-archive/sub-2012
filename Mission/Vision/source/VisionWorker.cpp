@@ -82,8 +82,16 @@ void VisionWorker::work(double dt)
 		outputsignal.emit(make_pair(cameraId, fResult));
 	}
 	
-	Mat n;resize(config.get<bool>("sendDebugImage") ? ioimages.dbg : (listOfFinders.size() ? ioimages.prcd : ioimages.src), n, Size(320, 240));
-	vector<uchar> buf;imencode(".jpg", n, buf);
+	Mat n(480, 320, CV_8UC3);
+	Mat n1(n, Range(0, 240), Range(0, 320));resize(listOfFinders.size() ? ioimages.prcd : ioimages.src, n1, Size(320, 240));
+	Mat n2c;
+	if(ioimages.dbg.channels() == 3)
+		n2c = ioimages.dbg;
+	else
+		cvtColor(ioimages.dbg, n2c, CV_GRAY2RGB);
+	Mat n2(n, Range(240, 480), Range(0, 320));resize(n2c, n2, Size(320, 240));
+	vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(30);
+	vector<uchar> buf;imencode(".jpg", n, buf, params);
 	cout << "Image size: " << buf.size() << endl;
 	vector<pair<string, string> > images;images.push_back(make_pair("debug", string(buf.begin(), buf.end())));
 	debugsignal.emit(make_pair(cameraId, images));
