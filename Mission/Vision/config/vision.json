@@ -2,7 +2,6 @@
     "default":
     {
         "logImages": "true",
-        "showDebugImages": "false",
         "sendDebugImage": "false",
         "shutterVal": "-1",
         "gainVal": "-1",

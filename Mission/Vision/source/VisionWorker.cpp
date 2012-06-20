@@ -1,7 +1,5 @@
 #include <sstream>
 
-#include <opencv/highgui.h>
-
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -31,22 +29,10 @@ VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, uns
 void VisionWorker::enterActive()
 {
 	configsignal.emit(getConfig());
-
-	if(config.get<bool>("showDebugImages"))
-	{
-		namedWindow("Processed",1);
-		//moveWindow("Processed",500,500);
-		//namedWindow("Debug",1);
-	}
 }
 
 void VisionWorker::leaveActive()
 {
-	if(config.get<bool>("showDebugImages"))
-	{
-		cvDestroyWindow("Processed");
-		cvDestroyWindow("Debug");
-	}
 	camera.reset();
 }
 
@@ -102,20 +88,6 @@ void VisionWorker::work(double dt)
 	vector<pair<string, string> > images;images.push_back(make_pair("debug", string(buf.begin(), buf.end())));
 	debugsignal.emit(make_pair(cameraId, images));
 
-	//imshow("Source",ioimages.src);
-	if(config.get<bool>("showDebugImages"))
-	{
-		if(true)
-		{
-			if(listOfFinders.size() == 0)
-				imshow("Processed",ioimages.src);
-			else
-				imshow("Processed",ioimages.prcd);
-			imshow("Debug",ioimages.dbg);
-			imshow("Source",ioimages.src);
-			waitKey(1); // required to update window
-		}
-	}
 	if(config.get<bool>("logImages") && frameCnt%30 == 0)
 	{
 		std::stringstream str;
