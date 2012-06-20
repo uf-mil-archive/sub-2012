@@ -99,10 +99,10 @@ void VisionWorker::work(double dt)
 	if(config.get<bool>("logImages") && frameCnt%30 == 0)
 	{
 		std::stringstream str;
-		str << "log/" << cameraId << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.jpg";
+		str << "log/" << cameraId << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.png";
 		imwrite(str.str(),ioimages.src);
 		std::stringstream str2;
-		str2 << "log/" << cameraId << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.jpg";
+		str2 << "log/" << cameraId << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.png";
 		imwrite(str2.str(),ioimages.prcd);
 		//cout << "Logging image: " << cameraNumber << "-" << frameCnt << ".jpg" << endl;
 	}
