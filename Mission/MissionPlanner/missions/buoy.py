@@ -5,8 +5,6 @@ from missionplanner import mission
 import math
 import dds
 
-# Not really a mission yet, still just a script
-
 servo = vision.StrafeVisualServo(fastvel=.35,
                                  slowscale=2000,
                                  slowvel=.15,
@@ -15,63 +13,101 @@ servo = vision.StrafeVisualServo(fastvel=.35,
                                  kz=.3,
                                  debug=True)
 
+buoy_data = [('red', 'buoy/red', 0), ('yellow', 'buoy/yellow', 50), ('green', 'buoy/green', 70)]
+buoy_sels = { }
+
+def huediff(a, b):
+    diff = a - b
+    if diff >= 127:
+        return diff - 255
+    elif diff <= -128:
+        return diff + 255
+    else:
+        return diff
+
+# Generate buoy_sels from buoy_data
+for (name, object_names, hue) in buoy_data:
+    def score(obj, hue=hue):
+        scale = float(obj['scale'])
+        diff = huediff(hue, float(obj['hue']))
+        return scale*(1-abs(diff)/255.0)
+    buoy_sels[name] = vision.Selector(vision.FORWARD_CAMERA, object_names, vision.FilterScore(score, min_score=500))
+
+# Combine all buoy selectors
+buoy_sel_any = vision.combine_selectors(list(buoy_sels.itervalues()))
+
 @mission.State('panForBuoy')
 def panForBuoy(name):
-    print 'Panning right'
-    nav.vel(Y=.1)
-    objs = vision.wait_visible(name, vision.FORWARD_CAMERA, 3)
-    if len(objs) > 0:
+    print 'Panning right for ' + name
+    with sched.Timeout(3) as timeout1:
+        nav.vel(Y=.1)
+        vision.wait_visible(buoy_sels[name])
+    if not timeout1:
         nav.stop(wait=False)
         return True
-    print 'Panning left'
-    nav.vel(Y=-.1)
-    objs = vision.wait_visible(name, vision.FORWARD_CAMERA, 6)
-    if len(objs) > 0:
+
+    print 'Panning left for ' + name
+    with sched.Timeout(6) as timeout2:
+        nav.vel(Y=-.1)
+        objs = vision.wait_visible(buoy_sels[name])
+    if not timeout2:
         nav.stop(wait=False)
         return True
+
+    print 'Pan failed for ' + name
     return False
 
-@mission.State('bumpBuoy')
-def bumpBuoy(name):
+@mission.State('findBuoy')
+def findBuoy(name):
     while True:
         print 'Servoing for ' + name
-	if name == 'buoy/yellow':
-            if not servo(name):
-                if not panForBuoy(name, key_func=lambda obj: float(obj['scale'])*(1-(float(obj['hue'])-50))):
-                   return False
-	else:
-            if not servo(name):
-                if not panForBuoy(name):
-                    return False
-                continue
+        if servo(buoy_sels[name]):
+            return True
 
-        print 'Bump'
-        nav.fd(2)
-        nav.bk(1)
-        return True
+        if panForBuoy(name):
+            continue
 
-FIRST_BUOY = 'buoy/green'
-SECOND_BUOY = 'buoy/red'
+        return False
+
+@mission.State('bump')
+def bump():
+    print 'Bump'
+    nav.fd(2)
+    nav.bk(1)
+
+FIRST_BUOY = 'green'
+SECOND_BUOY = 'red'
 
 def run():
     nav.setup()
     nav.depth(.5)
-    nav.vel(.2)
-    print 'Forward until buoy seen'
-    vision.wait_visible(FIRST_BUOY, vision.FORWARD_CAMERA)
+
+    with mission.State('forward'):
+        print 'Forward until buoy seen'
+        nav.vel(.2)
+        vision.wait_visible(buoy_sel_any)
 
     start = nav.get_trajectory().pos
-    if not bumpBuoy(FIRST_BUOY):
-        return False
+
+    if findBuoy(FIRST_BUOY):
+        bump()
+    else:
+        print 'Failed to find first buoy'
+        nav.bk(1)
 
     nav.depth(.5)
-    nav.bk(3)
+    nav.point_shoot(*start.xyz)
+    nav.heading(start.Y)
 
-    if not bumpBuoy(SECOND_BUOY):
-        return False
+    if findBuoy(SECOND_BUOY):
+        bump()
+    else:
+        print 'Failed to find second buoy'
+        nav.bk(1)
 
     print 'Going over buoys'
     nav.depth(.25)
+    nav.heading(start.Y)
     nav.fd(2)
     return True
 

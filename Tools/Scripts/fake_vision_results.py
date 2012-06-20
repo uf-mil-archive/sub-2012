@@ -38,6 +38,7 @@ while True:
             scale=args.scale if args.scale is not None else random.expovariate(1/1000),
             angle=0,
             item=random.choice(['sword', 'shield', 'net', 'trident']),
+            hue=10,
     ) for objectname in args.objectnames]
     print "Sending with cameraid %i:" % (args.cameraid,)
     print json.dumps(messages, indent=4)

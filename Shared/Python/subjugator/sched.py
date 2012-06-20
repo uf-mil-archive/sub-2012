@@ -394,3 +394,6 @@ class Timeout:
 	if not self.timer.activated:
 	    self.timer.cancel()
         return type == TimeoutException and value.timeoutobj == self
+
+    def __nonzero__(self):
+        return self.activated
