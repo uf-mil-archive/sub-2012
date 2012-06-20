@@ -6,6 +6,7 @@
 class Normalizer {
 	public:
 		static void norm(IOImages* ioimages);
+		static void normRGB(IOImages* ioimages);
 };
 
 #endif

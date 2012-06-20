@@ -54,6 +54,24 @@
                 "b": "44",
                 "angle": "0.1"
             }
+        },
+        "hedge":
+        {
+            "Canny":
+            {
+                "thresh1": "50",
+                "thresh2": "200",
+                "apertureSize": "3"
+            },
+            "Hough":
+            {
+                "rho": "1",
+                "theta": "0.0087263",
+                "thresh": "80",
+                "minLineLength": "60",
+                "minLineGap": "50"
+            },
+            "minAngleDiff": "20"
         }
     },
     "camera0":
