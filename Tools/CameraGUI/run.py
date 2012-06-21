@@ -26,6 +26,7 @@ class Window(object):
         self.config_topic = topics.get('VisionConfig')
         self.result_topic = topics.get('VisionResults')
         self.setobjects_topic = topics.get('VisionSetObjects')
+        self.pixels = None
 
     def start(self):
         self.wTree = gtk.Builder()
@@ -44,7 +45,9 @@ class Window(object):
             if e.message != 'no data':
                 raise
         else:
-            self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
+            if (self.wTree.get_object('cameraid_entry').get_text().isdigit() and
+                    int(self.wTree.get_object('cameraid_entry').get_text()) == msg['cameraid']):
+                self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
         
         try:
             msg = self.config_topic.take()
@@ -52,7 +55,9 @@ class Window(object):
             if e.message != 'no data':
                 raise
         else:
-            self.wTree.get_object('config_text').get_buffer().set_text(msg['config'])
+            b = self.wTree.get_object('config_text').get_buffer()
+            if b.get_text(b.get_start_iter(), b.get_end_iter()) != msg['config']: # check to avoid scrolling to top
+                self.wTree.get_object('config_text').get_buffer().set_text(msg['config'])
         
         try:
             msg = self.debug_topic.take()
@@ -60,15 +65,19 @@ class Window(object):
             if e.message != 'no data':
                 raise
         else:
-            x = gtk.gdk.PixbufLoader()
-            x.write(msg['images'][0]['data'])
-            x.close()
-            self.wTree.get_object('image_view').set_from_pixbuf(x.get_pixbuf())
-            self.pixels = x.get_pixbuf().get_pixels_array()
+            if (self.wTree.get_object('cameraid_entry').get_text().isdigit() and
+                    int(self.wTree.get_object('cameraid_entry').get_text()) == msg['cameraid']):
+                x = gtk.gdk.PixbufLoader()
+                x.write(msg['images'][0]['data'])
+                x.close()
+                self.wTree.get_object('image_view').set_from_pixbuf(x.get_pixbuf())
+                self.pixels = x.get_pixbuf().get_pixels_array()
         
         self.loop_timer = glib.timeout_add(int(1/20*1000), lambda: self.loop() and False) # False prevents it from being called again
     
     def pixel_clicked(self, widget, event):
+        if self.pixels is None:
+            return
         self.wTree.get_object('pixel_label').set_label(str(self.pixels[event.y, event.x]))
     
     def apply_config(self, widget):
