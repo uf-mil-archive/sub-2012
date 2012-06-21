@@ -54,10 +54,10 @@ void Thresholder::threshBuoys(IOImages *ioimages)
 	//imshow("red",red);
 
 	Mat green; // also includes yellows
-	adaptiveThreshold(ioimages->channelsLAB[1],green,255,0,THRESH_BINARY_INV,101,5);
+	adaptiveThreshold(ioimages->channelsLAB[1],green,255,0,THRESH_BINARY_INV,151,5);
 	subtract(green,white,green);
-	subtract(green,ioimages->channelsRGB[0],green);
-	threshold(green,green,150,255,THRESH_BINARY);
+	//subtract(green,ioimages->channelsRGB[0],green);
+	threshold(green,green,100,255,THRESH_BINARY);
 	//imshow("green",green);
 
 	Mat all;
@@ -102,12 +102,12 @@ void Thresholder::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 void Thresholder::threshYellow(IOImages *ioimages)
 {
 	// find whites (and hope for no washout!)
-	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,101,10);
+	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,101,5);
 	//subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg);
 	bitwise_and(ioimages->channelsLAB[1],ioimages->channelsRGB[2],ioimages->dbg); // and with red channel
 	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->channelsHSV[1]);
 	subtract(ioimages->dbg,ioimages->channelsHSV[1],ioimages->dbg); // remove whites
-	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,171,-20);
+	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,171,-15);
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 }
@@ -120,7 +120,7 @@ void Thresholder::threshGreen(IOImages *ioimages)
 	Mat sat;
 	divide(largest, ioimages->channelsRGB[1], sat, 255);
 	subtract(255, sat, sat);
-	threshold(sat, ioimages->dbg, 100, 255, THRESH_BINARY);
+	threshold(sat, ioimages->dbg, 80, 255, THRESH_BINARY);
 
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));

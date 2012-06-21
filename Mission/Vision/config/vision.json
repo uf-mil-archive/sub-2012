@@ -43,7 +43,7 @@
             "threshGreen":
             {
                 "r": "22",
-                "g": "50",
+                "g": "52",
                 "b": "30",
                 "angle": "0.05"
             },
@@ -67,8 +67,8 @@
             {
                 "rho": "1",
                 "theta": "0.0087263",
-                "thresh": "80",
-                "minLineLength": "60",
+                "thresh": "100",
+                "minLineLength": "120",
                 "minLineGap": "50"
             },
             "minAngleDiff": "20"
@@ -90,7 +90,7 @@
             "type": "flycap",
             "number": "1"
         },
-        "autoVal": "20"
+        "autoVal": "25"
     },
     "camera9":
     {
