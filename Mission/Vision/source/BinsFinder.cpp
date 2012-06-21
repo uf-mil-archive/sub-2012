@@ -40,7 +40,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 
 		if(objectNames[i] == "bins/all") {
 			Point centroidOfBoxes = contours.calcCentroidOfAllBoxes();
-			circle(ioimages->prcd,centroidOfBoxes, 5, CV_RGB(255,140,0), -1,8);
+			circle(ioimages->res,centroidOfBoxes, 5, CV_RGB(255,140,0), -1,8);
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectNames[i]);
 			fResult.put_child("center", Point_to_ptree(centroidOfBoxes, ioimages->prcd));
@@ -166,7 +166,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				fResult.put("scale", contours.boxes[j].area);
 				fResult.put("item", best);
 				fResult.put_child("itemweights", weights_tree);
-				putText(ioimages->prcd,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
+				putText(ioimages->res,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
 				property_tree::ptree moments_tree;
 				for(unsigned int m = 0; m < 7; m++)
 					moments_tree.push_back(make_pair("", lexical_cast<string>(h[m])));

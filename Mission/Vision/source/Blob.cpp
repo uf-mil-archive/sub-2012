@@ -12,16 +12,6 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 	std::vector<cv::Vec4i> hierarchy;
 	findContours(dbg_temp,contours,hierarchy,RETR_CCOMP,CHAIN_APPROX_SIMPLE);
 
-	//if(contours.size() > 0)
-	//{
-	//	int idx = 0;
-	//	for( ; idx >= 0; idx = hierarchy[idx][0] )
-	//	{
-	//		Scalar color(255,255,255);
-	//		drawContours( ioimages->prcd, contours, idx, color, 1, 8, hierarchy );
-	//	}
-	//}
-
 	for( size_t i = 0; i < contours.size(); i++ )
 	{
 		float area_holder = (float)fabs(contourArea(Mat(contours[i])));
@@ -34,7 +24,7 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 			minEnclosingCircle(Mat(contours[i]),center_holder,radius_holder);
 			if(center_holder.x != 0 && center_holder.y != 0)
 			{
-				circle(ioimages->prcd,center_holder,2,CV_RGB(0,255,255),-1,8,0);
+				circle(ioimages->res,center_holder,2,CV_RGB(0,255,255),-1,8,0);
 				BlobData bdata;
 				bdata.perimeter = (float)perimeter_holder;
 				bdata.area = area_holder;
@@ -60,28 +50,34 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 
 	sort(data.begin(), data.end());
 	reverse(data.begin(),data.end());
-	if(data.size() > 2)
-		data.resize(2);
+	if(data.size() > 3)
+		data.resize(3);
 }
 
 void Blob::drawResult(IOImages* ioimages, std::string objectName)
 {
 	Scalar color;
-	if(objectName == "buoy/red")
-		color = CV_RGB(255,100,0);
-	else if(objectName == "buoy/yellow")
-		color = CV_RGB(230,230,0);
-	else if(objectName == "buoy/green")
-		color = CV_RGB(0,200,0);
-	else
-		throw std::runtime_error("unknown objectName in Blob::drawResult: " + objectName);
+	// Sort the data array by hue using our custom comparitor
+	sort(data.begin(),data.end(),compareBlobData);
 
 	for(unsigned int i=0; i<data.size(); i++)
 	{
-		circle(ioimages->prcd,data[i].centroid,(int)data[i].radius,color,2,8,0);
+		if(i==0) // red
+			color = CV_RGB(255,100,0);
+		else if(i==1) // yellow
+			color = CV_RGB(230,230,0);
+		else if(i==2) // green
+			color = CV_RGB(0,200,0);
+		
+		circle(ioimages->res,data[i].centroid,(int)data[i].radius,color,2,8,0);
 		char str[200];
 		sprintf(str,"Area: %.0f",data[i].area);
-		putText(ioimages->prcd,str,Point(data[i].centroid.x-30,data[i].centroid.y-10),FONT_HERSHEY_DUPLEX,0.4,CV_RGB(0,0,0),1.5);
+		putText(ioimages->res,str,Point(data[i].centroid.x-30,data[i].centroid.y-10),FONT_HERSHEY_DUPLEX,0.4,CV_RGB(0,0,0),1.5);
 	}
 
+}
+
+bool Blob::compareBlobData(BlobData a, BlobData b)
+{
+	return a.hue < b.hue;
 }

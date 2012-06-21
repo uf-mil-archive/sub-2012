@@ -93,11 +93,11 @@ void Line::drawResult(IOImages *ioimages)
 	{
 		if(avgLines[i].populated)
 		{
-			line( ioimages->prcd, avgLines[i].startPoint, avgLines[i].endPoint, Scalar(0,255,0), 3, 8 );
-			circle(ioimages->prcd,avgLines[i].centroid,3,Scalar(0,150,255),2);
+			line( ioimages->res, avgLines[i].startPoint, avgLines[i].endPoint, Scalar(0,255,0), 3, 8 );
+			circle(ioimages->res,avgLines[i].centroid,3,Scalar(0,150,255),2);
 			char str[100];
 			sprintf(str,"Angle %d: %.3f\n",i+1,avgLines[i].angle*180/3.1415);
-			putText(ioimages->prcd,str,Point(10,10+i*15),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,0,0),1);
+			putText(ioimages->res,str,Point(10,10+i*15),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,0,0),1);
 		}
 	}
 }

@@ -61,7 +61,8 @@ void VisionWorker::work(double dt)
 	camera->setAuto(config.get<float>("autoVal"));
 
 	// Grab a frame from the camera, copy into ioimages object
-	camera->getImage().copyTo(ioimages.src);
+	ioimages.setNewSource(camera->getImage());	
+	//camera->getImage().copyTo(ioimages.src);
 
 	for(unsigned int i=0; i<listOfFinders.size(); i++)
 	{

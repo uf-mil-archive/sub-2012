@@ -22,7 +22,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
 
 	for( size_t i = 0; i < contours.size(); i++ ) {
-		drawContours( ioimages->prcd, contours, i, Scalar(255, 255, 255), 1, 8, hierarchy, 0);
+		drawContours( ioimages->res, contours, i, Scalar(255, 255, 255), 1, 8, hierarchy, 0);
 
 		float area_holder = (float)fabs(contourArea(Mat(contours[i])));
 		float perimeter_holder = (float)arcLength(Mat(contours[i]),true);
@@ -117,7 +117,7 @@ void Contours::drawResult(IOImages* ioimages, string objectName)
 	for(size_t i=0; i<boxes.size(); i++)
 	{
 		circle(ioimages->prcd,boxes[i].centroid,2,color,2,8,0);
-		drawContours( ioimages->prcd, boxes[i].contour, 0, color, 2, 8, hierarchy, 0);
+		drawContours( ioimages->res, boxes[i].contour, 0, color, 2, 8, hierarchy, 0);
 		for(size_t j=0; j < boxes[i].corners.size(); j++)
 		{
 			circle(ioimages->prcd,boxes[i].corners[j],3,CV_RGB(255,255,0),-1,8);
@@ -130,7 +130,7 @@ void Contours::drawResult(IOImages* ioimages, string objectName)
 	{
 		circle(ioimages->prcd,shapes[i].centroid,5,CV_RGB(255,255,255),2,8,0);
 		circle(ioimages->prcd,shapes[i].centroid,(int)shapes[i].radius,CV_RGB(255,255,255),1,8);
-		drawContours( ioimages->prcd, shapes[i].contour, 0, CV_RGB(0,0,i*50), 2, 8, hierarchy, 0);
+		drawContours( ioimages->res, shapes[i].contour, 0, CV_RGB(0,0,i*50), 2, 8, hierarchy, 0);
 	}
 }
 
@@ -254,7 +254,7 @@ int Contours::identifyShape(IOImages* ioimages)
 
 	for( size_t i = 0; i < contours.size(); i++ )
 	{
-		drawContours( ioimages->prcd, contours, i, Scalar(255, 255, 255), 1, 8, hierarchy, 0);
+		drawContours( ioimages->res, contours, i, Scalar(255, 255, 255), 1, 8, hierarchy, 0);
 
 		float area_holder = (float)fabs(contourArea(Mat(contours[i])));
 		float perimeter_holder = (float)arcLength(Mat(contours[i]),true);

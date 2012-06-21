@@ -7,6 +7,7 @@
 
 class Thresholder {
 	public:
+		static void threshBuoys(IOImages *ioimages);
 		static void threshConfig(IOImages* ioimages, boost::property_tree::ptree config);
 		static void threshOrange(IOImages* ioimages, bool erodeDilateFlag);
 		static void threshRed(IOImages* ioimages, bool erodeDilateFlag);

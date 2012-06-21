@@ -28,9 +28,9 @@ class Blob
 		};
 
 		std::vector<BlobData> data;
-
 		Blob(IOImages* ioimages, float minContour, float maxContour, float maxPerimeter);
 		void drawResult(IOImages* ioimages, std::string objectName);
+		static bool compareBlobData(BlobData a, BlobData b);
 };
 
 #endif

@@ -7,6 +7,7 @@ IOImages::IOImages(Size size)
 	src.create(size,CV_8UC3);
 	prcd.create(size,CV_8UC3);
 	dbg.create(size,CV_8U);
+	res.create(size,CV_8UC3);
 }
 
 IOImages::IOImages(void)
@@ -14,6 +15,7 @@ IOImages::IOImages(void)
 	src.create(Size(640,480),CV_8UC3);
 	prcd.create(Size(640,480),CV_8UC3);
 	dbg.create(Size(640,480),CV_8U);
+	res.create(Size(640,480),CV_8UC3);
 }
 
 IOImages::~IOImages(void)
@@ -21,14 +23,27 @@ IOImages::~IOImages(void)
 	src.release();
 	prcd.release();
 	dbg.release();
+	res.release();
 }
 
 int IOImages::setNewSource(Mat newSrc)
 {
 	if(newSrc.data == NULL)
 		return 0;
-	else 
+	else {
 		newSrc.copyTo(src);
+		newSrc.copyTo(res);
+		processColorSpaces();
+	}
 	return 1;
 
+}
+
+void IOImages::processColorSpaces()
+{
+	cvtColor(src,srcLAB,CV_RGB2Lab);
+	cvtColor(src,srcHSV,CV_BGR2HSV);
+	split(src,channelsRGB);
+	split(srcLAB,channelsLAB);
+	split(srcHSV,channelsHSV);
 }

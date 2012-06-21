@@ -26,7 +26,7 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<string>
 	vector<string> binsNames;
 	vector<string> gateNames;
 	BOOST_FOREACH(string &objectName, objectNames) {
-		if(objectName == "buoy/green" || objectName=="buoy/red" || objectName == "buoy/yellow")
+		if(objectName == "buoy/green" || objectName=="buoy/red" || objectName == "buoy/yellow" || objectName == "buoy/all")
 			buoyNames.push_back(objectName);
 		else if(objectName == "pipe")
 			pipeNames.push_back(objectName);
