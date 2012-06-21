@@ -91,7 +91,7 @@ void VisionWorker::work(double dt)
 	else
 		cvtColor(ioimages.dbg, n2c, CV_GRAY2RGB);
 	Mat n2(n, Range(240, 480), Range(0, 320));resize(n2c, n2, Size(320, 240));
-	vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(30);
+	vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(80);
 	vector<uchar> buf;imencode(".jpg", n, buf, params);
 	cout << "Image size: " << buf.size() << endl;
 	vector<pair<string, string> > images;images.push_back(make_pair("debug", string(buf.begin(), buf.end())));

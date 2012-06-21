@@ -56,17 +56,19 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 
 void Blob::drawResult(IOImages* ioimages, std::string objectName)
 {
-	Scalar color;
 	// Sort the data array by hue using our custom comparitor
 	sort(data.begin(),data.end(),compareBlobData);
 
 	for(unsigned int i=0; i<data.size(); i++)
 	{
-		if(i==0) // red
+		Scalar color = CV_RGB(255, 255, 255);
+		if(objectName == "buoy/red") // red
 			color = CV_RGB(255,100,0);
-		else if(i==1) // yellow
+		else if(objectName == "buoy/yellow") // yellow
 			color = CV_RGB(230,230,0);
-		else if(i==2) // green
+		else if(objectName == "buoy/green") // green
+			color = CV_RGB(0,200,0);
+		else if(objectName == "hedge")	// green
 			color = CV_RGB(0,200,0);
 		
 		circle(ioimages->res,data[i].centroid,(int)data[i].radius,color,2,8,0);

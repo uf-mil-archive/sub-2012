@@ -18,21 +18,20 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 	vector<property_tree::ptree> resultVector;
 	for(unsigned int i=0; i<objectNames.size(); i++)
 	{
-		if(objectNames[i] == "buoy/red")
-			Thresholder::threshOrange(ioimages, true);
-		else if(objectNames[i] == "buoy/yellow")
-			Thresholder::threshYellow(ioimages);
+		if(objectNames[i] == "buoy/all")
+			Thresholder::threshBuoys(ioimages);
 		else if(objectNames[i] == "buoy/green")
 			Thresholder::threshGreen(ioimages);
-		else if(objectNames[i] == "buoy/all")
-			Thresholder::threshBuoys(ioimages);
+		else if(objectNames[i] == "buoy/red")
+			Thresholder::threshOrange(ioimages, false);
+		else if(objectNames[i] == "buoy/yellow")
+			Thresholder::threshYellow(ioimages);
 		else
-			throw std::runtime_error("unknown objectName in BuoyFinder::find:" + objectNames[i]);
-		/* Thresholder::threshConfig(ioimages, config.get_child(std::string("thresh") + (
-			objectNames[i] == "buoy/green" ? "Green" :
-			objectNames[i] == "buoy/red" ? "Red" :
-			"Yellow"
-		))); */
+			Thresholder::threshConfig(ioimages, config.get_child(std::string("thresh") + (
+				objectNames[i] == "buoy/green" ? "Green" :
+				objectNames[i] == "buoy/red" ? "Red" :
+				"Yellow"
+			)));
 
 		// call to specific member function here
 		Blob blob(ioimages, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));

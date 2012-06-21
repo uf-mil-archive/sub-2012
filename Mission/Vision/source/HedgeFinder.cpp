@@ -1,4 +1,5 @@
 #include "Line.h"
+#include "Blob.h"
 #include "Normalizer.h"
 #include "Thresholder.h"
 
@@ -19,11 +20,45 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 	for(unsigned int i=0; i<objectNames.size(); i++) {
 		// call to thresholder here
 		Thresholder::threshGreen(ioimages);
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+
+		Blob blob(ioimages, 300, 10000, 2000);
+		blob.drawResult(ioimages, objectNames[i]);
 
 		// call to specific member function here
 		Line line(2, config);
 		int result = line.findLines(ioimages);
-		line.drawResult(ioimages);
+		//line.drawResult(ioimages);
+
+		if(blob.data.size() > 0)
+		{
+			Point center(0,0);
+			int min_width = 640;
+			int max_width = 0;
+			int diff_width = 0;
+			for(unsigned int cnt=0; cnt<blob.data.size(); cnt++)
+			{
+				if(blob.data[cnt].centroid.x < min_width) min_width = blob.data[cnt].centroid.x;
+				if(blob.data[cnt].centroid.x > max_width) max_width = blob.data[cnt].centroid.x;
+				center.x += blob.data[cnt].centroid.x;
+				center.y += blob.data[cnt].centroid.y; 
+			
+			}
+			center.x /= blob.data.size();
+			center.y /= blob.data.size();
+			diff_width = max_width - min_width;
+			
+			circle(ioimages->res,center,10,Scalar(255,255,255),5);
+
+			//printf("buoy finder!\n");
+			// Prepare results
+			property_tree::ptree fResult;
+			fResult.put("objectName", objectNames[i]);
+			fResult.put_child("center", Point_to_ptree(center, ioimages->prcd));
+			fResult.put("scale", diff_width);
+			resultVector.push_back(fResult);
+		}
 
 		// Prepare results
 		if(!result)
@@ -51,13 +86,13 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 			fResult.scale = line.avgLines[0].length;
 			resultVector.push_back(fResult);
 		}*/
-		for(unsigned int j=0; j<line.avgLines.size(); j++) {
+		/*for(unsigned int j=0; j<line.avgLines.size(); j++) {
 			//printf("angle %d: %f\n",j,line.avgLines[j].angle);
 			if( line.avgLines[j].populated && (line.avgLines[j].angle > 75*3.14159/180.0 || line.avgLines[j].angle < -75*3.14159/180.0) ) {
 				Point driveToCenter;
 				driveToCenter.x = line.avgLines[j].centroid.x;
 				driveToCenter.y = line.avgLines[j].centroid.y;
-				circle(ioimages->prcd,driveToCenter,5,Scalar(255,255,255),-1);
+				circle(ioimages->res,driveToCenter,5,Scalar(255,255,255),-1);
 				property_tree::ptree fResult;
 				fResult.put("objectName", objectNames[i]);
 				fResult.put_child("center", Point_to_ptree(driveToCenter, ioimages->prcd));
@@ -67,7 +102,8 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 			}
 			if(j==line.avgLines.size()-1)
 				break;
-		}
+		}*/
 	}
 	return resultVector;
 }
+

@@ -18,12 +18,13 @@ Line::Line(int num, property_tree::ptree config)
 
 int Line::findLines(IOImages* ioimages)
 {
-	cv::Mat edgeImage;Canny(ioimages->dbg, edgeImage, config.get_child("Canny").get<int>("thresh1"), config.get_child("Canny").get<int>("thresh2"), config.get_child("Canny").get<int>("apertureSize") );
+	cv::Mat edgeImage = ioimages->dbg;
+	//Canny(ioimages->dbg, edgeImage, config.get_child("Canny").get<int>("thresh1"), config.get_child("Canny").get<int>("thresh2"), config.get_child("Canny").get<int>("apertureSize") );
 	std::vector<cv::Vec4i> lines;HoughLinesP(edgeImage, lines, config.get_child("Hough").get<double>("rho"), config.get_child("Hough").get<double>("theta"), config.get_child("Hough").get<double>("thresh"), config.get_child("Hough").get<int>("minLineLength"), config.get_child("Hough").get<int>("minLineGap") );
 
 	for( size_t i = 0; i < lines.size(); i++ )
 	{
-		line( ioimages->prcd, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(0,0,255), 1, 8 );
+		line( ioimages->res, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(255,0,0), 1, 8 );
 		double tmpAngle = atan2((double)lines[i][1]-(double)lines[i][3],(double)lines[i][0]-(double)lines[i][2]); // (y1-y2)/(x1-x2)
 		if(tmpAngle != 0) tmpAngle += 3.1415/2.0; // offset to vertical
 		if(tmpAngle > 0) tmpAngle -= 3.1415;
