@@ -153,6 +153,11 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 						best_dist = this_dist;
 					}
 				}
+				if(best == "sword" || best == "trident") {
+					best = mean(Mat(redness, Range(0, redness.rows/2), Range(0, redness.cols/2)))[0] >
+						mean(Mat(redness, Range(0, redness.rows/2), Range(redness.cols/2, redness.cols)))[0] ?
+						"sword" : "trident";
+				}
 			
 				property_tree::ptree fResult;
 				fResult.put("objectName", objectNames[i]);
