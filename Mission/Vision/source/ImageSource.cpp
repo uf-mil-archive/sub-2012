@@ -22,13 +22,13 @@ ImageCamera::ImageCamera(boost::asio::io_service* io, const std::string& filenam
 
 	index = 0;
 	this->delay = delay;
-	next_adv = posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(delay);
+	next_adv = posix_time::microsec_clock::universal_time() + boost::posix_time::millisec(1000*delay);
 }
 
 cv::Mat ImageCamera::getImage(void) {
 	if(posix_time::microsec_clock::universal_time() > next_adv) {
 		index = (index + 1) % filenames.size();
-		next_adv = posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(delay);
+		next_adv = posix_time::microsec_clock::universal_time() + boost::posix_time::millisec(1000*delay);
 	}
 	
 	string filename = filenames[index];
