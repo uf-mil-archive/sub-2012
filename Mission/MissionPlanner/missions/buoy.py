@@ -13,7 +13,8 @@ servo = vision.StrafeVisualServo(fastvel=.35,
                                  kz=.3,
                                  debug=True)
 
-buoy_data = [('red', 'buoy/red', 0), ('yellow', 'buoy/yellow', 50), ('green', 'buoy/green', 70)]
+#buoy_data = [('red', 'buoy/red', 0), ('yellow', 'buoy/yellow', 50), ('green', 'buoy/green', 70)]
+buoy_data = [('red', 'buoy/all', 0), ('yellow', 'buoy/all', 50), ('green', 'buoy/all', 70)]
 buoy_sels = { }
 
 def huediff(a, b):
