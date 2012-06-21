@@ -112,7 +112,6 @@ class Selector(object):
 
     def get_objects(self):
         objs = get_objects(self.object_names, self.camera_id)
-        print objs
         return self.object_filter(iter(objs))
 
     def get_object(self):
@@ -179,10 +178,12 @@ class ForwardVisualAlgorithm(VisualAlgorithm):
             return 0
 
 class StrafeVisualServo(ForwardVisualAlgorithm):
-    def __init__(self, ky, kz, debug=False, *args, **kwargs):
+    def __init__(self, ky, kz, yztol=0.05, debug=False, *args, **kwargs):
         ForwardVisualAlgorithm.__init__(self, *args, **kwargs)
         self.ky = ky
         self.kz = kz
+        self.yztol = yztol
+        self.yztol = yztol
         self.debug = debug
 
     def update(self, obj):
@@ -190,7 +191,7 @@ class StrafeVisualServo(ForwardVisualAlgorithm):
         yvel = self.ky*float(obj['center'][0])
         zvel = -self.kz*float(obj['center'][1])
 
-        if xvel == 0 and yvel < 0.005 and zvel < 0.005:
+        if xvel == 0 and abs(yvel) < yztol and abs(zvel) < yztol:
             return True
 
         if self.debug:
