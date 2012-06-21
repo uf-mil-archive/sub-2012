@@ -4,7 +4,7 @@ from missionplanner import mission
 import math
 import dds
 
-servo = vision.StrafeVisualServo(fastvel=.3, slowscale=2000, slowvel=.2, maxscale=8000, ky=.4, kz=.4, yztol=.1, debug=True)
+servo = vision.StrafeVisualServo(fastvel=.3, slowscale=400, slowvel=.2, maxscale=450, ky=.4, kz=.4, yztol=.05, debug=True)
 
 hedge_sel = vision.Selector(vision.FORWARD_CAMERA, 'hedge')
 
@@ -23,7 +23,7 @@ def run():
                 break
 
     print 'Going through hedge'
-    nav.fd(3)
+    nav.fd(5.5)
     return True
 
 mission.missionregistry.register('Hedge', run)

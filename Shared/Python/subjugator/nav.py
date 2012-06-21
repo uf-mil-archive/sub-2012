@@ -159,6 +159,7 @@ def get_trajectory():
         raise RuntimeError('No current trajectory')
 
 def wait():
+#    sched.sleep(.1)
     while True:
         waypoint = get_waypoint()
         #assert linalg.norm(waypoint.vel.xyzRPY) < 0.00001

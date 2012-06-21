@@ -27,7 +27,8 @@ def get_objects(object_names, camera_id):
         for msg in msgs:
             if msg['cameraid'] == camera_id:
                 objs = map(json.loads, msg['messages'])
-                return [obj for obj in objs if obj['objectName'] in object_names]
+                ret = [obj for obj in objs if obj['objectName'] in object_names]
+                return ret
         return []
     except dds.Error:
         return []
@@ -191,7 +192,7 @@ class StrafeVisualServo(ForwardVisualAlgorithm):
         yvel = self.ky*float(obj['center'][0])
         zvel = -self.kz*float(obj['center'][1])
 
-        if xvel == 0 and abs(yvel) < yztol and abs(zvel) < yztol:
+        if xvel == 0 and abs(yvel) < self.yztol and abs(zvel) < self.yztol:
             return True
 
         if self.debug:
@@ -220,10 +221,11 @@ class YawVisualServo(ForwardVisualAlgorithm):
         return False
 
 class BottomVisualServo(VisualAlgorithm):
-    def __init__(self, kx, ky, kz=0, zmax=0, desired_scale=0, debug=False):
+    def __init__(self, kx, ky, kY=.6, kz=0, zmax=0, desired_scale=0, debug=False):
         VisualAlgorithm.__init__(self)
         self.kx = kx
         self.ky = ky
+        self.kY = kY
         self.kz = kz
         self.zmax = zmax
         self.desired_scale = desired_scale
@@ -235,7 +237,7 @@ class BottomVisualServo(VisualAlgorithm):
         mostly_centered = abs(xvel) < .15 and abs(yvel) < .15
 
 	if mostly_centered:
-            yaw = float(obj['angle'])
+            yaw = self.kY*float(obj['angle'])
         else:
             yaw = 0
 

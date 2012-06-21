@@ -13,8 +13,8 @@ servo = vision.StrafeVisualServo(fastvel=.35,
                                  kz=.3,
                                  debug=True)
 
-#buoy_data = [('red', 'buoy/red', 0), ('yellow', 'buoy/yellow', 50), ('green', 'buoy/green', 70)]
-buoy_data = [('red', 'buoy/all', 0), ('yellow', 'buoy/all', 50), ('green', 'buoy/all', 70)]
+#buoy_data = [('red', 'buoy/red', 14), ('yellow', 'buoy/yellow', 37), ('green', 'buoy/green', 58)]
+buoy_data = [('red', 'buoy/red', 14), ('yellow', 'buoy/yellow', 37), ('green', 'buoy/green', 63)]
 buoy_sels = { }
 
 def huediff(a, b):
@@ -31,7 +31,9 @@ for (name, object_names, hue) in buoy_data:
     def score(obj, hue=hue):
         scale = float(obj['scale'])
         diff = huediff(hue, float(obj['hue']))
-        return scale*(1-abs(diff)/255.0)
+        val = scale*pow(1-abs(diff)/255.0, 5)
+        return val
+
     buoy_sels[name] = vision.Selector(vision.FORWARD_CAMERA, object_names, vision.FilterScore(score, min_score=500))
 
 # Combine all buoy selectors
@@ -76,8 +78,8 @@ def bump():
     nav.fd(2)
     nav.bk(1)
 
-FIRST_BUOY = 'green'
-SECOND_BUOY = 'red'
+FIRST_BUOY = 'red'
+SECOND_BUOY = 'green'
 
 def run():
     nav.setup()
@@ -98,7 +100,9 @@ def run():
 
     nav.depth(.5)
     nav.point_shoot(*start.xyz)
-    nav.heading(start.Y)
+    print 'setting heading'
+    nav.heading(rad=start.Y)
+    print 'done heading'
 
     if findBuoy(SECOND_BUOY):
         bump()
@@ -108,7 +112,7 @@ def run():
 
     print 'Going over buoys'
     nav.depth(.25)
-    nav.heading(start.Y)
+    nav.heading(rad=start.Y)
     nav.fd(2)
     return True
 
