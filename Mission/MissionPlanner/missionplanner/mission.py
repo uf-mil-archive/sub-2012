@@ -87,7 +87,8 @@ class MissionList(object):
         return pos
 
     def remove(self, pos):
-        self.missions.pop(pos)
+        if pos < len(self.missions):
+            self.missions.pop(pos)
 
     def get_missions(self):
         return self.missions
@@ -139,7 +140,7 @@ class MissionRunner(sched.Task):
         self.task = sched.Task('Mission', missionlistmanager.run)
 
     def stop(self):
-        if self.running:
+        if not self.running:
             return
         self.task.stop()
         self.task = None
@@ -162,8 +163,6 @@ class MissionRunner(sched.Task):
                     missionlist.add(mission, msg['pos'] if msg['pos'] != -1 else None)
                     self._send_missionlist(missionlist)
             elif msg['type'] == 'MISSIONCOMMANDTYPE_REMOVE_MISSION':
-                print 'Remove mission'
-                print msg
                 missionlist = missionlistmanager.get(msg['list'])
                 if missionlist is not None:
                     missionlist.remove(msg['pos'])
@@ -185,4 +184,3 @@ def _ddscallback():
     topic = topics.get('MissionState')
     topic.send(dict(running=True, state=statemanager.state)) # TODO determine if actually running
 statemanager.add_callback(_ddscallback)
-

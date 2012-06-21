@@ -34,11 +34,11 @@ MainWindow::MainWindow() :
 	interactionoutputreceiver(interactionoutputtopic),
 	availablemissionstopic(part, "AvailableMissions", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
 	availablemissionsreceiver(availablemissionstopic),
-	missionlisttopic(part, "MissionList", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
+	missionlisttopic(part, "MissionList", TopicQOS::PERSISTENT),
 	missionlistreceiver(missionlisttopic),
 	missioncommandtopic(part, "MissionCommand", TopicQOS::RELIABLE),
 	missioncommandsender(missioncommandtopic),
-	missionstatetopic(part, "MissionState", TopicQOS::PERSISTENT | TopicQOS::EXCLUSIVE),
+	missionstatetopic(part, "MissionState", TopicQOS::PERSISTENT),
 	missionstatereceiver(missionstatetopic),
 	stats(part),
 	commandhistorypos(0)
