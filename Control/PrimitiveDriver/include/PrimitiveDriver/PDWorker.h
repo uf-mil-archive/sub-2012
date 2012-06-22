@@ -4,6 +4,7 @@
 #include "PrimitiveDriver/ThrusterManager.h"
 #include "PrimitiveDriver/ThrusterMapper.h"
 #include "PrimitiveDriver/MergeManager.h"
+#include "PrimitiveDriver/ActuatorManager.h"
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
@@ -23,11 +24,13 @@ namespace subjugator {
 
 		WorkerMailbox<Vector6d> wrenchmailbox;
 		WorkerMailbox<VectorXd> effortmailbox;
+		WorkerMailbox<std::vector<bool> > actuatormailbox;
 		WorkerKillMonitor killmon;
 
 		WorkerSignal<std::vector<double> > currentsignal;
 		WorkerSignal<PDInfo> infosignal;
 		WorkerSignal<VectorXd> effortsignal;
+		WorkerSignal<std::vector<bool> > inputsignal;
 		WorkerKillSignal estopsignal;
 
 	protected:
@@ -39,6 +42,7 @@ namespace subjugator {
 	private:
 		void wrenchSet(const boost::optional<Vector6d> &wrench);
 		void effortSet(const boost::optional<VectorXd> &effort);
+		void actuatorSet(const boost::optional<std::vector<bool> > &actuators);
 		void thrusterStateChanged(int num, const State &state);
 		void estopChanged(bool estop);
 
@@ -48,10 +52,10 @@ namespace subjugator {
 		ThrusterManager thrustermanager;
 		ThrusterMapper thrustermapper;
 		MergeManager mergemanager;
+		ActuatorManager actuatormanager;
 
 		std::vector<ThrusterMapper::Entry> thrusterentries;
 	};
 }
 
 #endif // _SubPDWorker_H__
-

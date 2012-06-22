@@ -1,5 +1,6 @@
 {
 	"mergeboard_endpoint": "udp 192.168.1.60:50000",
+	"actuator_endpoint": "serial /dev/ttyUSB0",
 	"heartbeat_endpoint": "udp 255.255.255.255:50000",
 
 	"thrusters": {
@@ -13,4 +14,3 @@
 		"RRV":  {"address": 37, "lineofaction": "0  0  1", "position": "-11.7147  5.3754 -1.9677", "fsat": 21.57, "rsat": 17.98, "endpoint": "udp 192.168.1.37:50000"}
 	}
 }
-

@@ -1,0 +1,3 @@
+struct PDInputMessage {
+	octet input_mask;
+};

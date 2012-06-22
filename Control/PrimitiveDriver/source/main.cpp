@@ -2,6 +2,8 @@
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDStatusMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDEffortMessageSupport.h"
+#include "PrimitiveDriver/Messages/PDActuatorMessageSupport.h"
+#include "PrimitiveDriver/Messages/PDInputMessageSupport.h"
 #include "HAL/HAL.h"
 #include "LibSub/Worker/DDSBuilder.h"
 #include "LibSub/Worker/WorkerBuilder.h"
@@ -15,6 +17,8 @@ using namespace std;
 DECLARE_MESSAGE_TRAITS(PDWrenchMessage);
 DECLARE_MESSAGE_TRAITS(PDStatusMessage);
 DECLARE_MESSAGE_TRAITS(PDEffortMessage);
+DECLARE_MESSAGE_TRAITS(PDActuatorMessage);
+DECLARE_MESSAGE_TRAITS(PDInputMessage);
 
 int main(int argc, char **argv) {
 	io_service io;
@@ -36,8 +40,10 @@ int main(int argc, char **argv) {
 
 	dds.receiver(worker.wrenchmailbox, dds.topic<PDWrenchMessage>("PDWrench"));
 	dds.receiver(worker.effortmailbox, dds.topic<PDEffortMessage>("PDEffort", TopicQOS::RELIABLE));
+	dds.receiver(worker.actuatormailbox, dds.topic<PDActuatorMessage>("PDActuator", TopicQOS::RELIABLE));
 	dds.sender(worker.effortsignal, dds.topic<PDEffortMessage>("PDEffort", TopicQOS::RELIABLE));
 	dds.sender(worker.infosignal, dds.topic<PDStatusMessage>("PDStatus"));
+	dds.sender(worker.inputsignal, dds.topic<PDInputMessage>("PDInput"));
 
 	// Start the worker
 	builder.runWorker();
@@ -50,7 +56,7 @@ namespace subjugator {
 			vec(i) = msg.linear[i];
 		for (int i=0; i<3; i++)
 			vec(i+3) = msg.moment[i];
-	}
+p	}
 
 	template <>
 	void from_dds(VectorXd &vec, const PDEffortMessage &msg) {
@@ -79,5 +85,21 @@ namespace subjugator {
 		msg.voltage32 = mergeinfo.getRail32Voltage();
 		msg.current32 = mergeinfo.getRail32Current();
 	}
-}
 
+	template <>
+	void to_dds(PDInputMessage &msg, const vector<bool> &inputs) {
+		msg.input_mask = 0;
+		for (unsigned int i=0; i<inputs.size(); i++) {
+			if (inputs[i])
+				msg.input_mask |= (1 << i);
+		}
+	}
+
+	template <>
+	void from_dds(vector<bool> &actuators, const PDActuatorMessage &msg) {
+		actuators.resize(ActuatorManager::ACTUATOR_COUNT);
+		for (unsigned int i=0; i<actuators.size(); i++) {
+			actuators[i] = (msg.actuators_mask & (1 << i)) != 0;
+		}
+	}
+}

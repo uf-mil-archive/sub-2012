@@ -22,6 +22,8 @@ _topic_qoses = {
     'WorkerKill': _TopicConf(lib.WorkerKillMessage, PERSISTENT+LIVELINESS),
     'PDStatus': _TopicConf(lib.PDStatusMessage, DEFAULT),
     'PDEffort': _TopicConf(lib.PDEffortMessage, DEFAULT),
+    'PDActuator': _TopicConf(lib.PDActuatorMessage, DEFAULT),
+    'PDInput': _TopicConf(lib.PDInputMessage, DEFAULT),
     'IMU': _TopicConf(lib.IMUMessage,  EXCLUSIVE+LIVELINESS),
     'DVL': _TopicConf(lib.DVLMessage,  DEFAULT),
     'Depth': _TopicConf(lib.DepthMessage, DEFAULT),

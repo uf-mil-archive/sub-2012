@@ -18,6 +18,9 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 	effortmailbox(WorkerMailbox<VectorXd>::Args()
 	              .setName("effort")
 	              .setCallback(boost::bind(&PDWorker::effortSet, this, _1))),
+	actuatormailbox(WorkerMailbox<std::vector<bool> >::Args()
+	                .setName("actuator")
+	                .setCallback(boost::bind(&PDWorker::actuatorSet, this, _1))),
 	killmon("EStop"),
 	estopsignal("EStop", "Magnetic EStop switch on the mergeboard"),
 	hal(hal),
@@ -31,11 +34,14 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 	thrustermapper(Vector3d(0, 0, 0)),
 	mergemanager(hal,
 	             getConfig().get<std::string>("mergeboard_endpoint"),
-	             bind(&PDWorker::estopChanged, this, _1))
+	             bind(&PDWorker::estopChanged, this, _1)),
+	actuatormanager(hal,
+	                getConfig().get<std::string>("actuator_endpoitn"))
 {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
+	registerStateUpdater(actuatormanager);
 	registerStateUpdater(killmon);
 }
 
@@ -69,6 +75,12 @@ void PDWorker::effortSet(const boost::optional<VectorXd> &optefforts) {
 	thrustermanager.setEfforts(optefforts.get_value_or(VectorXd::Zero(8)));
 }
 
+void PDWorker::actuatorSet(const optional<vector<bool> > &optactuators) {
+	if (!isActive())
+		return;
+	actuatormanager.setActuators(optactuators.get_value_or(vector<bool>(ActuatorManager::ACTUATOR_COUNT, false)));
+}
+
 void PDWorker::thrusterStateChanged(int num, const State &state) {
 	if (state.code == State::ACTIVE)
 		thrustermapper.setEntry(num, thrusterentries[num]);
@@ -84,6 +96,8 @@ void PDWorker::thrusterStateChanged(int num, const State &state) {
 void PDWorker::estopChanged(bool estop) {
 	estopsignal.setKill(estop);
 	logger.log(string("ESTOP ") + (estop ? "engaged" : "disengaged"));
+	if (estop)
+		actuatormanager.offActuators();
 }
 
 void PDWorker::enterActive() {
@@ -104,10 +118,13 @@ void PDWorker::work(double dt) {
 	// TODO rework timestamps at worker level
 	infosignal.emit(PDInfo(0, 0, currents, mergemanager.getMergeInfo()));
 
+	inputsignal.emit(actuatormanager.getActuators());
+
 	heartbeatendpoint.write(HeartBeat());
 }
 
 void PDWorker::leaveActive() {
 	thrustermanager.zeroEfforts();
 	effortsignal.emit(VectorXd::Zero(8, 1));
+	actuatormanager.offActuators();
 }
