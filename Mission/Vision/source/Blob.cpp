@@ -46,6 +46,7 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 		}
 		bdata.angle = rr.angle * boost::math::constants::pi<double>() / 180;
 		bdata.aspect_ratio = rr.size.width/rr.size.height;
+		bdata.is_vertical = pow(sin(bdata.angle), 2) > pow(cos(bdata.angle), 2);
 
 		// Check for color of blob
 		Mat tempHSV; cvtColor(ioimages->prcd,tempHSV,CV_BGR2HSV);
