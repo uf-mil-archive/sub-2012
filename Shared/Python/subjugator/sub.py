@@ -94,14 +94,14 @@ class Hydrophones(Sensor):
 # Actuators
 
 def set_actuators(mask):
-    if isinstance(mask, 'str'):
+    if isinstance(mask, str):
         mask = int(mask, 2)
-    topic = topics.get(self, 'PDActuator')
+    topic = topics.get('PDActuator')
     topic.send(dict(actuators_mask=mask))
 
 def get_actuator_inputs():
     try:
-        topic = topics.get(self, 'PDInput')
+        topic = topics.get('PDInput')
         mask = topic.read()['input_mask']
         return ((mask & 0x01) != 0, (mask & 0x02) != 0)
     except dds.Error:

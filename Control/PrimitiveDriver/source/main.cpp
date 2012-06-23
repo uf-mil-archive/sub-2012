@@ -56,7 +56,7 @@ namespace subjugator {
 			vec(i) = msg.linear[i];
 		for (int i=0; i<3; i++)
 			vec(i+3) = msg.moment[i];
-p	}
+	}
 
 	template <>
 	void from_dds(VectorXd &vec, const PDEffortMessage &msg) {

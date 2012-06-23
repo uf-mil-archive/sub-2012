@@ -60,7 +60,7 @@ void ActuatorManager::sendSetValves() {
 	uint8_t bits=0;
 	for (int i=0; i<ACTUATOR_COUNT; i++) {
 		if (actuators[i])
-			bits |= (1 >> i);
+			bits |= (1 << i);
 	}
 	endpoint.write(SetValves(bits));
 }

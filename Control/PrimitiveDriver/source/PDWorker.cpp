@@ -36,7 +36,7 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 	             getConfig().get<std::string>("mergeboard_endpoint"),
 	             bind(&PDWorker::estopChanged, this, _1)),
 	actuatormanager(hal,
-	                getConfig().get<std::string>("actuator_endpoitn"))
+	                getConfig().get<std::string>("actuator_endpoint"))
 {
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
