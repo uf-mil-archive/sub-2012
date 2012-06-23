@@ -21,10 +21,6 @@ AvgLine::AvgLine(void)
 	populated = false;
 }
 
-AvgLine::~AvgLine(void)
-{
-}
-
 void AvgLine::updateAverage(Point a, Point b, double ang)
 {
 	startPoint_sum.x += a.x;

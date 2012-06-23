@@ -18,7 +18,6 @@ public:
 	bool populated;
 
 	AvgLine(void);
-	~AvgLine(void);
 	void updateAverage(cv::Point a, cv::Point b, double angle);
 	
 

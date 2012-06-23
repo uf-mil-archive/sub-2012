@@ -1,3 +1,5 @@
+#include <boost/foreach.hpp>
+
 #include <stdio.h>
 #include <sstream>
 
@@ -21,14 +23,13 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 
 	vector<property_tree::ptree> resultVector;
-	for(unsigned int i=0; i<objectNames.size(); i++)
-	{
+	BOOST_FOREACH(const string &objectName, objectNames) {
 		// call to thresholder here
 		Thresholder::threshBlack(ioimages);
 
 		// call to specific member function here
 		Contours contours(config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
-		int result = contours.findContours(ioimages, objectNames[i] == "bins/shape");
+		int result = contours.findContours(ioimages, objectName == "bins/shape");
 		
 		//printf("result: %d\n",result);
 
@@ -36,39 +37,34 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 			continue;
 		
 		// Draw result
-		contours.drawResult(ioimages, objectNames[i]);
+		contours.drawResult(ioimages, objectName);
 
-		if(objectNames[i] == "bins/all") {
+		if(objectName == "bins/all") {
 			Point centroidOfBoxes = contours.calcCentroidOfAllBoxes();
 			circle(ioimages->res,centroidOfBoxes, 5, CV_RGB(255,140,0), -1,8);
 			property_tree::ptree fResult;
-			fResult.put("objectName", objectNames[i]);
+			fResult.put("objectName", objectName);
 			fResult.put_child("center", Point_to_ptree(centroidOfBoxes, ioimages->prcd));
 			fResult.put("number_of_boxes", contours.boxes.size());
 			// Scale returns the number of boxes that are currently being found.
 			// The idea is to align to centroid until 4 boxes are found.
 			fResult.put("angle", contours.calcAngleOfAllBoxes());
 			resultVector.push_back(fResult);
-		} else if(objectNames[i] == "bins/single") {
-			for(unsigned int j=0; j<contours.boxes.size(); j++) {
-				vector<Point> approx = contours.boxes[j].corners;
-
+		} else if(objectName == "bins/single") {
+			BOOST_FOREACH(const Contours::OuterBox &box, contours.boxes) {
 				bool touches_edge = false;
-				for(size_t k = 0; k < approx.size(); k++)
-						if(approx[k].x <= 1 ||
-								approx[k].x >= ioimages->src.cols-2 ||
-								approx[k].y <= 1 ||
-								approx[k].y >= ioimages->src.rows-2)
-							touches_edge = true;
+				BOOST_FOREACH(const Point& p, box.corners)
+					if(p.x <= 1 || p.x >= ioimages->src.cols-2 || p.y <= 1 || p.y >= ioimages->src.rows-2)
+						touches_edge = true;
 				if(touches_edge)
 						continue;
 
 				Point2f src[4];
-				for(unsigned int n = 0; n < approx.size(); n++)
-					src[n] = Point2f(approx[n].x, approx[n].y);
+				for(unsigned int n = 0; n < box.corners.size(); n++)
+					src[n] = Point2f(box.corners[n].x, box.corners[n].y);
 				if(!(norm(src[1] - src[0]) > norm(src[3] - src[0]))) // make sure long edge matches long edge so image isn't squished
-					for(unsigned int n = 0; n < approx.size(); n++)
-						src[n] = Point2f(approx[(n+1)%4].x, approx[(n+1)%4].y);
+					for(unsigned int n = 0; n < box.corners.size(); n++)
+						src[n] = Point2f(box.corners[(n+1)%4].x, box.corners[(n+1)%4].y);
 
 				Point2f dst[4];
 				int crop = 15;
@@ -121,7 +117,6 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 							sat.at<uchar>(y, x) = 128;
 					}
 				*/
-				stringstream s; s << j;
 				//imshow("mine" + s.str(), sat);
 				//imshow("HSV", channelsHSV[1]);
 				/*
@@ -142,14 +137,15 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				string best = "null";
 				property_tree::ptree weights_tree;
 				double best_dist = 1e100;
-				for(unsigned int m = 0; m < knowns.size(); m++) {
-					vector<double> k = knowns[m].second;
+				#define COMMA ,
+				BOOST_FOREACH(const pair<string COMMA vector<double> > &known, knowns) {
+					vector<double> k = known.second;
 					double this_dist = 0;
 					for(int n = 0; n < 7; n++)
 						this_dist += (k[n]-h[n])*(k[n]-h[n]);
-					weights_tree.push_back(make_pair(knowns[m].first, lexical_cast<string>(this_dist)));
+					weights_tree.push_back(make_pair(known.first, lexical_cast<string>(this_dist)));
 					if(this_dist < best_dist) {
-						best = knowns[m].first;
+						best = known.first;
 						best_dist = this_dist;
 					}
 				}
@@ -160,33 +156,31 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				}
 			
 				property_tree::ptree fResult;
-				fResult.put("objectName", objectNames[i]);
-				fResult.put_child("center", Point_to_ptree(contours.boxes[j].centroid, ioimages->prcd));
-				fResult.put("angle", contours.boxes[j].angle);
-				fResult.put("scale", contours.boxes[j].area);
+				fResult.put("objectName", objectName);
+				fResult.put_child("center", Point_to_ptree(box.centroid, ioimages->prcd));
+				fResult.put("angle", box.angle);
+				fResult.put("scale", box.area);
 				fResult.put("item", best);
 				fResult.put_child("itemweights", weights_tree);
-				putText(ioimages->res,best.c_str(),contours.boxes[j].centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
+				putText(ioimages->res,best.c_str(),box.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
 				property_tree::ptree moments_tree;
 				for(unsigned int m = 0; m < 7; m++)
 					moments_tree.push_back(make_pair("", lexical_cast<string>(h[m])));
 				fResult.put_child("moments", moments_tree);
 				resultVector.push_back(fResult);
 			}
-		} else if(objectNames[i] == "bins/shape") {
-			for(unsigned int j=0; j<contours.shapes.size(); j++) {
-				double scale = contours.boxes[j].area / contours.shapes[j].area;
-				printf("scale of shape: %f\n",scale);
+		} else if(objectName == "bins/shape") {
+			BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes) {
 				property_tree::ptree fResult;
-				fResult.put("objectName", objectNames[i]);
-				fResult.put("is_x", contours.shapes[j].shape_x);
-				fResult.put_child("center", Point_to_ptree(contours.shapes[j].centroid, ioimages->prcd));
-				fResult.put("angle", contours.shapes[j].shape_x);
-				fResult.put("scale", contours.shapes[j].area);
+				fResult.put("objectName", objectName);
+				fResult.put("is_x", shape.shape_x);
+				fResult.put_child("center", Point_to_ptree(shape.centroid, ioimages->prcd));
+				fResult.put("angle", shape.shape_x);
+				fResult.put("scale", shape.area);
 				resultVector.push_back(fResult);
 			}
 		} else
-			throw std::runtime_error("unknown objectName in BinsFinder::find:" + objectNames[i]);
+			throw std::runtime_error("unknown objectName in BinsFinder::find:" + objectName);
 	}
 	return resultVector;
 }

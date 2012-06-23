@@ -1,7 +1,9 @@
 #include <sstream>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/foreach.hpp>
 #include <boost/property_tree/json_parser.hpp>
+
 
 #include "FinderGenerator.h"
 
@@ -64,19 +66,17 @@ void VisionWorker::work(double dt)
 	ioimages.setNewSource(camera->getImage());	
 	//camera->getImage().copyTo(ioimages.src);
 
-	for(unsigned int i=0; i<listOfFinders.size(); i++)
-	{
+	BOOST_FOREACH(const boost::shared_ptr<IFinder> &finder, listOfFinders) {
 		cout<< "Looking for objectName: ";
-		for(unsigned int idcnt=0; idcnt < listOfFinders[i]->objectNames.size(); idcnt++)
-			cout << listOfFinders[i]->objectNames[idcnt] << " ";
+		BOOST_FOREACH(const string &objectName, finder->objectNames)
+			cout << objectName << " ";
 		cout << endl;
 
 		// RUN THE FINDER!
-		vector<property_tree::ptree> fResult = listOfFinders[i]->find(&ioimages);
+		vector<property_tree::ptree> fResult = finder->find(&ioimages);
 
-		for(unsigned int j=0; j< fResult.size(); j++) {
-			ostringstream s;
-			property_tree::json_parser::write_json(s, fResult[j]);
+		BOOST_FOREACH(const property_tree::ptree &pt, fResult) {
+			ostringstream s; property_tree::json_parser::write_json(s, pt);
 			cout << "Found object: " << s.str() << endl;
 		}
 		

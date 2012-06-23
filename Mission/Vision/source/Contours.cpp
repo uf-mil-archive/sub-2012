@@ -1,3 +1,5 @@
+#include <boost/foreach.hpp>
+
 #include <stdio.h>
 #include <stdexcept>
 
@@ -15,8 +17,7 @@ Contours::Contours(float minContour, float maxContour, float maxPerimeter)
 	largestContourPerimeter = maxPerimeter;
 }
 
-int Contours::findContours(IOImages* ioimages, bool findInnerContours)
-{
+int Contours::findContours(IOImages* ioimages, bool findInnerContours) {
 	vector<vector<Point> > contours;
 	Mat dbg_temp = ioimages->dbg.clone();
 	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
@@ -66,8 +67,8 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours)
 			//printf("center circle: %f %f\n",center_holder.x,center_holder.y);
 
 			bool insideOuterBox = false;
-			for(size_t k=0; k<boxes.size(); k++)
-				if(abs(center_holder.x-boxes[k].centroid.x) < 30 && abs(center_holder.y-boxes[k].centroid.y) < 30)
+			BOOST_FOREACH(const OuterBox &box, boxes)
+				if(abs(center_holder.x-box.centroid.x) < 30 && abs(center_holder.y-box.centroid.y) < 30)
 					insideOuterBox = true;
 
 			if(center_holder.x != 0 && center_holder.y != 0 && insideOuterBox)
@@ -113,24 +114,21 @@ void Contours::drawResult(IOImages* ioimages, string objectName)
 	else
 		throw std::runtime_error("unknown objectName in Contours::drawResult: " + objectName);
 
-	char str[10];
-	for(size_t i=0; i<boxes.size(); i++)
-	{
-		circle(ioimages->prcd,boxes[i].centroid,2,color,2,8,0);
-		drawContours( ioimages->res, boxes[i].contour, 0, color, 2, 8, hierarchy, 0);
-		for(size_t j=0; j < boxes[i].corners.size(); j++)
+	BOOST_FOREACH(const OuterBox &box, boxes) {
+		circle(ioimages->prcd, box.centroid, 2, color, 2, 8, 0);
+		drawContours(ioimages->res, box.contour, 0, color, 2, 8, hierarchy, 0);
+		for(size_t j=0; j < box.corners.size(); j++)
 		{
-			circle(ioimages->prcd,boxes[i].corners[j],3,CV_RGB(255,255,0),-1,8);
-			sprintf(str,"%d",(int)j);
-			putText(ioimages->prcd,str,Point(boxes[i].corners[j].x+5,boxes[i].corners[j].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,255,255),1);
+			circle(ioimages->prcd,box.corners[j],3,CV_RGB(255,255,0),-1,8);
+			ostringstream os; os << j;
+			putText(ioimages->prcd,os.str().c_str(),Point(box.corners[j].x+5,box.corners[j].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,255,255),1);
 		}
-		line(ioimages->prcd,boxes[i].centroid,boxes[i].orientation,CV_RGB(255,0,0),2,8);
+		line(ioimages->prcd,box.centroid,box.orientation,CV_RGB(255,0,0),2,8);
 	}
-	for(size_t i=0; i<shapes.size(); i++)
-	{
-		circle(ioimages->prcd,shapes[i].centroid,5,CV_RGB(255,255,255),2,8,0);
-		circle(ioimages->prcd,shapes[i].centroid,(int)shapes[i].radius,CV_RGB(255,255,255),1,8);
-		drawContours( ioimages->res, shapes[i].contour, 0, CV_RGB(0,0,i*50), 2, 8, hierarchy, 0);
+	BOOST_FOREACH(const InnerContour &shape, shapes) {
+		circle(ioimages->res, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
+		circle(ioimages->res, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
+		drawContours(ioimages->res, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
 	}
 }
 
@@ -169,10 +167,9 @@ Point Contours::calcCentroidOfAllBoxes()
 	Point centroid;
 	if(boxes.size() > 0)
 	{
-		for(size_t i=0; i<boxes.size(); i++)
-		{
-			centroid.x += boxes[i].centroid.x;
-			centroid.y += boxes[i].centroid.y;
+		BOOST_FOREACH(const OuterBox &box, boxes) {
+			centroid.x += box.centroid.x;
+			centroid.y += box.centroid.y;
 		}
 		centroid.x /= boxes.size();
 		centroid.y /= boxes.size();
@@ -183,12 +180,10 @@ Point Contours::calcCentroidOfAllBoxes()
 float Contours::calcAngleOfAllBoxes()
 {
 	float angle = 0;
-	if(boxes.size()>0)
+	if(boxes.size() > 0)
 	{
-		for(size_t i=0; i<boxes.size(); i++)
-		{
-			angle += boxes[i].angle;
-		}
+		BOOST_FOREACH(const OuterBox &box, boxes)
+			angle += box.angle;
 		angle /= boxes.size();
 	}
 	return angle;
@@ -218,31 +213,20 @@ void Contours::populateAngleOfOuterBox(OuterBox* outerBox)
 	outerBox->angle = atan2((float)outerBox->orientation.y-(float)outerBox->centroid.y,(float)outerBox->orientation.x-(float)outerBox->centroid.x) + (float)CV_PI/2;
 }
 
-void Contours::sortBoxes()
-{
-	float swp_ang, angles[4]; // TODO make angles into vector incase there are more than 4 points
-	int swpx, swpy;
-
-	for (unsigned int k=0; k<boxes.size(); k++)
-	{
-		for (unsigned int z = 0; z<boxes[k].corners.size(); z++)
-		{
-			angles[z] = atan2((float)(boxes[k].corners[z].x-boxes[k].centroid.x),-1*(float)(boxes[k].corners[z].y-boxes[k].centroid.y) );
-			//printf("%f %f %f %f\n",angles[0],angles[1],angles[2],angles[3]);
+class CornerComparator {
+	private:
+		Point centroid;
+	public:
+		CornerComparator(Point centroid) : centroid(centroid) {}
+		bool operator()(Point a, Point b) {
+			float angle_a = atan2(a.x-centroid.x, -(a.y-centroid.y));
+			float angle_b = atan2(b.x-centroid.x, -(b.y-centroid.y));
+			return angle_a < angle_b;
 		}
-		for (unsigned int i=0; i<boxes.size()-1; i++)
-		{
-			for(unsigned int j=i+1; j<boxes[k].corners.size(); j++)
-			{
-				if (angles[j]<angles[i])
-				{
-					swp_ang = angles[i]; angles[i]=angles[j]; angles[j]=swp_ang;
-					swpx = boxes[k].corners[i].x; boxes[k].corners[i].x=boxes[k].corners[j].x; boxes[k].corners[j].x=swpx;
-					swpy = boxes[k].corners[i].y; boxes[k].corners[i].y=boxes[k].corners[j].y; boxes[k].corners[j].y=swpy;
-				}
-			}
-		}
-	}
+};
+void Contours::sortBoxes() {
+	BOOST_FOREACH(OuterBox &box, boxes)
+		sort(box.corners.begin(), box.corners.end(), CornerComparator(box.centroid));
 }
 
 int Contours::identifyShape(IOImages* ioimages)
@@ -290,13 +274,12 @@ int Contours::identifyShape(IOImages* ioimages)
 
 void Contours::orientationError()
 {
-	for(unsigned int i=0; i<boxes.size(); i++)
-	{
-		double line1 = sqrt( pow(boxes[i].corners[1].x-boxes[i].corners[0].x,2.0) + pow(boxes[i].corners[1].y-boxes[i].corners[0].y,2.0) );
-		double line2 = sqrt( pow(boxes[i].corners[2].x-boxes[i].corners[3].x,2.0) + pow(boxes[i].corners[2].y-boxes[i].corners[3].y,2.0) );
+	BOOST_FOREACH(OuterBox &box, boxes) {
+		double line1 = sqrt( pow(box.corners[1].x-box.corners[0].x,2.0) + pow(box.corners[1].y-box.corners[0].y,2.0) );
+		double line2 = sqrt( pow(box.corners[2].x-box.corners[3].x,2.0) + pow(box.corners[2].y-box.corners[3].y,2.0) );
 		printf("line 1: %f\n",line1);
 		printf("line 2: %f\n",line2);
-		boxes[i].orientationError = line1-line2; // right - left
-		printf("angle error: %f\n",boxes[i].orientationError);
+		box.orientationError = line1-line2; // right - left
+		printf("angle error: %f\n",box.orientationError);
 	}
 }

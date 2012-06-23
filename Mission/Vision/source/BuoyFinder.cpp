@@ -1,3 +1,5 @@
+#include <boost/foreach.hpp>
+
 #include "BuoyFinder.h"
 #include "Blob.h"
 #include "Normalizer.h"
@@ -16,20 +18,19 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 
 	vector<property_tree::ptree> resultVector;
-	for(unsigned int i=0; i<objectNames.size(); i++)
-	{
-		if(objectNames[i] == "buoy/all")
+	BOOST_FOREACH(const string &objectName, objectNames) {
+		if(objectName == "buoy/all")
 			Thresholder::threshBuoys(ioimages);
-		else if(objectNames[i] == "buoy/green")
+		else if(objectName == "buoy/green")
 			Thresholder::threshGreen(ioimages);
-		else if(objectNames[i] == "buoy/red")
+		else if(objectName == "buoy/red")
 			Thresholder::threshOrange(ioimages, false);
-		else if(objectNames[i] == "buoy/yellow")
+		else if(objectName == "buoy/yellow")
 			Thresholder::threshYellow(ioimages);
 		else
 			Thresholder::threshConfig(ioimages, config.get_child(std::string("thresh") + (
-				objectNames[i] == "buoy/green" ? "Green" :
-				objectNames[i] == "buoy/red" ? "Red" :
+				objectName == "buoy/green" ? "Green" :
+				objectName == "buoy/red" ? "Red" :
 				"Yellow"
 			)));
 
@@ -37,16 +38,15 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 		Blob blob(ioimages, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 
 		// Draw result
-		blob.drawResult(ioimages, objectNames[i]);
+		blob.drawResult(ioimages, objectName);
 
-		for (unsigned int j=0; j<blob.data.size(); j++) {
-			//printf("buoy finder!\n");
+		BOOST_FOREACH(const Blob::BlobData &b, blob.data) {
 			// Prepare results
 			property_tree::ptree fResult;
-			fResult.put("objectName", objectNames[i]);
-			fResult.put_child("center", Point_to_ptree(blob.data[j].centroid, ioimages->prcd));
-			fResult.put("scale", blob.data[j].area);
-			fResult.put("hue",blob.data[j].hue);
+			fResult.put("objectName", objectName);
+			fResult.put_child("center", Point_to_ptree(b.centroid, ioimages->prcd));
+			fResult.put("scale", b.area);
+			fResult.put("hue", b.hue);
 			resultVector.push_back(fResult);
 		}
 	}

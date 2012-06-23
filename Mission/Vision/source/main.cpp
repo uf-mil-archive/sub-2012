@@ -91,9 +91,8 @@ namespace subjugator {
 		msg.cameraid = finderresults.first;
 		msg.messages.ensure_length(finderresults.second.size(), finderresults.second.size());
 		for(unsigned int i = 0; i < finderresults.second.size(); i++) {
-			ostringstream s;
-			property_tree::json_parser::write_json(s, finderresults.second[i]);
-			msg.messages[i] = DDS_String_dup(s.str().c_str()); // memory leak? this allocates, but sequence supposedly frees the memory
+			ostringstream s; property_tree::json_parser::write_json(s, finderresults.second[i]);
+			msg.messages[i] = DDS_String_dup(s.str().c_str());
 		}
 	}
 
@@ -103,15 +102,13 @@ namespace subjugator {
 		msg.images.ensure_length(data.second.size(), data.second.size());
 		for(unsigned int i = 0; i < data.second.size(); i++) {
 			msg.images[i].name = DDS_String_dup(data.second[i].first.c_str());
-			//msg.images[i].data.ensure_length(data.second[i].second.length(), data.second[i].second.length());
 			assert(msg.images[i].data.from_array(data.second[i].second.data(), data.second[i].second.length()));
 		}
 	}
 
 	template <>
 	void to_dds(VisionConfigMessage &msg, const property_tree::ptree& config) {
-		ostringstream s;
-		property_tree::json_parser::write_json(s, config);
+		ostringstream s; property_tree::json_parser::write_json(s, config);
 		msg.config = DDS_String_dup(s.str().c_str());
 	}
 

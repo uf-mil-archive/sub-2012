@@ -1,3 +1,5 @@
+#include <boost/foreach.hpp>
+
 #include "Line.h"
 #include "Normalizer.h"
 #include "Thresholder.h"
@@ -12,8 +14,7 @@ vector<property_tree::ptree> TubeFinder::find(IOImages* ioimages) {
 	Normalizer::norm(ioimages);
 
 	vector<property_tree::ptree> resultVector;
-	for(unsigned int i=0; i<objectNames.size(); i++)
-	{
+	BOOST_FOREACH(const string &objectName, objectNames) {
 		// call to thresholder here
 		Thresholder::threshOrange(ioimages, true);
 
@@ -27,7 +28,7 @@ vector<property_tree::ptree> TubeFinder::find(IOImages* ioimages) {
 			continue;
 		
 		property_tree::ptree fResult;
-		fResult.put("objectName", objectNames[i]);
+		fResult.put("objectName", objectName);
 		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, ioimages->prcd));
 		fResult.put("scale", line.avgLines[0].length);
 		resultVector.push_back(fResult);

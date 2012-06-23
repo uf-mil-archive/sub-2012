@@ -1,3 +1,5 @@
+#include <boost/foreach.hpp>
+
 #include "GateFinder.h"
 #include "Line.h"
 #include "Normalizer.h"
@@ -17,7 +19,7 @@ vector<property_tree::ptree> GateFinder::find(IOImages* ioimages) {
 	//printf("im here\n");
 
 	vector<property_tree::ptree> resultVector;
-	for(unsigned int i=0; i<objectNames.size(); i++) {
+	BOOST_FOREACH(const string &objectName, objectNames) {
 		// call to thresholder here
 		Thresholder::threshOrange(ioimages, true);
 
@@ -32,7 +34,7 @@ vector<property_tree::ptree> GateFinder::find(IOImages* ioimages) {
 
 		// Prepare results
 		property_tree::ptree fResult;
-		fResult.put("objectName", objectNames[i]);
+		fResult.put("objectName", objectName);
 		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, ioimages->prcd));
 		fResult.put("scale", line.avgLines[0].length);
 		printf("scale: %f\n",line.avgLines[0].length);
