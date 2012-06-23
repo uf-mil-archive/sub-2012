@@ -17,6 +17,8 @@ class Blob
 			cv::Point centroid;
 			float radius;
 			float hue;
+			float angle; // angle of longest axis, in radians. 0 = horizontal. more counterclockwise is more positive
+			float aspect_ratio;  // ratio of length along angle to length perpendicular to angle. guaranteed to be >= 1
 
 			bool operator==(const BlobData &bdata) const {
 				return radius == bdata.radius;

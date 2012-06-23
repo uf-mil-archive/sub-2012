@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include <boost/foreach.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #include "Blob.h"
 
@@ -37,6 +38,15 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 		bdata.centroid.y = (int)center_holder.y;
 		bdata.radius = radius_holder;
 
+		RotatedRect rr = minAreaRect(Mat(contour));
+		rr.angle -= 90; // so 0 degress = pointing right
+		if(rr.size.width < rr.size.height) { // force width > height
+			rr.angle += 90;
+			std::swap(rr.size.width, rr.size.height);
+		}
+		bdata.angle = rr.angle * boost::math::constants::pi<double>() / 180;
+		bdata.aspect_ratio = rr.size.width/rr.size.height;
+
 		// Check for color of blob
 		Mat tempHSV; cvtColor(ioimages->prcd,tempHSV,CV_BGR2HSV);
 		std::vector<Mat> channelsHSV(ioimages->src.channels()); split(tempHSV,channelsHSV);
@@ -70,8 +80,8 @@ void Blob::drawResult(IOImages* ioimages, std::string objectName)
 			color = CV_RGB(0,200,0);
 
 		circle(ioimages->res,item.centroid,(int)item.radius,color,2,8,0);
-		std::ostringstream os; os << "Area: " << (int)item.area;
-		putText(ioimages->res,os.str().c_str(),Point(item.centroid.x-30,item.centroid.y-10),FONT_HERSHEY_DUPLEX,0.4,CV_RGB(0,0,0),1.5);
+		std::ostringstream os; os << "Area: " << (int)item.area << " " << (int)(item.angle*180/boost::math::constants::pi<double>()) << " " << item.aspect_ratio;
+		putText(ioimages->res,os.str().c_str(),Point(item.centroid.x-30,item.centroid.y-10),FONT_HERSHEY_DUPLEX,1,CV_RGB(0,0,0),1.5);
 	}
 
 }
