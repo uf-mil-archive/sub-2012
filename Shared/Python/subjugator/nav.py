@@ -159,7 +159,6 @@ def get_trajectory():
         raise RuntimeError('No current trajectory')
 
 def wait():
-#    sched.sleep(.1)
     while True:
         waypoint = get_waypoint()
         #assert linalg.norm(waypoint.vel.xyzRPY) < 0.00001
@@ -265,3 +264,12 @@ def go_seq(points, rel=False, base=None):
         base = Waypoint(get_trajectory().pos)
     for point in points:
         go(*point, base=base)
+
+def do_a_barrel_roll(velx=0):
+    set_waypoint(make_waypoint(velx=velx, velR=.75))
+    sched.sleep(.2)
+    while get_trajectory().pos.R >= 0:
+        sched.sleep(.1)
+    sched.sleep(.2)
+    set_waypoint(make_waypoint(velx=velx))
+    wait()

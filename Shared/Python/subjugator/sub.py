@@ -115,6 +115,13 @@ def set_valve(num, state):
         mask &= ~(1 << (num-1))
     set_actuators(mask)
 
+def machinegun(num, count=10, dt=.05):
+    for i in xrange(count):
+        set_valve(num, True)
+        sched.sleep(dt)
+        set_valve(num, False)
+        sched.sleep(dt)
+
 def get_actuator_inputs():
     try:
         topic = topics.get('PDInput')
