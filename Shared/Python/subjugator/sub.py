@@ -149,25 +149,25 @@ RightShooter = Shooter(6)
 @apply
 class BallDropper(PulseActuator):
     def __init__(self):
-        PulseActuator.__init__(self, 1)
+        PulseActuator.__init__(self, 3)
 
     def drop(self):
         self.pulse(.5)
 
 @apply
 class Grabber(object):
-    def __init__(self, extend_valve=2, retract_valve=3):
-        self.extend_valve = extend_valve
-        self.retract_valve = retract_valve
+    def __init__(self, close_valve=1, open_valve=2):
+        self.close_valve = close_valve
+        self.open_valve = open_valve
 
     def open(self):
-        set_valve(self.retract_valve, False)
-        set_valve(self.extend_valve, True)
+        set_valve(self.close_valve, False)
+        set_valve(self.open_valve, True)
 
     def close(self):
-        set_valve(self.extend_valve, False)
-        set_valve(self.retract_valve, True)
+        set_valve(self.open_valve, False)
+        set_valve(self.close_valve, True)
 
     def disable(self):
-        set_valve(self.extend_valve, False)
-        set_valve(self.retract_valve, False)
+        set_valve(self.close_valve, False)
+        set_valve(self.open_valve, False)
