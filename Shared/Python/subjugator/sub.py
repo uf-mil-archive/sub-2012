@@ -97,7 +97,6 @@ def set_actuators(mask):
     if isinstance(mask, str):
         mask = int(mask, 2)
     topic = topics.get('PDActuator')
-    print 'set_actuators', mask
     topic.send(dict(actuators_mask=mask))
 
 def get_actuators():
@@ -129,6 +128,13 @@ def get_actuator_inputs():
         return ((mask & 0x01) != 0, (mask & 0x02) != 0)
     except dds.Error:
         return (False, False)
+
+def purge_actuators():
+    for i in xrange(5):
+        Grabber.open()
+        sched.sleep(.25)
+        Grabber.disable()
+        sched.sleep(.25)
 
 class PulseActuator(object):
     def __init__(self, num):
