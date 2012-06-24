@@ -40,7 +40,7 @@ def add_border(d, (border, border_unit)):
 
 position = lambda: add_border(array_to_dict(dds.LPOSVSS['position_NED'], 'XYZ', 'm'), (0.01, 'm'))
 velocity = lambda: add_border(array_to_dict(dds.LPOSVSS['velocity_NED'], 'XYZ', 'm/s'), (0.01, 'm/s'))
-desired_position = lambda: array_to_dict(dds.Trajectory['xd'][:3], 'XYZ', 'm')
+desired_position = lambda: add_border(array_to_dict(dds.Trajectory['xd'][:3], 'XYZ', 'm'), (0.01, 'm'))
 desired_velocity = lambda: array_to_dict(dds.Trajectory['xd_dot'][:3], 'XYZ', 'm/s')
 orientation = lambda: quat_to_euler_dict(dds.LPOSVSS['quaternion_NED_B'])
 desired_orientation = lambda: array_to_dict([math.degrees(x) for x in dds.Trajectory['xd'][3:]], ['Roll', 'Pitch', 'Yaw'], 'deg')
