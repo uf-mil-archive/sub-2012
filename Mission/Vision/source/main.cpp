@@ -97,13 +97,9 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(VisionDebugMessage &msg, const std::pair<int, std::vector<std::pair<std::string, std::string> > > &data) {
+	void to_dds(VisionDebugMessage &msg, const std::pair<int, std::string> &data) {
 		msg.cameraid = data.first;
-		msg.images.ensure_length(data.second.size(), data.second.size());
-		for(unsigned int i = 0; i < data.second.size(); i++) {
-			to_dds(msg.images[i].name, data.second[i].first);
-			assert(msg.images[i].data.from_array(data.second[i].second.data(), data.second[i].second.length()));
-		}
+		assert(msg.image.from_array(data.second.data(), data.second.length()));
 	}
 
 	template <>

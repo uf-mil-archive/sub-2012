@@ -28,7 +28,7 @@ public:
 
 	WorkerSignal<std::pair<int, std::vector<boost::property_tree::ptree> > > outputsignal;
 	WorkerSignal<boost::property_tree::ptree> configsignal;
-	WorkerSignal<std::pair<int, std::vector<std::pair<std::string, std::string> > > > debugsignal;
+	WorkerSignal<std::pair<int, std::string> > debugsignal;
 
 protected:
 	virtual void enterActive();

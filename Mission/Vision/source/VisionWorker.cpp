@@ -94,8 +94,7 @@ void VisionWorker::work(double dt)
 	vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(80);
 	vector<uchar> buf;imencode(".jpg", n, buf, params);
 	cout << "Image size: " << buf.size() << endl;
-	vector<pair<string, string> > images;images.push_back(make_pair("debug", string(buf.begin(), buf.end())));
-	debugsignal.emit(make_pair(cameraId, images));
+	debugsignal.emit(make_pair(cameraId, string(buf.begin(), buf.end())));
 
 	if(config.get<bool>("logImages") && frameCnt%30 == 0)
 	{

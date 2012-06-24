@@ -68,7 +68,7 @@ class Window(object):
             if (self.wTree.get_object('cameraid_entry').get_text().isdigit() and
                     int(self.wTree.get_object('cameraid_entry').get_text()) == msg['cameraid']):
                 x = gtk.gdk.PixbufLoader()
-                x.write(msg['images'][0]['data'])
+                x.write(msg['image'])
                 x.close()
                 self.wTree.get_object('image_view').set_from_pixbuf(x.get_pixbuf())
                 self.pixels = x.get_pixbuf().get_pixels_array()

@@ -1,10 +1,5 @@
-struct Image {
-	string name;
-	sequence<char,1000000> data; // not a string because it can contain NULs
-};
-
 struct VisionDebugMessage {
 	long cameraid;
-	sequence<Image,3> images;
+	sequence<char,1000000> image; // not a string because it can contain NULs
 };
 
