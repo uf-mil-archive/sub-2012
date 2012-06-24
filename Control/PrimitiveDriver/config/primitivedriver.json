@@ -1,6 +1,6 @@
 {
 	"mergeboard_endpoint": "udp 192.168.1.60:50000",
-	"actuator_endpoint": "serial /dev/ttyUSB0",
+	"actuator_endpoint": "serial /dev/ttyActuator",
 	"heartbeat_endpoint": "udp 255.255.255.255:50000",
 
 	"thrusters": {
