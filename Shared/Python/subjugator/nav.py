@@ -266,10 +266,12 @@ def go_seq(points, rel=False, base=None):
         go(*point, base=base)
 
 def do_a_barrel_roll(velx=0):
-    set_waypoint(make_waypoint(velx=velx, velR=.75))
+    pos = get_waypoint().pos
+    set_waypoint(make_waypoint(x=pos.x, y=pos.y, z=pos.z, Y=pos.Y, velx=velx, velR=.75))
     sched.sleep(.2)
     while get_trajectory().pos.R >= 0:
         sched.sleep(.1)
     sched.sleep(.2)
-    set_waypoint(make_waypoint(velx=velx))
+    print 'Returning to level'
+    set_waypoint(make_waypoint(x=pos.x, y=pos.y, z=pos.z, Y=pos.Y, velx=velx))
     wait()

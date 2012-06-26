@@ -146,8 +146,8 @@ class PulseActuator(object):
         set_valve(self.num, False)
 
 class Shooter(PulseActuator):
-    def shoot(self):
-        self.pulse(.1)
+    def shoot(self, time=.3):
+        self.pulse(time)
 
 LeftShooter = Shooter(4) # Violating naming conventions here and everywhere in this file. @apply is clever but should probably do this like the missionplanner
 RightShooter = Shooter(6)
