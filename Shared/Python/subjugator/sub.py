@@ -149,29 +149,31 @@ class Shooter(PulseActuator):
     def shoot(self, time=.3):
         self.pulse(time)
 
-LeftShooter = Shooter(4) # Violating naming conventions here and everywhere in this file. @apply is clever but should probably do this like the missionplanner
-RightShooter = Shooter(6)
+LeftShooter = Shooter(6) # Violating naming conventions here and everywhere in this file. @apply is clever but should probably do this like the missionplanner
+RightShooter = Shooter(4)
 
 @apply
 class BallDropper(PulseActuator):
     def __init__(self):
-        PulseActuator.__init__(self, 3)
+        PulseActuator.__init__(self, 1)
 
     def drop(self):
         self.pulse(.5)
 
 @apply
 class Grabber(object):
-    def __init__(self, close_valve=1, open_valve=2):
+    def __init__(self, close_valve=2, open_valve=3):
         self.close_valve = close_valve
         self.open_valve = open_valve
 
     def open(self):
         set_valve(self.close_valve, False)
+        sched.sleep(.2)
         set_valve(self.open_valve, True)
 
     def close(self):
         set_valve(self.open_valve, False)
+        sched.sleep(.2)
         set_valve(self.close_valve, True)
 
     def disable(self):
