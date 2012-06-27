@@ -1,13 +1,13 @@
 import math
 
 import dds
-from subjugator import nav, sched, vision
+from subjugator import nav, sched, vision, sub
 
 BIN_1 = 'sword'
 BIN_2 = 'trident'
 
 servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
-down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=18000, debug=True) # TODO set desired_scale
+down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=18000, debug=True)
 
 allbins_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/all')
 bin1_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/single', vision.FilterCompare('item', '__eq__', BIN_1))
@@ -39,7 +39,8 @@ def run():
             return False
         print 'Dropping first marker!'
         nav.down(.5)
-        sched.sleep(5)
+        sched.sleep(1)
+        sub.BallDropper.drop()
         print 'Done!'
 
     print 'Returning to center...'
@@ -53,7 +54,8 @@ def run():
             return False
         print 'Dropping second marker!'
         nav.down(.5)
-        sched.sleep(5)
+        sched.sleep(1)
+        sub.BallDropper.drop()
         print 'Done!'
 
     print 'Returning to center...'

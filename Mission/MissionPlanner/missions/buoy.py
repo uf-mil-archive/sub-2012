@@ -13,10 +13,6 @@ servo = vision.StrafeVisualServo(fastvel=.35,
                                  kz=.3,
                                  debug=True)
 
-#buoy_data = [('red', 'buoy/red', 14), ('yellow', 'buoy/yellow', 37), ('green', 'buoy/green', 58)]
-buoy_data = [('red', 'buoy/red', 14), ('yellow', 'buoy/yellow', 37), ('green', 'buoy/green', 63)]
-buoy_sels = { }
-
 def huediff(a, b):
     diff = a - b
     if diff >= 127:
@@ -26,15 +22,19 @@ def huediff(a, b):
     else:
         return diff
 
-# Generate buoy_sels from buoy_data
-for (name, object_names, hue) in buoy_data:
-    def score(obj, hue=hue):
-        scale = float(obj['scale'])
-        diff = huediff(hue, float(obj['hue']))
-        val = scale*pow(1-abs(diff)/255.0, 5)
-        return val
+def buoy_score(obj, hue):
+    scale = float(obj['scale'])
+    diff = huediff(hue, float(obj['hue']))
+    val = scale*pow(1-abs(diff)/255.0, 5)
+    return val
 
-    buoy_sels[name] = vision.Selector(vision.FORWARD_CAMERA, object_names, vision.FilterScore(score, min_score=500))
+def make_buoy_sel(name, hue):
+    return vision.Selector(vision.FORWARD_CAMERA, 'buoy/'+name, vision.FilterScore(lambda obj: buoy_score(obj, hue), min_score=500))
+
+# Make buoy selectors
+buoy_sels = dict(red=make_buoy_sel('red', 14),
+                 yellow=make_buoy_sel('yellow', 37),
+                 green=make_buoy_sel('green', 63))
 
 # Combine all buoy selectors
 buoy_sel_any = vision.combine_selectors(list(buoy_sels.itervalues()))
