@@ -69,7 +69,7 @@ class Point(object):
         for i in xrange(0, 3):
             if math.fabs(otherpoint.array[i] - self.array[i]) > pos_tol:
                 return False
-            if mathutils.angle_wrap(math.fabs(otherpoint.array[i+3] - self.array[i+3])) > rad_tol:
+            if math.fabs(mathutils.angle_wrap(math.fabs(otherpoint.array[i+3] - self.array[i+3]))) > rad_tol:
                 return False
         return True
 
@@ -139,6 +139,9 @@ def set_waypoint(waypoint, speed=0, coordinate=True):
                 'rdot': list(waypoint.vel.xyzRPY),
                 'speed': speed,
                 'coordinate_unaligned': coordinate})
+    sched.ddswait(topic)
+    while not (get_waypoint().pos.approx_equal(waypoint.pos) and get_waypoint().vel.approx_equal(waypoint.vel)):
+        sched.ddswait(topic)
 
 def set_waypoint_rel(relpoint, *args, **kwargs):
     set_waypoint(relpoint.resolve_relative(get_trajectory().pos), *args, **kwargs)
@@ -161,11 +164,10 @@ def get_trajectory():
 def wait():
     while True:
         waypoint = get_waypoint()
-        #assert linalg.norm(waypoint.vel.xyzRPY) < 0.00001
         trajectory = get_trajectory()
 
         if trajectory.pos.approx_equal(waypoint.pos):
-            return
+            break
         sched.ddswait(topics.get('Trajectory'))
 
 def waitopts(func):
