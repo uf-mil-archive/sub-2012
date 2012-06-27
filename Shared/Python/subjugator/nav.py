@@ -226,6 +226,29 @@ def heading(deg=None, rad=None):
         waypoint.pos.Y = rad
     set_waypoint(waypoint)
 
+@waitopts
+def pitch(deg=None, rad=None):
+    assert(deg is not None or rad is not None)
+    waypoint = Waypoint(get_trajectory().pos)
+    if deg is not None:
+        waypoint.pos.P = math.radians(deg)
+    else:
+        waypoint.pos.P = rad
+    set_waypoint(waypoint)
+
+@waitopts
+def invert():
+    waypoint = Waypoint(get_trajectory().pos)
+    waypoint.pos.R = math.pi
+    set_waypoint(waypoint)
+
+@waitopts
+def level():
+    waypoint = Waypoint(get_trajectory().pos)
+    waypoint.pos.R = 0
+    waypoint.pos.P = 0
+    set_waypoint(waypoint)
+
 def vel(x=0, y=0, z=0, R=0, P=0, Y=0):
     set_waypoint_rel(make_waypoint(velx=x, vely=y, velz=z, velR=R, velP=P, velY=Y), coordinate=False)
 
@@ -274,6 +297,5 @@ def do_a_barrel_roll(velx=0):
     while get_trajectory().pos.R >= 0:
         sched.sleep(.1)
     sched.sleep(.2)
-    print 'Returning to level'
     set_waypoint(make_waypoint(x=pos.x, y=pos.y, z=pos.z, Y=pos.Y, velx=velx))
     wait()
