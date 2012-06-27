@@ -215,7 +215,7 @@ def duration(t):
     d = DDSType.Duration_t()
     (frac, sec) = math.modf(t)
     d.sec = int(sec)
-    d.nanosec = int(frac / 1e9)
+    d.nanosec = int(frac * 1e9)
     return d
 
 # some types
