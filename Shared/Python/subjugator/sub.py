@@ -177,3 +177,23 @@ class Grabber(object):
     def disable(self):
         set_valve(self.close_valve, False)
         set_valve(self.open_valve, False)
+
+    @property
+    def switch1(self):
+        try:
+            topic = topics.get('PDInput')
+            return (topic.read()['input_mask'] & 0x01) != 0
+        except dds.Error:
+            return False
+
+    @property
+    def switch2(self):
+        try:
+            topic = topics.get('PDInput')
+            return (topic.read()['input_mask'] & 0x02) != 0
+        except dds.Error:
+            return False
+
+    @property
+    def closed(self):
+        return self.switch1 and self.switch2
