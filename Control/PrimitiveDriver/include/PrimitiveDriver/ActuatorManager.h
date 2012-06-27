@@ -19,6 +19,7 @@ namespace subjugator {
 		virtual void updateState(double dt);
 
 		bool getSwitch(int num) const { return switches[num]; }
+		const std::vector<bool> &getSwitches() const { return switches; }
 
 		void setActuator(int num, bool state);
 		void setActuators(const std::vector<bool> &actuators);

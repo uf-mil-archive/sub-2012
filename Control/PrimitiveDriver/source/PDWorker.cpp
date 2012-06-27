@@ -118,7 +118,7 @@ void PDWorker::work(double dt) {
 	// TODO rework timestamps at worker level
 	infosignal.emit(PDInfo(0, 0, currents, mergemanager.getMergeInfo()));
 
-	inputsignal.emit(actuatormanager.getActuators());
+	inputsignal.emit(actuatormanager.getSwitches());
 
 	heartbeatendpoint.write(HeartBeat());
 }
