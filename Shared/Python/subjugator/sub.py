@@ -130,11 +130,11 @@ def get_actuator_inputs():
         return (False, False)
 
 def purge_actuators():
-    for i in xrange(5):
+    for i in xrange(6):
         Grabber.open()
-        sched.sleep(.25)
+        sched.sleep(.5)
         Grabber.disable()
-        sched.sleep(.25)
+        sched.sleep(.5)
 
 class PulseActuator(object):
     def __init__(self, num):
