@@ -3,7 +3,7 @@
 		{"name": "DVL"},
 		{"name": "IMU"},
 		{"name": "Depth"}
-/*		{"name": "LPOSVSS"} */
-	]
-}
+	],
 
+    "autostart": true
+}

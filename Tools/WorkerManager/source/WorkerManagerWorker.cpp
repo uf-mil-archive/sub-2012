@@ -43,6 +43,13 @@ void WorkerManagerWorker::initialize() {
 		workerlist.addWorker(name, args, opts);
 		statusupdatesignal.emit(StatusUpdate(name, Process::STOPPED));
 	}
+
+	if (getConfig().get<bool>("autostart", false)) {
+		for (WorkerManagerList::const_iterator i = workerlist.begin(); i != workerlist.end(); ++i) {
+			Command cmd = {i->first, true};
+			commandmailbox.set(cmd);
+		}
+	}
 }
 
 void WorkerManagerWorker::work(double dt) {
@@ -107,4 +114,3 @@ void WorkerManagerWorker::workerManagerAction(WorkerManager &wm) {
 
 	logger.log(buf.str());
 }
-

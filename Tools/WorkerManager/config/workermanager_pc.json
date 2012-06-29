@@ -4,6 +4,8 @@
 		{"name": "TrackingController"},
 		{"name": "LPOSVSS"},
 		{"name": "C3Trajectory"},
-		{"name": "MissionPlanner", "args": "run_missionplanner.py"},
-	]
+		{"name": "MissionPlanner", "args": "run_missionplanner.py"}
+	],
+
+	"autostart": true
 }

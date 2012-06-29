@@ -8,6 +8,8 @@
 
 namespace subjugator {
 	class WorkerManagerList : public StateUpdater {
+		typedef boost::ptr_map<std::string, WorkerManager> ManMap;
+
 		public:
 			struct Callbacks {
 				virtual void processStateChanged(WorkerManager &wm)=0;
@@ -19,13 +21,17 @@ namespace subjugator {
 
 			WorkerManager *getWorkerManager(const std::string &name) const;
 
+			typedef ManMap::const_iterator const_iterator;
+			const_iterator begin() const { return manmap.begin(); }
+			const_iterator end() const { return manmap.end(); }
+
 			virtual const State &getState() const { return state; }
 			virtual void updateState(double dt);
 
 		private:
 			Callbacks &callbacks;
 
-			typedef boost::ptr_map<std::string, WorkerManager> ManMap;
+
 			ManMap manmap;
 
 			State state;
@@ -33,4 +39,3 @@ namespace subjugator {
 }
 
 #endif
-
