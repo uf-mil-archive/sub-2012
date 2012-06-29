@@ -106,7 +106,7 @@ endif()
 
 # Libraries
 set(NDDS_LIBDIR_HINT "${NDDS_HOME}/lib/${NDDS_ARCH}")
-foreach(LIB nddscpp nddsc nddscore rtimonitoring)
+foreach(LIB nddscpp nddsc nddscore)
 	find_library(NDDS_LIB_${LIB}_RELEASE ${LIB} HINTS ${NDDS_LIBDIR_HINT} DOC "Path to RTI DDS library ${LIB}")
 	find_library(NDDS_LIB_${LIB}_DEBUG ${LIB}d HINTS ${NDDS_LIBDIR_HINT} DOC "Path to RTI DDS library ${LIB} built for debugging")
 
@@ -148,4 +148,3 @@ if(NOT NDDS_FIND_QUIETLY)
 		endif()
 	endif()
 endif()
-
