@@ -24,6 +24,7 @@ _topic_qoses = {
     'PDEffort': _TopicConf(lib.PDEffortMessage, RELIABLE),
     'PDActuator': _TopicConf(lib.PDActuatorMessage, RELIABLE),
     'PDInput': _TopicConf(lib.PDInputMessage, DEFAULT),
+    'PDWrench': _TopicConf(lib.PDWrenchMessage, DEFAULT),
     'IMU': _TopicConf(lib.IMUMessage,  EXCLUSIVE+LIVELINESS),
     'DVL': _TopicConf(lib.DVLMessage,  DEFAULT),
     'Depth': _TopicConf(lib.DepthMessage, DEFAULT),

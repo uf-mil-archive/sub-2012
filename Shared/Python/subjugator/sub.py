@@ -199,3 +199,7 @@ class Grabber(object):
     @property
     def closed(self):
         return self.switch1 and self.switch2
+
+def set_wrench(wrench):
+    topic = topics.get('PDWrench')
+    topic.send(dict(linear=wrench[0:3], moment=wrench[3:6]))

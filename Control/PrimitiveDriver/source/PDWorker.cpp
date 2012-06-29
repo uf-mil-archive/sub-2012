@@ -41,7 +41,8 @@ PDWorker::PDWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 	registerStateUpdater(heartbeatendpoint);
 	registerStateUpdater(thrustermanager);
 	registerStateUpdater(mergemanager);
-	registerStateUpdater(actuatormanager);
+	if (getConfig().get<bool>("actuator_present", true))
+		registerStateUpdater(actuatormanager);
 	registerStateUpdater(killmon);
 }
 

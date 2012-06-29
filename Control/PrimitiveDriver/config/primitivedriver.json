@@ -3,6 +3,8 @@
 	"actuator_endpoint": "serial /dev/ttyActuator",
 	"heartbeat_endpoint": "udp 255.255.255.255:50000",
 
+	"actuator_present": "false",
+
 	"thrusters": {
 		"FRV":  {"address": 30, "lineofaction": "0  0  1", "position": " 11.7103  5.3754 -1.9677", "fsat": 21.57, "rsat": 17.98, "endpoint": "udp 192.168.1.30:50000"},
 		"FLV":  {"address": 31, "lineofaction": "0  0  1", "position": " 11.7103 -5.3754 -1.9677", "fsat": 21.57, "rsat": 17.98, "endpoint": "udp 192.168.1.31:50000"},
