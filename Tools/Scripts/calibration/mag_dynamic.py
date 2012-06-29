@@ -1,8 +1,11 @@
 from subjugator import sched, sub
+import argparse
 
-# Gathers data necessary for dynamic magnetometer calibration
-# Ramps each thruster individually forward and reverse, and logs the magnetometer
-# readings per thruster to a set of files 'dynamic_cal_thruster_[0-7].csv'.
+parser = argparse.ArgumentParser(description='Gathers data for dynamic magnetometer calibration.')
+parser.add_argument('thrusters', nargs='*', type=int, default=list(xrange(0, 8)), help='Thruster numbers to test')
+parser.add_argument('-p', '--prefix', default='dynamic_cal', help='Prefix for logged files')
+
+args = parser.parse_args()
 
 def ramp(thruster, start, end, time):
     for i in xrange(0, 20):
@@ -37,16 +40,15 @@ class Logger(sched.Task):
         self.rate = rate
 
     def run(self):
-        with open("dynamic_cal_thruster_%d.csv" % self.thruster.num, 'w') as f:
+        with open('%s_thruster_%d.csv' % (args.prefix, self.thruster.num), 'w') as f:
             while True:
                 sched.sleep(1.0/self.rate)
-                f.write('%f,%f,%f,%f,%f' % (sub.IMU.mag + (self.thruster.effort, self.thruster.current)))
+                f.write('%.10e,%.10e,%.10e,%.10e,%.10e\n' % (sub.IMU.mag + (self.thruster.effort, self.thruster.current)))
 
 @sched.Task("main")
 def main():
-    print "===Waiting for 5 seconds"
-    #sched.sleep(5)
-    for thruster in sub.thrusters:
+    for thrusternum in args.thrusters:
+        thruster = sub.thrusters[thrusternum]
         log = Logger(thruster, 50)
         sweep(thruster, .2, 1)
         log.stop()
