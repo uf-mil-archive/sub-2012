@@ -92,7 +92,7 @@ namespace subjugator {
 		msg.messages.ensure_length(finderresults.second.size(), finderresults.second.size());
 		for(unsigned int i = 0; i < finderresults.second.size(); i++) {
 			ostringstream s; property_tree::json_parser::write_json(s, finderresults.second[i]);
-			msg.messages[i] = DDS_String_dup(s.str().c_str());
+			to_dds(msg.messages[i], s.str());
 		}
 	}
 
@@ -101,7 +101,7 @@ namespace subjugator {
 		msg.cameraid = data.first;
 		msg.images.ensure_length(data.second.size(), data.second.size());
 		for(unsigned int i = 0; i < data.second.size(); i++) {
-			msg.images[i].name = DDS_String_dup(data.second[i].first.c_str());
+			to_dds(msg.images[i].name, data.second[i].first);
 			assert(msg.images[i].data.from_array(data.second[i].second.data(), data.second[i].second.length()));
 		}
 	}
@@ -109,7 +109,7 @@ namespace subjugator {
 	template <>
 	void to_dds(VisionConfigMessage &msg, const property_tree::ptree& config) {
 		ostringstream s; property_tree::json_parser::write_json(s, config);
-		msg.config = DDS_String_dup(s.str().c_str());
+		to_dds(msg.config, s.str());
 	}
 
 	template <>

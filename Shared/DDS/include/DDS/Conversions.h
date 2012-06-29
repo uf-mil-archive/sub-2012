@@ -62,7 +62,10 @@ namespace subjugator {
 	// string
 
 	template <>
-	void to_dds(char *&msg, const std::string &data) { msg = const_cast<char *>(data.c_str()); }
+	void to_dds(char *&msg, const std::string &data) {
+		DDS_String_free(msg);
+		msg = DDS_String_dup(data.c_str());
+	}
 
 	template <>
 	void from_dds(std::string &data, char *const &msg) { data = std::string(msg); }
@@ -145,5 +148,3 @@ namespace subjugator {
 }
 
 #endif
-
-

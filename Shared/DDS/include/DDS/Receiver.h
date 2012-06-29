@@ -78,7 +78,7 @@ namespace subjugator {
 						throw DDSException("Failed to take from messagereader", code);
 
 					if (infoseq[0].valid_data)
-						return toSharedPtr(messageseq[0]);
+						return message_shared_ptr(messageseq[0]);
 				}
 			}
 
@@ -95,7 +95,7 @@ namespace subjugator {
 					throw DDSException("Failed to read from messagereader", code);
 
 				if (infoseq[0].valid_data)
-					return toSharedPtr(messageseq[0]);
+					return message_shared_ptr(messageseq[0]);
 				else
 					return boost::shared_ptr<MessageT>();
 			}
@@ -111,18 +111,11 @@ namespace subjugator {
 
 				outvec.resize(messageseq.length());
 				for (int i=0; i<messageseq.length(); ++i) {
-					outvec[i] = toSharedPtr(messageseq[i]);
+					outvec[i] = message_shared_ptr(messageseq[i]);
 				}
 
 				messagereader->return_loan(messageseq, infoseq);
 				return outvec;
-			}
-
-		private:
-			boost::shared_ptr<MessageT> toSharedPtr(const MessageT &msg) {
-				boost::shared_ptr<MessageT> ptr(TypeSupport::create_data(), &TypeSupport::delete_data);
-				TypeSupport::copy_data(ptr.get(), &msg);
-				return ptr;
 			}
 	};
 
@@ -194,4 +187,3 @@ namespace subjugator {
 }
 
 #endif
-

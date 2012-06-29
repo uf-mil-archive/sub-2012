@@ -153,9 +153,9 @@ namespace subjugator {
 				sender(topic) { }
 
 				void callback(const DataT &obj) {
-					MessageT msg;
-					to_dds(msg, obj);
-					sender.send(msg);
+					MessageWrapper<MessageT> msg;
+					to_dds(*msg, obj);
+					sender.send(*msg);
 				}
 			};
 
@@ -220,10 +220,10 @@ namespace subjugator {
 				stateconn(worker.statechangedsig.connect(bind(&WorkerStateSenderObj::stateChangedCallback, this, _1))) { }
 
 				void stateChangedCallback(const State &state) {
-					WorkerStateMessage msg;
-					to_dds(msg.worker, worker.getName());
-					to_dds(msg.state, state);
-					statesender.send(msg);
+					MessageWrapper<WorkerStateMessage> msg;
+					to_dds(msg->worker, worker.getName());
+					to_dds(msg->state, state);
+					statesender.send(*msg);
 				}
 			};
 	};
