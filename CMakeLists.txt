@@ -47,7 +47,7 @@ find_package(PythonInterp)
 add_subdirectory(Shared/HAL)
 add_subdirectory(Shared/DDS)
 add_subdirectory(Shared/LibSub)
-add_subdirectory(Shared/WorkerManager)
+add_subdirectory(Tools/WorkerManager)
 
 # add legacy shared stuff
 if(SUB_BUILD_LEGACY)
@@ -128,4 +128,3 @@ if(BUILD_GUMSTIX)
 	add_subdirectory(Sensors/Depth)
 	add_subdirectory(Sensors/DVL)
 endif()
-
