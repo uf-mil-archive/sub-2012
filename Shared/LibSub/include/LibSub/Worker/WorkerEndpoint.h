@@ -36,10 +36,10 @@ namespace subjugator {
 			typedef boost::function<void (const boost::shared_ptr<DataObject> &)> ReceiveCallback;
 
 			WorkerEndpointArgs() :
-			endpoint(NULL), outgoingonly(false), maxage(std::numeric_limits<double>::infinity()) { }
+		    outgoingonly(false), maxage(std::numeric_limits<double>::infinity()) { }
 
 			WorkerEndpointArgs &setEndpoint(DataObjectEndpoint *endpoint) {
-				this->endpoint = endpoint;
+				this->endpoint.reset(endpoint);
 				return *this;
 			}
 
@@ -71,7 +71,7 @@ namespace subjugator {
 		protected:
 			void assertValidArgs();
 
-			DataObjectEndpoint *endpoint;
+			boost::shared_ptr<DataObjectEndpoint> endpoint;
 			std::string name;
 			InitializeCallback initcallback;
 			ReceiveCallback receivecallback;
@@ -103,7 +103,7 @@ namespace subjugator {
 			*/
 
 			WorkerEndpoint(const Args &args);
-			
+
 			void clearMaxAge() { maxage = std::numeric_limits<double>::infinity(); }
 			void setMaxAge(double maxage) { this->maxage = maxage; }
 
@@ -141,4 +141,3 @@ namespace subjugator {
 }
 
 #endif
-
