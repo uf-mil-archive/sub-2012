@@ -106,7 +106,8 @@ class Task:
                 self._remove_from_active()
 
     def _suspend(self, wait):
-        assert self.state == 'active'
+        if self.state != 'active':
+            return
         self.wait = wait
 
         self._remove_from_active()
@@ -117,7 +118,8 @@ class Task:
         self.wait = None
 
     def _resume(self):
-        assert self.state == 'wait'
+        if self.state == 'active':
+            return
         self.wait = None
         Sched.active_tasks.append(self)
 
