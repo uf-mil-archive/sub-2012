@@ -1,0 +1,6 @@
+{
+	"workers": [
+		{"name": "Vision Down", "args": "vision -c 1"},
+		{"name": "Vision Forward", "args": "vision -c 2"}
+	]
+}

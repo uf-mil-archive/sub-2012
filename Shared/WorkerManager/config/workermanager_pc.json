@@ -2,11 +2,8 @@
 	"workers": [
 		{"name": "PrimitiveDriver"},
 		{"name": "TrackingController"},
-		{"name": "TrajectoryGenerator"},
 		{"name": "LPOSVSS"},
 		{"name": "C3Trajectory"},
 		{"name": "MissionPlanner", "args": "run_missionplanner.py"},
-		{"name": "Vision Down", "args": "vision -c 1"},
-		{"name": "Vision Forward", "args": "vision -c 2"}
 	]
 }
