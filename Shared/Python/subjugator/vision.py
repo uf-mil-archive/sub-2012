@@ -8,24 +8,24 @@ from subjugator import mathutils
 import dds
 import math
 
-def set_object_names(object_names, camera_id):
+def set_object_names(object_names, cameraname):
     if not isinstance(object_names, list):
         object_names = [object_names]
     topic = topics.get('VisionSetObjects')
-    topic.send({'objectnames': object_names, 'cameraid': camera_id})
+    topic.send({'objectnames': object_names, 'cameraname': cameraname})
 
 def wait():
     topic = topics.get('VisionResults')
     sched.ddswait(topic)
 
-def get_objects(object_names, camera_id):
+def get_objects(object_names, cameraname):
     if not isinstance(object_names, list):
         object_names = [object_names]
     topic = topics.get('VisionResults')
     try:
         msgs = topic.read_all()
         for msg in msgs:
-            if msg['cameraid'] == camera_id:
+            if msg['cameraname'] == cameraname:
                 objs = map(json.loads, msg['messages'])
                 ret = [obj for obj in objs if obj['objectName'] in object_names]
                 return ret
@@ -101,35 +101,35 @@ class FilterLimit(Filter):
                 break
 
 class Selector(object):
-    def __init__(self, camera_id, object_names, object_filter=Filter()):
-        self.camera_id = camera_id
+    def __init__(self, cameraname, object_names, object_filter=Filter()):
+        self.cameraname = cameraname
         if not isinstance(object_names, list):
             object_names = [object_names]
         self.object_names = object_names
         self.object_filter = object_filter
 
     def setup(self):
-        set_object_names(self.object_names, self.camera_id)
+        set_object_names(self.object_names, self.cameraname)
 
     def get_objects(self):
-        objs = get_objects(self.object_names, self.camera_id)
+        objs = get_objects(self.object_names, self.cameraname)
         return self.object_filter(iter(objs))
 
     def get_object(self):
         return next(self.get_objects(), None)
 
 def combine_selectors(sels, filt=Filter()):
-    camera_id = sels[0].camera_id
+    cameraname = sels[0].cameraname
     object_names = set()
     object_filters = []
     for sel in sels:
-        assert camera_id == sel.camera_id
+        assert cameraname == sel.cameraname
         object_names.update(sel.object_names)
         object_filters.append(sel.object_filter)
-    return Selector(camera_id, list(object_names), FilterChain(FilterSum(*object_filters), filt))
+    return Selector(cameraname, list(object_names), FilterChain(FilterSum(*object_filters), filt))
 
-DOWN_CAMERA = 0
-FORWARD_CAMERA = 1
+DOWN_CAMERA = "down"
+FORWARD_CAMERA = "forward"
 
 class VisualAlgorithm(object):
     def run(self, selector):

@@ -1,5 +1,5 @@
 struct VisionSetObjectsMessage {
-	long cameraid;
+	string cameraname;
 	sequence<string> objectnames;
 };
 

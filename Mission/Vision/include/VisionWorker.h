@@ -18,17 +18,17 @@ namespace subjugator {
 class VisionWorker : public Worker
 {
 public:
-	VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, unsigned int cameraId);
+	VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, const std::string &cameraname);
 
 	bool Startup();
 	void Shutdown();
 
-	WorkerMailbox<std::pair<int, std::vector<std::string> > > setobjectsmailbox;
+	WorkerMailbox<std::pair<std::string, std::vector<std::string> > > setobjectsmailbox;
 	WorkerMailbox<boost::property_tree::ptree> configmailbox;
 
-	WorkerSignal<std::pair<int, std::vector<boost::property_tree::ptree> > > outputsignal;
+	WorkerSignal<std::pair<std::string, std::vector<boost::property_tree::ptree> > > outputsignal;
 	WorkerSignal<boost::property_tree::ptree> configsignal;
-	WorkerSignal<std::pair<int, std::string> > debugsignal;
+	WorkerSignal<std::pair<std::string, std::string> > debugsignal;
 
 protected:
 	virtual void enterActive();
@@ -40,7 +40,7 @@ private:
 	boost::property_tree::ptree config;
 	CAL cal;
 	IOImages ioimages;
-	int cameraId;
+	std::string cameraname;
 	std::vector<boost::shared_ptr<IFinder> > listOfFinders;
 	std::vector<std::string> objectNames;
 	boost::shared_ptr<Camera> camera;

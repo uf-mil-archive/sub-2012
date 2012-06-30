@@ -24,14 +24,14 @@ class VisionWorkerBuilderOptions : public WorkerBuilderOptions {
 	public:
 		VisionWorkerBuilderOptions(const std::string &workername) : WorkerBuilderOptions(workername) {
 			desc.add_options()
-				("cameraid,c", program_options::value<unsigned int>(), "camera id number");
+				("cameraname,c", program_options::value<string>(), "camera name");
 		}
-		unsigned int cameraId;
+		string cameraname;
 	protected:
 		virtual bool setVariables(const boost::program_options::variables_map &vm) {
-			if (!vm.count("cameraid"))
-				throw runtime_error("need cameraid option (-c 1)");
-			cameraId = vm["cameraid"].as<unsigned int>();
+			if (!vm.count("cameraname"))
+				throw runtime_error("need cameraname option (-c front)");
+			cameraname = vm["cameraname"].as<string>();
 			return true;
 		}
 };
@@ -42,7 +42,7 @@ class VisionWorkerConstructionPolicy {
 		struct ExtraArg {};
 
 		VisionWorkerConstructionPolicy(boost::asio::io_service &io, const WorkerBuilderOptions &options, const ExtraArg &ignored)
-		: cal(io), worker(cal, options.getConfigLoader(), dynamic_cast<const VisionWorkerBuilderOptions&>(options).cameraId) { }
+		: cal(io), worker(cal, options.getConfigLoader(), dynamic_cast<const VisionWorkerBuilderOptions&>(options).cameraname) { }
 
 		WorkerT &getWorker() { return worker; }
 	private:
@@ -80,15 +80,15 @@ int main(int argc, char **argv)
 
 namespace subjugator {
 	template <>
-	void from_dds(std::pair<int, std::vector<std::string> > &data, const VisionSetObjectsMessage &msg) {
-		data.first = msg.cameraid;
+	void from_dds(pair<string, vector<string> > &data, const VisionSetObjectsMessage &msg) {
+		from_dds(data.first, msg.cameraname);
 		for (int i = 0; i < msg.objectnames.length(); i++)
 			data.second.push_back(string(msg.objectnames[i]));
 	}
 
 	template <>
-	void to_dds(VisionResultsMessage &msg, const pair<int, vector<property_tree::ptree> > &finderresults) {
-		msg.cameraid = finderresults.first;
+	void to_dds(VisionResultsMessage &msg, const pair<string, vector<property_tree::ptree> > &finderresults) {
+		to_dds(msg.cameraname, finderresults.first);
 		msg.messages.ensure_length(finderresults.second.size(), finderresults.second.size());
 		for(unsigned int i = 0; i < finderresults.second.size(); i++) {
 			ostringstream s; property_tree::json_parser::write_json(s, finderresults.second[i]);
@@ -97,8 +97,8 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(VisionDebugMessage &msg, const std::pair<int, std::string> &data) {
-		msg.cameraid = data.first;
+	void to_dds(VisionDebugMessage &msg, const pair<string, string> &data) {
+		to_dds(msg.cameraname, data.first);
 		assert(msg.image.from_array(data.second.data(), data.second.length()));
 	}
 

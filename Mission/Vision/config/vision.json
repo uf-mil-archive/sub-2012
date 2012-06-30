@@ -74,7 +74,7 @@
             "minAngleDiff": "20"
         }
     },
-    "camera0":
+    "down":
     {
         "imageSource":
         {
@@ -83,7 +83,7 @@
         },
         "autoVal": "45"
     },
-    "camera1":
+    "forward":
     {
         "imageSource":
         {
@@ -92,7 +92,7 @@
         },
         "autoVal": "25"
     },
-    "camera9":
+    "test":
     {
         "imageSource":
         {

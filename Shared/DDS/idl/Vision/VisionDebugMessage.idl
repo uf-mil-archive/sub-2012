@@ -1,5 +1,5 @@
 struct VisionDebugMessage {
-	long cameraid;
+	string cameraname;
 	sequence<char,1000000> image; // not a string because it can contain NULs
 };
 

@@ -16,12 +16,12 @@ using namespace boost::posix_time;
 using namespace subjugator;
 using namespace std;
 
-VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, unsigned int cameraId) :
+VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, const string& cameraname) :
 	Worker("Vision", 50, configloader),
-	setobjectsmailbox(WorkerMailbox<std::pair<int, std::vector<std::string> > >::Args().setName("setobjects")),
+	setobjectsmailbox(WorkerMailbox<std::pair<std::string, std::vector<std::string> > >::Args().setName("setobjects")),
 	configmailbox(WorkerMailbox<property_tree::ptree>::Args().setName("config")),
 	cal(cal),
-	cameraId(cameraId)
+	cameraname(cameraname)
 {
 	this->frameCnt = 0;
 	handleConfig(getConfig());
@@ -45,9 +45,9 @@ void VisionWorker::work(double dt)
 	}
 
 	if(setobjectsmailbox.takeOptional()) {
-		pair<int, vector<string> > msg = setobjectsmailbox.get();
+		pair<string, vector<string> > msg = setobjectsmailbox.get();
 
-		if (msg.first == cameraId && msg.second != objectNames) {
+		if (msg.first == cameraname && msg.second != objectNames) {
 			objectNames = msg.second;
 			rebuildFinders = true;
 		}
@@ -80,7 +80,7 @@ void VisionWorker::work(double dt)
 			cout << "Found object: " << s.str() << endl;
 		}
 		
-		outputsignal.emit(make_pair(cameraId, fResult));
+		outputsignal.emit(make_pair(cameraname, fResult));
 	}
 	
 	Mat n(480, 320, CV_8UC3);
@@ -94,15 +94,15 @@ void VisionWorker::work(double dt)
 	vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(80);
 	vector<uchar> buf;imencode(".jpg", n, buf, params);
 	cout << "Image size: " << buf.size() << endl;
-	debugsignal.emit(make_pair(cameraId, string(buf.begin(), buf.end())));
+	debugsignal.emit(make_pair(cameraname, string(buf.begin(), buf.end())));
 
 	if(config.get<bool>("logImages") && frameCnt%30 == 0)
 	{
 		std::stringstream str;
-		str << "log/" << cameraId << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.png";
+		str << "log/" << cameraname << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.png";
 		imwrite(str.str(),ioimages.src);
 		std::stringstream str2;
-		str2 << "log/" << cameraId << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.png";
+		str2 << "log/" << cameraname << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.png";
 		imwrite(str2.str(),ioimages.prcd);
 		//cout << "Logging image: " << cameraNumber << "-" << frameCnt << ".jpg" << endl;
 	}
@@ -114,9 +114,8 @@ void VisionWorker::handleConfig(property_tree::ptree new_config) {
 
 	subjugator::merge(config, new_config.get_child("default"));
 
-	stringstream s; s << cameraId;
-	if(new_config.get_child_optional("camera" + s.str()))
-		subjugator::merge(config, new_config.get_child("camera" + s.str()));
+	if(new_config.get_child_optional(cameraname))
+		subjugator::merge(config, new_config.get_child(cameraname));
 
 	camera.reset();
 	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));

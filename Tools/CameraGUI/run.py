@@ -45,8 +45,7 @@ class Window(object):
             if e.message != 'no data':
                 raise
         else:
-            if (self.wTree.get_object('cameraid_entry').get_text().isdigit() and
-                    int(self.wTree.get_object('cameraid_entry').get_text()) == msg['cameraid']):
+            if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
         
         try:
@@ -65,8 +64,7 @@ class Window(object):
             if e.message != 'no data':
                 raise
         else:
-            if (self.wTree.get_object('cameraid_entry').get_text().isdigit() and
-                    int(self.wTree.get_object('cameraid_entry').get_text()) == msg['cameraid']):
+            if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 x = gtk.gdk.PixbufLoader()
                 x.write(msg['image'])
                 x.close()
@@ -102,7 +100,7 @@ class Window(object):
     
     def setobjects(self, button):
         self.setobjects_topic.send(dict(
-            cameraid=int(self.wTree.get_object('cameraid_entry').get_text()),
+            cameraname=self.wTree.get_object('cameraname_entry').get_text(),
             objectnames=[x for x in self.wTree.get_object('objects_entry').get_text().split(',') if x], 
         ))
 
