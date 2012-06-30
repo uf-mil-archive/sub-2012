@@ -39,31 +39,16 @@ class Window(object):
         self.loop()
     
     def loop(self):
-        try:
-            msg = self.result_topic.take()
-        except dds.Error, e:
-            if e.message != 'no data':
-                raise
-        else:
+        for msg in self.result_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
         
-        try:
-            msg = self.config_topic.take()
-        except dds.Error, e:
-            if e.message != 'no data':
-                raise
-        else:
+        for msg in self.config_topic.read_all():
             b = self.wTree.get_object('config_text').get_buffer()
             if b.get_text(b.get_start_iter(), b.get_end_iter()) != msg['config']: # check to avoid scrolling to top
                 self.wTree.get_object('config_text').get_buffer().set_text(msg['config'])
         
-        try:
-            msg = self.debug_topic.take()
-        except dds.Error, e:
-            if e.message != 'no data':
-                raise
-        else:
+        for msg in self.debug_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 x = gtk.gdk.PixbufLoader()
                 x.write(msg['image'])

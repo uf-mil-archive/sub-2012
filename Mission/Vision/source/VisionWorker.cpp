@@ -2,6 +2,8 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
+#include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 
@@ -18,8 +20,10 @@ using namespace std;
 
 VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, const string& cameraname) :
 	Worker("Vision", 50, configloader),
-	setobjectsmailbox(WorkerMailbox<std::pair<std::string, std::vector<std::string> > >::Args().setName("setobjects")),
-	configmailbox(WorkerMailbox<property_tree::ptree>::Args().setName("config")),
+	setobjectsmailbox(WorkerMailbox<std::pair<std::string, std::vector<std::string> > >::Args().setName("setobjects")
+		.setCallback(bind(&VisionWorker::handleSetObjects, this, _1))),
+	configmailbox(WorkerMailbox<property_tree::ptree>::Args().setName("config")
+		.setCallback(bind(&VisionWorker::handleConfig, this, _1))),
 	cal(cal),
 	cameraname(cameraname)
 {
@@ -40,19 +44,6 @@ void VisionWorker::leaveActive()
 
 void VisionWorker::work(double dt)
 {
-	if(configmailbox.takeOptional()) {
-		handleConfig(configmailbox.get());
-	}
-
-	if(setobjectsmailbox.takeOptional()) {
-		pair<string, vector<string> > msg = setobjectsmailbox.get();
-
-		if (msg.first == cameraname && msg.second != objectNames) {
-			objectNames = msg.second;
-			rebuildFinders = true;
-		}
-	}
-	
 	if(rebuildFinders) {
 		listOfFinders = FinderGenerator::buildFinders(objectNames, config);
 		rebuildFinders = false;
@@ -109,7 +100,26 @@ void VisionWorker::work(double dt)
 	frameCnt++;
 }
 
-void VisionWorker::handleConfig(property_tree::ptree new_config) {
+void VisionWorker::handleSetObjects(optional<pair<string, vector<string> > > maybe_new_setobjects) {
+	if(!maybe_new_setobjects)
+		return;
+	const pair<string, vector<string> > new_setobjects = maybe_new_setobjects.get();
+
+	if(new_setobjects.first != cameraname)
+		return;
+
+	if(new_setobjects.second == objectNames)
+		return;
+
+	objectNames = new_setobjects.second;
+	rebuildFinders = true;
+}
+
+void VisionWorker::handleConfig(optional<property_tree::ptree> maybe_new_config) {
+	if(!maybe_new_config)
+		return;
+	const property_tree::ptree &new_config = maybe_new_config.get();
+
 	config.clear();
 
 	subjugator::merge(config, new_config.get_child("default"));

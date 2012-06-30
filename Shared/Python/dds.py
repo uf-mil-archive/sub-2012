@@ -760,7 +760,12 @@ class Topic(object):
         data_seq.initialize()
         info_seq = DDSType.SampleInfoSeq()
         info_seq.initialize()
-        self._dyn_narrowed_reader.read(ctypes.byref(data_seq), ctypes.byref(info_seq), get('LENGTH_UNLIMITED', DDS_Long), get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE)
+        try:
+            self._dyn_narrowed_reader.read(ctypes.byref(data_seq), ctypes.byref(info_seq), get('LENGTH_UNLIMITED', DDS_Long), get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE)
+        except Error, e:
+            if e.message == 'no data':
+                return []
+            raise
 
         try:
             return [unpack_dd(data_seq.get_reference(i)) for i in xrange(data_seq.get_length())]

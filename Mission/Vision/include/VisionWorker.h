@@ -36,7 +36,8 @@ protected:
 	virtual void work(double dt);
 
 private:
-	void handleConfig(boost::property_tree::ptree new_config);
+	void handleSetObjects(boost::optional<std::pair<std::string, std::vector<std::string> > >);
+	void handleConfig(boost::optional<boost::property_tree::ptree>);
 	boost::property_tree::ptree config;
 	CAL cal;
 	IOImages ioimages;

@@ -1,5 +1,5 @@
 struct VisionSetObjectsMessage {
-	string cameraname;
+	string cameraname; //@key
 	sequence<string> objectnames;
 };
 
