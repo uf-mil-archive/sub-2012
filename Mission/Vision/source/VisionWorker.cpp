@@ -87,15 +87,10 @@ void VisionWorker::work(double dt)
 	cout << "Image size: " << buf.size() << endl;
 	debugsignal.emit(make_pair(cameraname, string(buf.begin(), buf.end())));
 
-	if(config.get<bool>("logImages") && frameCnt%30 == 0)
-	{
-		std::stringstream str;
-		str << "log/" << cameraname << "/src/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-src.png";
-		imwrite(str.str(),ioimages.src);
-		std::stringstream str2;
-		str2 << "log/" << cameraname << "/prcd/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << "-prcd.png";
-		imwrite(str2.str(),ioimages.prcd);
-		//cout << "Logging image: " << cameraNumber << "-" << frameCnt << ".jpg" << endl;
+	if(config.get<bool>("logImages") && frameCnt % 30 == 0) {
+		std::stringstream str; str << "log/" << cameraname << "/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << ".png";
+		bool success = imwrite(str.str(), ioimages.src);
+		cout << "Logging image to " << str.str() << " " << (success ? "succeeded" : "FAILED") << endl;
 	}
 	frameCnt++;
 }
