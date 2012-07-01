@@ -30,7 +30,7 @@ class VisionWorkerBuilderOptions : public WorkerBuilderOptions {
 	protected:
 		virtual bool setVariables(const boost::program_options::variables_map &vm) {
 			if (!vm.count("cameraname"))
-				throw runtime_error("need cameraname option (-c front)");
+				throw runtime_error("need cameraname option (-c forward)");
 			cameraname = vm["cameraname"].as<string>();
 			return true;
 		}

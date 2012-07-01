@@ -1,0 +1,35 @@
+{
+    "imageSource":
+    {
+        "type": "flycap",
+        "number": "0"
+    },
+    "logImages": "true",
+    "autoVal": "45",
+    "shutterVal": "-1",
+    "gainVal": "-1",
+    "bins":
+    {
+        "minContour": "1000",
+        "maxContour": "50000",
+        "maxPerimeter": "2000"
+    },
+    "pipe":
+    {
+        "Canny":
+        {
+            "thresh1": "50",
+            "thresh2": "200",
+            "apertureSize": "3"
+        },
+        "Hough":
+        {
+            "rho": "1",
+            "theta": "0.0087263",
+            "thresh": "80",
+            "minLineLength": "60",
+            "minLineGap": "50"
+        },
+        "minAngleDiff": "20"
+    }
+}

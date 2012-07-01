@@ -1,0 +1,56 @@
+{
+    "imageSource":
+    {
+        "type": "flycap",
+        "number": "1"
+    },
+    "logImages": "true",
+    "autoVal": "25",
+    "shutterVal": "-1",
+    "gainVal": "-1",
+    "buoy":
+    {
+        "minContour": "100",
+        "maxContour": "80000",
+        "maxPerimeter": "2000",
+        "threshRed":
+        {
+            "r": "180",
+            "g": "103",
+            "b": "49",
+            "angle": "0.1"
+        },
+        "threshGreen":
+        {
+            "r": "22",
+            "g": "52",
+            "b": "30",
+            "angle": "0.05"
+        },
+        "threshYellow":
+        {
+            "r": "77",
+            "g": "129",
+            "b": "44",
+            "angle": "0.1"
+        }
+    },
+    "hedge":
+    {
+        "Canny":
+        {
+            "thresh1": "50",
+            "thresh2": "200",
+            "apertureSize": "3"
+        },
+        "Hough":
+        {
+            "rho": "1",
+            "theta": "0.0087263",
+            "thresh": "100",
+            "minLineLength": "120",
+            "minLineGap": "50"
+        },
+        "minAngleDiff": "20"
+    }
+}

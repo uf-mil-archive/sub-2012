@@ -13,7 +13,7 @@ using namespace boost;
 using namespace std;
 
 ptree WorkerConfigLoader::loadConfig(const string &workername) const {
-	string jsonfile = to_lower_copy(workername + ".json");
+	string jsonfile = replace_all_copy(to_lower_copy(workername + ".json"), " ", "_");
 	ptree config;
 	json_parser::read_json((filesystem::path(configPath) / jsonfile).string(), config);
 
@@ -34,7 +34,7 @@ void WorkerConfigLoader::writeLocalConfig(const string &workername, const ptree 
 	if (!exists(localoverlay))
 		filesystem::create_directory(localoverlay);
 
-	string jsonfile = to_lower_copy(workername + ".json");
+	string jsonfile = replace_all_copy(to_lower_copy(workername + ".json"), " ", "_");
 	json_parser::write_json((localoverlay / jsonfile).string(), config);
 }
 

@@ -19,7 +19,7 @@ using namespace subjugator;
 using namespace std;
 
 VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, const string& cameraname) :
-	Worker("Vision", 50, configloader),
+	Worker("Vision " + cameraname, 50, configloader),
 	setobjectsmailbox(WorkerMailbox<std::pair<std::string, std::vector<std::string> > >::Args().setName("setobjects")
 		.setCallback(bind(&VisionWorker::handleSetObjects, this, _1))),
 	configmailbox(WorkerMailbox<property_tree::ptree>::Args().setName("config")
@@ -115,12 +115,7 @@ void VisionWorker::handleConfig(optional<property_tree::ptree> maybe_new_config)
 		return;
 	const property_tree::ptree &new_config = maybe_new_config.get();
 
-	config.clear();
-
-	subjugator::merge(config, new_config.get_child("default"));
-
-	if(new_config.get_child_optional(cameraname))
-		subjugator::merge(config, new_config.get_child(cameraname));
+	config = new_config;
 
 	camera.reset();
 	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
