@@ -111,19 +111,19 @@ void MainWindow::interactRunClicked() {
 	QString cmd = ui.interactCommandTextEdit->toPlainText();
 	ui.interactCommandTextEdit->clear();
 
-	InteractionCommandMessage msg;
-	to_dds(msg.cmd, cmd.toStdString());
-	msg.stop = false;
-	interactioncommandsender.send(msg);
+	MessageWrapper<InteractionCommandMessage> msg;
+	to_dds(msg->cmd, cmd.toStdString());
+	to_dds(msg->stop, false);
+	interactioncommandsender.send(*msg);
 	commandhistorypos = 0;
 	commandhistory.push_back(cmd.toStdString());
 }
 
 void MainWindow::interactStopClicked() {
-	InteractionCommandMessage msg;
-	msg.cmd = const_cast<char *>("");
-	msg.stop = true;
-	interactioncommandsender.send(msg);
+	MessageWrapper<InteractionCommandMessage> msg;
+	to_dds(msg->cmd, "");
+	to_dds(msg->stop, true);
+	interactioncommandsender.send(*msg);
 }
 
 void MainWindow::interactRecall() {
@@ -157,45 +157,43 @@ void MainWindow::missionListAdd() {
 	string mission = item->text().toStdString();
 	string list = ui.missionListCombo->currentText().toStdString();
 
-	MissionCommandMessage msg;
-	msg.type = MISSIONCOMMANDTYPE_ADD_MISSION;
-	msg.pos = ui.missionList->currentRow();
-	msg.list = const_cast<char *>(list.c_str());
-	msg.mission = const_cast<char *>(mission.c_str());
-	missioncommandsender.send(msg);
+	MessageWrapper<MissionCommandMessage> msg;
+	to_dds(msg->type, MISSIONCOMMANDTYPE_ADD_MISSION);
+	to_dds(msg->pos, ui.missionList->currentRow());
+	to_dds(msg->list, list);
+	to_dds(msg->mission, mission);
+	missioncommandsender.send(*msg);
 }
-
-static char *const emptystr = const_cast<char *>(""); // oh DDS...
 
 void MainWindow::missionListRemove() {
 	if (ui.missionList->currentRow() == -1)
 		return;
 	string list = ui.missionListCombo->currentText().toStdString();
 
-	MissionCommandMessage msg;
-	msg.type = MISSIONCOMMANDTYPE_REMOVE_MISSION;
-	msg.pos = ui.missionList->currentRow();
-	msg.list = const_cast<char *>(list.c_str());
-	msg.mission = emptystr;
-	missioncommandsender.send(msg);
+	MessageWrapper<MissionCommandMessage> msg;
+	to_dds(msg->type, MISSIONCOMMANDTYPE_REMOVE_MISSION);
+	to_dds(msg->pos, ui.missionList->currentRow());
+	to_dds(msg->list, list);
+	to_dds(msg->mission, "");
+	missioncommandsender.send(*msg);
 }
 
 void MainWindow::missionStart() {
-	MissionCommandMessage msg;
-	msg.type = MISSIONCOMMANDTYPE_START;
-	msg.pos = -1;
-	msg.list = emptystr;
-	msg.mission = emptystr;
-	missioncommandsender.send(msg);
+	MessageWrapper<MissionCommandMessage> msg;
+	to_dds(msg->type, MISSIONCOMMANDTYPE_START);
+	to_dds(msg->pos, -1);
+	to_dds(msg->list, "");
+	to_dds(msg->mission, "");
+	missioncommandsender.send(*msg);
 }
 
 void MainWindow::missionStop() {
-	MissionCommandMessage msg;
-	msg.type = MISSIONCOMMANDTYPE_STOP;
-	msg.pos = -1;
-	msg.list = emptystr;
-	msg.mission = emptystr;
-	missioncommandsender.send(msg);
+	MessageWrapper<MissionCommandMessage> msg;
+	to_dds(msg->type, MISSIONCOMMANDTYPE_STOP);
+	to_dds(msg->pos, -1);
+	to_dds(msg->list, "");
+	to_dds(msg->mission, "");
+	missioncommandsender.send(*msg);
 }
 
 void MainWindow::updateWorkers() {
@@ -540,11 +538,11 @@ void MainWindow::updateTableItem(QTableWidget &table, int row, int col, const QC
 }
 
 void MainWindow::sendKill(bool killed) {
-	WorkerKillMessage msg;
-	msg.name = const_cast<char *>("SubControl");
-	msg.desc = const_cast<char *>("SubControl GUI kill button");
-	msg.killed = killed;
-	killsender.send(msg);
+	MessageWrapper<WorkerKillMessage> msg;
+	to_dds(msg->name, "SubControl");
+	to_dds(msg->desc, "SubControl GUI kill button");
+	to_dds(msg->killed, killed);
+	killsender.send(*msg);
 }
 
 ostream &subjugator::operator<<(ostream &out, CombinedState state) {

@@ -61,10 +61,14 @@ namespace subjugator {
 
 	// string
 
+	inline void to_dds(char *&msg, const char *data) {
+		DDS_String_free(msg);
+		msg = DDS_String_dup(data);
+	}
+
 	template <>
 	void to_dds(char *&msg, const std::string &data) {
-		DDS_String_free(msg);
-		msg = DDS_String_dup(data.c_str());
+		to_dds(msg, data.c_str());
 	}
 
 	template <>
