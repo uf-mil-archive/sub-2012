@@ -93,10 +93,10 @@ void MainWindow::cellChanged(int row, int col) {
 	string workername = ui.workerStatusTable->item(row, 1)->text().toStdString();
 	bool start = ui.workerStatusTable->item(row, 0)->checkState() == Qt::Checked;
 
-	WorkerManagerCommandMessage cmd;
-	to_dds(cmd.workername, workername);
-	to_dds(cmd.start, start);
-	commandsender.send(cmd);
+	MessageWrapper<WorkerManagerCommandMessage> cmd;
+	to_dds(cmd->workername, workername);
+	to_dds(cmd->start, start);
+	commandsender.send(*cmd);
 }
 
 void MainWindow::killClicked() {
