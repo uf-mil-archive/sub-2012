@@ -26,12 +26,13 @@ class Window(object):
         self.config_topic = topics.get('VisionConfig')
         self.result_topic = topics.get('VisionResults')
         self.setobjects_topic = topics.get('VisionSetObjects')
-        self.pixels = None
 
     def start(self):
         self.wTree = gtk.Builder()
         self.wTree.add_from_file(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'interface.glade'))
         self.wTree.connect_signals(self)
+        
+        self.cameraname_changed()
         
         window = self.wTree.get_object('window')
         window.show()
@@ -39,14 +40,23 @@ class Window(object):
         self.loop()
     
     def loop(self):
+        for msg in self.setobjects_topic.read_all():
+            if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
+                if msg['objectnames'] != self.last_objectnames:
+                    self.last_objectnames = msg['objectnames']
+                    self.wTree.get_object('objects_entry').set_text(','.join(msg['objectnames']))
+        
         for msg in self.result_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
         
         for msg in self.config_topic.read_all():
-            b = self.wTree.get_object('config_text').get_buffer()
-            if b.get_text(b.get_start_iter(), b.get_end_iter()) != msg['config']: # check to avoid scrolling to top
-                self.wTree.get_object('config_text').get_buffer().set_text(msg['config'])
+            if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
+                b = self.wTree.get_object('config_text').get_buffer()
+                if msg['config'] != self.last_config:
+                    self.last_config = msg['config']
+                    if msg['config'] != b.get_text(b.get_start_iter(), b.get_end_iter()):
+                        self.wTree.get_object('config_text').get_buffer().set_text(msg['config'])
         
         for msg in self.debug_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
@@ -58,10 +68,24 @@ class Window(object):
         
         self.loop_timer = glib.timeout_add(int(1/20*1000), lambda: self.loop() and False) # False prevents it from being called again
     
+    def cameraname_changed(self, widget=None):
+        self.wTree.get_object('objects_entry').set_text('Waiting for setobjects...')
+        self.wTree.get_object('results').get_buffer().set_text('Waiting for results...')
+        self.wTree.get_object('config_text').get_buffer().set_text('Waiting for config...')
+        self.wTree.get_object('image_view').set_from_pixbuf(None)
+        self.last_objectnames = None
+        self.last_config = None
+        self.pixels = None
+    
     def pixel_clicked(self, widget, event):
         if self.pixels is None:
             return
         self.wTree.get_object('pixel_label').set_label(str(self.pixels[event.y, event.x]))
+    
+    def revert_config(self, widget):
+        if self.last_config is None:
+            return
+        self.wTree.get_object('config_text').get_buffer().set_text(self.last_config)
     
     def apply_config(self, widget):
         b = self.wTree.get_object('config_text').get_buffer()
@@ -81,7 +105,10 @@ class Window(object):
             dialog.connect('response', lambda dialog, response: dialog.destroy())
             dialog.show()
         else:
-            self.config_topic.send(dict(config=text))
+            self.config_topic.send(dict(
+                cameraname=self.wTree.get_object('cameraname_entry').get_text(),
+                config=text,
+            ))
     
     def setobjects(self, button):
         self.setobjects_topic.send(dict(

@@ -20,21 +20,21 @@ using namespace std;
 
 VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, const string& cameraname) :
 	Worker("Vision " + cameraname, 50, configloader),
-	setobjectsmailbox(WorkerMailbox<std::pair<std::string, std::vector<std::string> > >::Args().setName("setobjects")
+	setobjectsmailbox(WorkerMailbox<pair<string, vector<string> > >::Args().setName("setobjects")
 		.setCallback(bind(&VisionWorker::handleSetObjects, this, _1))),
-	configmailbox(WorkerMailbox<property_tree::ptree>::Args().setName("config")
+	configmailbox(WorkerMailbox<pair<string, property_tree::ptree> >::Args().setName("config")
 		.setCallback(bind(&VisionWorker::handleConfig, this, _1))),
 	cal(cal),
 	cameraname(cameraname)
 {
 	this->frameCnt = 0;
-	handleConfig(getConfig());
+	handleConfig(make_pair(cameraname, getConfig()));
 	rebuildFinders = true;
 }
 
 void VisionWorker::enterActive()
 {
-	configsignal.emit(getConfig());
+	configsignal.emit(make_pair(cameraname, getConfig()));
 }
 
 void VisionWorker::leaveActive()
@@ -110,18 +110,21 @@ void VisionWorker::handleSetObjects(optional<pair<string, vector<string> > > may
 	rebuildFinders = true;
 }
 
-void VisionWorker::handleConfig(optional<property_tree::ptree> maybe_new_config) {
+void VisionWorker::handleConfig(optional<pair<string, property_tree::ptree> > maybe_new_config) {
 	if(!maybe_new_config)
 		return;
-	const property_tree::ptree &new_config = maybe_new_config.get();
+	const pair<string, property_tree::ptree> &new_config = maybe_new_config.get();
 
-	config = new_config;
+	if(new_config.first != cameraname)
+		return;
+
+	config = new_config.second;
 
 	camera.reset();
 	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
 
 	rebuildFinders = true;
 
-	saveConfig(new_config);
+	saveConfig(config);
 }
 

@@ -1,4 +1,5 @@
 struct VisionConfigMessage {
+	string cameraname; //@key
 	string<100000> config;
 };
 

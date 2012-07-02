@@ -103,14 +103,16 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(VisionConfigMessage &msg, const property_tree::ptree& config) {
-		ostringstream s; property_tree::json_parser::write_json(s, config);
+	void to_dds(VisionConfigMessage &msg, const pair<string, property_tree::ptree> &config) {
+		to_dds(msg.cameraname, config.first);
+		ostringstream s; property_tree::json_parser::write_json(s, config.second);
 		to_dds(msg.config, s.str());
 	}
 
 	template <>
-	void from_dds(property_tree::ptree& config, const VisionConfigMessage& msg) {
+	void from_dds(pair<string, property_tree::ptree> &config, const VisionConfigMessage& msg) {
+		from_dds(config.first, msg.cameraname);
 		istringstream s(msg.config);
-		property_tree::json_parser::read_json(s, config);
+		property_tree::json_parser::read_json(s, config.second);
 	}
 }

@@ -24,10 +24,10 @@ public:
 	void Shutdown();
 
 	WorkerMailbox<std::pair<std::string, std::vector<std::string> > > setobjectsmailbox;
-	WorkerMailbox<boost::property_tree::ptree> configmailbox;
+	WorkerMailbox<std::pair<std::string, boost::property_tree::ptree> > configmailbox;
 
 	WorkerSignal<std::pair<std::string, std::vector<boost::property_tree::ptree> > > outputsignal;
-	WorkerSignal<boost::property_tree::ptree> configsignal;
+	WorkerSignal<std::pair<std::string, boost::property_tree::ptree> > configsignal;
 	WorkerSignal<std::pair<std::string, std::string> > debugsignal;
 
 protected:
@@ -37,7 +37,7 @@ protected:
 
 private:
 	void handleSetObjects(boost::optional<std::pair<std::string, std::vector<std::string> > >);
-	void handleConfig(boost::optional<boost::property_tree::ptree>);
+	void handleConfig(boost::optional<std::pair<std::string, boost::property_tree::ptree> >);
 	boost::property_tree::ptree config;
 	CAL cal;
 	IOImages ioimages;
