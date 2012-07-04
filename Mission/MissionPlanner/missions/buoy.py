@@ -39,7 +39,7 @@ buoy_sels = dict(red=make_buoy_sel('red', 14),
 # Combine all buoy selectors
 buoy_sel_any = vision.combine_selectors(list(buoy_sels.itervalues()))
 
-@mission.State('panForBuoy')
+@mission.State('panForBuoy {}')
 def panForBuoy(name):
     print 'Panning right for ' + name
     with sched.Timeout(3) as timeout1:
@@ -60,7 +60,7 @@ def panForBuoy(name):
     print 'Pan failed for ' + name
     return False
 
-@mission.State('findBuoy')
+@mission.State('findBuoy {}')
 def findBuoy(name):
     while True:
         print 'Servoing for ' + name

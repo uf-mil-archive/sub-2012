@@ -37,22 +37,25 @@ class StateManager(object):
 statemanager = StateManager()
 
 class State(object):
-    def __init__(self, name):
+    def __init__(self, name, *args, **kwargs):
         self.name = name
+        self.args = args
+        self.kwargs = kwargs
 
     def __call__(self, func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
             with self:
                 return func(*args, **kwargs)
         return wrapper
 
     def __enter__(self):
-        statemanager.push(self.name)
+        statemanager.push(self.name.format(*self.args, **self.kwargs))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        name = statemanager.pop()
-        assert(name == self.name)
+        statemanager.pop()
         return False
 
 Mission = collections.namedtuple('Mission', 'name func')

@@ -19,7 +19,7 @@ def run(name):
     while True:
         print 'Looking for ' + name + ' pipe'
         nav.vel(.2)
-        vision.wait_visible(pipe_sels['name'])
+        vision.wait_visible(pipe_sels[name])
         print 'See pipe!'
 
         with mission.State('servo'):
