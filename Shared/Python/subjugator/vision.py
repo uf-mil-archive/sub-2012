@@ -118,6 +118,9 @@ class Selector(object):
     def get_object(self):
         return next(self.get_objects(), None)
 
+    def is_visible(self):
+        return self.get_object() != None
+
 def combine_selectors(sels, filt=Filter()):
     cameraname = sels[0].cameraname
     object_names = set()
