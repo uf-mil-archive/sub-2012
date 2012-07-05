@@ -24,7 +24,7 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 		else if(objectName == "buoy/green")
 			Thresholder::threshGreen(ioimages);
 		else if(objectName == "buoy/red")
-			Thresholder::threshOrange(ioimages, false);
+			Thresholder::threshOrange(ioimages);
 		else if(objectName == "buoy/yellow")
 			Thresholder::threshYellow(ioimages);
 		else

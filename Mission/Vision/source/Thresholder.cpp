@@ -42,7 +42,7 @@ void Thresholder::threshBuoys(IOImages *ioimages)
 	
 }
 
-void Thresholder::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
+void Thresholder::threshOrange(IOImages *ioimages)
 {
 	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,201,30); // use lab channel hack --  higher offset = less yellow
 	add(ioimages->channelsLAB[2],ioimages->channelsRGB[2],ioimages->dbg); // combine with red channel
@@ -51,14 +51,9 @@ void Thresholder::threshOrange(IOImages *ioimages, bool erodeDilateFlag)
 	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(65,0,0,0),ioimages->channelsHSV[1]);
 	subtract(ioimages->dbg,ioimages->channelsHSV[1],ioimages->dbg); // filter whites
 	threshold(ioimages->dbg,ioimages->dbg,200,255,THRESH_BINARY);
-	if(erodeDilateFlag)
-	{
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
-	}
 }
 
-void Thresholder::threshRed(IOImages *ioimages, bool erodeDilateFlag)
+void Thresholder::threshRed(IOImages *ioimages)
 {
 	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,251,10); // use lab channel hack
 	add(ioimages->channelsLAB[2],ioimages->channelsRGB[2],ioimages->dbg); // combine with red channel
@@ -66,11 +61,6 @@ void Thresholder::threshRed(IOImages *ioimages, bool erodeDilateFlag)
 	subtract(ioimages->dbg,ioimages->channelsHSV[2],ioimages->dbg); // filter out blacks
 	subtract(ioimages->dbg,ioimages->channelsRGB[1],ioimages->dbg); // filter white/green/yellow
 	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,201,-15);
-	if(erodeDilateFlag)
-	{
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
-	}
 }
 
 void Thresholder::threshYellow(IOImages *ioimages)

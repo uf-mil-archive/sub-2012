@@ -18,7 +18,7 @@ vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
 
 	vector<property_tree::ptree> resultVector;
 	BOOST_FOREACH(const string &objectName, objectNames) {
-		Thresholder::threshOrange(ioimages, false);
+		Thresholder::threshOrange(ioimages);
 		//Thresholder::threshConfig(ioimages, config.get_child("thresh"));
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));

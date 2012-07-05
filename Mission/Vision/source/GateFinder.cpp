@@ -21,7 +21,9 @@ vector<property_tree::ptree> GateFinder::find(IOImages* ioimages) {
 	vector<property_tree::ptree> resultVector;
 	BOOST_FOREACH(const string &objectName, objectNames) {
 		// call to thresholder here
-		Thresholder::threshOrange(ioimages, true);
+		Thresholder::threshOrange(ioimages);
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
 
 		// call to specific member function here
 		Line line(1, config);
