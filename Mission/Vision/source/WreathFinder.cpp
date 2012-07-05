@@ -12,7 +12,7 @@ using namespace cv;
 using namespace std;
 
 vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
-	Normalizer::normPassthru(ioimages);
+	Normalizer::normRGB(ioimages);
 
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 
@@ -27,7 +27,7 @@ vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
 		blob.drawResult(ioimages, objectName);
 
 		BOOST_FOREACH(const Blob::BlobData &data, blob.data) {
-			if(1.15 < data.aspect_ratio && data.aspect_ratio < 1.5) {
+//			if(1.15 < data.aspect_ratio && data.aspect_ratio < 1.5) {
 				property_tree::ptree fResult;
 				fResult.put("objectName", objectName);
 				fResult.put_child("center", Point_to_ptree(data.centroid, ioimages->prcd));
@@ -38,7 +38,7 @@ vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
 				while(angle < -boost::math::constants::pi<double>()/2) angle += boost::math::constants::pi<double>();
 				fResult.put("angle", -angle);
 				resultVector.push_back(fResult);
-			}
+//			}
 		}
 	}
 	return resultVector;

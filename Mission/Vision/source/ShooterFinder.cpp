@@ -31,6 +31,8 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 
 		// call to thresholder here
 		Thresholder::threshConfig(ioimages, config.get_child("thresh_" + objectPath[1]));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 
 		// call to specific member function here
 		Contours contours(100,7000000,1500000);
