@@ -1,4 +1,5 @@
 #include <boost/foreach.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #include "Normalizer.h"
 #include "Thresholder.h"
@@ -31,7 +32,11 @@ vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
 				fResult.put("objectName", objectName);
 				fResult.put_child("center", Point_to_ptree(data.centroid, ioimages->prcd));
 				fResult.put("scale", data.radius);
-				fResult.put("angle", data.angle);
+				double angle = data.angle-boost::math::constants::pi<double>()/2;
+				// wrap it to within [+pi/2, -pi/2]
+				while(angle > boost::math::constants::pi<double>()/2) angle -= boost::math::constants::pi<double>();
+				while(angle < -boost::math::constants::pi<double>()/2) angle += boost::math::constants::pi<double>();
+				fResult.put("angle", -angle);
 				resultVector.push_back(fResult);
 			}
 		}
