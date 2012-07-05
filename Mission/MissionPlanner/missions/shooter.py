@@ -13,13 +13,13 @@ servo = vision.StrafeVisualServo(fastvel=.35,
 
 small_sels = dict(red=vision.Selector(vision.FORWARD_CAMERA, 'shooter/red/small'),
                   blue=vision.Selector(vision.FORWARD_CAMERA, 'shooter/blue/small'))
-large_sels = dict(red=vision.Selector(vision.FORWARD_CAMERA, 'shooter/red/large'),
-                  blue=vision.Selector(vision.FORWARD_CAMERA, 'shooter/blue/large'))
+box_sels = dict(red=vision.Selector(vision.FORWARD_CAMERA, 'shooter/red/box'),
+                blue=vision.Selector(vision.FORWARD_CAMERA, 'shooter/blue/box'))
 
 shooters = dict(red=sub.RightShooter,
                 blue=sub.LeftShooter)
 
-any_large_sel = vision.combine_selectors(list(large_sels.itervalues()))
+any_box_sel = vision.combine_selectors(list(box_sels.itervalues()))
 
 @mission.State('approach_shoot')
 def approach_shoot(color):
@@ -51,12 +51,12 @@ def run():
     with mission.State('forward'):
         print 'Forward until shooter seen'
         nav.vel(.2)
-        vision.wait_visible(any_large_sel)
+        vision.wait_visible(any_box_sel)
         print 'Getting closer'
         sched.sleep(.5)
-        vision.wait_visible(any_large_sel)
+        vision.wait_visible(any_box_sel)
 
-    if large_sels['red'].is_visible():
+    if box_sels['red'].is_visible():
         firstcolor = 'red'
         secondcolor = 'blue'
     else:
