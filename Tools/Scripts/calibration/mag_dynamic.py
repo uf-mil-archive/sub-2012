@@ -47,6 +47,9 @@ class Logger(sched.Task):
 
 @sched.Task("main")
 def main():
+    print 'Reading initial magnetometer'
+    sub.IMU.mag
+    sched.sleep(1)
     for thrusternum in args.thrusters:
         thruster = sub.thrusters[thrusternum]
         log = Logger(thruster, 50)

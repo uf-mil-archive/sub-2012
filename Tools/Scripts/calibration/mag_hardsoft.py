@@ -10,6 +10,8 @@ args = parser.parse_args()
 
 @sched.Task("log")
 def log():
+    print 'Reading initial magnetometer'
+    sub.IMU.mag
     print 'Waiting for %d seconds' % args.wait
     sched.sleep(args.wait)
     print "Logging"
