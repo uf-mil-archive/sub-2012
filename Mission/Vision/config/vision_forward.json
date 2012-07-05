@@ -4,6 +4,8 @@
         "type": "flycap",
         "number": "1"
     },
+    "color_x": 10,
+    "color_y": 10,
     "logImages": "true",
     "autoVal": "25",
     "shutterVal": "-1",

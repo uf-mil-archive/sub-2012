@@ -557,8 +557,8 @@ def unpack_dd_member(dd, member_name=None, member_id=DDS_DYNAMIC_DATA_MEMBER_ID_
         try:
             dd.bind_complex_member(inner, member_name, member_id)
             try:
-                # special case character/octet arrays into strings
-                if kind == TCKind.SEQUENCE or kind == TCKind.ARRAY:
+                # special case character/octet sequences into strings
+                if kind == TCKind.SEQUENCE:
                     child_tc = ctypes.POINTER(DDSType.TypeCode)()
                     inner.get_member_type(ctypes.byref(child_tc), None, 1, ex()) # seems to work even for empty strings, though we're requesting the first member's type
                     child_tk = child_tc.kind(ex())

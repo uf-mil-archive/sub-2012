@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import collections
 import json
 import os
 import sys
@@ -64,7 +65,7 @@ class Window(object):
                 x.write(msg['image'])
                 x.close()
                 self.wTree.get_object('image_view').set_from_pixbuf(x.get_pixbuf())
-                self.pixels = x.get_pixbuf().get_pixels_array()
+                self.wTree.get_object('pixel_label').set_label(str(msg['color']))
         
         self.loop_timer = glib.timeout_add(int(1/20*1000), lambda: self.loop() and False) # False prevents it from being called again
     
@@ -78,9 +79,12 @@ class Window(object):
         self.pixels = None
     
     def pixel_clicked(self, widget, event):
-        if self.pixels is None:
-            return
-        self.wTree.get_object('pixel_label').set_label(str(self.pixels[event.y, event.x]))
+        b = self.wTree.get_object('config_text').get_buffer()
+        text = b.get_text(b.get_start_iter(), b.get_end_iter())
+        d = json.loads(text, object_pairs_hook=collections.OrderedDict)
+        d['color_y'], d['color_x'] = int(event.y), int(event.x)
+        self.wTree.get_object('config_text').get_buffer().set_text(json.dumps(d, indent=4))
+        self.apply_config(None)
     
     def revert_config(self, widget):
         if self.last_config is None:
