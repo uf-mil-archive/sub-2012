@@ -61,6 +61,7 @@ void VisionWorker::work(double dt)
 	ioimages.setNewSource(camera->getImage());	
 	//camera->getImage().copyTo(ioimages.src);
 
+	vector<property_tree::ptree> results;
 	BOOST_FOREACH(const boost::shared_ptr<IFinder> &finder, listOfFinders) {
 		cout<< "Looking for objectName: ";
 		BOOST_FOREACH(const string &objectName, finder->objectNames)
@@ -74,9 +75,10 @@ void VisionWorker::work(double dt)
 			ostringstream s; property_tree::json_parser::write_json(s, pt);
 			cout << "Found object: " << s.str() << endl;
 		}
-		
-		outputsignal.emit(make_pair(cameraname, fResult));
+
+		results.insert(results.end(), fResult.begin(), fResult.end());
 	}
+	outputsignal.emit(make_pair(cameraname, results));
 	
 	Mat n(480, 320, CV_8UC3);
 	Mat n1(n, Range(0, 240), Range(0, 320));resize(listOfFinders.size() ? ioimages.res : ioimages.src, n1, Size(320, 240));
