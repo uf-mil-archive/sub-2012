@@ -54,5 +54,22 @@
             "minLineGap": "50"
         },
         "minAngleDiff": "20"
+    },
+    "shooter":
+    {
+        "thresh_red":
+        {
+            "r": "53.5",
+            "g": "36.5",
+            "b": "28.5",
+            "angle": "0.2"
+        },
+        "thresh_blue":
+        {
+            "r": "65",
+            "g": "108",
+            "b": "222",
+            "angle": "0.2"
+        }
     }
 }

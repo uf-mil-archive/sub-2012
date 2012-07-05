@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdexcept>
+#include <iostream>
 
 #include <opencv/highgui.h>
 
@@ -70,6 +71,7 @@ int Contours::findContours(IOImages* ioimages, bool findInnerContours) {
 			BOOST_FOREACH(const OuterBox &box, boxes)
 				if(abs(center_holder.x-box.centroid.x) < 30 && abs(center_holder.y-box.centroid.y) < 30)
 					insideOuterBox = true;
+			insideOuterBox = true; // XXX this needs to be redone
 
 			if(center_holder.x != 0 && center_holder.y != 0 && insideOuterBox)
 			{
@@ -102,7 +104,7 @@ double Contours::angle( Point pt1, Point pt2, Point pt0 )
 
 void Contours::drawResult(IOImages* ioimages, string objectName)
 {
-	Scalar color;
+	Scalar color(128, 128, 128);
 	if(objectName == "shooter/red/large" || objectName == "shooter/red/small")
 		color = CV_RGB(178,34,34);
 	else if(objectName == "shooter/blue/large" || objectName == "shooter/blue/small")
@@ -111,8 +113,6 @@ void Contours::drawResult(IOImages* ioimages, string objectName)
 		color = CV_RGB(127,255,133);
 	else if(objectName == "bins/single")
 		color = CV_RGB(0,255,0);
-	else
-		throw std::runtime_error("unknown objectName in Contours::drawResult: " + objectName);
 
 	BOOST_FOREACH(const OuterBox &box, boxes) {
 		circle(ioimages->prcd, box.centroid, 2, color, 2, 8, 0);

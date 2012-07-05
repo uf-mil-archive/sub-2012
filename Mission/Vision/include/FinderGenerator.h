@@ -11,7 +11,7 @@
 class FinderGenerator
 {
 	public:
-		static std::vector<boost::shared_ptr<IFinder> > buildFinders(std::vector<std::string> objectNames, const boost::property_tree::ptree& config);
+		static std::vector<boost::shared_ptr<IFinder> > buildFinders(const std::vector<std::string> &objectNames, const boost::property_tree::ptree &config);
 };
 
 #endif

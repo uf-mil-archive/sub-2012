@@ -1,3 +1,7 @@
+#include <iostream>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -18,7 +22,7 @@
 using namespace std;
 using namespace boost;
 
-vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<string> objectNames, const property_tree::ptree& config) {
+vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(const vector<string> &objectNames, const property_tree::ptree &config) {
 	vector<string> buoyNames;
 	vector<string> pipeNames;
 	vector<string> hedgeNames;
@@ -26,23 +30,27 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<string>
 	vector<string> shooterNames;
 	vector<string> binsNames;
 	vector<string> gateNames;
-	BOOST_FOREACH(string &objectName, objectNames) {
-		if(objectName == "buoy/green" || objectName=="buoy/red" || objectName == "buoy/yellow" || objectName == "buoy/all")
+	vector<string> wreathNames;
+	BOOST_FOREACH(const string &objectName, objectNames) {
+		vector<string> objectPath; split(objectPath, objectName, is_any_of("/"));
+		if(objectPath.size() == 0)
+			throw runtime_error("empty objectName");
+
+		if(objectPath[0] == "buoy")
 			buoyNames.push_back(objectName);
-		else if(objectName == "pipe")
+		else if(objectPath[0] == "pipe")
 			pipeNames.push_back(objectName);
-		else if(objectName == "hedge")
+		else if(objectPath[0] == "hedge")
 			hedgeNames.push_back(objectName);
-		else if(objectName == "tube")
+		else if(objectPath[0] == "tube")
 			tubeNames.push_back(objectName);
-		else if(objectName == "shooter/blue/large" || objectName == "shooter/blue/small" ||
-				objectName == "shooter/red/large" || objectName== "shooter/red/small")
+		else if(objectPath[0] == "shooter")
 			shooterNames.push_back(objectName);
-		else if(objectName == "bins/all" || objectName == "bins/single" || objectName == "bins/shape")
+		else if(objectPath[0] == "bins")
 			binsNames.push_back(objectName);
-		else if(objectName == "gate")
+		else if(objectPath[0] == "gate")
 			gateNames.push_back(objectName);
-		else if(objectName == "wreath")
+		else if(objectPath[0] == "wreath")
 			wreathNames.push_back(objectName);
 	}
 	
