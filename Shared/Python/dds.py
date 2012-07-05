@@ -737,6 +737,26 @@ class Topic(object):
         finally:
             self._dyn_narrowed_reader.return_loan(ctypes.byref(data_seq), ctypes.byref(info_seq))
 
+    def take_all(self):
+        if self._reader is None:
+            self._create_reader()
+
+        data_seq = DDSType.DynamicDataSeq()
+        data_seq.initialize()
+        info_seq = DDSType.SampleInfoSeq()
+        info_seq.initialize()
+        try:
+            self._dyn_narrowed_reader.take(ctypes.byref(data_seq), ctypes.byref(info_seq), get('LENGTH_UNLIMITED', DDS_Long), get('ANY_SAMPLE_STATE', DDS_SampleStateMask), get('ANY_VIEW_STATE', DDS_ViewStateMask), InstanceState.ALIVE)
+        except Error, e:
+            if e.message == 'no data':
+                return []
+            raise
+
+        try:
+            return [unpack_dd(data_seq.get_reference(i)) for i in xrange(data_seq.get_length())]
+        finally:
+            self._dyn_narrowed_reader.return_loan(ctypes.byref(data_seq), ctypes.byref(info_seq))
+
     def read(self):
         if self._reader is None:
             self._create_reader()
