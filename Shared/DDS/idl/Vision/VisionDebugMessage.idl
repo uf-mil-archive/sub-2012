@@ -1,6 +1,6 @@
 struct VisionDebugMessage {
 	string cameraname; //@key
-	sequence<char,1000000> image; // not a string because it can contain NULs
+	sequence<octet,1000000> image; // not a string because it can contain NULs
 	octet color[3];
 };
 

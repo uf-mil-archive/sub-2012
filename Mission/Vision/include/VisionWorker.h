@@ -28,7 +28,7 @@ public:
 
 	WorkerSignal<std::pair<std::string, std::vector<boost::property_tree::ptree> > > outputsignal;
 	WorkerSignal<std::pair<std::string, boost::property_tree::ptree> > configsignal;
-	WorkerSignal<std::pair<std::string, std::pair<std::string, cv::Vec3b> > > debugsignal;
+	WorkerSignal<std::pair<std::string, std::pair<std::vector<uchar>, cv::Vec3b> > > debugsignal;
 
 protected:
 	virtual void enterActive();

@@ -89,7 +89,7 @@ void VisionWorker::work(double dt)
 	vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(80);
 	vector<uchar> buf;imencode(".jpg", n, buf, params);
 	cout << "Image size: " << buf.size() << endl;
-	debugsignal.emit(make_pair(cameraname, make_pair(string(buf.begin(), buf.end()), color_rgb)));
+	debugsignal.emit(make_pair(cameraname, make_pair(buf, color_rgb)));
 
 	if(config.get<bool>("logImages") && frameCnt % 30 == 0) {
 		std::stringstream str; str << "log/" << cameraname << "/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << ".png";

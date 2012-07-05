@@ -97,9 +97,9 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(VisionDebugMessage &msg, const pair<string, pair<string, cv::Vec3b> > &data) {
+	void to_dds(VisionDebugMessage &msg, const pair<string, pair<vector<uchar>, cv::Vec3b> > &data) {
 		to_dds(msg.cameraname, data.first);
-		assert(msg.image.from_array(data.second.first.data(), data.second.first.length()));
+		assert(msg.image.from_array(data.second.first.data(), data.second.first.size()));
 		for(unsigned int i = 0; i < 3; i++)
 			msg.color[i] = data.second.second[i];
 	}
