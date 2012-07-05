@@ -314,7 +314,7 @@ class Visualizer(object):
             r=[cur[name] for name in 'xyzRPY'],
             rdot=[0]*6,
             coordinate_unaligned=True,
-            speed=[0]*6))
+            speed=0))
         for name in 'xyzRPY':
             self.wTree.get_object('wp_cur_' + name).set_text(str(cur[name]))
             self.wTree.get_object('wp_del_' + name).set_text('0')
