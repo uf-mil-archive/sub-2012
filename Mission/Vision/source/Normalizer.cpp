@@ -32,3 +32,7 @@ void Normalizer::normRGB(IOImages* ioimages)
 			
 	}
 }
+
+void Normalizer::normPassthru(IOImages* ioimages) {
+	ioimages->prcd = ioimages->src.clone();
+}

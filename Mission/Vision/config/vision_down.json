@@ -33,5 +33,15 @@
             "minLineGap": "50"
         },
         "minAngleDiff": "20"
+    },
+    "wreath":
+    {
+        "thresh":
+        {
+            "r": "246",
+            "g": "108",
+            "b": "51",
+            "angle": "0.2"
+        }
     }
 }

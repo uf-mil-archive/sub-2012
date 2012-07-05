@@ -13,7 +13,7 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 	Mat dbg_temp = ioimages->dbg.clone();
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
-	findContours(dbg_temp,contours,hierarchy,RETR_CCOMP,CHAIN_APPROX_SIMPLE);
+	findContours(dbg_temp,contours,hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
 
 	BOOST_FOREACH(const std::vector<cv::Point> &contour, contours) {
 		float area_holder = fabs(contourArea(Mat(contour)));

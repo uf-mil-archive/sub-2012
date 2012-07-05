@@ -12,6 +12,7 @@
 #include "ShooterFinder.h"
 #include "BinsFinder.h"
 #include "GateFinder.h"
+#include "WreathFinder.h"
 #include <stdio.h>
 
 using namespace std;
@@ -41,6 +42,8 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<string>
 			binsNames.push_back(objectName);
 		else if(objectName == "gate")
 			gateNames.push_back(objectName);
+		else if(objectName == "wreath")
+			wreathNames.push_back(objectName);
 	}
 	
 	vector<boost::shared_ptr<IFinder> > finders;
@@ -58,6 +61,8 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(vector<string>
 		finders.push_back(make_shared<BinsFinder>(binsNames, config.get_child("bins")));
 	if(gateNames.size() > 0)
 		finders.push_back(make_shared<GateFinder>(gateNames, config.get_child("gate")));
+	if(wreathNames.size() > 0)
+		finders.push_back(make_shared<WreathFinder>(wreathNames, config.get_child("wreath")));
 
 	return finders;
 }

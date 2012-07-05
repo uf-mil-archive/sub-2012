@@ -5,39 +5,13 @@ using namespace cv;
 
 void Thresholder::threshConfig(IOImages* ioimages, property_tree::ptree config)
 {
-	if(!config.get_child_optional("hHigh")) {
-		std::vector<Mat> channelsBGR(ioimages->prcd.channels());split(ioimages->prcd, channelsBGR);
-		Mat b; channelsBGR[0].convertTo(b, CV_32FC1, 1/255.);
-		Mat g; channelsBGR[1].convertTo(g, CV_32FC1, 1/255.);
-		Mat r; channelsBGR[2].convertTo(r, CV_32FC1, 1/255.);
-		Mat mag; magnitude(r, g, mag); magnitude(mag, b, mag);
-		std::cout << mag.at<float>(3, 3) << std::endl;
-		std::cout << b.at<float>(3, 3) << std::endl;
-		std::cout << g.at<float>(3, 3) << std::endl;
-		std::cout << r.at<float>(3, 3) << std::endl;
-		Mat res = (r*config.get<float>("r") + g*config.get<float>("g") + b*config.get<float>("b"))/mag;
-		//res.convertTo(ioimages->dbg, CV_8UC1, 255.);
-		//return;
-		ioimages->dbg = res > cos(config.get<float>("angle"))*sqrt(pow(config.get<float>("r"), 2) + pow(config.get<float>("g"), 2) + pow(config.get<float>("b"), 2));
-		return;
-	}
-
-	Mat srcHSV; cvtColor(ioimages->prcd, srcHSV, CV_BGR2HSV);
-	std::vector<Mat> channelsHSV(srcHSV.channels()); split(srcHSV, channelsHSV);
-
-	// deal with hue wrapping
-	if(config.get<double>("hHigh") >= config.get<double>("hLow"))
-		inRange(channelsHSV[0], Scalar(config.get<double>("hLow")), Scalar(config.get<double>("hHigh")), channelsHSV[0]);
-	else {
-		inRange(channelsHSV[0], Scalar(config.get<double>("hHigh")), Scalar(config.get<double>("hLow")), channelsHSV[0]);
-		bitwise_not(channelsHSV[0], channelsHSV[0]);
-	}
-
-	inRange(channelsHSV[1], Scalar(config.get<double>("sLow")), Scalar(config.get<double>("sHigh")), channelsHSV[1]);
-	inRange(channelsHSV[2], Scalar(config.get<double>("vLow")), Scalar(config.get<double>("vHigh")), channelsHSV[2]);
-
-	bitwise_and(channelsHSV[0], channelsHSV[1], ioimages->dbg);
-	bitwise_and(channelsHSV[2], ioimages->dbg, ioimages->dbg);
+	std::vector<Mat> channelsBGR(ioimages->prcd.channels());split(ioimages->prcd, channelsBGR);
+	Mat b; channelsBGR[0].convertTo(b, CV_32FC1, 1/255.);
+	Mat g; channelsBGR[1].convertTo(g, CV_32FC1, 1/255.);
+	Mat r; channelsBGR[2].convertTo(r, CV_32FC1, 1/255.);
+	Mat mag; magnitude(r, g, mag); magnitude(mag, b, mag);
+	Mat res = (r*config.get<float>("r") + g*config.get<float>("g") + b*config.get<float>("b"))/mag;
+	ioimages->dbg = res > cos(config.get<float>("angle"))*sqrt(pow(config.get<float>("r"), 2) + pow(config.get<float>("g"), 2) + pow(config.get<float>("b"), 2));
 }
 
 void Thresholder::threshBuoys(IOImages *ioimages)
