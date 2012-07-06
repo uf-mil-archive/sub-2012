@@ -35,7 +35,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 
 		// call to specific member function here
-		Contours contours(100,7000000,1500000);
+		Contours contours(500,7000000,1500000);
 		int result = contours.findContours(ioimages, true);
 		contours.sortBoxes();
 		contours.orientationError();

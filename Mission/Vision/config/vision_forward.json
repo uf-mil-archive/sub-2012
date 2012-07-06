@@ -62,7 +62,7 @@
             "r": "88",
             "g": "32",
             "b": "22",
-            "angle": "0.3"
+            "angle": "0.4"
         },
         "thresh_blue":
         {
@@ -74,6 +74,6 @@
         "dp": "1",
         "min_dist": "50",
         "canny_thres": "50",
-        "circle_thres": "20"
+        "circle_thres": "23"
     }
 }
