@@ -70,6 +70,21 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			fResult.put("angle", contours.boxes[0].orientationError);
 			fResult.put("scale", contours.shapes[index].area);
 			resultVector.push_back(fResult);
+		} else if(objectPath[2] == "circles") {
+			float dp = config.get<float>("dp");
+			float min_dist = config.get<float>("min_dist");
+			float canny_thres = config.get<float>("canny_thres");
+			float circle_thres = config.get<float>("circle_thres");
+			vector<Vec3f> circles;HoughCircles(ioimages->dbg, circles, CV_HOUGH_GRADIENT, dp, min_dist, canny_thres, circle_thres*dp*dp);
+			BOOST_FOREACH(const Vec3f &circle, circles) {
+				cv::circle(ioimages->res, Point(circle[0], circle[1]), (int)circle[2], Scalar(255, 255, 255), 2);
+				property_tree::ptree fResult;
+				fResult.put("objectName", objectName);
+				fResult.put_child("center", Point_to_ptree(Point(circle[0], circle[1]), ioimages->prcd));
+				fResult.put("scale", circle[2]);
+				resultVector.push_back(fResult);
+			}
+			Canny(ioimages->dbg, ioimages->dbg, canny_thres, canny_thres/2);
 		} else
 			throw runtime_error("unknown objectName in ShooterFinder::find: " + objectPath[2]);
 	}
