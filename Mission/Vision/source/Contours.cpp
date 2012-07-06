@@ -129,6 +129,8 @@ void Contours::drawResult(IOImages* ioimages, string objectName)
 		circle(ioimages->res, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
 		circle(ioimages->res, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
 		drawContours(ioimages->res, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
+		ostringstream os; os << "Area: " << shape.area;
+		putText(ioimages->res,os.str().c_str(),shape.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(255,255,255),1);
 	}
 }
 
@@ -150,7 +152,7 @@ int Contours::findLargestShape()
 int Contours::findSmallestShape()
 {
 	int _smallestIndex = 0;
-	double _smallestArea = 5000;
+	double _smallestArea = 1e100;
 	for(unsigned i=0; i<shapes.size(); i++)
 	{
 		if(shapes[i].area < _smallestArea && shapes[i].area > 0)
