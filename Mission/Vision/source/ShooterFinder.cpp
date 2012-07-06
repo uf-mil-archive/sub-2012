@@ -38,16 +38,15 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		contours.sortBoxes();
 		contours.orientationError();
 
-		// Prepare results
-		if(!result)
-			continue;
-
 		// Draw result
 		contours.drawResult(ioimages, objectName);
 		if(contours.shapes.size() == 0)
 			continue;
 
 		if(objectPath[2] == "box") {
+			// Prepare results
+			if(!result)
+				continue;
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
 			fResult.put_child("center", Point_to_ptree(contours.boxes[0].centroid, ioimages->prcd));
@@ -59,7 +58,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
 			fResult.put_child("center", Point_to_ptree(contours.shapes[index].centroid, ioimages->prcd));
-			fResult.put("angle", contours.boxes[0].orientationError);
+			//fResult.put("angle", contours.boxes[0].orientationError);
 			fResult.put("scale", contours.shapes[index].area);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "large") {
@@ -67,7 +66,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
 			fResult.put_child("center", Point_to_ptree(contours.shapes[index].centroid, ioimages->prcd));
-			fResult.put("angle", contours.boxes[0].orientationError);
+			//fResult.put("angle", contours.boxes[0].orientationError);
 			fResult.put("scale", contours.shapes[index].area);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "circles") {
