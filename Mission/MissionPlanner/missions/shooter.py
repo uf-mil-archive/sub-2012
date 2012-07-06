@@ -4,9 +4,9 @@ import math
 import dds
 
 servo = vision.StrafeVisualServo(fastvel=.35,
-                                 slowscale=2000,
+                                 slowscale=15000,
                                  slowvel=.15,
-                                 maxscale=8000,
+                                 maxscale=23000,
                                  ky=.3,
                                  kz=.3,
                                  debug=True)

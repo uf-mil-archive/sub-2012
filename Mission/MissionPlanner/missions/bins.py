@@ -4,7 +4,7 @@ import dds
 from subjugator import nav, sched, vision, sub
 
 BIN_1 = 'sword'
-BIN_2 = 'trident'
+BIN_2 = 'net'
 
 servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
 down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=18000, debug=True)
@@ -39,6 +39,7 @@ def run():
             return False
         print 'Dropping first marker!'
         nav.down(.5)
+        nav.lstrafe(.1)
         sched.sleep(1)
         sub.BallDropper.drop()
         print 'Done!'
@@ -54,6 +55,7 @@ def run():
             return False
         print 'Dropping second marker!'
         nav.down(.5)
+        nav.lstrafe(.1)
         sched.sleep(1)
         sub.BallDropper.drop()
         print 'Done!'

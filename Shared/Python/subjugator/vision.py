@@ -75,7 +75,7 @@ class FilterSort(Filter):
         self.descending = descending
 
     def __call__(self, objs):
-        return sorted(objs, key=key, reverse=self.descending)
+        return iter(sorted(objs, key=lambda obj: float(obj[self.field_name]), reverse=self.descending))
 
 class FilterScore(Filter):
     def __init__(self, score_func, min_score=0):
@@ -250,7 +250,7 @@ class BottomVisualServo(VisualAlgorithm):
         else:
             zvel = 0
 
-        if abs(float(obj['angle'])) < .08 and abs(xvel) < 0.03 and abs(yvel) < 0.03 and abs(zvel) < 0.03:
+        if abs(float(obj['angle'])) < .02 and abs(xvel) < 0.03 and abs(yvel) < 0.03 and abs(zvel) < 0.03:
             return True
 
         if self.debug:
