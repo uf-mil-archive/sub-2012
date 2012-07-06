@@ -7,6 +7,7 @@
 #include "Blob.h"
 
 using namespace cv;
+using namespace std;
 
 Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPerimeter)
 {
@@ -45,6 +46,15 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 			rr.angle += 90;
 			std::swap(rr.size.width, rr.size.height);
 		}
+		double pi = boost::math::constants::pi<double>();
+		double angle_rad = rr.angle * pi / 180;
+		if(
+			pointPolygonTest(contour, Point2f(rr.center) + Point2f(cos(angle_rad+pi), -sin(angle_rad+pi))*(rr.size.width/2), true) >
+			pointPolygonTest(contour, Point2f(rr.center) + Point2f(cos(angle_rad   ), -sin(angle_rad   ))*(rr.size.width/2), true)
+		)
+			rr.angle += 180;
+		angle_rad = rr.angle * pi / 180;
+		circle(ioimages->res, Point2f(rr.center) + Point2f(cos(angle_rad), -sin(angle_rad))*(rr.size.width/2),5,CV_RGB(255,255,255),2,8,0);
 		bdata.angle = rr.angle * boost::math::constants::pi<double>() / 180;
 		bdata.aspect_ratio = rr.size.width/rr.size.height;
 		bdata.is_vertical = pow(sin(bdata.angle), 2) > pow(cos(bdata.angle), 2);
