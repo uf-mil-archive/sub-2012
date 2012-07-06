@@ -49,9 +49,13 @@ void VisionWorker::work(double dt)
 		rebuildFinders = false;
 	}
 	
-	camera->setExposure(config.get<float>("shutterVal"));
-	camera->setGain(config.get<float>("gainVal"));
-	camera->setAuto(config.get<float>("autoVal"));
+	try {
+		camera->setExposure(config.get<float>("shutterVal"));
+		camera->setGain(config.get<float>("gainVal"));
+		camera->setAuto(config.get<float>("autoVal"));
+	} catch (const std::exception &exc) {
+		std::cerr << "Caught exception: " << exc.what() << endl;
+	}
 
 	// Grab a frame from the camera, copy into ioimages object
 	ioimages.setNewSource(camera->getImage());	
