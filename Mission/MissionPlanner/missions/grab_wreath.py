@@ -4,7 +4,7 @@ from missionplanner import mission
 import math
 import dds
 
-servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=200, debug=True)
+servo = vision.BottomVisualServo(kx=.2, ky=.2, kz=.004, zmax=.1, desired_scale=230, debug=True)
 
 sel = vision.Selector(vision.DOWN_CAMERA, 'wreath')
 
@@ -36,9 +36,10 @@ def try_grab(down_dist):
 
 def repeat_grabs():
     for i in xrange(3):
-        if try_grab(.5 + .2*i):
+        if try_grab(1 + .2*i):
             return True
-        nav.up(1)
+        print "Failed, trying again"
+        nav.depth(.2)
     return False
 
 def run():

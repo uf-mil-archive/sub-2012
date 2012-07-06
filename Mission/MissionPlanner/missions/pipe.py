@@ -23,7 +23,7 @@ def run(name):
         print 'See pipe!'
 
         with mission.State('servo'):
-            if servo(pipe_sel):
+            if servo(pipe_sels[name]):
                 break
     return True
 
