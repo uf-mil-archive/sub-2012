@@ -15,7 +15,7 @@ def try_grab():
     nav.down(.5)
     sched.sleep(1)
     sub.Grabber.close()
-    sched.sleep(1)
+    sched.sleep(2)
     nav.up(.3)
     sched.sleep(1)
 
@@ -31,6 +31,8 @@ def repeat_grabs():
     with mission.State('servo'):
         if not servo(sel):
             return False
+
+    nav.down(.5)
 
     for i in xrange(3):
         with mission.State('try_grab ' + str(i)):
