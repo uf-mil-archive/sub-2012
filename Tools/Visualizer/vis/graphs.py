@@ -55,6 +55,7 @@ graphs = [
     })),
     ('Position', position),
     ('Desired position', desired_position),
+    ('Desired velocity', desired_velocity),
     ('Position and desired position', lambda: flatten({
         't': position(),
         'd': desired_position(),
