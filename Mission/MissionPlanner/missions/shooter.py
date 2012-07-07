@@ -34,12 +34,7 @@ def approach_shoot(color):
         return False
 
     print 'Getting close'
-    nav.fd(.5, speed=.1)
-    nav.up(.15, speed=.1)
-    if color == 'red':
-        nav.lstrafe(.1)
-    else:
-        nav.rstrafe(.1)
+    nav.go(.5, .1 if color == 'blue' else -.1, -.15, rel=True, speed=.1)
     print 'Shooting'
     sched.sleep(2)
     shooters[color].shoot()

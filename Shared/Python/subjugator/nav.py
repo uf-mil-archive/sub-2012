@@ -263,6 +263,8 @@ def xyz_to_waypoint(x, y, z=None, rel=False, base=None):
         base = curpoint
 
     if base is not None:
+        if z is not None:
+            waypoint.pos.z = z
         waypoint = waypoint.resolve_relative(base)
     elif z is not None:
         waypoint.pos.z = z
@@ -273,8 +275,13 @@ def xyz_to_waypoint(x, y, z=None, rel=False, base=None):
 
 @waitopts
 def go(*args, **kwargs):
+    if 'speed' in kwargs:
+        speed = kwargs['speed']
+        del kwargs['speed']
+    else:
+        speed = 0
     waypoint = xyz_to_waypoint(*args, **kwargs)
-    set_waypoint(waypoint)
+    set_waypoint(waypoint, speed)
 
 def point_shoot(*args, **kwargs):
     waypoint = xyz_to_waypoint(*args, **kwargs)
@@ -290,12 +297,13 @@ def go_seq(points, rel=False, base=None):
     for point in points:
         go(*point, base=base)
 
-def do_a_barrel_roll(velx=0):
-    pos = get_waypoint().pos
-    set_waypoint(make_waypoint(x=pos.x, y=pos.y, z=pos.z, Y=pos.Y, velx=velx, velR=.75))
+def do_a_barrel_roll(velx=0, velR=.75):
+    vel(x=velx, R=velR)
     sched.sleep(.2)
     while get_trajectory().pos.R >= 0:
         sched.sleep(.1)
     sched.sleep(.2)
+    pos = get_trajectory().pos
     set_waypoint(make_waypoint(x=pos.x, y=pos.y, z=pos.z, Y=pos.Y, velx=velx))
-    wait()
+    while get_trajectory().pos.R < 0.01:
+        sched.sleep(.1)
