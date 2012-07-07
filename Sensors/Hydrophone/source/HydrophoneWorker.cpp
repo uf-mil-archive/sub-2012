@@ -20,7 +20,7 @@ endpoint(WorkerEndpoint::Args()
 	.setName("hydrophone")
 	.setEndpoint(hal.makeDataObjectEndpoint(
 		getConfig().get<std::string>("endpoint"),
-		new HydrophoneDataObjectFormatter(), 
+		new HydrophoneDataObjectFormatter(),
 		new HydrophonePacketFormatter()))
 	.setInitCallback(bind(&HydrophoneWorker::endpointInitCallback, this))
 	.setReceiveCallback(bind(&HydrophoneWorker::endpointReceiveCallback, this, _1))
@@ -29,13 +29,15 @@ endpoint(WorkerEndpoint::Args()
 void HydrophoneWorker::initialize() {
 	const ptree &config = getConfig();
 	dpconfig.scalefact = config.get<int>("scalefact");
-	dpconfig.samplingrate = config.get<double>("samplingrate");
+	dpconfig.samplingrate = config.get<int>("samplingrate");
+	dpconfig.zerocount = config.get<int>("zerocount");
+	dpconfig.fftsize = config.get<int>("fftsize");
 	dpconfig.soundvelocity = config.get<double>("soundvelocity");
 	dpconfig.disth = config.get<double>("disth");
 	dpconfig.disth4 = config.get<double>("disth4");
-	dpconfig.bandpass_fircoefs = config.get<VectorXd>("bandpass_fircoefs");
-	dpconfig.upsample_fircoefs = config.get<VectorXd>("upsample_fircoefs");
-	dpconfig.hamming_fircoefs = config.get<VectorXd>("hamming_fircoefs");
+	dpconfig.bandpass_fircoefs = config.get<VectorXd>("bandpass");
+	dpconfig.upsample_fircoefs = config.get<VectorXd>("upsample");
+	dpconfig.hamming_fircoefs = config.get<VectorXd>("hamming");
 }
 
 void HydrophoneWorker::endpointInitCallback() {
@@ -62,4 +64,3 @@ void HydrophoneWorker::endpointReceiveCallback(const boost::shared_ptr<DataObjec
 		logger.log(string("Error processing ping: ") + err.what(), WorkerLogEntry::ERROR);
 	}
 }
-

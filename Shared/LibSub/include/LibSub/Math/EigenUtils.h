@@ -69,7 +69,20 @@ namespace Eigen {
 				in >> mat(row, col);
 		return in;
 	}
+
+	template <typename T>
+	std::istream &operator>>(std::istream &in, Eigen::Matrix<T, -1, 1> &mat) {
+		int count=0;
+		while (in) {
+			mat.resize(count+1);
+			in >> mat[count];
+			count++;
+		}
+		in.clear();
+
+		mat.resize(mat.size()-1);
+		return in;
+	}
 }
 
 #endif
-

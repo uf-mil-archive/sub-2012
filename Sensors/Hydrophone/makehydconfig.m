@@ -7,7 +7,7 @@ datasize = 256;
 disth = (0.9*2.54)/100;
 disth4 = disth;
 
-bandpass_coefs = fir1(31,[((20e3)/(samplingrate/2)) ((30e3)/(samplingrate/2))], 'bandpass');
+bandpass_coefs = fir1(31,[((20000)/(samplingrate/2)) ((30000)/(samplingrate/2))], 'bandpass');
 
 data = zeros(datasize);
 [data_upsamp, upsample_coefs] = resample(data, scalefact, 1); % save the lowpass filter matlab internally generates to perform resampling
@@ -28,7 +28,7 @@ for i=1:length(bandpass_coefs)
 end
 fprintf(fd, '",\n');
 
-fprintf(fd, '"upsample>": "');
+fprintf(fd, '"upsample": "');
 for i=1:length(upsample_coefs)
     fprintf(fd, '%.16e ', upsample_coefs(i));
 end
@@ -41,4 +41,3 @@ end
 fprintf(fd, '"\n');
 fprintf(fd, '}\n');
 fclose(fd);
-
