@@ -128,11 +128,12 @@ void VisionWorker::handleConfig(optional<pair<string, property_tree::ptree> > ma
 	if(new_config.first != cameraname)
 		return;
 
+	if(!config.get_child_optional("imageSource") || new_config.second.get_child("imageSource") != config.get_child("imageSource")) {
+		camera.reset();
+		camera = boost::shared_ptr<Camera>(cal.getCamera(new_config.second.get_child("imageSource")));
+	}
+
 	config = new_config.second;
-
-	camera.reset();
-	camera = boost::shared_ptr<Camera>(cal.getCamera(config.get_child("imageSource")));
-
 	rebuildFinders = true;
 
 	saveConfig(config);
