@@ -75,5 +75,15 @@
         "min_dist": "50",
         "canny_thres": "50",
         "circle_thres": "23"
+    },
+    "grapes":
+    {
+        "thresh_red":
+        {
+            "r": "50",
+            "g": "22",
+            "b": "20",
+            "angle": "0.2"
+        }
     }
 }

@@ -10,6 +10,7 @@
 #include "IOImages.h"
 
 #include "BuoyFinder.h"
+#include "GrapesFinder.h"
 #include "PipeFinder.h"
 #include "HedgeFinder.h"
 #include "TubeFinder.h" 
@@ -24,6 +25,7 @@ using namespace boost;
 
 vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(const vector<string> &objectNames, const property_tree::ptree &config) {
 	vector<string> buoyNames;
+	vector<string> grapesNames;
 	vector<string> pipeNames;
 	vector<string> hedgeNames;
 	vector<string> tubeNames;
@@ -38,6 +40,8 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(const vector<s
 
 		if(objectPath[0] == "buoy")
 			buoyNames.push_back(objectName);
+		else if(objectPath[0] == "grapes")
+			grapesNames.push_back(objectName);
 		else if(objectPath[0] == "pipe")
 			pipeNames.push_back(objectName);
 		else if(objectPath[0] == "hedge")
@@ -57,6 +61,8 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(const vector<s
 	vector<boost::shared_ptr<IFinder> > finders;
 	if(buoyNames.size() > 0)
 		finders.push_back(make_shared<BuoyFinder>(buoyNames, config.get_child("buoy")));
+	if(grapesNames.size() > 0)
+		finders.push_back(make_shared<GrapesFinder>(grapesNames, config.get_child("grapes")));
 	if(pipeNames.size() > 0)
 		finders.push_back(make_shared<PipeFinder>(pipeNames, config.get_child("pipe")));
 	if(hedgeNames.size() > 0)
