@@ -3,12 +3,12 @@ from missionplanner import mission
 import math
 import dds
 
-servo = vision.StrafeVisualServo(fastvel=.35,
-                                 slowscale=15000,
-                                 slowvel=.15,
-                                 maxscale=23000,
-                                 ky=.3,
-                                 kz=.3,
+servo = vision.StrafeVisualServo(fastvel=.3,
+                                 slowscale=10000,
+                                 slowvel=.05,
+                                 maxscale=60000,
+                                 ky=.15,
+                                 kz=.15,
                                  debug=True)
 
 small_sels = dict(red=vision.Selector(vision.FORWARD_CAMERA, 'shooter/red/small'),
@@ -34,8 +34,7 @@ def approach_shoot(color):
         return False
 
     print 'Getting close'
-    nav.fd(1)
-    nav.up(.1)
+    nav.go(.5, .1 if color == 'blue' else -.1, -.15, rel=True, speed=.1)
     print 'Shooting'
     sched.sleep(2)
     shooters[color].shoot()
@@ -46,14 +45,14 @@ def approach_shoot(color):
 
 def run():
     nav.setup()
-    nav.depth(1)
+    nav.depth(1.75)
 
     with mission.State('forward'):
         print 'Forward until shooter seen'
         nav.vel(.2)
         vision.wait_visible(any_box_sel)
         print 'Getting closer'
-        sched.sleep(.5)
+        sched.sleep(1)
         vision.wait_visible(any_box_sel)
 
     if box_sels['red'].is_visible():
@@ -70,7 +69,7 @@ def run():
         print 'Going over window'
         origdepth = nav.get_waypoint().pos.z
         nav.depth(.5)
-        nav.fd(3)
+        nav.fd(4)
         nav.lturn(180)
         nav.depth(origdepth)
 

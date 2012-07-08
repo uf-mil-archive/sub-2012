@@ -250,7 +250,7 @@ class BottomVisualServo(VisualAlgorithm):
         else:
             zvel = 0
 
-        if abs(float(obj['angle'])) < .02 and abs(xvel) < 0.03 and abs(yvel) < 0.03 and abs(zvel) < 0.03:
+        if abs(float(obj['angle'])) < .02 and abs(xvel) < 0.015 and abs(yvel) < 0.015 and abs(zvel) < 0.03:
             return True
 
         if self.debug:
