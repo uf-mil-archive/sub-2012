@@ -77,6 +77,14 @@ class FilterSort(Filter):
     def __call__(self, objs):
         return iter(sorted(objs, key=lambda obj: float(obj[self.field_name]), reverse=self.descending))
 
+class FilterSortKey(Filter):
+    def __init__(self, key, descending=True):
+        self.key = key
+        self.descending = descending
+
+    def __call__(self, objs):
+        return iter(sorted(objs, key=self.key, reverse=self.descending))
+
 class FilterScore(Filter):
     def __init__(self, score_func, min_score=0):
         self.score_func = score_func
