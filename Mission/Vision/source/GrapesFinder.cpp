@@ -32,8 +32,10 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 
 		Thresholder::threshConfig(ioimages, config.get_child("thresh_yellow"));
 		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
 		Contours contours(ioimages->dbg, 1000, 7000000, 1500000);
+		contours.sortBoxes();
+		contours.orientationError();
 
 		contours.drawResult(ioimages, objectName);
 
@@ -62,6 +64,24 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 			blob.drawResult(ioimages, objectName);
 
 			ioimages->dbg |= yellow/2;
+
+			BOOST_FOREACH(const Blob::BlobData &b, blob.data) {
+				// Prepare results
+				property_tree::ptree fResult;
+				fResult.put("objectName", objectName);
+				fResult.put_child("center", Point_to_ptree(b.centroid, ioimages->prcd));
+				fResult.put("scale", b.radius);
+				resultVector.push_back(fResult);
+			}
+		} else if(objectPath[1] == "grape_close") {
+			Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
+			dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
+
+			Blob blob(ioimages, 30, 1000000, 1000000);
+
+			// Draw result
+			blob.drawResult(ioimages, objectName);
 
 			BOOST_FOREACH(const Blob::BlobData &b, blob.data) {
 				// Prepare results
