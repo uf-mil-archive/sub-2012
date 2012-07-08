@@ -49,8 +49,8 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 		double pi = boost::math::constants::pi<double>();
 		double angle_rad = rr.angle * pi / 180;
 		if(
-			pointPolygonTest(contour, Point2f(rr.center) + Point2f(cos(angle_rad+pi), -sin(angle_rad+pi))*(rr.size.width/2), true) >
-			pointPolygonTest(contour, Point2f(rr.center) + Point2f(cos(angle_rad   ), -sin(angle_rad   ))*(rr.size.width/2), true)
+			pointPolygonTest(Mat(contour), Point2f(rr.center) + Point2f(cos(angle_rad+pi), -sin(angle_rad+pi))*(rr.size.width/2), true) >
+			pointPolygonTest(Mat(contour), Point2f(rr.center) + Point2f(cos(angle_rad   ), -sin(angle_rad   ))*(rr.size.width/2), true)
 		)
 			rr.angle += 180;
 		angle_rad = rr.angle * pi / 180;
