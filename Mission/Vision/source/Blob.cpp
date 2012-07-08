@@ -92,6 +92,8 @@ void Blob::drawResult(IOImages* ioimages, std::string objectName)
 			color = CV_RGB(0,200,0);
 
 		circle(ioimages->res,item.centroid,(int)item.radius,color,2,8,0);
+		line(ioimages->res,item.centroid,item.centroid + Point(item.radius*cos(item.angle), item.radius*-sin(item.angle)),CV_RGB(255,0,0),2,8);
+
 		std::ostringstream os; os << "Area: " << (int)item.area << " " << (int)(item.angle*180/boost::math::constants::pi<double>()) << " " << item.aspect_ratio;
 		putText(ioimages->res,os.str().c_str(),Point(item.centroid.x-30,item.centroid.y-10),FONT_HERSHEY_DUPLEX,1,CV_RGB(0,0,0),1.5);
 	}
