@@ -28,12 +28,9 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 		Thresholder::threshBlack(ioimages);
 
 		// call to specific member function here
-		Contours contours(config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
-		int result = contours.findContours(ioimages, objectName == "bins/shape");
-		
-		//printf("result: %d\n",result);
+		Contours contours(ioimages->dbg, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 
-		if(!result)
+		if(!contours.boxes.size())
 			continue;
 		
 		// Draw result
@@ -167,16 +164,6 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				for(unsigned int m = 0; m < 7; m++)
 					moments_tree.push_back(make_pair("", lexical_cast<string>(h[m])));
 				fResult.put_child("moments", moments_tree);
-				resultVector.push_back(fResult);
-			}
-		} else if(objectName == "bins/shape") {
-			BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes) {
-				property_tree::ptree fResult;
-				fResult.put("objectName", objectName);
-				fResult.put("is_x", shape.shape_x);
-				fResult.put_child("center", Point_to_ptree(shape.centroid, ioimages->prcd));
-				fResult.put("angle", shape.shape_x);
-				fResult.put("scale", shape.area);
 				resultVector.push_back(fResult);
 			}
 		} else

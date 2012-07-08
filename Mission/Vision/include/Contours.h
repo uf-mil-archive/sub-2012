@@ -16,8 +16,6 @@ class Contours
 			float perimeter;
 			float radius;
 			std::vector<std::vector<cv::Point> > contour;
-			int objectID;
-			bool shape_x;
 		};
 
 		struct OuterBox {
@@ -29,27 +27,24 @@ class Contours
 			std::vector<cv::Point> corners;
 			std::vector<std::vector<cv::Point> > contour;
 			double orientationError;
+			std::vector<InnerContour> shapes; // contours within this box
 		};
-		std::vector<InnerContour> shapes; // output holder
+		std::vector<InnerContour> shapes; // all inner contours
 		std::vector<OuterBox> boxes; // output holder
 
-		Contours(float minContour, float maxContour, float maxPerimeter);
-		int findContours(IOImages* ioimages, bool findInnerContours);
+		Contours(const cv::Mat &img, float minContour, float maxContour, float maxPerimeter);
 		void drawResult(IOImages* ioimages, std::string objectName);
 		double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
-		int findLargestShape();
-		int findSmallestShape();
+		InnerContour findLargestShape();
+		InnerContour findSmallestShape();
 		cv::Point calcCentroidOfAllBoxes();
 		float calcAngleOfAllBoxes();
 		void sortBoxes();
-		int identifyShape(IOImages* ioimages);
 		void orientationError();
 
 	private:
+		std::vector<std::vector<cv::Point> > contours;
 		std::vector<cv::Vec4i> hierarchy; // hierarchy holder for the contour tree
-		float smallestContourSize;
-		float largestContourSize;
-		float largestContourPerimeter;
 		void populateAngleOfOuterBox(OuterBox* outerBox);
 };
 

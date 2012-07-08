@@ -35,8 +35,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 
 		// call to specific member function here
-		Contours contours(500,7000000,1500000);
-		int result = contours.findContours(ioimages, true);
+		Contours contours(ioimages->dbg, 500,7000000,1500000);
 		contours.sortBoxes();
 		contours.orientationError();
 
@@ -47,7 +46,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 
 		if(objectPath[2] == "box") {
 			// Prepare results
-			if(!result)
+			if(!contours.boxes.size())
 				continue;
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
@@ -56,20 +55,20 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			fResult.put("angle", contours.boxes[0].orientationError);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "small") {
-			int index = contours.findSmallestShape();
+			Contours::InnerContour shape = contours.findSmallestShape();
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(contours.shapes[index].centroid, ioimages->prcd));
+			fResult.put_child("center", Point_to_ptree(shape.centroid, ioimages->prcd));
 			//fResult.put("angle", contours.boxes[0].orientationError);
-			fResult.put("scale", contours.shapes[index].area);
+			fResult.put("scale", shape.area);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "large") {
-			int index = contours.findLargestShape();
+			Contours::InnerContour shape = contours.findLargestShape();
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(contours.shapes[index].centroid, ioimages->prcd));
+			fResult.put_child("center", Point_to_ptree(shape.centroid, ioimages->prcd));
 			//fResult.put("angle", contours.boxes[0].orientationError);
-			fResult.put("scale", contours.shapes[index].area);
+			fResult.put("scale", shape.area);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "circles") {
 			float dp = config.get<float>("dp");
