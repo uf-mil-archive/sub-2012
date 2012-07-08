@@ -54,6 +54,7 @@ def run():
     if not repeat_grabs():
         return False
 
+    nav.depth(.2)
     return True
 
 mission.missionregistry.register('Grab Wreath', run)
