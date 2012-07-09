@@ -1,14 +1,59 @@
+#include <string>
+#include <vector>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include "Thresholder.h"
 
 using namespace boost;
 using namespace cv;
+using namespace std;
 
-void Thresholder::threshConfig(IOImages* ioimages, property_tree::ptree config)
-{
+vector<float> parse_vec(const string &s) {
+	vector<string> vec; split(vec, s, is_any_of(" ,"));
+	if(vec.size() != 3)
+		throw runtime_error("invalid vec: " + s);
+	vector<float> res; BOOST_FOREACH(const string &i, vec) res.push_back(lexical_cast<float>(i));
+	float sum = res[0] + res[1] + res[2];
+	res[0] /= sum; res[1] /= sum; res[2] /= sum;
+	return res;
+}
+
+void Thresholder::threshConfig(IOImages* ioimages, property_tree::ptree config) {
 	std::vector<Mat> channelsBGR(ioimages->prcd.channels());split(ioimages->prcd, channelsBGR);
 	Mat b; channelsBGR[0].convertTo(b, CV_32FC1, 1/255.);
 	Mat g; channelsBGR[1].convertTo(g, CV_32FC1, 1/255.);
 	Mat r; channelsBGR[2].convertTo(r, CV_32FC1, 1/255.);
+
+	if(config.get_optional<string>("first")) {
+		Mat sum = b + g + r;
+		b /= sum; g /= sum; r /= sum;
+
+		vector<float> first = parse_vec(config.get<string>("first"));
+		vector<float> second = parse_vec(config.get<string>("second"));
+		if(first == second)
+			second[0] += 0.001;
+
+		float mag2 = pow(second[0]-first[0], 2) + pow(second[1]-first[1], 2) + pow(second[2]-first[2], 2);
+		Mat d = ((r - first[0])*(second[0]-first[0]) + (g - first[1])*(second[1]-first[1]) + (b - first[2])*(second[2]-first[2]))/mag2;
+		max(d, 0, d);
+		min(d, 1, d);
+
+		Mat closest_r = first[0] + (second[0]-first[0])*d;
+		Mat closest_g = first[1] + (second[1]-first[1])*d;
+		Mat closest_b = first[2] + (second[2]-first[2])*d;
+
+		Mat r_diff; pow(r-closest_r, 2, r_diff);
+		Mat g_diff; pow(g-closest_g, 2, g_diff);
+		Mat b_diff; pow(b-closest_b, 2, b_diff);
+		Mat dist; sqrt(r_diff + g_diff + b_diff, dist);
+		ioimages->dbg = dist < config.get<float>("dist");
+		return;
+	}
+
 	Mat mag; magnitude(r, g, mag); magnitude(mag, b, mag);
 	Mat res = (r*config.get<float>("r") + g*config.get<float>("g") + b*config.get<float>("b"))/mag;
 	ioimages->dbg = res > cos(config.get<float>("angle"))*sqrt(pow(config.get<float>("r"), 2) + pow(config.get<float>("g"), 2) + pow(config.get<float>("b"), 2));
