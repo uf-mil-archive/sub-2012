@@ -69,7 +69,13 @@ void VisionWorker::work(double dt)
 		cout << endl;
 
 		// RUN THE FINDER!
-		vector<property_tree::ptree> fResult = finder->find(&ioimages);
+		vector<property_tree::ptree> fResult;
+		try {
+			fResult = finder->find(&ioimages);
+		} catch(const std::exception &exc) {
+			cout << "Finder error: " << exc.what() << endl;
+			continue;
+		}
 
 		BOOST_FOREACH(const property_tree::ptree &pt, fResult) {
 			ostringstream s; property_tree::json_parser::write_json(s, pt);
