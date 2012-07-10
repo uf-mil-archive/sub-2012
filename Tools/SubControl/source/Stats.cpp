@@ -12,7 +12,9 @@ Stats::Stats(Participant &part) :
 	efforttopic(part, "PDEffort", TopicQOS::RELIABLE),
 	effortreceiver(efforttopic),
 	statustopic(part, "PDStatus"),
-	statusreceiver(statustopic)
+	statusreceiver(statustopic),
+	hydrophonetopic(part, "Hydrophone"),
+	hydrophonereceiver(hydrophonetopic)
 { }
 
 Stats::Data Stats::getData() {
@@ -56,6 +58,17 @@ Stats::Data Stats::getData() {
 		data.lposvss.Y = rpy[2];
 	} else {
 		data.lposvss.avail = false;
+	}
+
+	shared_ptr<HydrophoneMessage> hydrophone = hydrophonereceiver.read();
+	if (hydrophone) {
+		data.hydrophone.avail = true;
+		data.hydrophone.heading = hydrophone->heading;
+		data.hydrophone.declination = hydrophone->declination;
+		data.hydrophone.dist = hydrophone->distance;
+		data.hydrophone.freq = hydrophone->frequency;
+	} else {
+		data.hydrophone.avail = false;
 	}
 
 	return data;

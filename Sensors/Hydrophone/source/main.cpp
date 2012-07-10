@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	DDSBuilder dds(io);
 	dds.worker(worker);
 
-	dds.sender(worker.signal, dds.topic<HydrophoneMessage>("Hydrophone", TopicQOS::LEGACY));
+	dds.sender(worker.signal, dds.topic<HydrophoneMessage>("Hydrophone"));
 
 	// Start the worker
 	builder.runWorker();
