@@ -65,7 +65,8 @@ class Window(object):
                 x.write(msg['image'])
                 x.close()
                 self.wTree.get_object('image_view').set_from_pixbuf(x.get_pixbuf())
-                self.wTree.get_object('pixel_label').set_label(str(msg['color']))
+                if not self.wTree.get_object('pausebutton').get_active():
+                    self.wTree.get_object('pixel_label').set_label(str(msg['color']))
         
         self.loop_timer = glib.timeout_add(int(1/20*1000), lambda: self.loop() and False) # False prevents it from being called again
     
