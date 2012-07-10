@@ -25,25 +25,21 @@ VisionWorker::VisionWorker(CAL& cal, const WorkerConfigLoader &configloader, con
 	configmailbox(WorkerMailbox<pair<string, property_tree::ptree> >::Args().setName("config")
 		.setCallback(bind(&VisionWorker::handleConfig, this, _1))),
 	cal(cal),
-	cameraname(cameraname)
-{
+	cameraname(cameraname) {
 	this->frameCnt = 0;
-	handleConfig(make_pair(cameraname, getConfig()));
 	rebuildFinders = true;
 }
 
-void VisionWorker::enterActive()
-{
+void VisionWorker::enterActive() {
 	configsignal.emit(make_pair(cameraname, getConfig()));
+	configListenTime = microsec_clock::universal_time() - seconds(3); // so that this handleConfig will succeed
+	handleConfig(make_pair(cameraname, getConfig()));
+	configListenTime = microsec_clock::universal_time() + seconds(3);
 }
 
-void VisionWorker::leaveActive()
-{
-	camera.reset();
-}
+void VisionWorker::leaveActive() { }
 
-void VisionWorker::work(double dt)
-{
+void VisionWorker::work(double dt) {
 	if(rebuildFinders) {
 		listOfFinders = FinderGenerator::buildFinders(objectNames, config);
 		rebuildFinders = false;
@@ -127,6 +123,9 @@ void VisionWorker::handleSetObjects(optional<pair<string, vector<string> > > may
 }
 
 void VisionWorker::handleConfig(optional<pair<string, property_tree::ptree> > maybe_new_config) {
+	if(!isActive() || microsec_clock::universal_time() < configListenTime)
+		return;
+
 	if(!maybe_new_config)
 		return;
 	const pair<string, property_tree::ptree> &new_config = maybe_new_config.get();

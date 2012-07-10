@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "LibSub/Worker/Worker.h"
 #include "LibSub/Worker/WorkerMailbox.h"
@@ -47,6 +48,7 @@ private:
 	boost::shared_ptr<Camera> camera;
 	int frameCnt;
 	bool rebuildFinders;
+	boost::posix_time::ptime configListenTime;
 };
 
 }
