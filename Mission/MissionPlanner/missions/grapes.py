@@ -1,48 +1,81 @@
 from subjugator import sched, nav, vision
 from missionplanner import mission
 
-board_servo = vision.StrafeVisualServo(fastvel=.3, slowscale=10000, slowvel=.05, maxscale=10000, ky=.3, kz=.3, yztol=.05, debug=True)
-grape_servo = vision.StrafeVisualServo(fastvel=.3, slowscale=100000, slowvel=.05, maxscale=30000, ky=.3, kz=.3, yztol=.02, debug=True)
+board_servo = vision.StrafeVisualServo(fastvel=.3, slowscale=60000, slowvel=.1, maxscale=120000, ky=.5, kz=.5, yztol=.025, debug=True)
+grape_servo = vision.StrafeVisualServo(fastvel=.2, slowscale=40, slowvel=.05, maxscale=80, ky=.1, kz=.1, yztol=.005, debug=True)
 
 board_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/board')
-horiz_grape_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/grape', vision.FilterSortKey(lambda obj: float(obj['center'][0]), False))
-vert_grape_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/grape', vision.FilterSortKey(lambda obj: float(obj['center'][0]), True))
+horiz_grape_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/grape_close', vision.FilterSortKey(lambda obj: float(obj['center'][0]), False))
+vert_grape_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/grape_close', vision.FilterSortKey(lambda obj: float(obj['center'][0]), True))
 
-def run():
-    nav.setup()
-    nav.depth(1.5)
+grape_count_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/grape')
 
-    print 'Looking for board'
-    nav.vel(.2)
-    vision.wait_visible(board_sel)
-    sched.sleep(1)
-
-    print 'Servoing to board'
-    if not board_servo(board_sel):
-        print 'Failed to servo to board'
-        return False
-
+@mission.State("push_horizontal")
+def push_horizontal():
     print 'Servoing on horizontal grape'
     if not grape_servo(horiz_grape_sel):
         print 'Failed to servo on horizontal grape'
         return False
 
     print 'Open loop'
-    nav.fd(.5, speed=.1)
-    nav.lstrafe(.2, speed=.1)
-    nav.bk(2)
-    nav.rstrafe(.6)
+    nav.fd(.6, speed=.05)
+    print 'Waiting'
+    sched.sleep(10)
+    print 'Strafing'
+    nav.rstrafe(.2, speed=.1)
+
+    nav.bk(3.5)
+    nav.up(.4)
+
+def run():
+    nav.setup()
+    nav.depth(1)
+
+    while True:
+        print 'Looking for board'
+        nav.vel(.2)
+        vision.wait_visible(board_sel)
+        sched.sleep(1)
+
+        print 'Servoing to board'
+        if not board_servo(board_sel):
+            print 'Failed to servo to board'
+            continue
+        break
+
+
+    print 'Open loop grape approach'
+    nav.go(x=.75, y=-.1, z=.2, rel=True)
+
+    while True:
+        push_horizontal()
+
+        grape_count_sel.setup()
+        sched.sleep(1)
+        if len(list(grape_count_sel.get_objects())) == 2:
+            print 'Failed, retrying'
+            continue
+        break
+
+    print 'Open loop grape approach'
+    nav.go(0, .4, -.3, rel=True)
 
     print 'Servoing on vertical grape'
-    if not grape_servo(vertical_grape_sel):
+    if not grape_servo(vert_grape_sel):
         print 'Failed to servo on vertical grape'
         return False
 
     print 'Open loop'
-    nav.fd(.5, speed=.1)
-    nav.up(.5, speed=.1)
+    nav.down(.1, speed=.1)
+    nav.fd(.6, speed=.05)
+    print 'Waiting'
+    sched.sleep(10)
+    print 'Going up'
+    nav.up(.2, speed=.1)
     nav.bk(2)
 
     print 'Turning around'
     nav.depth(.5)
     nav.lturn(180)
+
+mission.missionregistry.register('Grapes', run)

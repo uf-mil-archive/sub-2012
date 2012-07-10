@@ -193,8 +193,7 @@ VectorXd HydrophoneDataProcessor::filter(const VectorXd &coefs, const VectorXd &
 
 	for (int i=0; i<data.rows(); i++) {
 		int len = min(i+1, (int)coefs.rows());
-
-		out[i] = coefs_rev.dot(data.segment(i-len+1, len));
+		out[i] = coefs_rev.head(len).dot(data.segment(i-len+1, len));
 	}
 
 	return out;

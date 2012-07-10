@@ -38,12 +38,12 @@ HydrophoneSamples *HydrophoneSamples::parse(ByteVec::const_iterator begin, ByteV
 	}
 	for (int sample=0; sample<SAMPLECOUNT; sample++)
 	{
-		samples->mat(sample, 2) = (double)(pos[0] + (pos[1]<<8));
+		samples->mat(sample, 0) = (double)(pos[0] + (pos[1]<<8));
 		pos += 2;
 	}
 	for (int sample=0; sample<SAMPLECOUNT; sample++)
 	{
-		samples->mat(sample, 0) = (double)(pos[0] + (pos[1]<<8));
+		samples->mat(sample, 2) = (double)(pos[0] + (pos[1]<<8));
 		pos += 2;
 	}
 	return samples.release();
