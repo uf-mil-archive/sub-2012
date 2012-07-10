@@ -41,17 +41,17 @@ class Window(object):
         self.loop()
     
     def loop(self):
-        for msg in self.setobjects_topic.take_all():
+        for msg in self.setobjects_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 if msg['objectnames'] != self.last_objectnames:
                     self.last_objectnames = msg['objectnames']
                     self.wTree.get_object('objects_entry').set_text(','.join(msg['objectnames']))
         
-        for msg in self.result_topic.take_all():
+        for msg in self.result_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
         
-        for msg in self.config_topic.take_all():
+        for msg in self.config_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
                 b = self.wTree.get_object('config_text').get_buffer()
                 if msg['config'] != self.last_config:
@@ -69,6 +69,11 @@ class Window(object):
                     self.wTree.get_object('pixel_label').set_label(str(msg['color']))
         
         self.loop_timer = glib.timeout_add(int(1/20*1000), lambda: self.loop() and False) # False prevents it from being called again
+    
+    def camera_down(self, widget):
+        self.wTree.get_object('cameraname_entry').set_text('down')
+    def camera_forward(self, widget):
+        self.wTree.get_object('cameraname_entry').set_text('forward')
     
     def cameraname_changed(self, widget=None):
         self.wTree.get_object('objects_entry').set_text('Waiting for setobjects...')
