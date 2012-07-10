@@ -17,7 +17,7 @@ namespace subjugator {
 				double pingfrequency;
 				bool valid;
 			};
-		
+
 			HydrophoneWorker(HAL &hal, const WorkerConfigLoader &configloader);
 
 			WorkerSignal<Info> signal;
@@ -27,8 +27,6 @@ namespace subjugator {
 			WorkerEndpoint endpoint;
 
 			HydrophoneDataProcessor::Config dpconfig;
-
-			virtual void initialize();
 
 			void endpointInitCallback();
 			void endpointReceiveCallback(const boost::shared_ptr<DataObject> &dobj);

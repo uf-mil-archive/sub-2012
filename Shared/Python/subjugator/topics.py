@@ -28,6 +28,7 @@ _topic_qoses = {
     'IMU': _TopicConf(lib.IMUMessage,  EXCLUSIVE+LIVELINESS),
     'DVL': _TopicConf(lib.DVLMessage,  DEFAULT),
     'Depth': _TopicConf(lib.DepthMessage, DEFAULT),
+    'Hydrophone': _TopicConf(lib.HydrophoneMessage, DEFAULT),
     'ControllerGains': _TopicConf(lib.ControllerGainsMessage, PERSISTENT),
     'Trajectory': _TopicConf(lib.TrajectoryMessage, PERSISTENT),
     'Waypoint': _TopicConf(lib.WaypointMessage, PERSISTENT),

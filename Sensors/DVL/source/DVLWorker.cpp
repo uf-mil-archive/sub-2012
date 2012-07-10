@@ -33,10 +33,6 @@ DVLWorker::DVLWorker(HAL &hal, const WorkerConfigLoader &configloader) :
 	registerStateUpdater(stateupdater);
 }
 
-void DVLWorker::enterActive() {
-	hobkillsignal.unkill();
-}
-
 DVLWorker::~DVLWorker() {
 	endpoint.write(DVLBreak());
 }
@@ -62,7 +58,8 @@ void DVLWorker::endpointReceiveCallback(const boost::shared_ptr<DataObject> &dob
 				logger.log("Bottom tracking dropped out", WorkerLogEntry::ERROR);
 		}
 
-		updateHOBKill(info->height);
+		if (!hobkillsignal.isKilled())
+			updateHOBKill(info->height);
 	} else if (boost::shared_ptr<DVLStartupBanner> startup = dynamic_pointer_cast<DVLStartupBanner>(dobj)) {
 		endpoint.write(DVLConfiguration(getConfig().get<double>("max_depth")));
 		endpoint.setMaxAge(.5);

@@ -6,4 +6,3 @@ struct HydrophoneMessage {
 	double frequency;
 	boolean valid;
 };
-

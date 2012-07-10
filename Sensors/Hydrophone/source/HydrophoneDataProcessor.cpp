@@ -25,7 +25,7 @@ HydrophoneDataProcessor::HydrophoneDataProcessor(const Data &rawdata, const Conf
 void HydrophoneDataProcessor::processRawData(const Config &config) {
 	// zero mean the data
 	for (int i=0; i<4; i++)
-		data.col(i).array() -= data.col(i).head(40).mean(); // the first 40 samples are always zero samples
+		data.col(i).array() -= data.col(i).head(config.zerocount).mean(); // the first 40 samples are always zero samples
 
 	// filter the data
 	for (int i=0; i<4; i++)
@@ -46,7 +46,7 @@ void HydrophoneDataProcessor::processRawData(const Config &config) {
 }
 
 void HydrophoneDataProcessor::checkData(const Config &config) {
-	Data data_pad = Data::Zero(2048, 4);
+	Data data_pad = Data::Zero(config.fftsize, 4);
 
 	// multiply through by a hamming window
 	for (int i=0; i<4; i++) {
@@ -193,8 +193,7 @@ VectorXd HydrophoneDataProcessor::filter(const VectorXd &coefs, const VectorXd &
 
 	for (int i=0; i<data.rows(); i++) {
 		int len = min(i+1, (int)coefs.rows());
-
-		out[i] = coefs_rev.dot(data.segment(i-len+1, len));
+		out[i] = coefs_rev.head(len).dot(data.segment(i-len+1, len));
 	}
 
 	return out;

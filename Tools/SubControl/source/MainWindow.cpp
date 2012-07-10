@@ -406,6 +406,18 @@ void MainWindow::updateStats() {
 		ui.thrusterRLVLabel->setText(QString("Unavailable"));
 		ui.thrusterRRVLabel->setText(QString("Unavailable"));
 	}
+
+	if (data.hydrophone.avail) {
+		ui.headingLabel->setText(QString("%1 deg").arg(data.hydrophone.heading/M_PI*180, 0, 'f', 0));
+		ui.declinationLabel->setText(QString("%1 deg").arg(data.hydrophone.declination/M_PI*180, 0, 'f', 0));
+		ui.distanceLabel->setText(QString("%1 m").arg(data.hydrophone.dist, 0, 'f', 0));
+		ui.frequencyLabel->setText(QString("%1 khz").arg(data.hydrophone.freq/1000, 0, 'f', 0));
+	} else {
+		ui.headingLabel->setText(QString("Unavailable"));
+		ui.declinationLabel->setText(QString("Unavailable"));
+		ui.distanceLabel->setText(QString("Unavailable"));
+		ui.frequencyLabel->setText(QString("Unavailable"));
+	}
 }
 
 void MainWindow::updateInteract() {

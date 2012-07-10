@@ -14,6 +14,8 @@ namespace subjugator {
 			struct Config {
 				int scalefact; // the factor by which the raw data is scaled up for processing
 				int samplingrate; // the rate at which the raw data was collected
+				int zerocount; // the number of zero samples before the ping starts
+				int fftsize; // length of fft
 				double soundvelocity;
 				double disth;
 				double disth4;
@@ -67,4 +69,3 @@ namespace subjugator {
 }
 
 #endif
-
