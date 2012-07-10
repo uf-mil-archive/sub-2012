@@ -26,6 +26,7 @@ namespace subjugator {
 			int badhoberrorcount;
 			int badhobctr;
 
+			virtual void enterActive();
 			void updateHOBKill(const boost::optional<double> &height);
 
 			void endpointInitCallback();
