@@ -28,12 +28,12 @@ void Thresholder::threshConfig(IOImages* ioimages, property_tree::ptree config) 
 	Mat g; channelsBGR[1].convertTo(g, CV_32FC1, 1/255.);
 	Mat r; channelsBGR[2].convertTo(r, CV_32FC1, 1/255.);
 
-	if(config.get_optional<string>("first")) {
+	if(config.get_optional<string>("far")) {
 		Mat sum = b + g + r;
 		b /= sum; g /= sum; r /= sum;
 
-		vector<float> first = parse_vec(config.get<string>("first"));
-		vector<float> second = parse_vec(config.get<string>("second"));
+		vector<float> first = parse_vec(config.get<string>("far"));
+		vector<float> second = parse_vec(config.get<string>("near"));
 		if(first == second)
 			second[0] += 0.001;
 
