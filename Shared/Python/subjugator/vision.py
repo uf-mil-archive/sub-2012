@@ -232,13 +232,16 @@ class YawVisualServo(ForwardVisualAlgorithm):
         return False
 
 class BottomVisualServo(VisualAlgorithm):
-    def __init__(self, kx, ky, kY=.6, kz=0, zmax=0, desired_scale=0, debug=False):
+    def __init__(self, kx, ky, kY=.6, kz=0, zmax=0, xytol=.015, Ytol=.02, ztol=.03, desired_scale=0, debug=False):
         VisualAlgorithm.__init__(self)
         self.kx = kx
         self.ky = ky
         self.kY = kY
         self.kz = kz
         self.zmax = zmax
+        self.xytol = xytol
+        self.Ytol = Ytol
+        self.ztol = ztol
         self.desired_scale = desired_scale
         self.debug = debug
 
@@ -258,7 +261,7 @@ class BottomVisualServo(VisualAlgorithm):
         else:
             zvel = 0
 
-        if abs(float(obj['angle'])) < .02 and abs(xvel) < 0.015 and abs(yvel) < 0.015 and abs(zvel) < 0.03:
+        if abs(float(obj['angle'])) < self.Ytol and abs(xvel) < self.xytol and abs(yvel) < self.xytol and abs(zvel) < self.ztol:
             return True
 
         if self.debug:
