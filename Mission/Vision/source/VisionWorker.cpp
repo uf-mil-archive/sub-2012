@@ -81,7 +81,7 @@ void VisionWorker::work(double dt)
 	outputsignal.emit(make_pair(cameraname, results));
 	
 	Mat n(480, 320, CV_8UC3);
-	Mat n1(n, Range(0, 240), Range(0, 320));resize(listOfFinders.size() ? ioimages.res : ioimages.src, n1, Size(320, 240));
+	Mat n1(n, Range(0, 240), Range(0, 320));resize(ioimages.res, n1, Size(320, 240));
 	Mat n2c;
 	if(ioimages.dbg.channels() == 3)
 		n2c = ioimages.dbg;
