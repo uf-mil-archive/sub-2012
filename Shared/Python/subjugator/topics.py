@@ -41,7 +41,7 @@ _topic_qoses = {
     'MissionCommand': _TopicConf(lib.MissionCommandMessage, RELIABLE),
     'MissionState': _TopicConf(lib.MissionStateMessage, PERSISTENT),
     'VisionConfig': _TopicConf(lib.VisionConfigMessage, PERSISTENT),
-    'VisionDebug': _TopicConf(lib.VisionDebugMessage, UNRELIABLE),
+    'VisionDebug': _TopicConf(lib.VisionDebugMessage, RELIABLE),
     'VisionResults': _TopicConf(lib.VisionResultsMessage, RELIABLE),
     'VisionSetObjects': _TopicConf(lib.VisionSetObjectsMessage, RELIABLE),
 }
