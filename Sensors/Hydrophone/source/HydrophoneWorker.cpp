@@ -36,13 +36,17 @@ endpoint(WorkerEndpoint::Args()
 	dpconfig.bandpass_fircoefs = config.get<VectorXd>("bandpass");
 	dpconfig.upsample_fircoefs = config.get<VectorXd>("upsample");
 	dpconfig.hamming_fircoefs = config.get<VectorXd>("hamming");
+
+	registerStateUpdater(endpoint);
 }
 
 void HydrophoneWorker::endpointInitCallback() {
+	cout << "Sent start" << endl;
 	endpoint.write(HydrophoneStart());
 }
 
 void HydrophoneWorker::endpointReceiveCallback(const boost::shared_ptr<DataObject> &dobj) {
+	cout << "ReceiveCallback" << endl;
 	boost::shared_ptr<HydrophoneSamples> samples = dynamic_pointer_cast<HydrophoneSamples>(dobj);
 	if (!samples)
 		return;
@@ -56,6 +60,8 @@ void HydrophoneWorker::endpointReceiveCallback(const boost::shared_ptr<DataObjec
 		}
 		out << "\n";
 	}
+
+	cout << "Got ping" << endl;
 
 	try {
 		HydrophoneDataProcessor proc(samples->getMatrix(), dpconfig);

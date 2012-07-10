@@ -45,7 +45,7 @@ def approach_shoot(color):
 
 def run():
     nav.setup()
-    nav.depth(1.75)
+    nav.depth(1)
 
     with mission.State('forward'):
         print 'Forward until shooter seen'
@@ -76,7 +76,10 @@ def run():
     if not approach_shoot(secondcolor):
         return False
 
-    nav.lturn(180)
+    nav.depth(.5)
+    nav.fd(1.5)
+    nav.rturn(80)
+    nav.fd(1)
     return True
 
 mission.missionregistry.register('Shooter', run)

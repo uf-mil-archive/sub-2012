@@ -6,7 +6,7 @@ from missionplanner import mission
 import math
 import dds
 
-servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
+servo = vision.BottomVisualServo(kx=.3, ky=.3, debug=True)
 
 pipe_sels = dict(any=vision.Selector(vision.DOWN_CAMERA, 'pipe'),
                  left=vision.Selector(vision.DOWN_CAMERA, 'pipe', vision.FilterSort('angle', descending=False)),

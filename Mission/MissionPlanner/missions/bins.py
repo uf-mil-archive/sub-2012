@@ -7,7 +7,7 @@ BIN_1 = 'sword'
 BIN_2 = 'net'
 
 servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
-down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=18000, debug=True)
+down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=16000, debug=True)
 
 allbins_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/all')
 bin1_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/single', vision.FilterCompare('item', '__eq__', BIN_1))

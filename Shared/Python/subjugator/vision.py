@@ -153,7 +153,7 @@ class VisualAlgorithm(object):
             obj = selector.get_object()
             if obj is None:
                 failctr += 1
-                if failctr > 10:
+                if failctr > 20:
                     return False
                 else:
                     continue
