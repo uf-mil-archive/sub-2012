@@ -58,7 +58,7 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 			Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
 			bitwise_and(ioimages->dbg, tempMask, ioimages->dbg); // use mask to only find red areas within holes in yellow
 
-			Blob blob(ioimages, 30, 1000000, 1000000);
+			Blob blob(ioimages, 15, 1000000, 1000000);
 
 			// Draw result
 			blob.drawResult(ioimages, objectName);
@@ -75,10 +75,10 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 			}
 		} else if(objectPath[1] == "grape_close") {
 			Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
-			dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+			dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
 
-			Blob blob(ioimages, 30, 1000000, 1000000);
+			Blob blob(ioimages, 15, 1000000, 1000000);
 
 			// Draw result
 			blob.drawResult(ioimages, objectName);

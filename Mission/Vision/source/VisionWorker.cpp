@@ -88,7 +88,7 @@ void VisionWorker::work(double dt)
 	else
 		cvtColor(ioimages.dbg, n2c, CV_GRAY2RGB);
 	Mat n2(n, Range(240, 480), Range(0, 320));resize(n2c, n2, Size(320, 240));
-	Vec3b color_bgr = ioimages.src.at<Vec3b>(2*config.get<int>("color_y"), 2*config.get<int>("color_x"));
+	Vec3b color_bgr = ioimages.src.at<Vec3b>(min(2*config.get<int>("color_y"), 479), min(2*config.get<int>("color_x"), 639));
 	Vec3b color_rgb(color_bgr[2], color_bgr[1], color_bgr[0]);
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 2, Scalar(0, 0, 0));
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 3, Scalar(255, 255, 255));

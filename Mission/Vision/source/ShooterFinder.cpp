@@ -30,7 +30,10 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(5,5),10,15,BORDER_DEFAULT);
 
 		// call to thresholder here
-		Thresholder::threshConfig(ioimages, config.get_child("thresh_" + objectPath[1]));
+		//if(objectPath[1] == "red")
+		//	Thresholder::threshShooterRed(ioimages);
+		//else
+			Thresholder::threshConfig(ioimages, config.get_child("thresh_" + objectPath[1]));
 		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 
