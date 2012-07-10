@@ -42,8 +42,8 @@ _topic_qoses = {
     'MissionState': _TopicConf(lib.MissionStateMessage, PERSISTENT),
     'VisionConfig': _TopicConf(lib.VisionConfigMessage, PERSISTENT),
     'VisionDebug': _TopicConf(lib.VisionDebugMessage, UNRELIABLE),
-    'VisionResults': _TopicConf(lib.VisionResultsMessage, DEFAULT),
-    'VisionSetObjects': _TopicConf(lib.VisionSetObjectsMessage, DEFAULT),
+    'VisionResults': _TopicConf(lib.VisionResultsMessage, RELIABLE),
+    'VisionSetObjects': _TopicConf(lib.VisionSetObjectsMessage, RELIABLE),
 }
 
 def get(name):
