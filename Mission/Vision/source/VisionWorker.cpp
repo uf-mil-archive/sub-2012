@@ -81,14 +81,14 @@ void VisionWorker::work(double dt)
 	outputsignal.emit(make_pair(cameraname, results));
 	
 	Mat n(480, 320, CV_8UC3);
-	Mat n1(n, Range(0, 240), Range(0, 320));resize(listOfFinders.size() ? ioimages.res : ioimages.src, n1, Size(320, 240));
+	Mat n1(n, Range(0, 240), Range(0, 320));resize(ioimages.res, n1, Size(320, 240));
 	Mat n2c;
 	if(ioimages.dbg.channels() == 3)
 		n2c = ioimages.dbg;
 	else
 		cvtColor(ioimages.dbg, n2c, CV_GRAY2RGB);
 	Mat n2(n, Range(240, 480), Range(0, 320));resize(n2c, n2, Size(320, 240));
-	Vec3b color_bgr = n.at<Vec3b>(config.get<int>("color_y"), config.get<int>("color_x"));
+	Vec3b color_bgr = ioimages.src.at<Vec3b>(2*config.get<int>("color_y"), 2*config.get<int>("color_x"));
 	Vec3b color_rgb(color_bgr[2], color_bgr[1], color_bgr[0]);
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 2, Scalar(0, 0, 0));
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 3, Scalar(255, 255, 255));
