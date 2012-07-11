@@ -39,7 +39,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		//erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 
 		// call to specific member function here
-		Contours contours(ioimages->dbg, 500,7000000,1500000);
+		Contours contours(ioimages->dbg, 50, 7000000,1500000);
 		contours.sortBoxes();
 		contours.orientationError();
 
@@ -59,12 +59,20 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			fResult.put("angle", contours.boxes[0].orientationError);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "small") {
+			bool foundSomething = false;
+			Contours::InnerContour bestShape;
+			BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
+				if(shape.circularity > 0.5 && (!foundSomething || shape.area < bestShape.area)) {
+					foundSomething = true;
+					bestShape = shape;
+				}
+			if(!foundSomething) continue;
 			Contours::InnerContour shape = contours.findSmallestShape();
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(shape.centroid, ioimages->prcd));
+			fResult.put_child("center", Point_to_ptree(bestShape.centroid, ioimages->prcd));
 			//fResult.put("angle", contours.boxes[0].orientationError);
-			fResult.put("scale", shape.area);
+			fResult.put("scale", bestShape.area);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "large") {
 			Contours::InnerContour shape = contours.findLargestShape();

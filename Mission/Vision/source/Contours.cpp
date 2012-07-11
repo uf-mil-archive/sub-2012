@@ -1,4 +1,5 @@
 #include <boost/foreach.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #include <stdio.h>
 #include <stdexcept>
@@ -44,6 +45,9 @@ Contours::Contours(const Mat &img, float minContour, float maxContour, float max
 			innerContour.centroid.x = (int)center_holder.x;
 			innerContour.centroid.y = (int)center_holder.y;
 			innerContour.radius = radius_holder;
+			//RotatedRect rr = fitEllipse(contours[j]);
+			//innerContour.circularity = (boost::math::constants::pi<double>()*rr.size.width*rr.size.height/4)/inner_area_holder;
+			innerContour.circularity = inner_area_holder/(boost::math::constants::pi<double>()*pow(radius_holder, 2));
 			innerContour.contour.push_back(contours[j]);
 			shapes.push_back(innerContour);
 			innerContours.push_back(innerContour);
@@ -119,7 +123,7 @@ void Contours::drawResult(IOImages* ioimages, string objectName) {
 		circle(ioimages->res, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
 		circle(ioimages->res, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
 		drawContours(ioimages->res, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
-		ostringstream os; os << "Area: " << shape.area;
+		ostringstream os; os << "Circ: " << shape.circularity;
 		putText(ioimages->res,os.str().c_str(),shape.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(255,255,255),1);
 	}
 }
