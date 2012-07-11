@@ -131,7 +131,7 @@ def get_actuator_inputs():
 
 def purge_actuators():
     for i in xrange(6):
-        Grabber.open()
+        Grabber.close()
         sched.sleep(.5)
         Grabber.disable()
         sched.sleep(.5)
