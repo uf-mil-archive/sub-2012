@@ -20,15 +20,19 @@ def run():
     print 'Going forward'
     nav.vel(.2)
 
-    with mission.State('allbins'):
-        print 'Waiting for bins to be visible...'
-        vision.wait_visible(allbins_sel)
-
-        while not servo(allbins_sel):
-            print 'Failed to servo on all'
-            nav.vel(.2)
+    with sched.Timeout(60) as t:
+        with mission.State('allbins'):
+            print 'Waiting for bins to be visible...'
             vision.wait_visible(allbins_sel)
-            print 'Servoing on all'
+
+            while not servo(allbins_sel):
+                print 'Failed to servo on all'
+                nav.vel(.2)
+                vision.wait_visible(allbins_sel)
+                print 'Servoing on all'
+    if t.activated:
+        print 'Timed out looking for all bins'
+        return False
 
     center_pos = nav.get_trajectory().pos
     print 'Center Pos:', center_pos
@@ -38,7 +42,7 @@ def run():
             print 'Failed to servo on', BIN_1
             return False
         print 'Dropping first marker!'
-        nav.down(.5)
+        nav.down(1)
         nav.lstrafe(.1)
         sched.sleep(1)
         sub.BallDropper.drop()
@@ -54,7 +58,7 @@ def run():
             print 'Failed to servo on', BIN_2
             return False
         print 'Dropping second marker!'
-        nav.down(.5)
+        nav.down(1)
         nav.lstrafe(.1)
         sched.sleep(1)
         sub.BallDropper.drop()
@@ -63,8 +67,6 @@ def run():
     print 'Returning to center...'
     nav.set_waypoint(nav.Waypoint(center_pos))
     nav.wait()
-
-    nav.fd(1)
     return True
 
 if __name__ == '__main__':
@@ -72,4 +74,4 @@ if __name__ == '__main__':
     sched.run()
 else:
     from missionplanner import mission
-    mission.missionregistry.register('Bins', run)
+    mission.missionregistry.register('Bins', run, 2*60)

@@ -85,10 +85,14 @@ def run():
     nav.setup()
     nav.depth(.5)
 
-    with mission.State('forward'):
-        print 'Forward until buoy seen'
-        nav.vel(.2)
-        vision.wait_visible(buoy_sel_any)
+    with sched.Timeout(60) as t:
+        with mission.State('forward'):
+            print 'Forward until buoy seen'
+            nav.vel(.2)
+            vision.wait_visible(buoy_sel_any)
+    if t.activated:
+        print 'Timeout while looking for buoy'
+        return False
 
     start = nav.get_trajectory().pos
 
@@ -117,4 +121,3 @@ def run():
     return True
 
 mission.missionregistry.register('Buoy', run)
-

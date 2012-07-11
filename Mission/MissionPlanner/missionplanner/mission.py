@@ -58,14 +58,14 @@ class State(object):
         statemanager.pop()
         return False
 
-Mission = collections.namedtuple('Mission', 'name func')
+Mission = collections.namedtuple('Mission', 'name func timeout')
 
 class MissionRegistry(object):
     def __init__(self):
         self.missions = {}
 
-    def register(self, name, func):
-        self.missions[name] = Mission(name, func)
+    def register(self, name, func, timeout=120):
+        self.missions[name] = Mission(name, func, timeout)
 
     def get(self, name):
         return self.missions.get(name)
@@ -100,10 +100,14 @@ class MissionList(object):
         with State(self.name):
             for mission in self.missions:
                 with State(mission.name):
-                    ok = mission.func()
-                    if not ok:
+                    with sched.Timeout(mission.timeout) as t:
+                        ok = mission.func()
+                        if not ok:
+                            return (False, mission)
+                    if t.activated:
+                        print mission.name + ' failed due to timed out'
                         return (False, mission)
-            return (True, None)
+            return True
 
 class MissionListManager(object):
     def __init__(self):
@@ -179,7 +183,7 @@ class MissionRunner(sched.Task):
 
     def _send_missionlist(self, missionlist):
         topic = topics.get('MissionList')
-        topic.send(dict(name=missionlist.name, missions=[name for (name, func) in missionlist.get_missions()]))
+        topic.send(dict(name=missionlist.name, missions=[mission.name for mission in missionlist.get_missions()]))
 
 missionrunner = MissionRunner()
 

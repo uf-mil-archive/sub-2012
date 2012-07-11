@@ -31,18 +31,21 @@ def run():
     nav.setup()
     nav.depth(1)
 
-    while True:
-        print 'Looking for board'
-        nav.vel(.2)
-        vision.wait_visible(board_sel)
-        sched.sleep(1)
+    with sched.Timeout(60) as t:
+        while True:
+            print 'Looking for board'
+            nav.vel(.2)
+            vision.wait_visible(board_sel)
+            sched.sleep(1)
 
-        print 'Servoing to board'
-        if not board_servo(board_sel):
-            print 'Failed to servo to board'
-            continue
-        break
-
+            print 'Servoing to board'
+            if not board_servo(board_sel):
+                print 'Failed to servo to board'
+                continue
+            break
+    if t.activated:
+        print 'Timeout on grape board'
+        return False
 
     print 'Open loop grape approach'
     nav.go(x=.75, y=-.1, z=.2, rel=True)

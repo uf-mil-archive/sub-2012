@@ -25,13 +25,20 @@ any_box_sel = vision.combine_selectors(list(box_sels.itervalues()))
 def approach_shoot(color):
     sel = small_sels[color]
 
-    print 'Forward until small ' + color + ' seen'
-    nav.vel(.2)
-    vision.wait_visible(sel)
+    with sched.Timeout(60) as t:
+        while True:
+            print 'Forward until small ' + color + ' seen'
+            nav.vel(.2)
+            vision.wait_visible(sel)
 
-    print 'Servoing for ' + color
-    if not servo(sel):
+            print 'Servoing for ' + color
+            if not servo(sel):
+                continue
+            break
+    if t.activated:
+        print 'Timeout while looking for shooter'
         return False
+
 
     print 'Getting close'
     nav.go(.5, .1 if color == 'blue' else -.1, -.15, rel=True, speed=.1)
@@ -76,10 +83,6 @@ def run():
     if not approach_shoot(secondcolor):
         return False
 
-    nav.depth(.5)
-    nav.fd(1.5)
-    nav.rturn(80)
-    nav.fd(1)
     return True
 
 mission.missionregistry.register('Shooter', run)

@@ -27,6 +27,6 @@ def run(name):
                 break
     return True
 
-mission.missionregistry.register('Pipe', lambda: run('any'))
-mission.missionregistry.register('Pipe-left', lambda: run('left'))
-mission.missionregistry.register('Pipe-right', lambda: run('right'))
+mission.missionregistry.register('Pipe', lambda: run('any'), 60)
+mission.missionregistry.register('Pipe-left', lambda: run('left'), 60)
+mission.missionregistry.register('Pipe-right', lambda: run('right'), 60)

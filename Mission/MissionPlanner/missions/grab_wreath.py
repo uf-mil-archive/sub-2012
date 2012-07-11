@@ -46,13 +46,18 @@ def run():
     nav.setup()
     nav.depth(.2)
 
-    print 'Looking for wreath'
-    nav.vel(.2)
-    vision.wait_visible(sel)
+    with sched.Timeout(60) as t:
+        while True:
+            print 'Looking for wreath'
+            nav.vel(.2)
+            vision.wait_visible(sel)
 
-    print 'Beginning grabs'
-    if not repeat_grabs():
-        return False
+            print 'Beginning grabs'
+            if not repeat_grabs():
+                continue
+            break
+    if t.activated:
+        print 'Timeout while finding wreath'
 
     nav.depth(.2)
     return True
