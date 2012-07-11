@@ -79,10 +79,10 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				max(channelsBGR[0], channelsBGR[1], redness);
 				divide(redness, channelsBGR[2], redness, 255);
 				subtract(255, redness, redness);
-				threshold(redness, redness, 70, 255, THRESH_BINARY);
+				threshold(redness, redness, 3, 255, THRESH_BINARY);
 
 				Mat redness_dbg; cvtColor(redness, redness_dbg, CV_GRAY2BGR);
-				warpPerspective(redness_dbg, ioimages->prcd, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
+				warpPerspective(redness_dbg, ioimages->res, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
 				
 				Moments m = moments(redness, true);
 				if(m.m00 / redness.rows / redness.cols < 0.05) continue; // bin is probably spurious if it has this little red area
