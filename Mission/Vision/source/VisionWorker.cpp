@@ -95,15 +95,15 @@ void VisionWorker::work(double dt) {
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 2, Scalar(0, 0, 0));
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 3, Scalar(255, 255, 255));
 	vector<uchar> buf;
-	int quality = 40;
-	while(true) {
+	for(int quality = 40; quality > 0; quality -= 5) {
 		vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(quality);
 		imencode(".jpg", n, buf, params);
-		if(buf.size() <= 8600) break;
-		quality -= 5;
+		if(buf.size() <= 8600) {
+			cout << "Image size: " << buf.size() << endl;
+			debugsignal.emit(make_pair(cameraname, make_pair(buf, color_rgb)));
+			break;
+		}
 	}
-	cout << "Image size: " << buf.size() << endl;
-	debugsignal.emit(make_pair(cameraname, make_pair(buf, color_rgb)));
 
 	if(config.get<bool>("logImages") && frameCnt % 30 == 0) {
 		std::stringstream str; str << "log/" << cameraname << "/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << ".png";

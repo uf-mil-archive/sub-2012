@@ -28,6 +28,7 @@ class Contours
 			std::vector<cv::Point> corners;
 			std::vector<std::vector<cv::Point> > contour;
 			double orientationError;
+			bool touches_edge;
 			std::vector<InnerContour> shapes; // contours within this box
 		};
 		std::vector<InnerContour> shapes; // all inner contours

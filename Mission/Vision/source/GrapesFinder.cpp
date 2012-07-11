@@ -56,9 +56,12 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 			BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
 				drawContours(tempMask, shape.contour, 0, Scalar(255), CV_FILLED, 1, vector<Vec4i>(), 5);
 			dilate(tempMask, tempMask, cv::Mat::ones(5,5,CV_8UC1));
-			Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
+			//Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
+			Thresholder::threshShooterRed(ioimages);
 			bitwise_and(ioimages->dbg, tempMask, ioimages->dbg); // use mask to only find red areas within holes in yellow
-
+			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+			dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+			//erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 			Blob blob(ioimages, 15, 1000000, 1000000);
 
 			// Draw result
@@ -75,12 +78,13 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 				resultVector.push_back(fResult);
 			}
 		} else if(objectPath[1] == "grape_close") {
-			Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
-			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
+			//Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
+			Thresholder::threshShooterRed(ioimages);
+			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 			dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
-			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
+			//erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
 
-			Blob blob(ioimages, 15, 1000000, 1000000);
+			Blob blob(ioimages, 100, 10000, 1000000);
 
 			// Draw result
 			blob.drawResult(ioimages, objectName);

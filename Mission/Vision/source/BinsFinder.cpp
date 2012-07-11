@@ -38,6 +38,8 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 		contours.drawResult(ioimages, objectName);
 
 		if(objectName == "bins/all") {
+			if(contours.boxes.size() == 1 && contours.boxes[0].touches_edge)
+				continue;
 			Point centroidOfBoxes = contours.calcCentroidOfAllBoxes();
 			circle(ioimages->res,centroidOfBoxes, 5, CV_RGB(255,140,0), -1,8);
 			property_tree::ptree fResult;
@@ -77,9 +79,8 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				std::vector<Mat> channelsBGR(bin.channels());split(bin,channelsBGR);
 				Mat redness;
 				max(channelsBGR[0], channelsBGR[1], redness);
-				divide(redness, channelsBGR[2], redness, 255);
-				subtract(255, redness, redness);
-				threshold(redness, redness, 3, 255, THRESH_BINARY);
+				divide(channelsBGR[2], redness, redness, 130);
+				threshold(redness, redness, 128, 255, THRESH_BINARY);
 
 				Mat redness_dbg; cvtColor(redness, redness_dbg, CV_GRAY2BGR);
 				warpPerspective(redness_dbg, ioimages->res, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);

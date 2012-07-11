@@ -141,9 +141,8 @@ void Thresholder::threshGreen(IOImages *ioimages)
 	max(ioimages->channelsRGB[0], ioimages->channelsRGB[2], largest);
 	
 	Mat sat;
-	divide(largest, ioimages->channelsRGB[1], sat, 255);
-	subtract(255, sat, sat);
-	threshold(sat, ioimages->dbg, 70, 255, THRESH_BINARY);
+	divide(ioimages->channelsRGB[1], largest, sat, 150);
+	threshold(sat, ioimages->dbg, 128, 255, THRESH_BINARY);
 
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
@@ -157,11 +156,13 @@ void Thresholder::threshBlack(IOImages *ioimages)
 //return;
 	//adaptiveThreshold(ioimages->channelsRGB[0], ioimages->dbg,255,0,THRESH_BINARY_INV,171,40); // used incorrectly, but seems to work very robustly!
 	//adaptiveThreshold(channelsHSV[2],ioimages->dbg,255,0,THRESH_BINARY,171,-10);
-	threshold(ioimages->channelsHSV[2], ioimages->channelsHSV[2], 70, 255, THRESH_BINARY_INV);
-	threshold(ioimages->channelsRGB[1], ioimages->channelsRGB[1], 50, 255, THRESH_BINARY_INV);
+	threshold(ioimages->channelsHSV[2], ioimages->channelsHSV[2], 80, 255, THRESH_BINARY_INV);
+	threshold(ioimages->channelsRGB[1], ioimages->channelsRGB[1], 60, 255, THRESH_BINARY_INV);
 	bitwise_and(ioimages->channelsRGB[1], ioimages->channelsHSV[2], ioimages->dbg);
-
+	//subtract(ioimages->dbg,ioimages->channelsRGB[0],ioimages->dbg);
+	//threshold(ioimages->dbg,ioimages->dbg,150,255,THRESH_BINARY);
 	////erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 	////bitwise_and(channelsRGB[2], ioimages->dbg, ioimages->dbg);
