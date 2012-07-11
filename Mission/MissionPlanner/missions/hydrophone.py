@@ -12,23 +12,31 @@ def run():
         sched.sleep(.5)
 
     print 'Heading towards hydrophone'
-    while sub.Hydrophones.declination < math.radians(80):
-        speed = 1.5 - sub.Hydrophones.declination
-        if speed > .5:
-            speed = .5
+    donepings = 0
+    while donepings < 3:
+        if sub.Hydrophones.declination > math.radians(60):
+            donepings += 1
+        else:
+            donepings = 0
+
+        speed = 1 - sub.Hydrophones.declination
+        if speed > .3:
+            speed = .3
         elif speed < .1:
             speed = .1
 
         Y = .6 * sub.Hydrophones.heading
 
-        if math.abs(Y) > math.radians(30):
+        if abs(Y) > math.radians(30):
             speed = 0
 
         xvel = speed*math.cos(Y)
         yvel = speed*math.sin(Y)
 
-        print 'Y ' + math.degrees(Y) + ' xvel ' + xvel + ' yvel ' + yvel
-        #nav.set_waypoint_rel(nav.make_waypoint(xvel=xvel, yvel=yvel, Y=Y))
+        print 'Y ' + str(math.degrees(Y)) + ' xvel ' + str(xvel) + ' yvel ' + str(yvel) + ' declination ' + str(sub.Hydrophones.declination)
+        nav.set_waypoint_rel(nav.make_waypoint(velx=xvel, vely=yvel, Y=Y))
+        sched.sleep(1)
+        print 'Declination ' + str(sub.Hydrophones.declination)
 
     print 'Done'
     nav.stop()
