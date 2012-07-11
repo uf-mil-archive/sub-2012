@@ -19,9 +19,9 @@ def run():
         else:
             donepings = 0
 
-        speed = 1 - sub.Hydrophones.declination
-        if speed > .3:
-            speed = .3
+        speed = 1.2 - sub.Hydrophones.declination
+        if speed > .8:
+            speed = .8
         elif speed < .1:
             speed = .1
 
@@ -40,5 +40,6 @@ def run():
 
     print 'Done'
     nav.stop()
+    return True
 
 mission.missionregistry.register('Hydrophone', run)

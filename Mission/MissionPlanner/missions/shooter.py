@@ -6,7 +6,7 @@ import dds
 servo = vision.StrafeVisualServo(fastvel=.3,
                                  slowscale=10000,
                                  slowvel=.05,
-                                 maxscale=60000,
+                                 maxscale=55000,
                                  ky=.15,
                                  kz=.15,
                                  debug=True)
@@ -52,15 +52,15 @@ def approach_shoot(color):
 
 def run():
     nav.setup()
-    nav.depth(1)
+    sched.sleep(.5)
+    nav.depth(1.5)
 
+    print 'Looking for box'
     with mission.State('forward'):
-        print 'Forward until shooter seen'
         nav.vel(.2)
-        vision.wait_visible(any_box_sel)
-        print 'Getting closer'
-        sched.sleep(1)
-        vision.wait_visible(any_box_sel)
+        while True:
+            vision.wait()
+            obj = any_box_sel.get_object()
 
     if box_sels['red'].is_visible():
         firstcolor = 'red'
@@ -85,4 +85,4 @@ def run():
 
     return True
 
-mission.missionregistry.register('Shooter', run)
+mission.missionregistry.register('Shooter', run, 3*60)

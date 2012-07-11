@@ -1,7 +1,7 @@
 from subjugator import sched, nav, vision
 from missionplanner import mission
 
-board_servo = vision.StrafeVisualServo(fastvel=.3, slowscale=60000, slowvel=.1, maxscale=120000, ky=.5, kz=.5, yztol=.025, debug=True)
+board_servo = vision.StrafeVisualServo(fastvel=.3, slowscale=60000, slowvel=.1, maxscale=85000, ky=.5, kz=.5, yztol=.025, debug=True)
 grape_servo = vision.StrafeVisualServo(fastvel=.2, slowscale=40, slowvel=.05, maxscale=80, ky=.1, kz=.1, yztol=.005, debug=True)
 
 board_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/board')
@@ -48,10 +48,13 @@ def run():
         return False
 
     print 'Open loop grape approach'
-    nav.go(x=.75, y=-.1, z=.2, rel=True)
+    nav.go(x=1, y=-.1, z=.2, rel=True)
 
     while True:
         push_horizontal()
+
+        print 'Re-servoing on board'
+        board_servo(board_sel)
 
         grape_count_sel.setup()
         sched.sleep(1)

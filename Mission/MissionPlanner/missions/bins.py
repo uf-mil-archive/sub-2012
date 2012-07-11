@@ -3,8 +3,8 @@ import math
 import dds
 from subjugator import nav, sched, vision, sub
 
-BIN_1 = 'sword'
-BIN_2 = 'net'
+BIN_1 = 'trident'
+BIN_2 = 'shield'
 
 servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
 down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=16000, debug=True)
@@ -34,6 +34,7 @@ def run():
         print 'Timed out looking for all bins'
         return False
 
+    nav.down(.2)
     center_pos = nav.get_trajectory().pos
     print 'Center Pos:', center_pos
 
