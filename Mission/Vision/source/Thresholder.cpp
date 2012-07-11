@@ -89,24 +89,27 @@ void Thresholder::threshBuoys(IOImages *ioimages)
 
 void Thresholder::threshOrange(IOImages *ioimages)
 {
-	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,201,30); // use lab channel hack --  higher offset = less yellow
+	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,201,20); // use lab channel hack --  higher offset = less yellow
 	add(ioimages->channelsLAB[2],ioimages->channelsRGB[2],ioimages->dbg); // combine with red channel
 	inRange(ioimages->channelsHSV[2],Scalar(0,0,0,0),Scalar(90,0,0,0),ioimages->channelsHSV[2]); // filter out blacks
 	subtract(ioimages->dbg,ioimages->channelsHSV[2],ioimages->dbg); // filter out blacks
 	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(65,0,0,0),ioimages->channelsHSV[1]);
 	subtract(ioimages->dbg,ioimages->channelsHSV[1],ioimages->dbg); // filter whites
-	threshold(ioimages->dbg,ioimages->dbg,200,255,THRESH_BINARY);
+	threshold(ioimages->dbg,ioimages->dbg,175,255,THRESH_BINARY);
 }
 
 void Thresholder::threshShooterRed(IOImages *ioimages)
 {
-	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,201,8); // use lab channel hack --  higher offset = less yellow
+	//ioimages->res = ioimages->prcd.clone();	
+	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,301,5); // use lab channel hack --  higher offset = less yellow
 	add(ioimages->channelsLAB[2],ioimages->channelsRGB[2],ioimages->dbg); // combine with red channel
-	//inRange(ioimages->channelsHSV[2],Scalar(0,0,0,0),Scalar(10,0,0,0),ioimages->channelsHSV[2]); // filter out blacks
-	//subtract(ioimages->dbg,ioimages->channelsHSV[2],ioimages->dbg); // filter out blacks
-	//inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(45,0,0,0),ioimages->channelsHSV[1]);
-	//subtract(ioimages->dbg,ioimages->channelsHSV[1],ioimages->dbg); // filter whites
-	threshold(ioimages->dbg,ioimages->dbg,175,255,THRESH_BINARY);
+	//inRange(ioimages->channelsRGB[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->dbg); // filter out blacks
+	//subtract(ioimages->dbg,ioimages->channelsRGB[1],ioimages->dbg); // filter out blacks
+	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(30,0,0,0),ioimages->channelsHSV[1]);
+	subtract(ioimages->channelsLAB[2],ioimages->channelsHSV[1],ioimages->dbg); // filter whites
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	
 }
 
 void Thresholder::threshRed(IOImages *ioimages)
@@ -122,7 +125,7 @@ void Thresholder::threshRed(IOImages *ioimages)
 void Thresholder::threshYellow(IOImages *ioimages)
 {
 	// find whites (and hope for no washout!)
-	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,101,5);
+	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,201,5);
 	//subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg);
 	bitwise_and(ioimages->channelsLAB[1],ioimages->channelsRGB[2],ioimages->dbg); // and with red channel
 	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->channelsHSV[1]);

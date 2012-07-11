@@ -13,6 +13,7 @@ using namespace std;
 
 vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
 	Normalizer::normRGB(ioimages);
+	ioimages->processColorSpaces();
 
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 

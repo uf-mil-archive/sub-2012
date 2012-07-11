@@ -20,6 +20,7 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 {
 	// call to normalizer here
 	Normalizer::normPassthru(ioimages);
+	ioimages->processColorSpaces();
 
 	// blur the image to remove noise
 	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(5,5),10,15,BORDER_DEFAULT);
@@ -75,6 +76,7 @@ vector<property_tree::ptree> GrapesFinder::find(IOImages* ioimages)
 			}
 		} else if(objectPath[1] == "grape_close") {
 			Thresholder::threshConfig(ioimages, config.get_child("thresh_red"));
+			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 			dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 			erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
 

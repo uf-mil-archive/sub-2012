@@ -13,6 +13,8 @@ using namespace std;
 vector<property_tree::ptree> PipeFinder::find(IOImages* ioimages) {
 	// call to normalizer here
 	Normalizer::normRGB(ioimages);
+	ioimages->processColorSpaces();
+	//ioimages->res = ioimages->prcd.clone();
 
 	// blur the image to remove noise
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
@@ -21,8 +23,9 @@ vector<property_tree::ptree> PipeFinder::find(IOImages* ioimages) {
 	BOOST_FOREACH(const string &objectName, objectNames) {
 		// call to thresholder here
 		Thresholder::threshOrange(ioimages);
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
+		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 
 		// call to specific member function here
 		Line line(2, config);

@@ -36,11 +36,11 @@ int IOImages::setNewSource(Mat newSrc)
 		for(int i = 0; i < src.rows; i++) {
 			for(int j = 0; j < src.cols; j++) {
 				Vec3b rgb_vec = src.at<Vec3b>(i,j);
-				if(rgb_vec[0] >= 254 || rgb_vec[1] >= 254 || rgb_vec[2] >= 254)
+				if(rgb_vec[0] >= 254 && rgb_vec[1] >= 254 && rgb_vec[2] >= 254)
 					res.at<Vec3b>(i,j) = Vec3b(0, 0, 0);
 			}
 		}
-		processColorSpaces();
+		//processColorSpaces();
 	}
 	return 1;
 
@@ -48,9 +48,9 @@ int IOImages::setNewSource(Mat newSrc)
 
 void IOImages::processColorSpaces()
 {
-	cvtColor(src,srcLAB,CV_RGB2Lab);
-	cvtColor(src,srcHSV,CV_BGR2HSV);
-	split(src,channelsRGB);
+	cvtColor(prcd,srcLAB,CV_RGB2Lab);
+	cvtColor(prcd,srcHSV,CV_BGR2HSV);
+	split(prcd,channelsRGB);
 	split(srcLAB,channelsLAB);
 	split(srcHSV,channelsHSV);
 }

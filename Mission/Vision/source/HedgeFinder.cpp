@@ -13,6 +13,7 @@ using namespace std;
 vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 	// call to normalizer here
 	Normalizer::normRGB(ioimages);
+	ioimages->processColorSpaces();
 
 	// blur the image to remove noise
 	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);

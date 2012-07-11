@@ -12,7 +12,7 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 {
 	// call to normalizer here
 	Normalizer::normRGB(ioimages);
-	//ioimages->prcd = ioimages->src.clone();
+	ioimages->processColorSpaces();
 
 	// blur the image to remove noise
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
