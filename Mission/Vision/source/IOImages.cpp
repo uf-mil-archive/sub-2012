@@ -38,7 +38,7 @@ int IOImages::setNewSource(Mat newSrc)
 		for(int i = 0; i < src.rows; i++) {
 			for(int j = 0; j < src.cols; j++) {
 				Vec3b rgb_vec = src.at<Vec3b>(i,j);
-				if(rgb_vec[0] >= 254 || rgb_vec[1] >= 254 || rgb_vec[2] >= 254 && ((i/4)+(j/4))%2==0)
+				if((rgb_vec[0] >= 254 || rgb_vec[1] >= 254 || rgb_vec[2] >= 254) && ((i/4)+(j/4))%2==0)
 					res.at<Vec3b>(i,j) = Vec3b(0, 0, 0);
 			}
 		}
