@@ -41,12 +41,10 @@ endpoint(WorkerEndpoint::Args()
 }
 
 void HydrophoneWorker::endpointInitCallback() {
-	cout << "Sent start" << endl;
 	endpoint.write(HydrophoneStart());
 }
 
 void HydrophoneWorker::endpointReceiveCallback(const boost::shared_ptr<DataObject> &dobj) {
-	cout << "ReceiveCallback" << endl;
 	boost::shared_ptr<HydrophoneSamples> samples = dynamic_pointer_cast<HydrophoneSamples>(dobj);
 	if (!samples)
 		return;
@@ -61,8 +59,6 @@ void HydrophoneWorker::endpointReceiveCallback(const boost::shared_ptr<DataObjec
 		out << "\n";
 	}
 
-	cout << "Got ping" << endl;
-
 	try {
 		HydrophoneDataProcessor proc(samples->getMatrix(), dpconfig);
 
@@ -73,7 +69,6 @@ void HydrophoneWorker::endpointReceiveCallback(const boost::shared_ptr<DataObjec
 			heading += M_PI*2;
 
 		Info info = { samples->getTimestamp(), proc.getDist(), heading, proc.getDeclination(), proc.getPingfreq(), proc.isValid() };
-		cout << "Dist: " << proc.getDist() << " heading " << heading << " declination " << proc.getDeclination() << endl;
 		signal.emit(info);
 	} catch (HydrophoneDataProcessor::Error &err) {
 		logger.log(string("Error processing ping: ") + err.what(), WorkerLogEntry::ERROR);

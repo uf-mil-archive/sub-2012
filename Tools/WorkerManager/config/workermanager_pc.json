@@ -4,6 +4,7 @@
 		{"name": "TrackingController"},
 		{"name": "LPOSVSS"},
 		{"name": "C3Trajectory"},
+        {"name": "Hydrophone"},
 		{"name": "MissionPlanner", "args": "run_missionplanner.py"}
 	],
 
