@@ -18,10 +18,10 @@ using namespace std;
 vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 	// call to normalizer here
 	Normalizer::norm(ioimages);
-	ioimages->processColorSpaces();
 	
 	// blur the image to remove noise
 	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
+	ioimages->processColorSpaces();
 
 	vector<property_tree::ptree> resultVector;
 	BOOST_FOREACH(const string &objectName, objectNames) {

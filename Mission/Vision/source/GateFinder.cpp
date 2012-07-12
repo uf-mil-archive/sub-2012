@@ -12,10 +12,10 @@ using namespace std;
 vector<property_tree::ptree> GateFinder::find(IOImages* ioimages) {
 	// call to normalizer here
 	Normalizer::norm(ioimages);
-	ioimages->processColorSpaces();
 
 	// blur the image to remove noise
 	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(11,11),10,15,BORDER_DEFAULT);
+	ioimages->processColorSpaces();
 
 	//printf("im here\n");
 
