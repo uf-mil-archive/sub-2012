@@ -69,8 +69,10 @@ void VisionWorker::work(double dt) {
 		try {
 			fResult = finder->find(&ioimages);
 		} catch(const std::exception &exc) {
-			cout << "Finder error: " << exc.what() << endl;
-			continue;
+			property_tree::ptree error_result;
+			error_result.put("objectName", "error");
+			error_result.put("what", exc.what());
+			fResult.push_back(error_result);
 		}
 
 		BOOST_FOREACH(const property_tree::ptree &pt, fResult) {
