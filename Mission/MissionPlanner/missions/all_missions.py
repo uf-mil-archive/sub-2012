@@ -4,6 +4,10 @@ from . import bins
 from . import hedge
 from . import shooter
 from . import grab_wreath
+from . import drop_wreath
 from . import grapes
 from . import hydrophone
 from . import binsshooter
+from . import return_pipe
+from . import gate
+from . import surface

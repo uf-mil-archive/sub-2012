@@ -25,6 +25,9 @@ def run(name):
         with mission.State('servo'):
             if servo(pipe_sels[name]):
                 break
+
+    print 'Saved last pipe position'
+    mission.missiondata['last-pipe'] = nav.get_trajectory()
     return True
 
 mission.missionregistry.register('Pipe', lambda: run('any'), 60)

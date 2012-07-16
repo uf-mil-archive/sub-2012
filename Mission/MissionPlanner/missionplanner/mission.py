@@ -191,3 +191,5 @@ def _ddscallback():
     topic = topics.get('MissionState')
     topic.send(dict(running=True, state=statemanager.state)) # TODO determine if actually running
 statemanager.add_callback(_ddscallback)
+
+missiondata = dict() # Shared dictionary for missions to store and share data
