@@ -18,4 +18,4 @@ def run():
         print 'No last pipe saved!'
     return True
 
-mission.missionregistry.register('Return-pipe', run)
+mission.missionregistry.register('Pipe-return', run)

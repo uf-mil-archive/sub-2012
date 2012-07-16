@@ -30,4 +30,4 @@ def run():
     sched.sleep(1)
     sub.Grabber.disable()
 
-mission.missionregistry.register('Drop Wreath', run)
+mission.missionregistry.register('Wreath-drop', run)

@@ -62,4 +62,4 @@ def run():
     nav.depth(.2)
     return True
 
-mission.missionregistry.register('Grab Wreath', run)
+mission.missionregistry.register('Wreath-grab', run)

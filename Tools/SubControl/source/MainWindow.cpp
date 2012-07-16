@@ -460,9 +460,15 @@ void MainWindow::updateAvailableMissions() {
 	if (!(msg = availablemissionsreceiver.take()))
 		return;
 
+	vector<string> names;
 	ui.availableMissionsList->clear();
 	for (int i=0; i<msg->missions.length(); i++) {
-		ui.availableMissionsList->addItem(msg->missions[i]);
+		names.push_back(msg->missions[i]);
+	}
+
+	sort(names.begin(), names.end());
+	for (unsigned int i=0; i<names.size(); i++) {
+		ui.availableMissionsList->addItem(names[i].c_str());
 	}
 }
 
