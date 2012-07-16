@@ -7,7 +7,7 @@ def run():
     nav.setup()
     print 'Going to .2 depth'
     nav.depth(.2)
-    print 'Going forward until hydrophone ping'
+    print 'Waiting for hydrophone ping'
     while not sub.Hydrophones.available:
         sched.sleep(.5)
 
@@ -33,10 +33,9 @@ def run():
         xvel = speed*math.cos(Y)
         yvel = speed*math.sin(Y)
 
-        print 'Y ' + str(math.degrees(Y)) + ' xvel ' + str(xvel) + ' yvel ' + str(yvel) + ' declination ' + str(sub.Hydrophones.declination)
+        print 'Y ' + str(math.degrees(Y)) + ' speed ' + str(speed) + ' declination ' + str(sub.Hydrophones.declination)
         nav.set_waypoint_rel(nav.make_waypoint(velx=xvel, vely=yvel, Y=Y))
         sched.sleep(1)
-        print 'Declination ' + str(sub.Hydrophones.declination)
 
     print 'Done'
     nav.stop()
