@@ -101,14 +101,14 @@ void Thresholder::threshOrange(IOImages *ioimages)
 void Thresholder::threshShooterRed(IOImages *ioimages)
 {
 	//ioimages->res = ioimages->prcd.clone();	
-	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,301,5); // use lab channel hack --  higher offset = less yellow
+	adaptiveThreshold(ioimages->channelsLAB[2],ioimages->channelsLAB[2],255,0,THRESH_BINARY_INV,501,3); // use lab channel hack --  higher offset = less yellow
 	add(ioimages->channelsLAB[2],ioimages->channelsRGB[2],ioimages->dbg); // combine with red channel
 	//inRange(ioimages->channelsRGB[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->dbg); // filter out blacks
 	//subtract(ioimages->dbg,ioimages->channelsRGB[1],ioimages->dbg); // filter out blacks
 	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(30,0,0,0),ioimages->channelsHSV[1]);
 	subtract(ioimages->channelsLAB[2],ioimages->channelsHSV[1],ioimages->dbg); // filter whites
-	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	
 }
 
