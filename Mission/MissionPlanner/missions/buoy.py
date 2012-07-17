@@ -43,7 +43,7 @@ buoy_sel_any = vision.combine_selectors(list(buoy_sels.itervalues()))
 def panForBuoy(name):
     print 'Panning right for ' + name
     with sched.Timeout(3) as timeout1:
-        nav.vel(Y=.1)
+        nav.vel(Y=.05)
         vision.wait_visible(buoy_sels[name])
     if not timeout1:
         nav.stop(wait=False)
@@ -51,7 +51,7 @@ def panForBuoy(name):
 
     print 'Panning left for ' + name
     with sched.Timeout(6) as timeout2:
-        nav.vel(Y=-.1)
+        nav.vel(Y=-.05)
         objs = vision.wait_visible(buoy_sels[name])
     if not timeout2:
         nav.stop(wait=False)
@@ -76,7 +76,7 @@ def findBuoy(name):
 def bump():
     print 'Bump'
     nav.fd(2)
-    nav.bk(1)
+    nav.bk(2)
 
 FIRST_BUOY = 'yellow'
 SECOND_BUOY = 'red'
