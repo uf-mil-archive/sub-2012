@@ -50,7 +50,7 @@ void HydrophoneDataProcessor::checkData(const Config &config) {
 
 	// multiply through by a hamming window
 	for (int i=0; i<4; i++) {
-		VectorXd temp = data.col(i).cwiseProduct(config.hamming_fircoefs);
+		VectorXd temp = data.col(i).head(256).cwiseProduct(config.hamming_fircoefs);
 		data_pad.block(0, i, temp.rows(), 1) = temp;
 	}
 

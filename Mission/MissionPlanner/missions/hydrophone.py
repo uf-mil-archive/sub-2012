@@ -3,6 +3,8 @@ from missionplanner import mission
 import dds
 import math
 
+DESIRED_FREQ = 27e3
+
 def run():
     nav.setup()
     print 'Going to .4 depth'
@@ -14,6 +16,9 @@ def run():
     print 'Heading towards hydrophone'
     donepings = 0
     while donepings < 3:
+        if abs(sub.Hydrophones.frequency - DESIRED_FREQ) > 1000:
+            print 'Bad ping freq', sub.Hydrophones.frequency
+            continue
         if sub.Hydrophones.declination > math.radians(60):
             donepings += 1
         else:
@@ -35,7 +40,7 @@ def run():
 
         print 'Y ' + str(math.degrees(Y)) + ' speed ' + str(speed) + ' declination ' + str(sub.Hydrophones.declination)
         nav.set_waypoint_rel(nav.make_waypoint(velx=xvel, vely=yvel, Y=Y))
-        sched.sleep(1)
+        sub.Hydrophone.wait()
 
     print 'Done'
     nav.stop()
