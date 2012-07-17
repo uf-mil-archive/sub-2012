@@ -37,9 +37,11 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 		// call to specific member function here
 		Blob blob(ioimages, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 
-		for(unsigned int i = 0; i < blob.data.size(); i++)
+		for(unsigned int i = 0; i < blob.data.size(); )
 			if(blob.data[i].circularity < .3)
 				blob.data.erase(blob.data.begin()+i);
+			else
+				i++;
 
 		// Draw result
 		blob.drawResult(ioimages, objectName);
