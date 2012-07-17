@@ -137,11 +137,21 @@ void Thresholder::threshYellow(IOImages *ioimages)
 
 void Thresholder::threshGreen(IOImages *ioimages)
 {
+	// find whites (and hope for no washout!)
+	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,201,3);
+	//subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg);
+	bitwise_and(ioimages->channelsLAB[1],ioimages->channelsRGB[2],ioimages->dbg); // and with red channel
+	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->channelsHSV[1]);
+	subtract(ioimages->dbg,ioimages->channelsHSV[1],ioimages->dbg); // remove whites
+	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,171,-15);
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+return;
 	Mat largest;
 	max(ioimages->channelsRGB[0], ioimages->channelsRGB[2], largest);
 	
 	Mat sat;
-	divide(ioimages->channelsRGB[1], largest, sat, 150);
+	divide(ioimages->channelsRGB[1], largest, sat, 103);
 	threshold(sat, ioimages->dbg, 128, 255, THRESH_BINARY);
 
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));

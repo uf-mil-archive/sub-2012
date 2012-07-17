@@ -79,14 +79,14 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				std::vector<Mat> channelsBGR(bin.channels());split(bin,channelsBGR);
 				Mat redness;
 				max(channelsBGR[0], channelsBGR[1], redness);
-				divide(channelsBGR[2], redness, redness, 130);
+				divide(channelsBGR[2], redness, redness, 128);
 				threshold(redness, redness, 128, 255, THRESH_BINARY);
 
 				Mat redness_dbg; cvtColor(redness, redness_dbg, CV_GRAY2BGR);
 				warpPerspective(redness_dbg, ioimages->res, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
 				
 				Moments m = moments(redness, true);
-				if(m.m00 / redness.rows / redness.cols < 0.05) continue; // bin is probably spurious if it has this little red area
+				if(m.m00 / redness.rows / redness.cols < 0.03) continue; // bin is probably spurious if it has this little red area
 				double h[7]; HuMoments(m, h);
 				
 				/*
