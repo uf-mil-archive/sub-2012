@@ -125,7 +125,7 @@ void Thresholder::threshRed(IOImages *ioimages)
 void Thresholder::threshYellow(IOImages *ioimages)
 {
 	// find whites (and hope for no washout!)
-	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,201,5);
+	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,201,3);
 	//subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg);
 	bitwise_and(ioimages->channelsLAB[1],ioimages->channelsRGB[2],ioimages->dbg); // and with red channel
 	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->channelsHSV[1]);
@@ -138,9 +138,9 @@ void Thresholder::threshYellow(IOImages *ioimages)
 void Thresholder::threshGreen(IOImages *ioimages)
 {
 	// find whites (and hope for no washout!)
-	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY_INV,201,3);
+	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->dbg,255,0,THRESH_BINARY_INV,201,3);
 	//subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg);
-	bitwise_and(ioimages->channelsLAB[1],ioimages->channelsRGB[2],ioimages->dbg); // and with red channel
+	//bitwise_and(ioimages->channelsLAB[1],ioimages->channelsRGB[2],ioimages->dbg); // and with red channel
 	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->channelsHSV[1]);
 	subtract(ioimages->dbg,ioimages->channelsHSV[1],ioimages->dbg); // remove whites
 	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,171,-15);
