@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <istream>
+#include <vector>
 
 namespace subjugator {
 	// Common
@@ -72,15 +73,20 @@ namespace Eigen {
 
 	template <typename T>
 	std::istream &operator>>(std::istream &in, Eigen::Matrix<T, -1, 1> &mat) {
-		int count=0;
-		while (in) {
-			mat.resize(count+1);
-			in >> mat[count];
-			count++;
+		std::vector<double> vals;
+		while (true) {
+			double val;
+			in >> val;
+			if (!in)
+				break;
+			vals.push_back(val);
 		}
 		in.clear();
 
-		mat.resize(mat.size()-1);
+		mat.resize(vals.size());
+		for (unsigned int i=0; i<vals.size(); i++)
+			mat(i) = vals[i];
+
 		return in;
 	}
 }
