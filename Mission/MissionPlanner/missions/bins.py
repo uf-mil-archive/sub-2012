@@ -16,7 +16,7 @@ bin2_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/single', vision.FilterCompa
 
 @mission.State('dropball')
 def dropball(sel):
-    if not down_servo(bin1_sel):
+    if not down_servo(sel):
         print 'Failed to servo'
         return False
     print 'Dropping marker!'
