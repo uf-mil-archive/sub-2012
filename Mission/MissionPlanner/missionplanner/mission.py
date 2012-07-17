@@ -108,7 +108,7 @@ class MissionList(object):
                     if t.activated:
                         print mission.name + ' failed due to timed out'
                         return (False, mission)
-            return True
+            return (True, mission)
 
 class MissionListManager(object):
     def __init__(self):

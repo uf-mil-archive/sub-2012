@@ -25,7 +25,7 @@ def huediff(a, b):
 def buoy_score(obj, hue):
     scale = float(obj['scale'])
     diff = huediff(hue, float(obj['hue']))
-    val = scale*pow(1-abs(diff)/255.0, 5)
+    val = scale*pow(1-abs(diff)/255.0, 10)
     return val
 
 def make_buoy_sel(name, hue):
@@ -78,8 +78,8 @@ def bump():
     nav.fd(2)
     nav.bk(1)
 
-FIRST_BUOY = 'red'
-SECOND_BUOY = 'green'
+FIRST_BUOY = 'yellow'
+SECOND_BUOY = 'red'
 
 def run():
     nav.setup()

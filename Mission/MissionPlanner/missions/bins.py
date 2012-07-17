@@ -29,7 +29,7 @@ def dropball(sel):
 def run():
     nav.setup()
     print 'Going to depth'
-    nav.depth(.2, vel=.2)
+    nav.depth(.2)
     print 'Going forward'
     nav.vel(.2)
 

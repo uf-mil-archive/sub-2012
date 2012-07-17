@@ -8,5 +8,6 @@ def run():
     nav.depth(1)
     # Maybe set heading
     nav.fd(10) # TODO distance
+    return True
 
 mission.missionregistry.register('Gate', run)
