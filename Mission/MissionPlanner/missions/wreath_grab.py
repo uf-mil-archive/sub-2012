@@ -44,7 +44,7 @@ def repeat_grabs():
 
 def run():
     nav.setup()
-    nav.depth(.2)
+    nav.depth(.4)
 
     with sched.Timeout(60) as t:
         while True:
@@ -58,8 +58,8 @@ def run():
             break
     if t.activated:
         print 'Timeout while finding wreath'
+        return False
 
-    nav.depth(.2)
     return True
 
-mission.missionregistry.register('Grab Wreath', run)
+mission.missionregistry.register('Wreath-grab', run)

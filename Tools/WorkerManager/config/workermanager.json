@@ -9,6 +9,7 @@
 		{"name": "TrackingController"},
 		{"name": "C3Trajectory"},
 		{"name": "MissionPlanner", "args": "run_missionplanner.py"},
+        {"name": "Hydrophone"},
 		{"name": "Vision down", "args": "vision -c down"},
 		{"name": "Vision forward", "args": "vision -c forward"}
 	]

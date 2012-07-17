@@ -5,9 +5,9 @@ import math
 
 def run():
     nav.setup()
-    print 'Going to .2 depth'
-    nav.depth(.2)
-    print 'Going forward until hydrophone ping'
+    print 'Going to .4 depth'
+    nav.depth(.4)
+    print 'Waiting for hydrophone ping'
     while not sub.Hydrophones.available:
         sched.sleep(.5)
 
@@ -19,9 +19,9 @@ def run():
         else:
             donepings = 0
 
-        speed = 1 - sub.Hydrophones.declination
-        if speed > .3:
-            speed = .3
+        speed = 1.2 - sub.Hydrophones.declination
+        if speed > .8:
+            speed = .8
         elif speed < .1:
             speed = .1
 
@@ -33,12 +33,12 @@ def run():
         xvel = speed*math.cos(Y)
         yvel = speed*math.sin(Y)
 
-        print 'Y ' + str(math.degrees(Y)) + ' xvel ' + str(xvel) + ' yvel ' + str(yvel) + ' declination ' + str(sub.Hydrophones.declination)
+        print 'Y ' + str(math.degrees(Y)) + ' speed ' + str(speed) + ' declination ' + str(sub.Hydrophones.declination)
         nav.set_waypoint_rel(nav.make_waypoint(velx=xvel, vely=yvel, Y=Y))
         sched.sleep(1)
-        print 'Declination ' + str(sub.Hydrophones.declination)
 
     print 'Done'
     nav.stop()
+    return True
 
 mission.missionregistry.register('Hydrophone', run)

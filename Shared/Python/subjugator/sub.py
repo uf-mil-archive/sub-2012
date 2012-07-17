@@ -131,7 +131,7 @@ def get_actuator_inputs():
 
 def purge_actuators():
     for i in xrange(6):
-        Grabber.open()
+        Grabber.close()
         sched.sleep(.5)
         Grabber.disable()
         sched.sleep(.5)
@@ -203,3 +203,15 @@ class Grabber(object):
 def set_wrench(wrench):
     topic = topics.get('PDWrench')
     topic.send(dict(linear=wrench[0:3], moment=wrench[3:6]))
+
+# Kill
+
+def is_killed():
+    topic = topics.get('WorkerKill')
+    msgs = topic.read_all()
+    return any(msg['killed'] for msg in msgs)
+
+def wait_unkilled():
+    topic = topics.get('WorkerKill')
+    while is_killed():
+        sched.ddswait(topic)

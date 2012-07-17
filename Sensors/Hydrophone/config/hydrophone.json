@@ -1,5 +1,5 @@
 {
-"endpoint": "serial /dev/ttyUSB1 baud=115200",
+"endpoint": "serial /dev/ttyHydrophone baud=115200",
 "scalefact": 30,
 "samplingrate": 240382,
 "soundvelocity": 1500,

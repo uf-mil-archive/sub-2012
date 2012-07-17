@@ -146,6 +146,7 @@ class VisualAlgorithm(object):
     def run(self, selector):
         self.setup()
         selector.setup()
+        sched.sleep(.5)
 
         failctr = 0
         while True:

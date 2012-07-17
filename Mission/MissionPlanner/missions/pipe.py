@@ -14,7 +14,7 @@ pipe_sels = dict(any=vision.Selector(vision.DOWN_CAMERA, 'pipe'),
 
 def run(name):
     nav.setup()
-    nav.depth(.2)
+    nav.depth(.4)
 
     while True:
         print 'Looking for ' + name + ' pipe'
@@ -25,6 +25,9 @@ def run(name):
         with mission.State('servo'):
             if servo(pipe_sels[name]):
                 break
+
+    print 'Saved last pipe position'
+    mission.missiondata['last-pipe'] = nav.get_trajectory()
     return True
 
 mission.missionregistry.register('Pipe', lambda: run('any'), 60)
