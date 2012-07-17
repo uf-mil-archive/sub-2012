@@ -38,6 +38,7 @@
     },
     "wreath":
     {
+        "autoVal": "10",
         "thresh":
         {
             "r": "246",
