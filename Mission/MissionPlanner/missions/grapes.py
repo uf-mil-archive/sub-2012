@@ -20,12 +20,41 @@ def push_horizontal():
     print 'Open loop'
     nav.fd(.6, speed=.05)
     print 'Waiting'
-    sched.sleep(10)
+    sched.sleep(5)
     print 'Strafing'
     nav.rstrafe(.2, speed=.1)
 
-    nav.bk(3.5)
-    nav.up(.4)
+
+@mission.State('push_vertical')
+def push_vertical():
+    print 'Servoing on vertical grape'
+    if not grape_servo(vert_grape_sel):
+        print 'Failed to servo on vertical grape'
+        return False
+
+    print 'Open loop'
+    nav.down(.1, speed=.1)
+    nav.fd(.6, speed=.05)
+    print 'Waiting'
+    sched.sleep(5)
+    print 'Going up'
+    nav.up(.2, speed=.1)
+
+def push_retry(push_func, orig_num):
+    while True:
+        push_func()
+        nav.bk(3.5)
+        nav.up(.4)
+
+        print 'Re-servoing on board'
+        board_servo(board_sel)
+
+        grape_count_sel.setup()
+        sched.sleep(1)
+        if len(list(grape_count_sel.get_objects())) == orig_num:
+            print 'Failed, retrying'
+            continue
+        break
 
 def run():
     nav.setup()
@@ -50,35 +79,12 @@ def run():
     print 'Open loop grape approach'
     nav.go(x=1, y=-.1, z=.2, rel=True)
 
-    while True:
-        push_horizontal()
-
-        print 'Re-servoing on board'
-        board_servo(board_sel)
-
-        grape_count_sel.setup()
-        sched.sleep(1)
-        if len(list(grape_count_sel.get_objects())) == 2:
-            print 'Failed, retrying'
-            continue
-        break
+    push_retry(push_horizontal, 2)
 
     print 'Open loop grape approach'
     nav.go(0, .4, -.3, rel=True)
 
-    print 'Servoing on vertical grape'
-    if not grape_servo(vert_grape_sel):
-        print 'Failed to servo on vertical grape'
-        return False
-
-    print 'Open loop'
-    nav.down(.1, speed=.1)
-    nav.fd(.6, speed=.05)
-    print 'Waiting'
-    sched.sleep(10)
-    print 'Going up'
-    nav.up(.2, speed=.1)
-    nav.bk(2)
+    push_retry(push_vertical, 1)
 
     print 'Turning around'
     nav.depth(.5)
