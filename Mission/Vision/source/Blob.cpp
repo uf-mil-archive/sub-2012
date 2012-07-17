@@ -38,6 +38,7 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 		bdata.centroid.x = (int)center_holder.x;
 		bdata.centroid.y = (int)center_holder.y;
 		bdata.radius = radius_holder;
+		bdata.circularity = area_holder/(boost::math::constants::pi<double>()*pow(radius_holder, 2));
 
 		RotatedRect rr = minAreaRect(Mat(contour));
 		rr.angle *= -1;

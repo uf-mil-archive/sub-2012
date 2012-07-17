@@ -20,6 +20,7 @@ class Blob
 			float angle; // angle of longest axis, in radians. 0 = horizontal. more counterclockwise is more positive
 			float aspect_ratio;  // ratio of length along angle to length perpendicular to angle. guaranteed to be >= 1
 			bool is_vertical; // long axis is within 45deg of vertical
+			float circularity;
 
 			bool operator==(const BlobData &bdata) const {
 				return radius == bdata.radius;
