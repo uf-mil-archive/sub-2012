@@ -10,7 +10,7 @@ sel = vision.Selector(vision.DOWN_CAMERA, 'wreath')
 
 def run():
     nav.setup()
-    nav.depth(.2)
+    nav.depth(.4)
 
     with sched.Timeout(60) as t:
         while True:

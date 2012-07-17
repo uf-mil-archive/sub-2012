@@ -15,8 +15,8 @@ bin2_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/single', vision.FilterCompa
 
 def run():
     nav.setup()
-    print 'Going to .1 depth'
-    nav.depth(.1)
+    print 'Going to .4 depth'
+    nav.depth(.4)
     print 'Going forward'
     nav.vel(.2)
 

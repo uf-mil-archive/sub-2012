@@ -5,8 +5,8 @@ import math
 
 def run():
     nav.setup()
-    print 'Going to .2 depth'
-    nav.depth(.2)
+    print 'Going to .4 depth'
+    nav.depth(.4)
     print 'Waiting for hydrophone ping'
     while not sub.Hydrophones.available:
         sched.sleep(.5)
