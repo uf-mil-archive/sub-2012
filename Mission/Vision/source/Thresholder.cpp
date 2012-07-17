@@ -166,7 +166,7 @@ void Thresholder::threshBlack(IOImages *ioimages)
 //return;
 	//adaptiveThreshold(ioimages->channelsRGB[0], ioimages->dbg,255,0,THRESH_BINARY_INV,171,40); // used incorrectly, but seems to work very robustly!
 	//adaptiveThreshold(channelsHSV[2],ioimages->dbg,255,0,THRESH_BINARY,171,-10);
-	threshold(ioimages->channelsHSV[2], ioimages->channelsHSV[2], 80, 255, THRESH_BINARY_INV);
+	threshold(ioimages->channelsHSV[2], ioimages->channelsHSV[2], 60, 255, THRESH_BINARY_INV);
 	threshold(ioimages->channelsRGB[1], ioimages->channelsRGB[1], 60, 255, THRESH_BINARY_INV);
 	bitwise_and(ioimages->channelsRGB[1], ioimages->channelsHSV[2], ioimages->dbg);
 	//subtract(ioimages->dbg,ioimages->channelsRGB[0],ioimages->dbg);
