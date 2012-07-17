@@ -17,8 +17,11 @@ Contours::Contours(const Mat &img, float minContour, float maxContour, float max
 	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
 
 	for( size_t i = 0; i < contours.size(); i++ ) {
-		// only process top-level contours
-		if(hierarchy[i][3] >= 0) // if this node has a parent
+		// only process positive contours
+		int nparents = 0;
+		for(int j = hierarchy[i][3]; j >= 0; j = hierarchy[j][3]) // for every parent up to root
+			nparents++;
+		if(nparents % 2) // if this node has an odd number of parents
 			continue; // skip it
 
 		float area_holder = fabs(contourArea(Mat(contours[i])));
