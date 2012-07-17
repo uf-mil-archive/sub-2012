@@ -2,6 +2,7 @@ import math
 
 import dds
 from subjugator import nav, sched, vision, sub
+from missionplanner import mission
 
 BIN_1 = 'trident'
 BIN_2 = 'shield'
@@ -12,6 +13,18 @@ down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_
 allbins_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/all')
 bin1_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/single', vision.FilterCompare('item', '__eq__', BIN_1))
 bin2_sel = vision.Selector(vision.DOWN_CAMERA, 'bins/single', vision.FilterCompare('item', '__eq__', BIN_2))
+
+@mission.State('dropball')
+def dropball(sel):
+    if not down_servo(bin1_sel):
+        print 'Failed to servo'
+        return False
+    print 'Dropping marker!'
+    nav.depth(2.5)
+    nav.lstrafe(.1)
+    sched.sleep(1)
+    sub.BallDropper.drop()
+    print 'Done!'
 
 def run():
     nav.setup()
@@ -38,32 +51,14 @@ def run():
     center_pos = nav.get_trajectory().pos
     print 'Center Pos:', center_pos
 
-    with mission.State('bin1'):
-        if not down_servo(bin1_sel):
-            print 'Failed to servo on', BIN_1
-            return False
-        print 'Dropping first marker!'
-        nav.down(1)
-        nav.lstrafe(.1)
-        sched.sleep(1)
-        sub.BallDropper.drop()
-        print 'Done!'
+    dropball(bin1_sel)
 
     print 'Returning to center...'
     nav.set_waypoint(nav.Waypoint(center_pos))
     nav.wait()
     print 'Done!'
 
-    with mission.State('bin2'):
-        if not down_servo(bin2_sel):
-            print 'Failed to servo on', BIN_2
-            return False
-        print 'Dropping second marker!'
-        nav.down(1)
-        nav.lstrafe(.1)
-        sched.sleep(1)
-        sub.BallDropper.drop()
-        print 'Done!'
+    dropball(bin2_sel)
 
     print 'Returning to center...'
     nav.set_waypoint(nav.Waypoint(center_pos))

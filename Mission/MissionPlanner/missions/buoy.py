@@ -32,9 +32,9 @@ def make_buoy_sel(name, hue):
     return vision.Selector(vision.FORWARD_CAMERA, 'buoy/'+name, vision.FilterScore(lambda obj: buoy_score(obj, hue), min_score=500))
 
 # Make buoy selectors
-buoy_sels = dict(red=make_buoy_sel('red', 14),
-                 yellow=make_buoy_sel('yellow', 37),
-                 green=make_buoy_sel('green', 63))
+buoy_sels = dict(red=make_buoy_sel('red', 22),
+                 yellow=make_buoy_sel('yellow', 45),
+                 green=make_buoy_sel('green', 65))
 
 # Combine all buoy selectors
 buoy_sel_any = vision.combine_selectors(list(buoy_sels.itervalues()))
