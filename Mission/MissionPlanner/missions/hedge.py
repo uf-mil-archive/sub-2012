@@ -10,7 +10,7 @@ hedge_sel = vision.Selector(vision.FORWARD_CAMERA, 'hedge')
 
 def run():
     nav.setup()
-    nav.depth(.5)
+    nav.depth(2)
 
     with sched.Timeout(1*60) as t:
         while True:

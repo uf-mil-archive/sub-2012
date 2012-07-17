@@ -65,11 +65,6 @@ void HydrophoneDataProcessor::checkData(const Config &config) {
 
 	// compute the frequency
 	pingfreq = (config.samplingrate/2.0)/(datacol.rows()/2.0) * (max_loc+1);
-	if (pingfreq < 20000)
-		pingfreq = 20000;
-	else if (pingfreq > 30000)
-		pingfreq = 30000;
-
 	period = (int)round((config.samplingrate * config.scalefact) / pingfreq); // compute period from ping freq
 }
 

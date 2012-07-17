@@ -83,7 +83,7 @@ SECOND_BUOY = 'green'
 
 def run():
     nav.setup()
-    nav.depth(.5)
+    nav.depth(2)
 
     with sched.Timeout(60) as t:
         with mission.State('forward'):

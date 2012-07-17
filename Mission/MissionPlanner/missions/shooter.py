@@ -53,7 +53,7 @@ def approach_shoot(color):
 def run():
     nav.setup()
     sched.sleep(.5)
-    nav.depth(1.5)
+    nav.depth(3)
 
     print 'Looking for box'
     with mission.State('forward'):
@@ -75,7 +75,7 @@ def run():
     with mission.State('over'):
         print 'Going over window'
         origdepth = nav.get_waypoint().pos.z
-        nav.depth(.5)
+        nav.depth(1)
         nav.fd(4)
         nav.lturn(180)
         nav.depth(origdepth)
