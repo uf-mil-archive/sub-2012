@@ -13,8 +13,8 @@ servo = vision.StrafeVisualServo(fastvel=.3,
 
 small_sels = dict(red=vision.Selector(vision.FORWARD_CAMERA, 'shooter/red/small'),
                   blue=vision.Selector(vision.FORWARD_CAMERA, 'shooter/blue/small'))
-box_sels = dict(red=vision.Selector(vision.FORWARD_CAMERA, 'shooter/red/box'),
-                blue=vision.Selector(vision.FORWARD_CAMERA, 'shooter/blue/box'))
+box_sels = dict(red=vision.Selector(vision.FORWARD_CAMERA, 'shooter/red/small'),
+                blue=vision.Selector(vision.FORWARD_CAMERA, 'shooter/blue/small'))
 
 shooters = dict(red=sub.RightShooter,
                 blue=sub.LeftShooter)
