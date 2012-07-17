@@ -12,6 +12,7 @@ using namespace std;
 vector<property_tree::ptree> TubeFinder::find(IOImages* ioimages) {
 	// call to normalizer here
 	Normalizer::norm(ioimages);
+	ioimages->processColorSpaces();
 
 	vector<property_tree::ptree> resultVector;
 	BOOST_FOREACH(const string &objectName, objectNames) {

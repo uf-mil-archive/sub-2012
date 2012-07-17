@@ -69,8 +69,10 @@ void VisionWorker::work(double dt) {
 		try {
 			fResult = finder->find(&ioimages);
 		} catch(const std::exception &exc) {
-			cout << "Finder error: " << exc.what() << endl;
-			continue;
+			property_tree::ptree error_result;
+			error_result.put("objectName", "error");
+			error_result.put("what", exc.what());
+			fResult.push_back(error_result);
 		}
 
 		BOOST_FOREACH(const property_tree::ptree &pt, fResult) {
@@ -105,7 +107,7 @@ void VisionWorker::work(double dt) {
 		}
 	}
 
-	if(config.get<bool>("logImages") && frameCnt % 30 == 0) {
+	if(config.get<bool>("logImages") && frameCnt % config.get<int>("logImageEvery") == 0) {
 		std::stringstream str; str << "log/" << cameraname << "/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << ".png";
 		bool success = imwrite(str.str(), ioimages.src);
 		cout << "Logging image to " << str.str() << " " << (success ? "succeeded" : "FAILED") << endl;

@@ -19,6 +19,9 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 {
 	// call to normalizer here
 	Normalizer::normRGB(ioimages);
+
+	// blur the image to remove noise
+	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(5,5),10,15,BORDER_DEFAULT);
 	ioimages->processColorSpaces();
 
 	vector<property_tree::ptree> resultVector;
@@ -26,9 +29,6 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		vector<string> objectPath; split(objectPath, objectName, is_any_of("/"));
 		if(objectPath.size() != 3)
 			throw runtime_error("invalid shooter objectName");
-		
-		// blur the image to remove noise
-		GaussianBlur(ioimages->prcd,ioimages->prcd,Size(5,5),10,15,BORDER_DEFAULT);
 
 		// call to thresholder here
 		if(objectPath[1] == "red")

@@ -60,23 +60,23 @@ vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(const vector<s
 	
 	vector<boost::shared_ptr<IFinder> > finders;
 	if(buoyNames.size() > 0)
-		finders.push_back(make_shared<BuoyFinder>(buoyNames, config.get_child("buoy")));
+		finders.push_back(make_shared<BuoyFinder>(buoyNames, config.get_child("buoy", property_tree::ptree())));
 	if(grapesNames.size() > 0)
-		finders.push_back(make_shared<GrapesFinder>(grapesNames, config.get_child("grapes")));
+		finders.push_back(make_shared<GrapesFinder>(grapesNames, config.get_child("grapes", property_tree::ptree())));
 	if(pipeNames.size() > 0)
-		finders.push_back(make_shared<PipeFinder>(pipeNames, config.get_child("pipe")));
+		finders.push_back(make_shared<PipeFinder>(pipeNames, config.get_child("pipe", property_tree::ptree())));
 	if(hedgeNames.size() > 0)
-		finders.push_back(make_shared<HedgeFinder>(hedgeNames, config.get_child("hedge")));
+		finders.push_back(make_shared<HedgeFinder>(hedgeNames, config.get_child("hedge", property_tree::ptree())));
 	if(tubeNames.size() > 0)
-		finders.push_back(make_shared<TubeFinder>(tubeNames, config.get_child("tube")));
+		finders.push_back(make_shared<TubeFinder>(tubeNames, config.get_child("tube", property_tree::ptree())));
 	if(shooterNames.size() > 0)
-		finders.push_back(make_shared<ShooterFinder>(shooterNames, config.get_child("shooter")));
+		finders.push_back(make_shared<ShooterFinder>(shooterNames, config.get_child("shooter", property_tree::ptree())));
 	if(binsNames.size() > 0)
-		finders.push_back(make_shared<BinsFinder>(binsNames, config.get_child("bins")));
+		finders.push_back(make_shared<BinsFinder>(binsNames, config.get_child("bins", property_tree::ptree())));
 	if(gateNames.size() > 0)
-		finders.push_back(make_shared<GateFinder>(gateNames, config.get_child("gate")));
+		finders.push_back(make_shared<GateFinder>(gateNames, config.get_child("gate", property_tree::ptree())));
 	if(wreathNames.size() > 0)
-		finders.push_back(make_shared<WreathFinder>(wreathNames, config.get_child("wreath")));
+		finders.push_back(make_shared<WreathFinder>(wreathNames, config.get_child("wreath", property_tree::ptree())));
 
 	return finders;
 }

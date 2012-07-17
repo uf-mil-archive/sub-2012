@@ -7,6 +7,7 @@
     "color_x": 10,
     "color_y": 10,
     "logImages": "true",
+    "logImageEvery": "30",
     "autoVal": "40",
     "shutterVal": "-1",
     "gainVal": "-1",
