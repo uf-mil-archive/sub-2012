@@ -19,6 +19,7 @@
     },
     "pipe":
     {
+        "autoVal": "10",
         "Canny":
         {
             "thresh1": "50",

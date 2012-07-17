@@ -5,6 +5,8 @@
 #include <boost/bind.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 
 #include "FinderGenerator.h"
@@ -45,10 +47,16 @@ void VisionWorker::work(double dt) {
 		rebuildFinders = false;
 	}
 	
+	float autoVal = config.get<float>("autoVal");
+	if(objectNames.size()) {
+		vector<string> objectPath; split(objectPath, objectNames[0], is_any_of("/"));
+		autoVal = config.get_child(objectPath[0], property_tree::ptree()).get<float>("autoVal", autoVal);
+	}
+	cout << autoVal << endl;
 	try {
 		camera->setExposure(config.get<float>("shutterVal"));
 		camera->setGain(config.get<float>("gainVal"));
-		camera->setAuto(config.get<float>("autoVal"));
+		camera->setAuto(autoVal);
 	} catch (const std::exception &exc) {
 		std::cerr << "Caught exception: " << exc.what() << endl;
 	}
