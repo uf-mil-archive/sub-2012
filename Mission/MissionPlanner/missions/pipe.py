@@ -14,7 +14,7 @@ pipe_sels = dict(any=vision.Selector(vision.DOWN_CAMERA, 'pipe'),
 
 def run(name):
     nav.setup()
-    nav.depth(.2)
+    nav.depth(.6)
 
     while True:
         print 'Looking for ' + name + ' pipe'

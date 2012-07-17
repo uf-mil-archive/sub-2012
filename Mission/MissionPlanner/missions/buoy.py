@@ -102,7 +102,6 @@ def run():
         print 'Failed to find first buoy'
         nav.bk(1)
 
-    nav.depth(.5)
     nav.point_shoot(*start.xyz)
     print 'setting heading'
     nav.heading(rad=start.Y)
@@ -115,9 +114,9 @@ def run():
         nav.bk(1)
 
     print 'Going over buoys'
-    nav.depth(.25)
+    nav.depth(.5)
     nav.heading(rad=start.Y)
-    nav.fd(2)
+    nav.fd(3)
     return True
 
 mission.missionregistry.register('Buoy', run)
