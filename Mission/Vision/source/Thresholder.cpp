@@ -166,7 +166,10 @@ void Thresholder::threshBlack(IOImages *ioimages)
 //return;
 	//adaptiveThreshold(ioimages->channelsRGB[0], ioimages->dbg,255,0,THRESH_BINARY_INV,171,40); // used incorrectly, but seems to work very robustly!
 	//adaptiveThreshold(channelsHSV[2],ioimages->dbg,255,0,THRESH_BINARY,171,-10);
-	threshold(ioimages->channelsHSV[2], ioimages->channelsHSV[2], 60, 255, THRESH_BINARY_INV);
+	adaptiveThreshold(ioimages->channelsHSV[2], ioimages->dbg, 255, 0, THRESH_BINARY_INV, 101, 5);
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+return;
 	threshold(ioimages->channelsRGB[1], ioimages->channelsRGB[1], 60, 255, THRESH_BINARY_INV);
 	bitwise_and(ioimages->channelsRGB[1], ioimages->channelsHSV[2], ioimages->dbg);
 	//subtract(ioimages->dbg,ioimages->channelsRGB[0],ioimages->dbg);

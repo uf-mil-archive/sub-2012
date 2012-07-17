@@ -67,7 +67,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 						src[n] = Point2f(box.corners[(n+1)%4].x, box.corners[(n+1)%4].y);
 
 				Point2f dst[4];
-				int crop = 15;
+				int crop = 10;
 				dst[0] = Point2f(-2*crop, -crop);
 				dst[1] = Point2f(300+2*crop, -crop);
 				dst[2] = Point2f(300+2*crop, 150+crop);
@@ -75,55 +75,33 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 
 				Mat t = getPerspectiveTransform(src, dst);
 				Mat bin;warpPerspective(ioimages->src, bin, t, Size(300, 150));
+				
+				//imshow("before", bin);
+				std::vector<Mat> channels(bin.channels());
+				split(bin,channels);
+				// NORMALIZED RGB
+				for(int i = 0; i < bin.rows; i++) {
+					for(int j = 0; j < bin.cols; j++) {
+						Vec3b rgb_vec = bin.at<Vec3b>(i,j);
+						double sum = (double)(rgb_vec[0]+rgb_vec[1]+rgb_vec[2]+0.001);
 
-				std::vector<Mat> channelsBGR(bin.channels());split(bin,channelsBGR);
-				Mat redness;
-				max(channelsBGR[0], channelsBGR[1], redness);
-				divide(channelsBGR[2], redness, redness, 128);
-				threshold(redness, redness, 128, 255, THRESH_BINARY);
+						for(int k=0; k < bin.channels(); k++)
+							bin.at<Vec3b>(i,j)[k] = (double)bin.at<Vec3b>(i,j)[k] / sum * 255;
+					}
+				}
+				vector<Mat> vBGR; split(bin, vBGR);
+				Mat res; adaptiveThreshold(vBGR[2],res,255,0,THRESH_BINARY,251,-5);
+				erode(res,res,cv::Mat::ones(1,1,CV_8UC1));
+				dilate(res,res,cv::Mat::ones(3,3,CV_8UC1));
+				erode(res,res,cv::Mat::ones(3,3,CV_8UC1));
 
-				Mat redness_dbg; cvtColor(redness, redness_dbg, CV_GRAY2BGR);
+				Mat redness_dbg; cvtColor(res, redness_dbg, CV_GRAY2BGR);
 				warpPerspective(redness_dbg, ioimages->res, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
 				
-				Moments m = moments(redness, true);
-				if(m.m00 / redness.rows / redness.cols < 0.03) continue; // bin is probably spurious if it has this little red area
+				Moments m = moments(res, true);
+				if(m.m00 / res.rows / res.cols < 0.03) continue; // bin is probably spurious if it has this little red area
 				double h[7]; HuMoments(m, h);
-				
-				/*
-				// testing "fuzzy" thresholding
-				for(int x = 0; x < bin.cols; x++)
-					for(int y = 0; y < bin.rows; y++) {
-						Vec3b bgrPixel = bin.at<Vec3b>(y, x);
-						// max(g, b)/r
-						
-						float r_min = (bgrPixel[2]-1.5)/255;
-						if(r_min < 1e-9) r_min = 1e-9; // prevent range from including 0
-						float r_max = bgrPixel[2] >= 250 ? 1e9 : (bgrPixel[2]+3.5)/255;
-						
-						float top_min = (max(bgrPixel[0], bgrPixel[1])-1.5)/255;
-						if(top_min < 1e-9) top_min = 1e-9; // prevent range from including 0
-						float top_max = max(bgrPixel[0], bgrPixel[1]) >= 250 ? 1e9 : (max(bgrPixel[0], bgrPixel[1])+3.5)/255;
-						
-						float res_min = min(min(min(top_min/r_min, top_max/r_min), top_min/r_max), top_max/r_max);
-						float res_max = max(max(max(top_min/r_min, top_max/r_min), top_min/r_max), top_max/r_max);
-						
-						float threshold = 0.65;
-						if(res_min >= threshold)
-							sat.at<uchar>(y, x) = 0;
-						else if(res_max <= threshold)
-							sat.at<uchar>(y, x) = 255;
-						else
-							sat.at<uchar>(y, x) = 128;
-					}
-				*/
-				//imshow("mine" + s.str(), sat);
-				//imshow("HSV", channelsHSV[1]);
-				/*
-					imshow("out0", channelsLAB[0]);
-					imshow("out1", channelsLAB[1]);
-					imshow("out2", channelsLAB[2]); */
-				//}
-				
+
 				vector<pair<string, vector<double> > > knowns;
 				double net_moments[7] = {0.36475450363451711, 0.05765155295278647, 0.00034680796760293178, 0.00028412625762847432, 8.5704769375610641e-08, 6.5917778050250718e-05, -2.4685644456570041e-08};
 				knowns.push_back(make_pair("net", vector<double>(net_moments, net_moments+7)));
@@ -149,8 +127,8 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 					}
 				}
 				if(best == "sword" || best == "trident") {
-					best = mean(Mat(redness, Range(0, redness.rows/2), Range(0, redness.cols/2)))[0] >
-						mean(Mat(redness, Range(0, redness.rows/2), Range(redness.cols/2, redness.cols)))[0] ?
+					best = mean(Mat(vBGR[2], Range(0, vBGR[2].rows/2), Range(0, vBGR[2].cols/2)))[0] >
+						mean(Mat(vBGR[2], Range(0, vBGR[2].rows/2), Range(vBGR[2].cols/2, vBGR[2].cols)))[0] ?
 						"sword" : "trident";
 				}
 			
