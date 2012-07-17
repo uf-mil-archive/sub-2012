@@ -7,6 +7,6 @@ def run():
     sched.sleep(1)
     nav.depth(1)
     # Maybe set heading
-    nav.fd(10) # TODO distance
+    nav.fd(15) # TODO distance
 
 mission.missionregistry.register('Gate', run)

@@ -98,7 +98,7 @@ void PDWorker::estopChanged(bool estop) {
 	estopsignal.setKill(estop);
 	logger.log(string("ESTOP ") + (estop ? "engaged" : "disengaged"));
 	if (estop)
-		actuatormanager.offActuators();
+		leaveActive();
 }
 
 void PDWorker::enterActive() {
