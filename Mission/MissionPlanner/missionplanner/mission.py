@@ -1,5 +1,6 @@
 from subjugator import topics
 from subjugator import sched
+from subjugator import sub
 
 import dds
 import collections
@@ -126,8 +127,12 @@ class MissionListManager(object):
             return None
 
     def run(self):
+        print 'Waiting for sub unkilled'
+        sub.wait_unkilled()
+        print 'Running main list'
         (ok, failedmission) = self.main_list.run()
         if not ok:
+            print 'Running fail list'
             self.fail_list.run()
 
 missionlistmanager = MissionListManager()
