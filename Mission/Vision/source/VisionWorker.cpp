@@ -107,7 +107,7 @@ void VisionWorker::work(double dt) {
 	cout << "Image size: " << buf.size() << endl;
 	debugsignal.emit(make_pair(cameraname, make_pair(buf, color_rgb)));
 
-	if(config.get<bool>("logImages") && frameCnt % 30 == 0) {
+	if(config.get<bool>("logImages") && frameCnt % config.get<int>("logImageEvery") == 0) {
 		std::stringstream str; str << "log/" << cameraname << "/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << ".png";
 		bool success = imwrite(str.str(), ioimages.src);
 		cout << "Logging image to " << str.str() << " " << (success ? "succeeded" : "FAILED") << endl;
