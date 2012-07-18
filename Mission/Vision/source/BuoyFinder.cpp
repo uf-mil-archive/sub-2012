@@ -42,6 +42,8 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 				blob.data.erase(blob.data.begin()+i);
 			else
 				i++;
+		if(blob.data.size() > 3)
+			blob.data.resize(3);
 
 		// Draw result
 		blob.drawResult(ioimages, objectName);

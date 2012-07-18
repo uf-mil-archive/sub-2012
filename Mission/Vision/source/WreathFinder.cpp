@@ -40,6 +40,7 @@ vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
 				fResult.put("angle", -angle);
 				resultVector.push_back(fResult);
 //			}
+			break; // we only care about the largest blob
 		}
 	}
 	return resultVector;

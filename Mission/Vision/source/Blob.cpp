@@ -75,8 +75,6 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 	// sort largest area to smallest
 	sort(data.begin(), data.end());
 	reverse(data.begin(),data.end());
-	if(data.size() > 3)
-		data.resize(3);
 }
 
 void Blob::drawResult(IOImages* ioimages, std::string objectName)
