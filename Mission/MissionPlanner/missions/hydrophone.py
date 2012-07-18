@@ -48,9 +48,6 @@ def run(desired_freq):
     nav.stop()
     return True
 
-mission.missionregistry.register('Hydrophone 22k', lambda: run(22e3))
-mission.missionregistry.register('Hydrophone 23k', lambda: run(23e3))
-mission.missionregistry.register('Hydrophone 24k', lambda: run(24e3))
-mission.missionregistry.register('Hydrophone 25k', lambda: run(25e3))
-mission.missionregistry.register('Hydrophone 27k', lambda: run(27e3))
-mission.missionregistry.register('Hydrophone 30k', lambda: run(30e3))
+for i in xrange(22, 31):
+    name = 'Hydrophone ' + str(i) + 'k'
+    mission.missionregistry.register(name, lambda: run(i*1e3))
