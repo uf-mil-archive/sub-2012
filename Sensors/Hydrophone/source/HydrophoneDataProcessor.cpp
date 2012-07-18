@@ -184,11 +184,9 @@ double HydrophoneDataProcessor::findZeros(const Eigen::VectorXd &data, int start
 VectorXd HydrophoneDataProcessor::filter(const VectorXd &coefs, const VectorXd &data) {
 	VectorXd out(data.rows());
 
-	VectorXd coefs_rev = coefs.reverse();
-
 	for (int i=0; i<data.rows(); i++) {
 		int len = min(i+1, (int)coefs.rows());
-		out[i] = coefs_rev.head(len).dot(data.segment(i-len+1, len));
+		out[i] = coefs.head(len).reverse().dot(data.segment(i-len+1, len));
 	}
 
 	return out;
