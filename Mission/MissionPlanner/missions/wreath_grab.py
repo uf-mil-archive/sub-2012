@@ -19,6 +19,7 @@ def try_grab(down_dist):
 
     print 'Open loop grab'
     with mission.State('grab'):
+        nav.bk(.2)
         nav.down(down_dist)
         sched.sleep(.5)
         sub.Grabber.close()
@@ -36,7 +37,7 @@ def try_grab(down_dist):
 
 def repeat_grabs():
     for i in xrange(3):
-        if try_grab(1.2 + .1*i):
+        if try_grab(1.5 + .1*i):
             return True
         print "Failed, trying again"
         nav.depth(.2)
@@ -62,4 +63,4 @@ def run():
 
     return True
 
-mission.missionregistry.register('Wreath-grab', run)
+mission.missionregistry.register('Wreath-grab', run, 3*60)
