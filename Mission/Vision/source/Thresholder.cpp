@@ -138,9 +138,9 @@ void Thresholder::threshYellow(IOImages *ioimages)
 void Thresholder::threshGreen(IOImages *ioimages)
 {
 	adaptiveThreshold(ioimages->channelsHSV[0],ioimages->dbg,255,0,THRESH_BINARY_INV,101,3);
-	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
-	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
-	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 }
 
 void Thresholder::threshBlack(IOImages *ioimages)
