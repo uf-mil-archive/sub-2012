@@ -34,7 +34,7 @@ def run():
         return False
 
     print 'Going through hedge'
-    nav.fd(4.5)
+    nav.fd(5.5)
     return True
 
 mission.missionregistry.register('Hedge', run)
