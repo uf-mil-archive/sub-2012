@@ -11,3 +11,4 @@ from . import hydrophone
 from . import binsshooter
 from . import gate
 from . import surface
+from . import hacks
