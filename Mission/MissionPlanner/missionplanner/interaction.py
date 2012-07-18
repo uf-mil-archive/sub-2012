@@ -1,6 +1,7 @@
 from subjugator import topics
 from subjugator import sched
 from subjugator import worker
+from subjugator import nav
 import dds
 
 import codeop
@@ -55,12 +56,14 @@ class InteractionTask(sched.Task):
         self.env = make_env()
 
     def run(self):
+        nav.setup() # Hack, some sort of startup file needed like we had in highschool
         while True:
             cmd = self.get_command()
             if not self.enabled:
                 continue
             if self.cmdtask is not None:
                 self.cmdtask.stop()
+                nav.stop()
             if cmd['stop']:
                 self.cmdtask = None
             else:

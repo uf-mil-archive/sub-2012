@@ -1,6 +1,7 @@
 from subjugator import topics
 from subjugator import sched
 from subjugator import sub
+from subjugator import nav
 
 import dds
 import collections
@@ -156,6 +157,7 @@ class MissionRunner(sched.Task):
             return
         self.task.stop()
         self.task = None
+        nav.stop()
 
     def run(self):
         self._send_initial_messages()
