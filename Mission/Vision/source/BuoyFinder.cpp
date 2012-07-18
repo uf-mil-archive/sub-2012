@@ -10,11 +10,11 @@ using namespace cv;
 
 vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 {
+	// blur the image to remove noise
+	GaussianBlur(ioimages->src,ioimages->src,Size(0,0),1.5);
 	// call to normalizer here
 	Normalizer::normRGB(ioimages);
 
-	// blur the image to remove noise
-	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
 	ioimages->processColorSpaces();
 
 	vector<property_tree::ptree> resultVector;
