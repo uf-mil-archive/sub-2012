@@ -49,7 +49,9 @@ class Window(object):
         
         for msg in self.result_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
-                self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
+                if msg['messages'] != self.last_results:
+                    self.last_results = msg['messages']
+                    self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
         
         for msg in self.config_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
@@ -82,6 +84,7 @@ class Window(object):
         self.wTree.get_object('image_view').set_from_pixbuf(None)
         self.last_objectnames = None
         self.last_config = None
+        self.last_results = None
         self.pixels = None
     
     def pixel_clicked(self, widget, event):
