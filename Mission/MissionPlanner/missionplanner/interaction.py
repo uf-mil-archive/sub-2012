@@ -108,7 +108,7 @@ class DDSInteractionStream(object):
 
 def make_env():
     env = {}
-    for modname in ['subjugator.nav', 'subjugator.sched', 'subjugator.topics', 'subjugator.sub', 'dds', 'math']:
+    for modname in ['subjugator.nav', 'subjugator.sched', 'subjugator.topics', 'subjugator.sub', 'subjugator.vision', 'dds', 'math']:
         name = modname.split('.')[-1]
         env[name] = __import__(modname, fromlist=[modname])
     return env
