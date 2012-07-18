@@ -4,9 +4,10 @@ import dds
 import math
 import functools
 
+practice_freq = 28e3
 freq_tol = 800
 
-def run(desired_freq):
+def run(practice):
     nav.setup()
     print 'Going to .4 depth'
     nav.depth(.4)
@@ -15,9 +16,16 @@ def run(desired_freq):
     donepings = 0
     while donepings < 3:
         sub.Hydrophones.wait()
-        if abs(sub.Hydrophones.frequency - desired_freq) > freq_tol:
-            print 'Bad ping', sub.Hydrophones.frequency
-            continue
+
+        practice_delta = abs(sub.Hydrophones.frequency - practice_freq)
+        if practice:
+            if practice_delta > freq_tol:
+                print 'Competition ping', sub.Hydrophones.frequency
+                continue
+        else:
+            if practice_delta < freq_tol:
+                print 'Practice ping', sub.Hydrophones.frequency
+                continue
 
         if sub.Hydrophones.declination > math.radians(50):
             donepings += 1
@@ -45,6 +53,5 @@ def run(desired_freq):
     nav.stop()
     return True
 
-for i in xrange(22, 31):
-    name = 'Hydrophone ' + str(i) + 'k'
-    mission.missionregistry.register(name, functools.partial(run, i*1e3))
+mission.missionregistry.register('Hydrophone-practice', lambda: run(True))
+mission.missionregistry.register('Hydrophone-competition', lambda: run(False))
