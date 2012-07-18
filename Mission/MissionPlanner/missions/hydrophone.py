@@ -3,7 +3,7 @@ from missionplanner import mission
 import dds
 import math
 
-freq_tol = 500
+freq_tol = 1000
 
 def run(desired_freq):
     nav.setup()
@@ -16,7 +16,8 @@ def run(desired_freq):
     print 'Heading towards hydrophone'
     donepings = 0
     while donepings < 3:
-        if abs(sub.Hydrophones.frequency - desired_freq) > freq_tol:
+        print desired_freq
+        if abs(sub.Hydrophones.frequency - 25000) > freq_tol:
             print 'Bad ping', sub.Hydrophones.frequency
             sub.Hydrophones.wait()
             continue

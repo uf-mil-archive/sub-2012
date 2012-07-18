@@ -29,12 +29,12 @@ def buoy_score(obj, hue):
     return val
 
 def make_buoy_sel(name, hue):
-    return vision.Selector(vision.FORWARD_CAMERA, 'buoy/'+name, vision.FilterScore(lambda obj: buoy_score(obj, hue), min_score=500, debug=True))
+    return vision.Selector(vision.FORWARD_CAMERA, 'buoy/'+name, vision.FilterScore(lambda obj: buoy_score(obj, hue), min_score=200, debug=True))
 
 # Make buoy selectors
 buoy_sels = dict(red=make_buoy_sel('red', 22),
-                 yellow=make_buoy_sel('yellow', 45),
-                 green=make_buoy_sel('green', 65))
+                 yellow=make_buoy_sel('green', 45),
+                 green=make_buoy_sel('green', 58))
 
 # Combine all buoy selectors
 buoy_sel_any = vision.combine_selectors(list(buoy_sels.itervalues()))
@@ -78,7 +78,7 @@ def bump():
     nav.fd(2)
     nav.bk(2)
 
-FIRST_BUOY = 'yellow'
+FIRST_BUOY = 'green'
 SECOND_BUOY = 'red'
 
 def run():

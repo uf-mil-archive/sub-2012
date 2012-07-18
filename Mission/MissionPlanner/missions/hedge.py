@@ -12,6 +12,9 @@ def run():
     nav.setup()
     nav.depth(2)
 
+    nav.rstrafe(1)
+    nav.lturn(30)
+
     with sched.Timeout(1*60) as t:
         while True:
             print 'Looking for hedge'
