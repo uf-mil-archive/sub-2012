@@ -72,6 +72,8 @@ namespace subjugator {
 		void missionListRemove();
 		void missionStart();
 		void missionStop();
+		void missionSave();
+		void missionLoad();
 
 	private:
 		Ui::MainWindow ui;
@@ -156,4 +158,3 @@ namespace subjugator {
 }
 
 #endif
-

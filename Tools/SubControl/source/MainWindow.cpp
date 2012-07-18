@@ -3,9 +3,13 @@
 #include <iostream>
 #include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
+#include <boost/algorithm/string.hpp>
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <QFileDialog>
+#include <fstream>
+#include <unistd.h>
 
 using namespace subjugator;
 using namespace boost;
@@ -67,6 +71,8 @@ MainWindow::MainWindow() :
 	connect(ui.missionRemoveButton, SIGNAL(clicked()), this, SLOT(missionListRemove()));
 	connect(ui.missionStartButton, SIGNAL(clicked()), this, SLOT(missionStart()));
 	connect(ui.missionStopButton, SIGNAL(clicked()), this, SLOT(missionStop()));
+	connect(ui.missionLoadButton, SIGNAL(clicked()), this, SLOT(missionLoad()));
+	connect(ui.missionSaveButton, SIGNAL(clicked()), this, SLOT(missionSave()));
 
 	timer.start(100);
 }
@@ -194,6 +200,47 @@ void MainWindow::missionStop() {
 	to_dds(msg->list, "");
 	to_dds(msg->mission, "");
 	missioncommandsender.send(*msg);
+}
+
+void MainWindow::missionSave() {
+	QString filename = QFileDialog::getSaveFileName(this);
+	ofstream out(filename.toStdString().c_str());
+
+	vector<boost::shared_ptr<MissionListMessage> > msgs = missionlistreceiver.readAll();
+	for (unsigned int msgnum=0; msgnum < msgs.size(); msgnum++) {
+		boost::shared_ptr<MissionListMessage> &msg = msgs[msgnum];
+		for (int i=0; i<msg->missions.length(); i++) {
+			out << msg->name << "," << msg->missions[i] << endl;
+		}
+	}
+}
+
+void MainWindow::missionLoad() {
+	QString filename = QFileDialog::getOpenFileName(this);
+	ifstream in(filename.toStdString().c_str());
+
+	while (true) {
+		string line;
+		getline(in, line);
+		if (!in)
+			break;
+
+		vector<string> parts;
+		split(parts, line, is_any_of(","), token_compress_on);
+		assert(parts.size() == 2);
+		const string &list = parts[0];
+		const string &mission = parts[1];
+
+		cout << "list: " << list << " mission: " << mission << endl;
+		MessageWrapper<MissionCommandMessage> msg;
+		to_dds(msg->type, MISSIONCOMMANDTYPE_ADD_MISSION);
+		to_dds(msg->pos, ui.missionList->currentRow());
+		to_dds(msg->list, list);
+		to_dds(msg->mission, mission);
+		missioncommandsender.send(*msg);
+
+		usleep(10*1e3); // DDS...
+	}
 }
 
 void MainWindow::updateWorkers() {
