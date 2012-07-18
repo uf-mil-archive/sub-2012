@@ -4,7 +4,7 @@ import dds
 import math
 import functools
 
-practice_freq = 28e3
+practice_freq = 27e3
 freq_tol = 800
 
 def run(practice):

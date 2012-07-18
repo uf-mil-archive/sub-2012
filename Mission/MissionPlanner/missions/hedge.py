@@ -13,6 +13,7 @@ def run_hedge_fix_competition():
     nav.depth(2)
     nav.rstrafe(1)
     nav.lturn(30)
+    return True
 
 def run():
     nav.setup()
