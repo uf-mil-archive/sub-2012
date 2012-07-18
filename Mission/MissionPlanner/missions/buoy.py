@@ -25,11 +25,11 @@ def huediff(a, b):
 def buoy_score(obj, hue):
     scale = float(obj['scale'])
     diff = huediff(hue, float(obj['hue']))
-    val = scale*pow(1-abs(diff)/90.0, 2)
+    val = scale*pow(1-abs(diff)/90.0, 3)
     return val
 
 def make_buoy_sel(name, hue):
-    return vision.Selector(vision.FORWARD_CAMERA, 'buoy/'+name, vision.FilterScore(lambda obj: buoy_score(obj, hue), min_score=500))
+    return vision.Selector(vision.FORWARD_CAMERA, 'buoy/'+name, vision.FilterScore(lambda obj: buoy_score(obj, hue), min_score=500, debug=True))
 
 # Make buoy selectors
 buoy_sels = dict(red=make_buoy_sel('red', 22),

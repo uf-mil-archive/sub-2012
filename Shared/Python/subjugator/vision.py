@@ -86,13 +86,17 @@ class FilterSortKey(Filter):
         return iter(sorted(objs, key=self.key, reverse=self.descending))
 
 class FilterScore(Filter):
-    def __init__(self, score_func, min_score=0):
+    def __init__(self, score_func, min_score=0, debug=False):
         self.score_func = score_func
         self.min_score = min_score
+        self.debug = debug
 
     def __call__(self, objs):
         for obj in sorted(objs, key=self.score_func, reverse=True):
-            if self.score_func(obj) > self.min_score:
+            score = self.score_func(obj)
+            if self.debug:
+                print obj['center'][0], obj['center'][1], ' score ', score
+            if score > self.min_score:
                 yield obj
             else:
                 break
