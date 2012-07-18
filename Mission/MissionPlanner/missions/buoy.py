@@ -15,17 +15,17 @@ servo = vision.StrafeVisualServo(fastvel=.35,
 
 def huediff(a, b):
     diff = a - b
-    if diff >= 127:
-        return diff - 255
-    elif diff <= -128:
-        return diff + 255
+    if diff >= 90:
+        return diff - 180
+    elif diff <= -90:
+        return diff + 180
     else:
         return diff
 
 def buoy_score(obj, hue):
     scale = float(obj['scale'])
     diff = huediff(hue, float(obj['hue']))
-    val = scale*pow(1-abs(diff)/255.0, 10)
+    val = scale*pow(1-abs(diff)/90.0, 2)
     return val
 
 def make_buoy_sel(name, hue):
