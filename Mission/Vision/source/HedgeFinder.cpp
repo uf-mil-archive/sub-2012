@@ -25,7 +25,7 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 
-		Blob blob(ioimages, 300, 100000, 20000);
+		Blob blob(ioimages, 1000, 100000, 20000);
 		blob.drawResult(ioimages, objectName);
 
 		// send average centroid of blobs, but with tiny scale so we servo until we can recognize the structure
@@ -39,7 +39,7 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 		}
 		if(denom == 0) continue; // we see nothing at all
 		Point center = 1/denom*sum;
-		float scale = 5;
+		float scale = -1;
 
 		// find bottom bar. assumes that more than one matching blob is never detected
 		Point bottom_center;
@@ -74,6 +74,7 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 				scale = norm(centers[1] - centers[0])/2;
 			}
 		}
+		if(scale < 0) continue;
 
 		circle(ioimages->res,center,scale,Scalar(255,255,255),5);
 
