@@ -60,6 +60,10 @@ class Sensor(object):
                 return default
         return property(get)
 
+    def wait(self):
+        topic = topics.get(self.topicname)
+        sched.ddswait(topic)
+
 @apply
 class IMU(Sensor):
     def __init__(self):
