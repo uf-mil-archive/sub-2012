@@ -23,11 +23,11 @@ class Blob
 			float circularity; // [0, 1]
 
 			bool operator==(const BlobData &bdata) const {
-				return radius == bdata.radius;
+				return area == bdata.area;
 			}
 
 			bool operator<(const BlobData &bdata) const {
-				return radius < bdata.radius;
+				return area < bdata.area;
 			}
 		};
 

@@ -72,6 +72,7 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 		data.push_back(bdata);
 	}
 
+	// sort largest area to smallest
 	sort(data.begin(), data.end());
 	reverse(data.begin(),data.end());
 	if(data.size() > 3)
