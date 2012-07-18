@@ -137,15 +137,10 @@ void Thresholder::threshYellow(IOImages *ioimages)
 
 void Thresholder::threshGreen(IOImages *ioimages)
 {
-	// find whites (and hope for no washout!)
-	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->dbg,255,0,THRESH_BINARY_INV,501,3);
-	//subtract(ioimages->dbg,channelsRGB[1],ioimages->dbg);
-	//bitwise_and(ioimages->channelsLAB[1],ioimages->channelsRGB[2],ioimages->dbg); // and with red channel
-	inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(50,0,0,0),ioimages->channelsHSV[1]);
-	subtract(ioimages->dbg,ioimages->channelsHSV[1],ioimages->dbg); // remove whites
-	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY,171,-10);
+	adaptiveThreshold(ioimages->channelsHSV[0],ioimages->dbg,255,0,THRESH_BINARY_INV,101,3);
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
-	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 }
 
 void Thresholder::threshBlack(IOImages *ioimages)
