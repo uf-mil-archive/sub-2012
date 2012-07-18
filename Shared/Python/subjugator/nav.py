@@ -254,7 +254,8 @@ def vel(x=0, y=0, z=0, R=0, P=0, Y=0):
 
 @waitopts
 def stop():
-    set_waypoint_rel(make_waypoint())
+    pos = get_trajectory().pos
+    set_waypoint(Waypoint(pos, Point([0]*6)))
 
 def xyz_to_waypoint(x, y, z=None, rel=False, base=None):
     curpoint = get_trajectory()
