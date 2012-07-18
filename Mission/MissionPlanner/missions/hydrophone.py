@@ -2,27 +2,24 @@ from subjugator import nav, sched, vision, sub
 from missionplanner import mission
 import dds
 import math
+import functools
 
-freq_tol = 1000
+freq_tol = 800
 
 def run(desired_freq):
     nav.setup()
     print 'Going to .4 depth'
     nav.depth(.4)
     print 'Waiting for hydrophone ping'
-    while not sub.Hydrophones.available:
-        sched.sleep(.5)
 
-    print 'Heading towards hydrophone'
     donepings = 0
     while donepings < 3:
-        print desired_freq
-        if abs(sub.Hydrophones.frequency - 25000) > freq_tol:
+        sub.Hydrophones.wait()
+        if abs(sub.Hydrophones.frequency - desired_freq) > freq_tol:
             print 'Bad ping', sub.Hydrophones.frequency
-            sub.Hydrophones.wait()
             continue
 
-        if sub.Hydrophones.declination > math.radians(60):
+        if sub.Hydrophones.declination > math.radians(50):
             donepings += 1
         else:
             donepings = 0
@@ -43,7 +40,6 @@ def run(desired_freq):
 
         print 'Y ' + str(math.degrees(Y)) + ' speed ' + str(speed) + ' declination ' + str(math.degrees(sub.Hydrophones.declination))
         nav.set_waypoint_rel(nav.make_waypoint(velx=xvel, vely=yvel, Y=Y))
-        sub.Hydrophones.wait()
 
     print 'Done'
     nav.stop()
@@ -51,4 +47,4 @@ def run(desired_freq):
 
 for i in xrange(22, 31):
     name = 'Hydrophone ' + str(i) + 'k'
-    mission.missionregistry.register(name, lambda: run(i*1e3))
+    mission.missionregistry.register(name, functools.partial(run, i*1e3))
