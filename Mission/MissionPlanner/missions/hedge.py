@@ -8,12 +8,15 @@ servo = vision.StrafeVisualServo(fastvel=.3, slowscale=140, slowvel=.2, maxscale
 
 hedge_sel = vision.Selector(vision.FORWARD_CAMERA, 'hedge')
 
+def run_hedge_fix_competition():
+    nav.setup()
+    nav.depth(2)
+    nav.rstrafe(1)
+    nav.lturn(30)
+
 def run():
     nav.setup()
     nav.depth(2)
-
-    nav.rstrafe(1)
-    nav.lturn(30)
 
     with sched.Timeout(1*60) as t:
         while True:
@@ -34,3 +37,4 @@ def run():
     return True
 
 mission.missionregistry.register('Hedge', run)
+mission.missionregistry.register('Hedge-fix-competition', run_hedge_fix_competition)
