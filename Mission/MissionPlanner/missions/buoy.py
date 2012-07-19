@@ -26,7 +26,7 @@ def buoy_score(obj, hue):
     scale = float(obj['scale'])
     diff = huediff(hue, float(obj['hue']))
     #val = pow(1-abs(diff)/90.0, 3)
-    val = diff
+    val = 180 - abs(diff)
     return val
 
 def make_buoy_sel(name, hue):
