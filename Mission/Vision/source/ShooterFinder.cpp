@@ -33,8 +33,11 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		// call to thresholder here
 		if(objectPath[1] == "red")
 			Thresholder::threshShooterRed(ioimages);
+		else if(objectPath[1] == "blue")
+			Thresholder::threshBlue(ioimages);
 		else
-			Thresholder::threshConfig(ioimages, config.get_child("thresh_" + objectPath[1]));
+			throw runtime_error("invalid shooter color");
+
 		//dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 		//erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 
@@ -59,20 +62,36 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			fResult.put("angle", contours.boxes[0].orientationError);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "small") {
-			bool foundSomething = false;
 			Contours::InnerContour bestShape;
-			BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
-				if(shape.circularity > 0.5 && (!foundSomething || shape.area < bestShape.area)) {
-					foundSomething = true;
-					bestShape = shape;
-				}
-			if(!foundSomething) continue;
-			Contours::InnerContour shape = contours.findSmallestShape();
+			{
+				bool foundSomething = false;
+				BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
+					if(shape.circularity > 0.6 && (!foundSomething || shape.area > bestShape.area)) {
+						foundSomething = true;
+						bestShape = shape;
+					}
+				if(!foundSomething) continue;
+			}
+
+			Contours::InnerContour bestShape2;
+			{
+				bool foundSomething2 = false;
+				BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
+					if(shape.circularity > 0.6 && (!foundSomething2 || shape.area > bestShape2.area) && shape.area < bestShape.area) {
+						foundSomething2 = true;
+						bestShape2 = shape;
+					}
+				if(!foundSomething2)
+					bestShape2 = bestShape;
+			}
+			if(bestShape2.area < 0.1*bestShape.area) // if second largest is an order of magnitude smaller
+				bestShape2 = bestShape; // use largest
+
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(bestShape.centroid, ioimages->prcd));
+			fResult.put_child("center", Point_to_ptree(bestShape2.centroid, ioimages->prcd));
 			//fResult.put("angle", contours.boxes[0].orientationError);
-			fResult.put("scale", bestShape.area);
+			fResult.put("scale", bestShape2.area);
 			resultVector.push_back(fResult);
 		} else if(objectPath[2] == "large") {
 			Contours::InnerContour shape = contours.findLargestShape();

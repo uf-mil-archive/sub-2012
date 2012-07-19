@@ -131,7 +131,7 @@ void Contours::drawResult(IOImages* ioimages, string objectName) {
 		circle(ioimages->res, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
 		circle(ioimages->res, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
 		drawContours(ioimages->res, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
-		ostringstream os; os << "Circ: " << shape.circularity;
+		ostringstream os; os << "Area: " << shape.area << " " << shape.circularity;
 		putText(ioimages->res,os.str().c_str(),shape.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(255,255,255),1);
 	}
 }

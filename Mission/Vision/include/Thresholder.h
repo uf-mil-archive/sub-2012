@@ -14,6 +14,7 @@ class Thresholder {
 		static void threshShooterRed(IOImages* ioimages);
 		static void threshGreen(IOImages* ioimages);
 		static void threshYellow(IOImages* ioimages);
+		static void threshBlue(IOImages* ioimages);
 		static void threshBlack(IOImages* ioimages);
 };
 
