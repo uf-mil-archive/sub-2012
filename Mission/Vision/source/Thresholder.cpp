@@ -153,9 +153,12 @@ void Thresholder::threshBlue(IOImages *ioimages) {
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 }
 
-void Thresholder::threshBlack(IOImages *ioimages)
-{
-	adaptiveThreshold(ioimages->channelsHSV[2], ioimages->dbg, 255, 0, THRESH_BINARY_INV, 101, 5);
-	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+void Thresholder::threshBlack(IOImages *ioimages) {	
+	Mat v; ioimages->channelsHSV[2].convertTo(v, CV_32FC1, 1/256., 1/256./2);
+	log(v, v);
+	v.convertTo(ioimages->dbg, CV_8UC1, 40, 256);
+	adaptiveThreshold(ioimages->dbg, ioimages->dbg, 255, 0, THRESH_BINARY_INV, 21, 3);
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
 }
