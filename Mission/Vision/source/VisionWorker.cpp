@@ -105,7 +105,7 @@ void VisionWorker::work(double dt) {
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 2, Scalar(0, 0, 0));
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 3, Scalar(255, 255, 255));
 	vector<uchar> buf;
-	for(int quality = 40; quality > 0; quality -= 5) {
+	for(int quality = 40; quality >= 0; quality -= 5) {
 		vector<int> params; params.push_back(CV_IMWRITE_JPEG_QUALITY); params.push_back(quality);
 		imencode(".jpg", n, buf, params);
 		if(buf.size() <= 8600) {
