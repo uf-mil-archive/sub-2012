@@ -145,6 +145,15 @@ void Thresholder::threshGreen(IOImages *ioimages)
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 }
 
+void Thresholder::threshBlue(IOImages *ioimages) {
+	adaptiveThreshold(ioimages->channelsHSV[0],ioimages->channelsHSV[0],255,0,THRESH_BINARY,601,-9); // works well over [-8, -10]
+	adaptiveThreshold(ioimages->channelsLAB[1],ioimages->channelsLAB[1],255,0,THRESH_BINARY,601,-3); // works well over [-3, -4]
+	bitwise_and(ioimages->channelsHSV[0],ioimages->channelsLAB[1],ioimages->dbg);
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
+	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
+}
+
 void Thresholder::threshBlack(IOImages *ioimages)
 {	
 	//add(channelsRGB[2],channelsRGB[0],channelsRGB[2]);

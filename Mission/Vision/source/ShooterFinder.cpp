@@ -33,8 +33,11 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 		// call to thresholder here
 		if(objectPath[1] == "red")
 			Thresholder::threshShooterRed(ioimages);
+		else if(objectPath[1] == "blue")
+			Thresholder::threshBlue(ioimages);
 		else
-			Thresholder::threshConfig(ioimages, config.get_child("thresh_" + objectPath[1]));
+			throw runtime_error("invalid shooter color");
+
 		//dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
 		//erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(1,1,CV_8UC1));
 
