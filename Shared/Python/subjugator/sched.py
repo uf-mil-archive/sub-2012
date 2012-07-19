@@ -392,9 +392,12 @@ class Timeout:
         self.task.throw(TimeoutException(self))
         self.activated = True
 
-    def __exit__(self, type, value, traceback):
+    def cancel(self):
 	if not self.timer.activated:
 	    self.timer.cancel()
+
+    def __exit__(self, type, value, traceback):
+        self.cancel()
         return type == TimeoutException and value.timeoutobj == self
 
     def __nonzero__(self):

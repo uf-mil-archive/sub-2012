@@ -21,32 +21,29 @@ def dropball(sel):
         return False
     print 'Dropping marker!'
     nav.depth(2.5)
-    nav.lstrafe(.1)
+    nav.lstrafe(.05)
     sched.sleep(1)
     sub.BallDropper.drop()
+    sched.sleep(.5)
     print 'Done!'
 
 @mission.State('allbins')
-def allbins(left):
+def allbins():
     print 'Waiting for bins to be visible...'
     nav.vel(.2)
     vision.wait_visible(allbins_sel, 5)
 
     if not servo(allbins_sel):
         print 'Failed to servo on all'
-        return False
+        return (False, 'servo')
 
     obj = allbins_sel.get_object()
     print 'Number of boxes', obj['number_of_boxes']
     if obj is not None and int(obj['number_of_boxes']) == 4:
-        return True
+        return (True, None)
     else:
-        print 'Not enough boxes, strafing', 'left' if left else 'right'
-        if left:
-            nav.lstrafe(.5)
-        else:
-            nav.rstrafe(.5)
-        return False
+        print 'Not enough boxes, strafing'
+        return (False, 'strafe')
 
 def run():
     nav.setup()
@@ -55,8 +52,18 @@ def run():
 
     with sched.Timeout(60) as t:
         left = True
-        while not allbins(left):
-            left = not left
+        while True:
+            (ok, failtype) = allbins()
+            if ok:
+                break
+            if failtype == 'strafe':
+                t.cancel()
+                if left:
+                    nav.lstrafe(.5)
+                else:
+                    nav.rstrafe(.5)
+                left = not left
+
     if t.activated:
         print 'Timed out looking for all bins'
         return False
