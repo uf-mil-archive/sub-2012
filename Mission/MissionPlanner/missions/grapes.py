@@ -12,6 +12,10 @@ grape_count_sel = vision.Selector(vision.FORWARD_CAMERA, 'grapes/grape')
 
 @mission.State("push_horizontal")
 def push_horizontal():
+    print 'Approaching horizontal grape'
+    nav.vel(.2)
+    vision.wait_visible(horiz_grape_sel, 2)
+
     print 'Servoing on horizontal grape'
     if not grape_servo(horiz_grape_sel):
         print 'Failed to servo on horizontal grape'
@@ -27,6 +31,10 @@ def push_horizontal():
 
 @mission.State('push_vertical')
 def push_vertical():
+    print 'Approaching vertical grape'
+    nav.vel(.2)
+    vision.wait_visible(vert_grape_sel, 2)
+
     print 'Servoing on vertical grape'
     if not grape_servo(vert_grape_sel):
         print 'Failed to servo on vertical grape'

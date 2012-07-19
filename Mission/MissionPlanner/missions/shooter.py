@@ -29,7 +29,7 @@ def approach_shoot(color):
         while True:
             print 'Forward until small ' + color + ' seen'
             nav.vel(.2)
-            vision.wait_visible(sel)
+            vision.wait_visible(sel, 5)
 
             print 'Servoing for ' + color
             if not servo(sel):

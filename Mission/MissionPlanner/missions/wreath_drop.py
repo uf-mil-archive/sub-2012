@@ -18,7 +18,7 @@ def run():
             nav.vel(.2)
             vision.wait_visible(sel, 5)
 
-            with misison.State('servo'):
+            with mission.State('servo'):
                 if not servo(sel):
                     print 'Failed to servo on wreath'
                     continue
