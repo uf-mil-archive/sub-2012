@@ -6,7 +6,7 @@ import dds
 from . import bins
 from . import shooter
 
-def run(competition):
+def run():
     nav.setup()
     with mission.State('bins'):
         if not bins.run():
@@ -17,11 +17,8 @@ def run(competition):
     nav.rturn(180)
     nav.fd(5)
     nav.lturn(180)
-    if competition:
-        nav.rstrafe(1)
-        nav.rturn(30)
-    else:
-        nav.lturn(20)
+    nav.rstrafe(1)
+    nav.rturn(30)
 
     with mission.State('shooter'):
         shooter.run() # ignore failure, we can return to bins
@@ -33,5 +30,4 @@ def run(competition):
     nav.fd(1)
     return True
 
-mission.missionregistry.register('BinsShooter-competition', lambda: run(True), 6*60)
-mission.missionregistry.register('BinsShooter-practice', lambda: run(False), 6*60)
+mission.missionregistry.register('BinsShooter', run, 6*60)
