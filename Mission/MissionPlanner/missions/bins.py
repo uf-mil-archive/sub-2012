@@ -50,7 +50,7 @@ def run():
     print 'Going to depth'
     nav.depth(.2)
 
-    with sched.Timeout(60) as t:
+    with sched.Timeout(90) as t:
         left = True
         while True:
             (ok, failtype) = allbins()
