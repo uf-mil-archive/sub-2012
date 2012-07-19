@@ -27,6 +27,7 @@ def run(competition):
     nav.depth(.5)
     nav.point_shoot(bins_pos.x, bins_pos.y)
     nav.heading(rad=bins_pos.Y)
+    nav.fd(1)
 
 mission.missionregistry.register('BinsShooter-competition', lambda: run(True), 6*60)
 mission.missionregistry.register('BinsShooter-practice', lambda: run(False), 6*60)
