@@ -66,7 +66,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			{
 				bool foundSomething = false;
 				BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
-					if(shape.circularity > 0.6 && (!foundSomething || shape.area > bestShape.area)) {
+					if(shape.circularity > 0.8 && shape.area < shape.outer_area*2/3 && (!foundSomething || shape.area > bestShape.area)) {
 						foundSomething = true;
 						bestShape = shape;
 					}
@@ -77,7 +77,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			{
 				bool foundSomething2 = false;
 				BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
-					if(shape.circularity > 0.6 && (!foundSomething2 || shape.area > bestShape2.area) && shape.area < bestShape.area) {
+					if(shape.circularity > 0.8 && shape.area < shape.outer_area*2/3 && (!foundSomething2 || shape.area > bestShape2.area) && shape.area < bestShape.area) {
 						foundSomething2 = true;
 						bestShape2 = shape;
 					}

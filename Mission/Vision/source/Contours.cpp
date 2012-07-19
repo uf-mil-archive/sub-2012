@@ -48,6 +48,7 @@ Contours::Contours(const Mat &img, float minContour, float maxContour, float max
 			innerContour.centroid.x = (int)center_holder.x;
 			innerContour.centroid.y = (int)center_holder.y;
 			innerContour.radius = radius_holder;
+			innerContour.outer_area = area_holder;
 			//RotatedRect rr = fitEllipse(contours[j]);
 			//innerContour.circularity = (boost::math::constants::pi<double>()*rr.size.width*rr.size.height/4)/inner_area_holder;
 			innerContour.circularity = inner_area_holder/(boost::math::constants::pi<double>()*pow(radius_holder, 2));
