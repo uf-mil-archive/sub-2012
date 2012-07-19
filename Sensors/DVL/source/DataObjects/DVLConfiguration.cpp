@@ -15,8 +15,8 @@ maxdepth(maxdepth) { }
 static const char preamble[] =
 	"CR0\r" // load factory settings (won't change baud rate)
 	"#BJ 100 110 000\r" // enable only bottom track high res velocity and bottom track range
-	"#BK2\r" // send water mass pings when bottom track pings fail
-	"#BL7,36,46\r" // configure near layer and far layer to 12 and 15 feet
+	//	"#BK2\r" // send water mass pings when bottom track pings fail
+	//  "#BL7,36,46\r" // configure near layer and far layer to 12 and 15 feet
 	"ES0\r" // 0 salinity
 	"EX10010\r" // transform results to ship XYZ, allow 3 beam solutions
 	"EZ10000010\r"; // configure sensor sources. Provide manual data for everything except speed of sound and temperature
