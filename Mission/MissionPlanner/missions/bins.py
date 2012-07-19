@@ -59,9 +59,9 @@ def run():
             if failtype == 'strafe':
                 t.cancel()
                 if left:
-                    nav.lstrafe(.5)
+                    nav.lstrafe(.25)
                 else:
-                    nav.rstrafe(.5)
+                    nav.rstrafe(.25)
                 left = not left
 
     if t.activated:
