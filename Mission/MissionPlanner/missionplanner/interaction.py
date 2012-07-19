@@ -56,7 +56,6 @@ class InteractionTask(sched.Task):
         self.env = make_env()
 
     def run(self):
-        nav.setup() # Hack, some sort of startup file needed like we had in highschool
         while True:
             cmd = self.get_command()
             if not self.enabled:
