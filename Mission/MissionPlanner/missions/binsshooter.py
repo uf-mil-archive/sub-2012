@@ -12,9 +12,9 @@ def run():
         if not bins.run():
             return False
     bins_pos = nav.get_waypoint().pos
+    nav.bk(5)
+    nav.lturn(20)
 
-    nav.rturn(90)
-    nav.bk(3) # Probably not necessary at transdec
     with mission.State('shooter'):
         shooter.run() # ignore failure, we can return to bins
 

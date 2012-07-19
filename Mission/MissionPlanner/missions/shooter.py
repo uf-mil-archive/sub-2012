@@ -58,9 +58,7 @@ def run():
     print 'Looking for box'
     with mission.State('forward'):
         nav.vel(.2)
-        while True:
-            vision.wait()
-            obj = any_box_sel.get_object()
+        vision.wait_visible(any_box_sel)
 
     if box_sels['red'].is_visible():
         firstcolor = 'red'
