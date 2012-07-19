@@ -20,7 +20,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 	Normalizer::norm(ioimages);
 	
 	// blur the image to remove noise
-	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
+	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(0,0),1.3);
 	ioimages->processColorSpaces();
 
 	vector<property_tree::ptree> resultVector;
