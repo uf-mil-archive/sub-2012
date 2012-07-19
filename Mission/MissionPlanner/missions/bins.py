@@ -4,8 +4,8 @@ import dds
 from subjugator import nav, sched, vision, sub
 from missionplanner import mission
 
-BIN_1 = 'trident'
-BIN_2 = 'shield'
+BIN_1 = 'net'
+BIN_2 = 'sword'
 
 servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
 down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=16000, debug=True)
@@ -82,7 +82,9 @@ def run():
     dropball(bin2_sel)
 
     print 'Returning to center...'
-    nav.set_waypoint(nav.Waypoint(center_pos))
+    waypoint = nav.Waypoint(center_pos)
+    waypoint.pos.z = 2.5
+    nav.set_waypoint(waypoint)
     nav.wait()
     return True
 

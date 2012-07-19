@@ -14,7 +14,9 @@ def run(competition):
 
     print 'Lining up for shooter'
     bins_pos = nav.get_waypoint().pos
-    nav.bk(5)
+    nav.rturn(180)
+    nav.fd(5)
+    nav.lturn(180)
     if competition:
         nav.rstrafe(1)
         nav.rturn(30)
@@ -29,6 +31,7 @@ def run(competition):
     nav.point_shoot(bins_pos.x, bins_pos.y)
     nav.heading(rad=bins_pos.Y)
     nav.fd(1)
+    return True
 
 mission.missionregistry.register('BinsShooter-competition', lambda: run(True), 6*60)
 mission.missionregistry.register('BinsShooter-practice', lambda: run(False), 6*60)

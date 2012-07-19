@@ -77,10 +77,10 @@ def findBuoy(name):
 def bump():
     print 'Bump'
     nav.fd(2)
-    nav.bk(2)
+    nav.bk(1)
 
-FIRST_BUOY = 'red'
-SECOND_BUOY = 'yellow'
+FIRST_BUOY = 'yellow'
+SECOND_BUOY = 'green'
 
 def run():
     nav.setup()
@@ -120,4 +120,4 @@ def run():
     nav.fd(3)
     return True
 
-mission.missionregistry.register('Buoy', run)
+mission.missionregistry.register('Buoy', run, 3*60)

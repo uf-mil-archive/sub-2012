@@ -53,5 +53,5 @@ def run(practice):
     nav.stop()
     return True
 
-mission.missionregistry.register('Hydrophone-practice', lambda: run(True))
-mission.missionregistry.register('Hydrophone-competition', lambda: run(False))
+mission.missionregistry.register('Hydrophone-practice', lambda: run(True), 15*60)
+mission.missionregistry.register('Hydrophone-competition', lambda: run(False), 15*60)
