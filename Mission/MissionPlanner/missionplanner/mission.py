@@ -133,8 +133,11 @@ class MissionListManager(object):
         print 'Running main list'
         (ok, failedmission) = self.main_list.run()
         if not ok:
-            print 'Running fail list'
-            self.fail_list.run()
+            print 'Main list failed'
+        print 'Running fail list'
+        self.fail_list.run()
+        sub.Grabber.open()
+        print 'Mission Complete'
 
 missionlistmanager = MissionListManager()
 
