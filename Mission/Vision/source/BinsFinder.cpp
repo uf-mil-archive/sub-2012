@@ -90,7 +90,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 					}
 				}
 				vector<Mat> vBGR; split(bin, vBGR);
-				Mat res; adaptiveThreshold(vBGR[2],res,255,0,THRESH_BINARY,251,-5);
+				Mat res; adaptiveThreshold(vBGR[2],res,255,0,THRESH_BINARY,251,-4);
 				erode(res,res,cv::Mat::ones(1,1,CV_8UC1));
 				dilate(res,res,cv::Mat::ones(3,3,CV_8UC1));
 				erode(res,res,cv::Mat::ones(3,3,CV_8UC1));
