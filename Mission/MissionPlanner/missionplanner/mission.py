@@ -157,7 +157,10 @@ class MissionRunner(sched.Task):
             return
         self.task.stop()
         self.task = None
-        nav.stop()
+        try:
+            nav.stop()
+        except RuntimeError:
+            pass
 
     def run(self):
         self._send_initial_messages()

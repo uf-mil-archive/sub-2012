@@ -62,9 +62,12 @@ class InteractionTask(sched.Task):
                 continue
             if self.cmdtask is not None:
                 self.cmdtask.stop()
-                nav.stop()
             if cmd['stop']:
                 self.cmdtask = None
+                try:
+                    nav.stop()
+                except RuntimeError:
+                    pass
             else:
                 self.cmdtask = CommandTask(cmd['cmd'], self.env)
 
