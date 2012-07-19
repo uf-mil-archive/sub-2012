@@ -51,7 +51,7 @@ def run():
         while True:
             print 'Looking for wreath'
             nav.vel(.2)
-            vision.wait_visible(sel)
+            vision.wait_visible(sel, 5)
 
             print 'Beginning grabs'
             if not repeat_grabs():

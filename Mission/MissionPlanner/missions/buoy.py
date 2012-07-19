@@ -90,7 +90,7 @@ def run():
         with mission.State('forward'):
             print 'Forward until buoy seen'
             nav.vel(.2)
-            vision.wait_visible(buoy_sel_any)
+            vision.wait_visible(buoy_sel_any, 5)
     if t.activated:
         print 'Timeout while looking for buoy'
         return False

@@ -274,8 +274,13 @@ class BottomVisualServo(VisualAlgorithm):
         nav.set_waypoint_rel(nav.make_waypoint(Y=yaw, velx=xvel, vely=yvel, velz=zvel), coordinate=False)
         return False
 
-def wait_visible(selector):
+def wait_visible(selector, frames=1):
     selector.setup()
 
-    while selector.get_object() == None:
+    ctr = 0
+    while ctr < frames:
+        if selector.get_object() != None:
+            ctr += 1
+        else:
+            ctr = 0
         wait()

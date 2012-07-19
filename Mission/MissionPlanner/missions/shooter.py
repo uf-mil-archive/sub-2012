@@ -21,7 +21,7 @@ shooters = dict(red=sub.RightShooter,
 
 any_box_sel = vision.combine_selectors(list(box_sels.itervalues()))
 
-@mission.State('approach_shoot')
+@mission.State('approach_shoot {}')
 def approach_shoot(color):
     sel = small_sels[color]
 
@@ -58,7 +58,9 @@ def run():
     print 'Looking for box'
     with mission.State('forward'):
         nav.vel(.2)
-        vision.wait_visible(any_box_sel)
+        vision.wait_visible(any_box_sel, 5)
+    print 'Getting closer'
+    sched.sleep(1)
 
     if box_sels['red'].is_visible():
         firstcolor = 'red'

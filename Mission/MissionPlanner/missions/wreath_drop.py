@@ -16,10 +16,11 @@ def run():
         while True:
             print 'Looking for wreath'
             nav.vel(.2)
-            vision.wait_visible(sel)
+            vision.wait_visible(sel, 5)
 
             with misison.State('servo'):
                 if not servo(sel):
+                    print 'Failed to servo on wreath'
                     continue
 
             break

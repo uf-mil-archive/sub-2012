@@ -30,7 +30,7 @@ def dropball(sel):
 def allbins(left):
     print 'Waiting for bins to be visible...'
     nav.vel(.2)
-    vision.wait_visible(allbins_sel)
+    vision.wait_visible(allbins_sel, 5)
 
     if not servo(allbins_sel):
         print 'Failed to servo on all'

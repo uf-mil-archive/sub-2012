@@ -64,7 +64,7 @@ def run():
         while True:
             print 'Looking for board'
             nav.vel(.2)
-            vision.wait_visible(board_sel)
+            vision.wait_visible(board_sel, 5)
             sched.sleep(1)
 
             print 'Servoing to board'
