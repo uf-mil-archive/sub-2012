@@ -75,8 +75,8 @@ def run():
     with mission.State('over'):
         print 'Going over window'
         origdepth = nav.get_waypoint().pos.z
-        nav.depth(1)
-        nav.fd(4)
+        nav.up(1.5)
+        nav.fd(5)
         nav.lturn(180)
         nav.depth(origdepth)
 

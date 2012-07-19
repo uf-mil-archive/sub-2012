@@ -57,7 +57,7 @@ def run():
             if ok:
                 break
             if failtype == 'strafe':
-                t.cancel()
+#                t.cancel()
                 if left:
                     nav.lstrafe(.25)
                 else:

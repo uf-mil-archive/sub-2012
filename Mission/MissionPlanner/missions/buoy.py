@@ -80,7 +80,7 @@ def bump():
     nav.bk(2)
 
 FIRST_BUOY = 'red'
-SECOND_BUOY = 'green'
+SECOND_BUOY = 'yellow'
 
 def run():
     nav.setup()

@@ -16,7 +16,8 @@ def run(competition):
     bins_pos = nav.get_waypoint().pos
     nav.bk(5)
     if competition:
-        nav.rturn(20)
+        nav.rstrafe(1)
+        nav.rturn(30)
     else:
         nav.lturn(20)
 
