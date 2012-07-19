@@ -67,7 +67,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 						src[n] = Point2f(box.corners[(n+1)%4].x, box.corners[(n+1)%4].y);
 
 				Point2f dst[4];
-				int crop = 10;
+				int crop = 5;
 				dst[0] = Point2f(-2*crop, -crop);
 				dst[1] = Point2f(300+2*crop, -crop);
 				dst[2] = Point2f(300+2*crop, 150+crop);
@@ -90,60 +90,41 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 					}
 				}
 				vector<Mat> vBGR; split(bin, vBGR);
-				Mat res; adaptiveThreshold(vBGR[2],res,255,0,THRESH_BINARY,251,-4);
-				erode(res,res,cv::Mat::ones(1,1,CV_8UC1));
-				dilate(res,res,cv::Mat::ones(3,3,CV_8UC1));
+				//normalize(vBGR[2],vBGR[2],0,255,NORM_MINMAX);
+				Mat res; adaptiveThreshold(vBGR[2],res,255,0,THRESH_BINARY,251,-5);
 				erode(res,res,cv::Mat::ones(3,3,CV_8UC1));
+				//dilate(res,res,cv::Mat::ones(5,5,CV_8UC1));
+				//erode(res,res,cv::Mat::ones(3,3,CV_8UC1));
 
 				Mat redness_dbg; cvtColor(res, redness_dbg, CV_GRAY2BGR);
 				warpPerspective(redness_dbg, ioimages->res, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
-				
-				Moments m = moments(res, true);
-				if(m.m00 / res.rows / res.cols < 0.03) continue; // bin is probably spurious if it has this little red area
-				double h[7]; HuMoments(m, h);
 
-				vector<pair<string, vector<double> > > knowns;
-				double net_moments[7] = {0.36475450363451711, 0.05765155295278647, 0.00034680796760293178, 0.00028412625762847432, 8.5704769375610641e-08, 6.5917778050250718e-05, -2.4685644456570041e-08};
-				knowns.push_back(make_pair("net", vector<double>(net_moments, net_moments+7)));
-				double trident_moments[7] = {1.6719636494416732,2.3628833882444549,2.1606621747940791,1.9908420503364825,4.1173614986223717,3.0600115227917453,-0.31027482381779214};
-				knowns.push_back(make_pair("trident", vector<double>(trident_moments, trident_moments+7)));
-				double sword_moments[7] = {0.95462418581213038,0.87844192143783428,0.010537958517721484,0.011513082195338276,0.00012680262396302385,0.010772716963134699,1.6644128751987952e-06};
-				knowns.push_back(make_pair("sword", vector<double>(sword_moments, sword_moments+7)));
-				double shield_moments[7] = {0.19948727909952213,0.010284337716027828,1.2651829313384623e-06,1.1101560718674697e-07,-7.0935021259581704e-15,-1.4947640253828787e-09,-4.0996531526447179e-14};				
-				knowns.push_back(make_pair("shield", vector<double>(shield_moments, shield_moments+7)));
-				string best = "null";
-				property_tree::ptree weights_tree;
-				double best_dist = 1e100;
-				#define COMMA ,
-				BOOST_FOREACH(const pair<string COMMA vector<double> > &known, knowns) {
-					vector<double> k = known.second;
-					double this_dist = 0;
-					for(int n = 0; n < 7; n++)
-						this_dist += (k[n]-h[n])*(k[n]-h[n]);
-					weights_tree.push_back(make_pair(known.first, lexical_cast<string>(this_dist)));
-					if(this_dist < best_dist) {
-						best = known.first;
-						best_dist = this_dist;
-					}
-				}
-				if(best == "sword" || best == "trident") {
-					best = mean(Mat(vBGR[2], Range(0, vBGR[2].rows/2), Range(0, vBGR[2].cols/2)))[0] >
-						mean(Mat(vBGR[2], Range(0, vBGR[2].rows/2), Range(vBGR[2].cols/2, vBGR[2].cols)))[0] ?
-						"sword" : "trident";
-				}
+				std::vector<std::vector<cv::Point> > contours;
+				std::vector<cv::Vec4i> hierarchy; // hierarchy holder for the contour tree
+				findContours(res, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+				int negative_contours = 0;
+				for(unsigned int i=0; i < contours.size(); i++)
+					if(hierarchy[i][3] >= 0) // has parent
+						negative_contours += 1;
+				Mat r = res;
+				float diagonal1 = mean(Mat(r, Range(0, r.rows/2), Range(0, r.cols/2)))[0] + mean(Mat(r, Range(r.rows/2, r.rows), Range(r.cols/2, r.cols)))[0];
+				float diagonal2 = mean(Mat(r, Range(0, r.rows/2), Range(r.cols/2, r.cols)))[0] + mean(Mat(r, Range(r.rows/2, r.rows), Range(0, r.cols/2)))[0];
+
+				string best;
+				if(negative_contours >= 20) best = "net";
+				else if(diagonal1/diagonal2 > 2) best = "sword";
+				else if(diagonal2/diagonal1 > 2) best = "trident";
+				else best = "shield";
 			
 				property_tree::ptree fResult;
 				fResult.put("objectName", objectName);
 				fResult.put_child("center", Point_to_ptree(box.centroid, ioimages->prcd));
 				fResult.put("angle", box.angle);
 				fResult.put("scale", box.area);
+				fResult.put("diagonal", diagonal1/diagonal2);
+				fResult.put("holes_count", negative_contours);
 				fResult.put("item", best);
-				fResult.put_child("itemweights", weights_tree);
 				putText(ioimages->res,best.c_str(),box.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
-				property_tree::ptree moments_tree;
-				for(unsigned int m = 0; m < 7; m++)
-					moments_tree.push_back(make_pair("", lexical_cast<string>(h[m])));
-				fResult.put_child("moments", moments_tree);
 				resultVector.push_back(fResult);
 			}
 		} else
