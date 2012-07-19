@@ -43,8 +43,7 @@ Blob::Blob(IOImages* ioimages, float minContour, float maxContour, float maxPeri
 		bdata.circularity = convex_area_holder/(boost::math::constants::pi<double>()*pow(radius_holder, 2));
 
 		RotatedRect rr = minAreaRect(Mat(contour));
-		rr.angle *= -1;
-		//rr.angle -= 90; // so 0 degress = pointing right
+		rr.angle -= 90; // so 0 degress = pointing right
 		if(rr.size.width < rr.size.height) { // force width > height
 			rr.angle += 90;
 			std::swap(rr.size.width, rr.size.height);
