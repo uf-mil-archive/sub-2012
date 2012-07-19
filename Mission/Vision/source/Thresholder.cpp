@@ -146,9 +146,8 @@ void Thresholder::threshGreen(IOImages *ioimages)
 }
 
 void Thresholder::threshBlue(IOImages *ioimages) {
-	Mat h; adaptiveThreshold(ioimages->channelsHSV[0],h,255,0,THRESH_BINARY,601,-9); // works well over [-8, -10]
-	Mat a; adaptiveThreshold(ioimages->channelsLAB[1],a,255,0,THRESH_BINARY,601,-3); // works well over [-3, -4]
-	bitwise_and(h,a,ioimages->dbg);
+	Mat x; addWeighted(ioimages->channelsHSV[0], 0.5, ioimages->channelsLAB[1], 0.5, 0, x);
+	adaptiveThreshold(ioimages->channelsHSV[0],ioimages->dbg,255,0,THRESH_BINARY,601,-8); // works well over [-7,-9]
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
