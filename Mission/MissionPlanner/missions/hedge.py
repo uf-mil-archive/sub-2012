@@ -12,7 +12,14 @@ def run_hedge_fix_competition():
     nav.setup()
     nav.depth(2)
     nav.rstrafe(1)
-    nav.lturn(30)
+    nav.lturn(20)
+    return True
+
+def run_hedge_fix_practice():
+    nav.setup()
+    nav.depth(2)
+    nav.lstrafe(1)
+    nav.rturn(20)
     return True
 
 def run():
@@ -39,3 +46,4 @@ def run():
 
 mission.missionregistry.register('Hedge', run)
 mission.missionregistry.register('Hedge-fix-competition', run_hedge_fix_competition)
+mission.missionregistry.register('Hedge-fix-practice', run_hedge_fix_practice)
