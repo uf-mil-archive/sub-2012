@@ -102,6 +102,8 @@ def set_actuators(mask):
         mask = int(mask, 2)
     topic = topics.get('PDActuator')
     topic.send(dict(actuators_mask=mask))
+    sched.sleep(.1)
+    topic.send(dict(actuators_mask=mask))
 
 def get_actuators():
     try:
