@@ -89,6 +89,8 @@ class InteractionTask(sched.Task):
                 sched.ddswait(cmdtopic)
                 continue
 
+logfile = open('missionlog.txt', 'a')
+
 class DDSInteractionStream(object):
     def __init__(self, outtype, realstream):
         self.outtype = outtype
@@ -97,6 +99,8 @@ class DDSInteractionStream(object):
 
     def write(self, data):
         self.realstream.write(data)
+        logfile.write(data)
+        logfile.flush()
         self.buf += data
 
         outtopic = topics.get('InteractionOutput')
