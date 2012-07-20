@@ -2,15 +2,11 @@ from subjugator import topics
 from subjugator import sched
 from subjugator import sub
 from subjugator import nav
+from mission.config import *
 
 import dds
 import collections
 import functools
-
-MAIN_MISSION_LENGTH_MIN = 13
-
-MAIN_MISSION_TIME = MAIN_MISSION_LENGTH_MIN*60 - (2*60+45)
-
 
 # TODO: Decided to give singletons a try, turned out badly. Need to redo this
 # with a top level class that connects the dots and deals with cross cutting concerns.

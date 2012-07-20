@@ -2,12 +2,9 @@ from subjugator import sched
 from subjugator import nav
 from subjugator import vision
 from missionplanner import mission
+from mission.config import *
 import math
 import dds
-
-FIRST_BUOY = 'green'
-SECOND_BUOY = 'red'
-SKIP_SECOND_BUOY = False # Uni-buoy
 
 servo = vision.StrafeVisualServo(fastvel=.35,
                                  slowscale=2000,
