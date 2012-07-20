@@ -7,7 +7,7 @@ import dds
 
 FIRST_BUOY = 'yellow'
 SECOND_BUOY = 'green'
-SKIP_SECOND_BUOY = False
+SKIP_SECOND_BUOY = False # Uni-buoy
 
 servo = vision.StrafeVisualServo(fastvel=.35,
                                  slowscale=2000,
