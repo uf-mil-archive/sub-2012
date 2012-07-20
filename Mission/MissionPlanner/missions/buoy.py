@@ -5,8 +5,8 @@ from missionplanner import mission
 import math
 import dds
 
-FIRST_BUOY = 'yellow'
-SECOND_BUOY = 'green'
+FIRST_BUOY = 'green'
+SECOND_BUOY = 'red'
 SKIP_SECOND_BUOY = False # Uni-buoy
 
 servo = vision.StrafeVisualServo(fastvel=.35,
