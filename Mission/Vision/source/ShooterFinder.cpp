@@ -66,7 +66,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			{
 				bool foundSomething = false;
 				BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
-					if(shape.circularity > 0.8 && shape.area < shape.outer_area*2/3 && (!foundSomething || shape.area > bestShape.area)) {
+					if(shape.circularity > 0.7 && shape.area < shape.outer_area*2/3 && (!foundSomething || shape.area > bestShape.area)) {
 						foundSomething = true;
 						bestShape = shape;
 					}
@@ -77,7 +77,7 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			{
 				bool foundSomething2 = false;
 				BOOST_FOREACH(const Contours::InnerContour &shape, contours.shapes)
-					if(shape.circularity > 0.8 && shape.area < shape.outer_area*2/3 && (!foundSomething2 || shape.area > bestShape2.area) && shape.area < bestShape.area) {
+					if(shape.circularity > 0.7 && shape.area < shape.outer_area*2/3 && (!foundSomething2 || shape.area > bestShape2.area) && shape.area < bestShape.area) {
 						foundSomething2 = true;
 						bestShape2 = shape;
 					}
@@ -86,6 +86,8 @@ vector<property_tree::ptree> ShooterFinder::find(IOImages* ioimages)
 			}
 			if(bestShape2.area < 0.1*bestShape.area) // if second largest is an order of magnitude smaller
 				bestShape2 = bestShape; // use largest
+
+			circle(ioimages->res, bestShape2.centroid, 10, CV_RGB(255, 255, 0), 2);
 
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
