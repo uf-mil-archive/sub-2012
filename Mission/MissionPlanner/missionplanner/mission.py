@@ -2,7 +2,7 @@ from subjugator import topics
 from subjugator import sched
 from subjugator import sub
 from subjugator import nav
-from mission.config import *
+from missions.config import *
 
 import dds
 import collections

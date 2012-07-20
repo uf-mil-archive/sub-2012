@@ -2,7 +2,7 @@ from subjugator import sched
 from subjugator import nav
 from subjugator import vision
 from missionplanner import mission
-from mission.config import *
+from missions.config import *
 import math
 import dds
 
