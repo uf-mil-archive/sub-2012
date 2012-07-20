@@ -136,10 +136,13 @@ class MissionListManager(object):
         print 'Waiting for sub unkilled'
         sub.wait_unkilled()
         print 'Running main list'
-        with sched.Timeout(MAIN_MISSION_TIME):
-            (ok, failedmission) = self.main_list.run()
-            if not ok:
-                print 'Main list failed'
+        try:
+            with sched.Timeout(MAIN_MISSION_TIME):
+                (ok, failedmission) = self.main_list.run()
+                if not ok:
+                    print 'Main list failed'
+        except Exception, ex:
+            print ex
         print 'Running fail list'
         self.fail_list.run()
         sub.Grabber.open()
