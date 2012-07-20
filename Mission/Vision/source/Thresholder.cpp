@@ -143,7 +143,7 @@ void Thresholder::threshYellow(IOImages *ioimages)
 void Thresholder::threshGreen(IOImages *ioimages)
 {
 	add(ioimages->channelsLAB[1], ioimages->channelsHSV[0], ioimages->dbg);
-	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY_INV,201,4); // used incorrectly, but seems to work very robustly!
+	adaptiveThreshold(ioimages->dbg,ioimages->dbg,255,0,THRESH_BINARY_INV,71,4); // used incorrectly, but seems to work very robustly!
 	Mat b; adaptiveThreshold(ioimages->channelsLAB[2],b,255,0,THRESH_BINARY_INV,201,30);
 	subtract(ioimages->dbg,b,ioimages->dbg);
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,9,CV_8UC1));
