@@ -11,15 +11,17 @@ hedge_sel = vision.Selector(vision.FORWARD_CAMERA, 'hedge')
 def run_hedge_fix_right():
     nav.setup()
     nav.depth(2)
-    nav.rstrafe(1)
-    nav.lturn(20)
+    nav.set_waypoint_rel(nav.make_waypoint(y=1, Y=math.radians(-20)))
+#    nav.rstrafe(1)
+#    nav.lturn(20)
     return True
 
 def run_hedge_fix_left():
     nav.setup()
     nav.depth(2)
-    nav.lstrafe(1)
-    nav.rturn(20)
+    nav.set_waypoint_rel(nav.make_waypoint(y=-1, Y=math.radians(20)))
+#    nav.lstrafe(1)
+#    nav.rturn(20)
     return True
 
 def run():

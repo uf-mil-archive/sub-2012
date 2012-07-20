@@ -21,7 +21,7 @@ def dropball(sel):
         return False
     print 'Dropping marker!'
     nav.depth(2.5)
-    nav.lstrafe(.05)
+    nav.lstrafe(.025)
     sched.sleep(1)
     sub.BallDropper.drop()
     sched.sleep(.5)

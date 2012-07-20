@@ -16,9 +16,8 @@ def run():
     bins_pos = nav.get_waypoint().pos
     nav.rturn(180)
     nav.fd(5)
-    nav.lturn(180)
+    nav.lturn(150)
     nav.rstrafe(1)
-    nav.rturn(30)
 
     with mission.State('shooter'):
         shooter.run() # ignore failure, we can return to bins
