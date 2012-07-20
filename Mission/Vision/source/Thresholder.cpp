@@ -89,7 +89,7 @@ void Thresholder::threshBuoys(IOImages *ioimages)
 
 void Thresholder::threshOrange(IOImages *ioimages)
 {
-	Mat b; adaptiveThreshold(ioimages->channelsLAB[2],b,255,0,THRESH_BINARY_INV,201,20); // use lab channel hack --  higher offset = less yellow
+	Mat b; adaptiveThreshold(ioimages->channelsLAB[2],b,255,0,THRESH_BINARY_INV,201,13); // use lab channel hack --  higher offset = less yellow
 	add(b,ioimages->channelsRGB[2],ioimages->dbg); // combine with red channel
 	Mat v; inRange(ioimages->channelsHSV[2],Scalar(0,0,0,0),Scalar(90,0,0,0),v); // filter out blacks
 	subtract(ioimages->dbg,v,ioimages->dbg); // filter out blacks
@@ -107,6 +107,11 @@ void Thresholder::threshShooterRed(IOImages *ioimages)
 	//subtract(ioimages->dbg,ioimages->channelsRGB[1],ioimages->dbg); // filter out blacks
 	Mat s; inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(30,0,0,0),s);
 	subtract(b,s,ioimages->dbg); // filter whites
+	
+	
+	Mat blue; adaptiveThreshold(ioimages->channelsHSV[0],blue,255,0,THRESH_BINARY,601,-8); // works well over [-7,-9]
+	subtract(ioimages->dbg, blue, ioimages->dbg);
+	
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	
