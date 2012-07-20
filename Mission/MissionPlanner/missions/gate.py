@@ -6,8 +6,10 @@ def run():
     print 'Starting gate'
     sched.sleep(1)
     nav.depth(1)
+    sched.sleep(.1)
+    nav.depth(1) # In case of skip first waypoint bug?
     # Maybe set heading
-    nav.fd(11) # TODO distance
+    nav.fd(11)
     return True
 
 mission.missionregistry.register('Gate', run)

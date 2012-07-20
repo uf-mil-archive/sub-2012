@@ -5,6 +5,10 @@ from missionplanner import mission
 import math
 import dds
 
+FIRST_BUOY = 'yellow'
+SECOND_BUOY = 'green'
+SKIP_SECOND_BUOY = False
+
 servo = vision.StrafeVisualServo(fastvel=.35,
                                  slowscale=2000,
                                  slowvel=.15,
@@ -79,9 +83,6 @@ def bump():
     nav.fd(2)
     nav.bk(1)
 
-FIRST_BUOY = 'yellow'
-SECOND_BUOY = 'green'
-
 def run():
     nav.setup()
     nav.depth(2)
@@ -103,16 +104,17 @@ def run():
         print 'Failed to find first buoy'
         nav.bk(1)
 
-    nav.point_shoot(*start.xyz)
-    print 'setting heading'
-    nav.heading(rad=start.Y)
-    print 'done heading'
+    if not SKIP_SECOND_BUOY:
+        nav.point_shoot(*start.xyz)
+        print 'setting heading'
+        nav.heading(rad=start.Y)
+        print 'done heading'
 
-    if findBuoy(SECOND_BUOY):
-        bump()
-    else:
-        print 'Failed to find second buoy'
-        nav.bk(1)
+        if findBuoy(SECOND_BUOY):
+            bump()
+        else:
+            print 'Failed to find second buoy'
+            nav.bk(1)
 
     print 'Going over buoys'
     nav.depth(.5)
