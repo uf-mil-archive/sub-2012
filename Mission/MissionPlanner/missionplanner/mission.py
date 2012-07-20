@@ -7,6 +7,11 @@ import dds
 import collections
 import functools
 
+MAIN_MISSION_LENGTH_MIN = 13
+
+MAIN_MISSION_TIME = MAIN_MISSION_LENGTH_MIN*60 - (2*60+45)
+
+
 # TODO: Decided to give singletons a try, turned out badly. Need to redo this
 # with a top level class that connects the dots and deals with cross cutting concerns.
 # Then somehow pass this to missions
@@ -131,9 +136,10 @@ class MissionListManager(object):
         print 'Waiting for sub unkilled'
         sub.wait_unkilled()
         print 'Running main list'
-        (ok, failedmission) = self.main_list.run()
-        if not ok:
-            print 'Main list failed'
+        with sched.Timeout(MAIN_MISSION_TIME):
+            (ok, failedmission) = self.main_list.run()
+            if not ok:
+                print 'Main list failed'
         print 'Running fail list'
         self.fail_list.run()
         sub.Grabber.open()
