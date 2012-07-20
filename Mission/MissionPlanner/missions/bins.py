@@ -75,7 +75,7 @@ def run():
     dropball(bin1_sel)
 
     print 'Returning to center...'
-    nav.set_waypoint(nav.Waypoint(center_pos))
+    nav.set_waypoint(nav.Waypoint(center_pos), speed=.3)
     nav.wait()
     sched.sleep(1.5)
     print 'Done!'
