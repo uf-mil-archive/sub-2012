@@ -107,6 +107,11 @@ void Thresholder::threshShooterRed(IOImages *ioimages)
 	//subtract(ioimages->dbg,ioimages->channelsRGB[1],ioimages->dbg); // filter out blacks
 	Mat s; inRange(ioimages->channelsHSV[1],Scalar(0,0,0,0),Scalar(30,0,0,0),s);
 	subtract(b,s,ioimages->dbg); // filter whites
+	
+	
+	Mat blue; adaptiveThreshold(ioimages->channelsHSV[0],blue,255,0,THRESH_BINARY,601,-8); // works well over [-7,-9]
+	subtract(ioimages->dbg, blue, ioimages->dbg);
+	
 	dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(5,5,CV_8UC1));
 	
