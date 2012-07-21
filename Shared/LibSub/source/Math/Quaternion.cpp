@@ -89,3 +89,18 @@ Vector3d MILQuaternionOps::Quat2Euler(const Vector4d& q)
 {
 	return AttitudeHelpers::RotationToEuler(Quat2Rot(q));
 }
+
+Vector4d MILQuaternionOps::RotVec2Quat(const Vector3d& sigma) {
+	// only valid for small angles!
+	/* Explanation using Mathematica code:
+	mag=Sqrt[4hss];
+	Series[Cos[mag/2],{hss,0,2}] ->
+		1-hss/2+hss^2/24+O[hss]^3
+	Series[Sin[mag/2]/mag,{hss,0,2}] ->
+		1/2-hss/12+hss^2/240+O[hss]^(5/2)
+	*/
+	double hsigma_squared = 0.25 * sigma.dot(sigma);
+	double a_c = 1.0 - hsigma_squared / 2.0 + hsigma_squared*hsigma_squared / 24.0;
+	double a_s = 0.5 * (1.0 - hsigma_squared / 6.0 + hsigma_squared*hsigma_squared / 120.0 );
+	return Vector4d(a_c, a_s*sigma(0), a_s*sigma(1), a_s*sigma(2));
+}
