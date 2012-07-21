@@ -222,6 +222,6 @@ def wait_unkilled():
     while is_killed():
         sched.ddswait(topic)
 
-def kill():
+def kill(killed=True):
     topic = topics.get('WorkerKill')
-    topic.send(dict(name='Mission', desc='Mission kill', killed=True))
+    topic.send(dict(name='Mission', desc='Mission kill', killed=killed))
