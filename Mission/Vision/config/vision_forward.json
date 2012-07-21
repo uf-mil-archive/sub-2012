@@ -13,7 +13,7 @@
     "gainVal": "-1",
     "buoy":
     {
-        "minContour": "100",
+        "minContour": "250",
         "maxContour": "80000",
         "maxPerimeter": "2000",
         "threshRed":
@@ -66,9 +66,9 @@
         },
         "thresh_blue":
         {
-            "far": "14 16 29",
-            "near": "14 21 38",
-            "dist": ".1"
+            "far": "39 54 68",
+            "near": "37 50 66",
+            "dist": ".05"
         },
         "dp": "1",
         "min_dist": "50",
