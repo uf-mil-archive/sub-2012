@@ -67,29 +67,29 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(char *&msg, const std::string &data) {
+	inline void to_dds(char *&msg, const std::string &data) {
 		to_dds(msg, data.c_str());
 	}
 
 	template <>
-	void from_dds(std::string &data, char *const &msg) { data = std::string(msg); }
+	inline void from_dds(std::string &data, char *const &msg) { data = std::string(msg); }
 
 	// ptime
 
 	template <>
-	void to_dds(DDS_UnsignedLong &msg, const boost::posix_time::ptime &data) {
+	inline void to_dds(DDS_UnsignedLong &msg, const boost::posix_time::ptime &data) {
 		tm t = boost::posix_time::to_tm(data);
 		msg = static_cast<DDS_UnsignedLong>(mktime(&t));
 	}
 
 	template <>
-	void from_dds(boost::posix_time::ptime &data, const DDS_UnsignedLong &msg) {
+	inline void from_dds(boost::posix_time::ptime &data, const DDS_UnsignedLong &msg) {
 		data = boost::posix_time::from_time_t(static_cast<time_t>(msg));
 	}
 
 	// WorkerLogMessage
 	template <>
-	void to_dds(WorkerLogMessage &msg, const WorkerLogEntry &entry) {
+	inline void to_dds(WorkerLogMessage &msg, const WorkerLogEntry &entry) {
 		to_dds(msg.worker, entry.worker);
 		to_dds(msg.type, entry.type);
 		to_dds(msg.msg, entry.msg);
@@ -97,7 +97,7 @@ namespace subjugator {
 	}
 
 	template <>
-	void from_dds(WorkerLogEntry &entry, const WorkerLogMessage &msg) {
+	inline void from_dds(WorkerLogEntry &entry, const WorkerLogMessage &msg) {
 		from_dds(entry.worker, msg.worker);
 		from_dds(entry.type, msg.type);
 		from_dds(entry.msg, msg.msg);
@@ -107,13 +107,13 @@ namespace subjugator {
 	// StateChangedSignal
 
 	template <>
-	void to_dds(StateMessage &msg, const State &state) {
+	inline void to_dds(StateMessage &msg, const State &state) {
 		to_dds(msg.code, state.code);
 		to_dds(msg.msg, state.msg);
 	}
 
 	template <>
-	void from_dds(State &state, const StateMessage &msg) {
+	inline void from_dds(State &state, const StateMessage &msg) {
 		from_dds(state.code, msg.code);
 		from_dds(state.msg, msg.msg);
 	}
@@ -121,14 +121,14 @@ namespace subjugator {
 	// WorkerKill
 
 	template <>
-	void to_dds(WorkerKillMessage &msg, const WorkerKill &kill) {
+	inline void to_dds(WorkerKillMessage &msg, const WorkerKill &kill) {
 		to_dds(msg.name, kill.name);
 		to_dds(msg.desc, kill.desc);
 		to_dds(msg.killed, kill.killed);
 	}
 
 	template <>
-	void from_dds(WorkerKill &kill, const WorkerKillMessage &msg) {
+	inline void from_dds(WorkerKill &kill, const WorkerKillMessage &msg) {
 		from_dds(kill.name, msg.name);
 		from_dds(kill.desc, msg.desc);
 		from_dds(kill.killed, msg.killed);
