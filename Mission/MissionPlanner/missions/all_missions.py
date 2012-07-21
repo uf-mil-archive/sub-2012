@@ -13,3 +13,4 @@ from . import gate
 from . import surface
 from . import hacks
 from . import hydrograbdrop
+from . import barrel_roll
