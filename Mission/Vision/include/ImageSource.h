@@ -12,13 +12,18 @@
 
 class ImageSource {
 	public:
+		ImageSource(boost::asio::io_service* io);
 		virtual cv::Mat getImage(void) = 0;
-		virtual void getImageAsync(void(*)(cv::Mat image)) = 0;
+		void getImageAsync(void(*)(cv::Mat image));
 		virtual ~ImageSource(void) {};
+	private:
+		boost::asio::io_service* io;
+		void getImageAsync_thread(void(*)(cv::Mat image));
 };
 
 class Camera : public ImageSource {
 	public:
+		Camera(boost::asio::io_service* io);
 		virtual void setExposure(float time) = 0;
 		virtual void setGain(float gain) = 0;
 		virtual void setAuto(float averageIntensity) = 0;
@@ -28,12 +33,10 @@ class ImageCamera : public Camera {
 	public:
 		ImageCamera(boost::asio::io_service* io, const std::string& filename, float delay);
 		virtual cv::Mat getImage(void);
-		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
 		virtual void setExposure(float time);
 		virtual void setGain(float gain);
 		virtual void setAuto(float averageIntensity);
 	private:
-		boost::asio::io_service* io;
 		std::vector<std::string> filenames;
 		int index;
 		float delay;
@@ -45,14 +48,11 @@ class CvCamera : public Camera {
 		CvCamera(boost::asio::io_service* io, int cameraNumber);
 		CvCamera(boost::asio::io_service* io, const std::string& filename);
 		virtual cv::Mat getImage(void);
-		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
 		virtual void setExposure(float time);
 		virtual void setGain(float gain);
 		virtual void setAuto(float averageIntensity);
 	private:
-		boost::asio::io_service* io;
 		cv::VideoCapture cap;
-		void getImageAsync_thread(void(*)(cv::Mat image));
 };
 
 #ifdef USE_FLYCAPTURE
@@ -61,7 +61,6 @@ class FlyCamera : public Camera {
 	public:
 		FlyCamera(boost::asio::io_service* io, int cameraNumber);
 		virtual cv::Mat getImage(void);
-		virtual void getImageAsync(void(*completion_handler)(cv::Mat image));
 		virtual void setExposure(float time);
 		virtual void setGain(float gain);
 		virtual void setAuto(float averageIntensity);

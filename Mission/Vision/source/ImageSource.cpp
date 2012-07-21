@@ -9,7 +9,19 @@ using namespace boost;
 using namespace std;
 
 
-ImageCamera::ImageCamera(boost::asio::io_service* io, const std::string& filename, float delay) {
+ImageSource::ImageSource(boost::asio::io_service* io) : io(io) { }
+void ImageSource::getImageAsync_thread(void(*completion_handler)(cv::Mat image)) {
+	io->dispatch(boost::bind(completion_handler, getImage()));
+}
+void ImageSource::getImageAsync(void(*completion_handler)(cv::Mat image)) {
+	boost::thread t(boost::bind(&ImageSource::getImageAsync_thread, this, completion_handler));
+}
+
+
+Camera::Camera(boost::asio::io_service* io) : ImageSource(io) { }
+
+
+ImageCamera::ImageCamera(boost::asio::io_service* io, const std::string& filename, float delay) : Camera(io) {
 	filesystem::path p(filename);
 	if(filesystem::is_directory(p)) {
 		BOOST_FOREACH(filesystem::path f, make_pair(filesystem::directory_iterator(p), filesystem::directory_iterator()))
@@ -40,10 +52,6 @@ cv::Mat ImageCamera::getImage(void) {
 	return res;
 }
 
-void ImageCamera::getImageAsync(void(*completion_handler)(cv::Mat image)) {
-	throw std::runtime_error("not implemented!");
-}
-
 void ImageCamera::setExposure(float time) {
 }
 
@@ -56,28 +64,14 @@ void ImageCamera::setAuto(float gain) {
 
 
 
-CvCamera::CvCamera(boost::asio::io_service* io, int cameraNumber) :
-	cap(cameraNumber) {
-	this->io = io;
-}
+CvCamera::CvCamera(boost::asio::io_service* io, int cameraNumber) : Camera(io), cap(cameraNumber) { }
 
-CvCamera::CvCamera(boost::asio::io_service* io, const std::string& filename) :
-	cap(filename) {
-	this->io = io;
-}
+CvCamera::CvCamera(boost::asio::io_service* io, const std::string& filename) : Camera(io), cap(filename) { }
 
 cv::Mat CvCamera::getImage(void) {
 	cv::Mat result;
 	cap >> result;
 	return result;
-}
-
-void CvCamera::getImageAsync_thread(void(*completion_handler)(cv::Mat image)) {
-	io->dispatch(boost::bind(completion_handler, getImage()));
-}
-
-void CvCamera::getImageAsync(void(*completion_handler)(cv::Mat image)) {
-	boost::thread t(boost::bind(&CvCamera::getImageAsync_thread, this, completion_handler));
 }
 
 void CvCamera::setExposure(float time) {
@@ -102,7 +96,7 @@ static void checkError(FlyCapture2::Error error) {
 	}
 }
 
-FlyCamera::FlyCamera(boost::asio::io_service* io, int cameraNumber) {
+FlyCamera::FlyCamera(boost::asio::io_service* io, int cameraNumber) : Camera(io) {
 	FlyCapture2::BusManager busMgr;
 	unsigned int numCameras;
 	checkError(busMgr.GetNumOfCameras(&numCameras));
@@ -142,10 +136,6 @@ cv::Mat FlyCamera::getImage(void) {
 		throw std::runtime_error("Error copying memory into cvImage!");
 
 	return cvImage;
-}
-
-void FlyCamera::getImageAsync(void(*completion_handler)(cv::Mat image)) {
-	throw std::runtime_error("not implemented!");
 }
 
 void FlyCamera::setExposure(float time) {
