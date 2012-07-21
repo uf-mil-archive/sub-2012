@@ -11,7 +11,7 @@ hedge_sel = vision.Selector(vision.FORWARD_CAMERA, 'hedge')
 def run_hedge_fix_right():
     nav.setup()
     nav.depth(2)
-    nav.set_waypoint_rel(nav.make_waypoint(y=1, z=-2, Y=math.radians(-20)))
+    nav.set_waypoint_rel(nav.make_waypoint(y=1, x=-.5, Y=math.radians(-10)))
     nav.wait()
 #    nav.rstrafe(1)
 #    nav.lturn(20)
@@ -20,7 +20,7 @@ def run_hedge_fix_right():
 def run_hedge_fix_left():
     nav.setup()
     nav.depth(2)
-    nav.set_waypoint_rel(nav.make_waypoint(y=-1, z=-2, Y=math.radians(20)))
+    nav.set_waypoint_rel(nav.make_waypoint(y=-1, x=-.5, Y=math.radians(10)))
     nav.wait()
 #    nav.lstrafe(1)
 #    nav.rturn(20)
@@ -30,7 +30,7 @@ def run():
     nav.setup()
     nav.depth(2)
 
-    with sched.Timeout(1*60) as t:
+    with sched.Timeout(1*40) as t:
         while True:
             print 'Looking for hedge'
             nav.vel(.3)

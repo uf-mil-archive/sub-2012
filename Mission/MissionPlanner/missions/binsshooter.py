@@ -23,9 +23,8 @@ def run():
         shooter.run() # ignore failure, we can return to bins
 
     print 'Returning to bins'
-    nav.depth(.5)
-    nav.point_shoot(bins_pos.x, bins_pos.y)
-    nav.heading(rad=bins_pos.Y)
+    nav.depth(.4)
+    nav.rturn(90)
     nav.fd(1)
     return True
 

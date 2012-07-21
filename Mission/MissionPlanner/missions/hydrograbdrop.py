@@ -28,17 +28,18 @@ def run(practice):
     else:
         occluded = False
 
+    if not practice:
+        print 'Practice mission, dropping'
+        sub.Grabber.open()
+        return True
+
     with mission.State('hydro2'):
         if not hydrophone.run(practice):
             return False
 
     if not occluded:
-        if not practice:
-            with mission.State('drop'):
-                wreath_drop.run()
-        else:
-            print 'Practice run, no wreath drop mission'
-            sub.Grabber.open()
+        with mission.State('drop'):
+            wreath_drop.run()
     else:
         print 'Occluded open loop drop'
         nav.fd(1)
