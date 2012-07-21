@@ -10,6 +10,14 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
+#ifdef USE_FLYCAPTURE
+#include "flycapture/FlyCapture2.h"
+#endif
+
+
+namespace subjugator {
+
+
 class ImageSource {
 	public:
 		ImageSource(boost::asio::io_service* io);
@@ -56,7 +64,6 @@ class CvCamera : public Camera {
 };
 
 #ifdef USE_FLYCAPTURE
-#include "flycapture/FlyCapture2.h"
 class FlyCamera : public Camera {
 	public:
 		FlyCamera(boost::asio::io_service* io, int cameraNumber);
@@ -79,5 +86,8 @@ class CAL {
 	private:
 		boost::asio::io_service& io;
 };
+
+
+}
 
 #endif

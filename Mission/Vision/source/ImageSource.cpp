@@ -7,6 +7,7 @@
 
 using namespace boost;
 using namespace std;
+using namespace subjugator;
 
 
 ImageSource::ImageSource(boost::asio::io_service* io) : io(io) { }
