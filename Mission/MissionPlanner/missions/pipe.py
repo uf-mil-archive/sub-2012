@@ -17,10 +17,14 @@ def run(name):
     nav.depth(.6)
 
     while True:
-        print 'Looking for ' + name + ' pipe'
-        nav.vel(.2)
-        vision.wait_visible(pipe_sels[name])
-        print 'See pipe!'
+        with sched.Timeout(20) as timeout:
+            print 'Looking for ' + name + ' pipe'
+            nav.vel(.2)
+            vision.wait_visible(pipe_sels[name])
+            print 'See pipe!'
+        if timeout.activated:
+            print 'Timed out on pipe'
+            return False
 
         with mission.State('servo'):
             if servo(pipe_sels[name]):
