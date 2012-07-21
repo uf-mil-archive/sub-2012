@@ -306,5 +306,5 @@ def do_a_barrel_roll(velx=0, velR=.75):
     sched.sleep(.2)
     pos = get_trajectory().pos
     set_waypoint(make_waypoint(x=pos.x, y=pos.y, z=pos.z, Y=pos.Y, velx=velx))
-    while get_trajectory().pos.R < 0.01:
+    while get_trajectory().pos.R < -0.01:
         sched.sleep(.1)
