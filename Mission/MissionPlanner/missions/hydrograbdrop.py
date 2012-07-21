@@ -28,7 +28,7 @@ def run(practice):
     else:
         occluded = False
 
-    if not practice:
+    if practice:
         print 'Practice mission, dropping'
         sub.Grabber.open()
         return True
@@ -42,7 +42,7 @@ def run(practice):
             wreath_drop.run()
     else:
         print 'Occluded open loop drop'
-        nav.fd(1)
+        nav.fd(2)
         nav.depth(2)
         sub.Grabber.open()
 
