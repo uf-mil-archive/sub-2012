@@ -14,9 +14,8 @@ def run():
 
     print 'Lining up for shooter'
     bins_pos = nav.get_waypoint().pos
-    nav.rturn(180)
-    nav.fd(5)
-    nav.lturn(150)
+    nav.bk(5)
+    nav.rturn(30)
     nav.rstrafe(1)
 
     with mission.State('shooter'):
