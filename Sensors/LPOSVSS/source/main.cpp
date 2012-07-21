@@ -75,6 +75,7 @@ namespace subjugator {
 
 	template <>
 	void to_dds(LPOSVSSMessage &msg, const LPOSVSSInfo &info) {
+		to_dds(msg.timestamp, info.timestamp);
 		to_dds(msg.position_NED, info.position_NED);
 		to_dds(msg.quaternion_NED_B, info.quaternion_NED_B);
 		to_dds(msg.velocity_NED, info.velocity_NED);

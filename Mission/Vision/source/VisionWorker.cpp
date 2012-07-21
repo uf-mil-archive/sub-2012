@@ -62,8 +62,8 @@ void VisionWorker::work(double dt) {
 	}
 
 	// Grab a frame from the camera, copy into ioimages object
-	ioimages.setNewSource(camera->getImage());	
-	//camera->getImage().copyTo(ioimages.src);
+	Camera::Image image = camera->getImage();
+	ioimages.setNewSource(image.image);
 
 	vector<property_tree::ptree> results;
 	BOOST_FOREACH(const boost::shared_ptr<IFinder> &finder, listOfFinders) {
@@ -117,7 +117,7 @@ void VisionWorker::work(double dt) {
 
 	if(config.get<bool>("logImages") && frameCnt % config.get<int>("logImageEvery") == 0) {
 		std::stringstream str; str << "log/" << cameraname << "/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << ".png";
-		bool success = imwrite(str.str(), ioimages.src);
+		bool success = ImageCamera::saveImage(str.str(), image);
 		cout << "Logging image to " << str.str() << " " << (success ? "succeeded" : "FAILED") << endl;
 	}
 	frameCnt++;
