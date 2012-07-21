@@ -12,3 +12,4 @@ from . import binsshooter
 from . import gate
 from . import surface
 from . import hacks
+from . import hydrograbdrop
