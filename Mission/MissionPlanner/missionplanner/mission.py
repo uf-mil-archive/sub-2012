@@ -7,6 +7,7 @@ from missions.config import *
 import dds
 import collections
 import functools
+import greenlet
 
 # TODO: Decided to give singletons a try, turned out badly. Need to redo this
 # with a top level class that connects the dots and deals with cross cutting concerns.
@@ -137,6 +138,8 @@ class MissionListManager(object):
                 (ok, failedmission) = self.main_list.run()
                 if not ok:
                     print 'Main list failed'
+        except greenlet.GreenletExit:
+            raise
         except Exception, ex:
             print ex
         print 'Running fail list'
