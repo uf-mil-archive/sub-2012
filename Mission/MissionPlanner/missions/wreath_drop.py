@@ -15,7 +15,7 @@ def run(drop=True):
     with sched.Timeout(60) as t:
         while True:
             print 'Looking for wreath'
-            nav.vel(.2)
+            nav.vel(.15)
             vision.wait_visible(sel, 5)
 
             with mission.State('servo'):
