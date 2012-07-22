@@ -8,7 +8,7 @@ servo = vision.BottomVisualServo(kx=.2, ky=.2, kz=.004, zmax=.1, desired_scale=2
 
 sel = vision.Selector(vision.DOWN_CAMERA, 'wreath')
 
-def run():
+def run(drop=True):
     nav.setup()
     nav.depth(.4)
 
@@ -25,10 +25,13 @@ def run():
 
             break
 
-    nav.down(.6)
-    sched.sleep(1)
-    sub.Grabber.open()
-    sched.sleep(1)
-    sub.Grabber.disable()
+    if drop:
+        nav.down(.6)
+        nav.bk(.2)
+        sched.sleep(.5)
+        sub.Grabber.open()
+        sched.sleep(1)
+        sub.Grabber.disable()
 
-mission.missionregistry.register('Wreath-drop', run)
+mission.missionregistry.register('Wreath-align', lambda: run(False))
+mission.missionregistry.register('Wreath-drop', lambda: run(True))
