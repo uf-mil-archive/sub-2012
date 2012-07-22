@@ -145,6 +145,7 @@ class MissionListManager(object):
         print 'Running fail list'
         self.fail_list.run()
         sub.Grabber.open()
+        nav.depth(-.05)
         print 'Mission Complete'
 
 missionlistmanager = MissionListManager()
