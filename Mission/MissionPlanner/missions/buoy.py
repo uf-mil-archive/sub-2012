@@ -36,7 +36,7 @@ def make_buoy_sel(name, hue):
 # Make buoy selectors
 buoy_sels = dict(red=make_buoy_sel('red', 22),
                  yellow=make_buoy_sel('green', 45),
-                 green=make_buoy_sel('green', 65))
+                 green=make_buoy_sel('green', 61))
 
 # Combine all buoy selectors
 buoy_sel_any = vision.combine_selectors(list(buoy_sels.itervalues()))
@@ -117,6 +117,10 @@ def run(single):
     nav.depth(.5)
     nav.heading(rad=start.Y)
     nav.fd(3)
+    if single:
+        nav.rstrafe(1)
+    else:
+        nav.lstrafe(1)
     return True
 
 mission.missionregistry.register('Buoy', lambda: run(False), 3*60)
