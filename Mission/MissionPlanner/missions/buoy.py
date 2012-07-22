@@ -80,7 +80,7 @@ def bump():
     nav.fd(2)
     nav.bk(1)
 
-def run():
+def run(single):
     nav.setup()
     nav.depth(2)
 
@@ -95,13 +95,13 @@ def run():
 
     start = nav.get_trajectory().pos
 
-    if findBuoy(FIRST_BUOY):
+    if findBuoy(FIRST_BUOY if not single else 'red'):
         bump()
     else:
         print 'Failed to find first buoy'
         nav.bk(1)
 
-    if not SKIP_SECOND_BUOY:
+    if single:
         nav.point_shoot(*start.xyz)
         print 'setting heading'
         nav.heading(rad=start.Y)
@@ -119,4 +119,5 @@ def run():
     nav.fd(3)
     return True
 
-mission.missionregistry.register('Buoy', run, 3*60)
+mission.missionregistry.register('Buoy', lambda: run(False), 3*60)
+mission.missionregistry.register('Buoy-single', lambda: run(True), 3*60)
