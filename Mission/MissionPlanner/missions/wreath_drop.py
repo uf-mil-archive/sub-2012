@@ -32,6 +32,7 @@ def run(drop=True):
         sub.Grabber.open()
         sched.sleep(1)
         sub.Grabber.disable()
+    return True
 
 mission.missionregistry.register('Wreath-align', lambda: run(False))
 mission.missionregistry.register('Wreath-drop', lambda: run(True))

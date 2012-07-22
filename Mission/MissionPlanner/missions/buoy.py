@@ -101,7 +101,7 @@ def run(single):
         print 'Failed to find first buoy'
         nav.bk(1)
 
-    if single:
+    if not single:
         nav.point_shoot(*start.xyz)
         print 'setting heading'
         nav.heading(rad=start.Y)
