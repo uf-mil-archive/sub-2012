@@ -9,33 +9,29 @@
 using namespace boost;
 using namespace std;
 
-IFinder::FinderResult TubeFinder::find(const cv::Mat &img) {
+IFinder::FinderResult TubeFinder::find(const subjugator::ImageSource::Image &img) {
 	// call to normalizer here
-	cv::Mat normalized = Normalizer::norm(img);
+	cv::Mat normalized = Normalizer::norm(img.image);
+
+	// call to thresholder here
+	cv::Mat orange = Thresholder(normalized).orange();
+	erode(orange, orange, cv::Mat::ones(9, 5, CV_8UC1));
+	dilate(orange, orange, cv::Mat::ones(9, 5, CV_8UC1));
+
+	// call to specific member function here
+	Line line(1, config);
+	int result = line.findLines(orange);
 
 	vector<property_tree::ptree> resultVector;
-	cv::Mat res = img.clone();
-	cv::Mat dbg;
-	BOOST_FOREACH(const string &objectName, objectNames) {
-		// call to thresholder here
-		dbg = Thresholder(normalized).orange();
-		erode(dbg, dbg, cv::Mat::ones(9, 5, CV_8UC1));
-		dilate(dbg, dbg, cv::Mat::ones(9, 5, CV_8UC1));
-
-		// call to specific member function here
-		Line line(1, config);
-		int result = line.findLines(dbg);
-		line.drawResult(res);
-
-		// Prepare results
-		if(!result)
-			continue;
-
+	if(result) {
 		property_tree::ptree fResult;
-		fResult.put("objectName", objectName);
-		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, img.size()));
+		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, img.image.size()));
 		fResult.put("scale", line.avgLines[0].length);
 		resultVector.push_back(fResult);
 	}
-	return FinderResult(resultVector, res, dbg);
+
+	cv::Mat res = img.image.clone();
+	line.drawResult(res);
+
+	return FinderResult(resultVector, res, orange);
 }

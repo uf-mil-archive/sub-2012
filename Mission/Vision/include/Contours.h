@@ -34,7 +34,7 @@ class Contours
 		std::vector<OuterBox> boxes; // output holder
 
 		Contours(const cv::Mat &img, float minContour, float maxContour, float maxPerimeter);
-		void drawResult(cv::Mat &img, std::string objectName);
+		void drawResult(cv::Mat &img, const cv::Scalar &color);
 		double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 		InnerContour findLargestShape();
 		InnerContour findSmallestShape();

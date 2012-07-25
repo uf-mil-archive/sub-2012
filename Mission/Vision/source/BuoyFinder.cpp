@@ -8,63 +8,61 @@
 using namespace boost;
 using namespace cv;
 
-IFinder::FinderResult BuoyFinder::find(const Mat &img) {
+IFinder::FinderResult BuoyFinder::find(const subjugator::ImageSource::Image &img) {
 	// blur the image to remove noise
-	Mat blurred; GaussianBlur(img, blurred, Size(0, 0), 1.5);
+	Mat blurred; GaussianBlur(img.image, blurred, Size(0, 0), 1.5);
 	// call to normalizer here
 	Mat normalized = Normalizer::normRGB2(blurred);
 
 	Thresholder thresholder(normalized);
 
-	vector<property_tree::ptree> resultVector;
-	Mat res = img.clone();
 	Mat dbg;
-	BOOST_FOREACH(const string &objectName, objectNames) {
-		if(objectName == "buoy/all")
-			dbg = thresholder.buoys();
-		else if(objectName == "buoy/green")
-			dbg = thresholder.green();
-		else if(objectName == "buoy/red")
-			dbg = thresholder.orange();
-		else if(objectName == "buoy/yellow")
-			dbg = thresholder.yellow();
+	if(objectPath[0] == "all")
+		dbg = thresholder.buoys();
+	else if(objectPath[0] == "green")
+		dbg = thresholder.green();
+	else if(objectPath[0] == "red")
+		dbg = thresholder.orange();
+	else if(objectPath[0] == "yellow")
+		dbg = thresholder.yellow();
+	else
+		dbg = thresholder.config(config.get_child(std::string("thresh") + (
+			objectPath[0] == "green" ? "Green" :
+			objectPath[0] == "red" ? "Red" :
+			"Yellow"
+		)));
+
+	// call to specific member function here
+	Blob blob(dbg, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
+
+	for(unsigned int i = 0; i < blob.data.size(); )
+		if(blob.data[i].circularity < .5 || blob.data[i].centroid.y > 480*4/5)
+			blob.data.erase(blob.data.begin()+i);
 		else
-			dbg = thresholder.config(config.get_child(std::string("thresh") + (
-				objectName == "buoy/green" ? "Green" :
-				objectName == "buoy/red" ? "Red" :
-				"Yellow"
-			)));
+			i++;
+	if(blob.data.size() > 3)
+		blob.data.resize(3);
 
-		// call to specific member function here
-		Blob blob(dbg, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
+	// Draw result
+	Mat res = img.image.clone();
+	blob.drawResult(res, CV_RGB(0, 200, 0));
 
-		for(unsigned int i = 0; i < blob.data.size(); )
-			if(blob.data[i].circularity < .5 || blob.data[i].centroid.y > 480*4/5)
-				blob.data.erase(blob.data.begin()+i);
-			else
-				i++;
-		if(blob.data.size() > 3)
-			blob.data.resize(3);
+	vector<property_tree::ptree> resultVector;
+	BOOST_FOREACH(const Blob::BlobData &b, blob.data) {
+		// Prepare results
+		property_tree::ptree fResult;
+		fResult.put_child("center", Point_to_ptree(b.centroid, img.image.size()));
+		fResult.put("scale", b.area);
+		
+		// Check for color of blob
+		Mat tempHSV; cvtColor(img.image,tempHSV,CV_BGR2HSV);
+		std::vector<Mat> channelsHSV(img.image.channels()); split(tempHSV,channelsHSV);
+		Mat tempMask = Mat::zeros(img.image.rows, img.image.cols, CV_8UC1);
+			drawContours(tempMask, std::vector<std::vector<cv::Point> >(1, b.contour), 0, Scalar(255), CV_FILLED, 1, vector<Vec4i>(), 5);
+		fResult.put("hue", mean(channelsHSV[0], tempMask)[0]);
 
-		// Draw result
-		blob.drawResult(res, objectName);
-
-		BOOST_FOREACH(const Blob::BlobData &b, blob.data) {
-			// Prepare results
-			property_tree::ptree fResult;
-			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(b.centroid, img.size()));
-			fResult.put("scale", b.area);
-			
-			// Check for color of blob
-			Mat tempHSV; cvtColor(img,tempHSV,CV_BGR2HSV);
-			std::vector<Mat> channelsHSV(img.channels()); split(tempHSV,channelsHSV);
-			Mat tempMask = Mat::zeros(img.rows, img.cols, CV_8UC1);
-				drawContours(tempMask, std::vector<std::vector<cv::Point> >(1, b.contour), 0, Scalar(255), CV_FILLED, 1, vector<Vec4i>(), 5);
-			fResult.put("hue", mean(channelsHSV[0], tempMask)[0]);
-
-			resultVector.push_back(fResult);
-		}
+		resultVector.push_back(fResult);
 	}
+
 	return FinderResult(resultVector, res, dbg);
 }

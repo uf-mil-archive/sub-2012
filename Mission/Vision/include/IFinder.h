@@ -11,6 +11,8 @@
 
 #include <opencv/cv.h>
 
+#include <ImageSource.h>
+
 class IFinder {
 	public:
 		struct FinderResult {
@@ -19,12 +21,12 @@ class IFinder {
 			const cv::Mat res;
 			const cv::Mat dbg;
 		};
-		IFinder(std::vector<std::string> objectNames, boost::property_tree::ptree config) {
-			this->objectNames = objectNames;
+		IFinder(std::vector<std::string> objectPath, boost::property_tree::ptree config) {
+			this->objectPath = objectPath;
 			this->config = config;
 		}
-		std::vector<std::string> objectNames;
-		virtual FinderResult find(const cv::Mat &img) = 0;
+		std::vector<std::string> objectPath;
+		virtual FinderResult find(const subjugator::ImageSource::Image &img) = 0;
 	protected:
 		boost::property_tree::ptree config;
 		boost::property_tree::ptree Point_to_ptree(const cv::Point& p, const cv::Size& size) {

@@ -10,39 +10,35 @@ using namespace cv;
 using namespace boost;
 using namespace std;
 
-IFinder::FinderResult PipeFinder::find(const Mat &img) {
-	Mat blurred; GaussianBlur(img, blurred, Size(3,3), 10, 15, BORDER_DEFAULT);
+IFinder::FinderResult PipeFinder::find(const subjugator::ImageSource::Image &img) {
+	Mat blurred; GaussianBlur(img.image, blurred, Size(3,3), 10, 15, BORDER_DEFAULT);
 
 	Mat normalized = Normalizer::normRGB(blurred);
 
+	// call to thresholder here
+	Mat orange = Thresholder(normalized).orange();
+	erode(orange, orange, cv::Mat::ones(3,3,CV_8UC1));
+	dilate(orange, orange, cv::Mat::ones(7,7,CV_8UC1));
+	erode(orange, orange, cv::Mat::ones(7,7,CV_8UC1));
+
+	Line line(2, config);
+	int result = line.findLines(orange);
+
+	Mat res = img.image.clone();
+	line.drawResult(res);
+
+	// Prepare results
 	vector<property_tree::ptree> resultVector;
-	Mat res = img.clone();
-	Mat dbg;
-	BOOST_FOREACH(const string &objectName, objectNames) {
-		// call to thresholder here
-		dbg = Thresholder(normalized).orange();
-		erode(dbg, dbg, cv::Mat::ones(3,3,CV_8UC1));
-		dilate(dbg, dbg, cv::Mat::ones(7,7,CV_8UC1));
-		erode(dbg, dbg, cv::Mat::ones(7,7,CV_8UC1));
-
-		Line line(2, config);
-		int result = line.findLines(dbg);
-		line.drawResult(res);
-
-		// Prepare results
-
-		if(!result)
-			continue;
-
+	if(result) {
 		BOOST_FOREACH(const AvgLine &avgline, line.avgLines) {
 			if(!avgline.populated) continue;
 			property_tree::ptree fResult;
-			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(avgline.centroid, img.size()));
+			fResult.put_child("center", Point_to_ptree(avgline.centroid, img.image.size()));
 			fResult.put("angle", avgline.angle);
 			fResult.put("scale", avgline.length);
 			resultVector.push_back(fResult);
 		}
 	}
-	return FinderResult(resultVector, res, dbg);
+
+	return FinderResult(resultVector, res, orange);
 }

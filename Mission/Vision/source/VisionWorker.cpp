@@ -63,19 +63,17 @@ void VisionWorker::work(double dt) {
 
 	Camera::Image image = camera->getImage();
 
-	vector<property_tree::ptree> results;
+	property_tree::ptree results;
 	Mat res = image.image;
 	Mat dbg = image.image;
-	BOOST_FOREACH(const boost::shared_ptr<IFinder> &finder, listOfFinders) {
-		cout<< "Looking for objectName: ";
-		BOOST_FOREACH(const string &objectName, finder->objectNames)
-			cout << objectName << " ";
-		cout << endl;
+	typedef pair<string, boost::shared_ptr<IFinder> > finder_pair;
+	BOOST_FOREACH(const finder_pair &finder, listOfFinders) {
+		cout << "Looking for objectName: " << finder.first << endl;
 
 		// RUN THE FINDER!
 		vector<property_tree::ptree> fResult;
 		try {
-			IFinder::FinderResult result = finder->find(image.image);
+			IFinder::FinderResult result = finder.second->find(image);
 			fResult = result.results;
 			res = result.res;
 			dbg = result.dbg;
@@ -89,9 +87,10 @@ void VisionWorker::work(double dt) {
 		BOOST_FOREACH(const property_tree::ptree &pt, fResult) {
 			ostringstream s; property_tree::json_parser::write_json(s, pt);
 			cout << "Found object: " << s.str() << endl;
+			if(!results.get_child_optional(finder.first))
+				results.put_child(finder.first, property_tree::ptree());
+			results.get_child(finder.first).push_back(make_pair("", pt));
 		}
-
-		results.insert(results.end(), fResult.begin(), fResult.end());
 	}
 	outputsignal.emit(make_pair(cameraname, results));
 	

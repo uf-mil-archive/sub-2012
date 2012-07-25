@@ -69,18 +69,8 @@ Blob::Blob(const Mat &img, float minContour, float maxContour, float maxPerimete
 	reverse(data.begin(),data.end());
 }
 
-void Blob::drawResult(Mat &img, std::string objectName) {
+void Blob::drawResult(Mat &img, const Scalar &color) {
 	BOOST_FOREACH(const BlobData &item, data) {
-		Scalar color = CV_RGB(255, 255, 255);
-		if(objectName == "buoy/red") // red
-			color = CV_RGB(255,100,0);
-		else if(objectName == "buoy/yellow") // yellow
-			color = CV_RGB(230,230,0);
-		else if(objectName == "buoy/green") // green
-			color = CV_RGB(0,200,0);
-		else if(objectName == "hedge")	// green
-			color = CV_RGB(0,200,0);
-
 		circle(img, item.centroid, (int)item.radius,color, 2, 8, 0);
 		line(img, item.centroid, item.centroid + Point(item.radius*cos(item.angle), item.radius*-sin(item.angle)), CV_RGB(255,0,0),2,8);
 

@@ -104,18 +104,8 @@ double Contours::angle( Point pt1, Point pt2, Point pt0 )
 	return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
-void Contours::drawResult(Mat &img, string objectName) {
+void Contours::drawResult(Mat &img, const Scalar &color) {
 	drawContours(img, contours, -1, Scalar(255, 255, 255), 1, 8, hierarchy, 0); // draw all contours
-
-	Scalar color = CV_RGB(128, 255, 128);
-	if(objectName == "shooter/red/large" || objectName == "shooter/red/small")
-		color = CV_RGB(178,34,34);
-	else if(objectName == "shooter/blue/large" || objectName == "shooter/blue/small")
-		color = CV_RGB(0,0,128);
-	else if(objectName == "bins/all" || objectName == "bins/shape")
-		color = CV_RGB(127,255,133);
-	else if(objectName == "bins/single")
-		color = CV_RGB(0,255,0);
 
 	BOOST_FOREACH(const OuterBox &box, boxes) {
 		circle(img, box.centroid, 2, color, 2, 8, 0);

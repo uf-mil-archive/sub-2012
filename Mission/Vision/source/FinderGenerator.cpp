@@ -21,60 +21,30 @@
 using namespace std;
 using namespace boost;
 
-vector<boost::shared_ptr<IFinder> > FinderGenerator::buildFinders(const vector<string> &objectNames, const property_tree::ptree &config) {
-	vector<string> buoyNames;
-	vector<string> grapesNames;
-	vector<string> pipeNames;
-	vector<string> hedgeNames;
-	vector<string> tubeNames;
-	vector<string> shooterNames;
-	vector<string> binsNames;
-	vector<string> gateNames;
-	vector<string> wreathNames;
+vector<pair<string, shared_ptr<IFinder> > > FinderGenerator::buildFinders(const vector<string> &objectNames, const property_tree::ptree &config) {
+	vector<pair<string, shared_ptr<IFinder> > > finders;
 	BOOST_FOREACH(const string &objectName, objectNames) {
 		vector<string> objectPath; split(objectPath, objectName, is_any_of("/"));
 		if(objectPath.size() == 0)
 			throw runtime_error("empty objectName");
 
-		if(objectPath[0] == "buoy")
-			buoyNames.push_back(objectName);
-		else if(objectPath[0] == "grapes")
-			grapesNames.push_back(objectName);
-		else if(objectPath[0] == "pipe")
-			pipeNames.push_back(objectName);
-		else if(objectPath[0] == "hedge")
-			hedgeNames.push_back(objectName);
-		else if(objectPath[0] == "tube")
-			tubeNames.push_back(objectName);
-		else if(objectPath[0] == "shooter")
-			shooterNames.push_back(objectName);
-		else if(objectPath[0] == "bins")
-			binsNames.push_back(objectName);
-		else if(objectPath[0] == "gate")
-			gateNames.push_back(objectName);
-		else if(objectPath[0] == "wreath")
-			wreathNames.push_back(objectName);
+		vector<string> rest(objectPath.begin()+1, objectPath.end());
+		property_tree::ptree fconfig = config.get_child(objectPath[0], property_tree::ptree());
+		shared_ptr<IFinder> finder =
+			objectPath[0] == "buoy" ? make_shared<BuoyFinder>(rest, fconfig) :
+			objectPath[0] == "grapes" ? make_shared<GrapesFinder>(rest, fconfig) :
+			objectPath[0] == "pipe" ? make_shared<PipeFinder>(rest, fconfig) :
+			objectPath[0] == "hedge" ? make_shared<HedgeFinder>(rest, fconfig) :
+			objectPath[0] == "tube" ? make_shared<TubeFinder>(rest, fconfig) :
+			objectPath[0] == "shooter" ? make_shared<ShooterFinder>(rest, fconfig) :
+			objectPath[0] == "bins" ? make_shared<BinsFinder>(rest, fconfig) :
+			objectPath[0] == "gate" ? make_shared<GateFinder>(rest, fconfig) :
+			objectPath[0] == "wreath" ? make_shared<WreathFinder>(rest, fconfig) :
+			shared_ptr<IFinder>();
+		if(!finder)
+			throw runtime_error("unknown objectName: " + objectPath[0]);
+		finders.push_back(make_pair(objectName, finder));
 	}
-	
-	vector<boost::shared_ptr<IFinder> > finders;
-	if(buoyNames.size() > 0)
-		finders.push_back(make_shared<BuoyFinder>(buoyNames, config.get_child("buoy", property_tree::ptree())));
-	if(grapesNames.size() > 0)
-		finders.push_back(make_shared<GrapesFinder>(grapesNames, config.get_child("grapes", property_tree::ptree())));
-	if(pipeNames.size() > 0)
-		finders.push_back(make_shared<PipeFinder>(pipeNames, config.get_child("pipe", property_tree::ptree())));
-	if(hedgeNames.size() > 0)
-		finders.push_back(make_shared<HedgeFinder>(hedgeNames, config.get_child("hedge", property_tree::ptree())));
-	if(tubeNames.size() > 0)
-		finders.push_back(make_shared<TubeFinder>(tubeNames, config.get_child("tube", property_tree::ptree())));
-	if(shooterNames.size() > 0)
-		finders.push_back(make_shared<ShooterFinder>(shooterNames, config.get_child("shooter", property_tree::ptree())));
-	if(binsNames.size() > 0)
-		finders.push_back(make_shared<BinsFinder>(binsNames, config.get_child("bins", property_tree::ptree())));
-	if(gateNames.size() > 0)
-		finders.push_back(make_shared<GateFinder>(gateNames, config.get_child("gate", property_tree::ptree())));
-	if(wreathNames.size() > 0)
-		finders.push_back(make_shared<WreathFinder>(wreathNames, config.get_child("wreath", property_tree::ptree())));
 
 	return finders;
 }

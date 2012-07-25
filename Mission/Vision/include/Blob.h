@@ -31,7 +31,7 @@ class Blob
 
 		std::vector<BlobData> data;
 		Blob(const cv::Mat &img, float minContour, float maxContour, float maxPerimeter);
-		void drawResult(cv::Mat &img, std::string objectName);
+		void drawResult(cv::Mat &img, const cv::Scalar &color);
 };
 
 #endif
