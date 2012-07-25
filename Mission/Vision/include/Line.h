@@ -6,15 +6,14 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include "AvgLine.h"
-#include "IOImages.h"
 
 class Line
 {
 public:
 	std::vector<AvgLine> avgLines;
 	Line(int num, boost::property_tree::ptree config);
-	int findLines(IOImages* ioimages);
-	void drawResult(IOImages* ioimages);
+	int findLines(const cv::Mat &img);
+	void drawResult(cv::Mat &img);
 
 private:
 	int numberOfLinesToFind;

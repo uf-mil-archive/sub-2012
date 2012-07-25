@@ -61,11 +61,11 @@ void VisionWorker::work(double dt) {
 		std::cerr << "Caught exception: " << exc.what() << endl;
 	}
 
-	// Grab a frame from the camera, copy into ioimages object
 	Camera::Image image = camera->getImage();
-	ioimages.setNewSource(image.image);
 
 	vector<property_tree::ptree> results;
+	Mat res = image.image;
+	Mat dbg = image.image;
 	BOOST_FOREACH(const boost::shared_ptr<IFinder> &finder, listOfFinders) {
 		cout<< "Looking for objectName: ";
 		BOOST_FOREACH(const string &objectName, finder->objectNames)
@@ -75,7 +75,10 @@ void VisionWorker::work(double dt) {
 		// RUN THE FINDER!
 		vector<property_tree::ptree> fResult;
 		try {
-			fResult = finder->find(&ioimages);
+			IFinder::FinderResult result = finder->find(image.image);
+			fResult = result.results;
+			res = result.res;
+			dbg = result.dbg;
 		} catch(const std::exception &exc) {
 			property_tree::ptree error_result;
 			error_result.put("objectName", "error");
@@ -93,14 +96,14 @@ void VisionWorker::work(double dt) {
 	outputsignal.emit(make_pair(cameraname, results));
 	
 	Mat n(480, 320, CV_8UC3);
-	Mat n1(n, Range(0, 240), Range(0, 320));resize(ioimages.res, n1, Size(320, 240));
+	Mat n1(n, Range(0, 240), Range(0, 320));resize(res, n1, Size(320, 240));
 	Mat n2c;
-	if(ioimages.dbg.channels() == 3)
-		n2c = ioimages.dbg;
+	if(dbg.channels() == 3)
+		n2c = dbg;
 	else
-		cvtColor(ioimages.dbg, n2c, CV_GRAY2RGB);
+		cvtColor(dbg, n2c, CV_GRAY2RGB);
 	Mat n2(n, Range(240, 480), Range(0, 320));resize(n2c, n2, Size(320, 240));
-	Vec3b color_bgr = ioimages.src.at<Vec3b>(min(2*config.get<int>("color_y"), 479), min(2*config.get<int>("color_x"), 639));
+	Vec3b color_bgr = image.image.at<Vec3b>(min(2*config.get<int>("color_y"), 479), min(2*config.get<int>("color_x"), 639));
 	Vec3b color_rgb(color_bgr[2], color_bgr[1], color_bgr[0]);
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 2, Scalar(0, 0, 0));
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 3, Scalar(255, 255, 255));

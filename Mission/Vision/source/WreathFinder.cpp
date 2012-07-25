@@ -11,27 +11,27 @@ using namespace boost;
 using namespace cv;
 using namespace std;
 
-vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
-	Normalizer::normRGB(ioimages);
+IFinder::FinderResult WreathFinder::find(const Mat &img) {
+	Mat blurred; GaussianBlur(img, blurred, Size(3,3), 10, 15, BORDER_DEFAULT);
 
-	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
-	ioimages->processColorSpaces();
+	Mat normalized = Normalizer::normRGB(blurred);
 
 	vector<property_tree::ptree> resultVector;
+	Mat res = img.clone();
+	Mat dbg;
 	BOOST_FOREACH(const string &objectName, objectNames) {
-		Thresholder::threshOrange(ioimages);
-		//Thresholder::threshConfig(ioimages, config.get_child("thresh"));
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+		dbg = Thresholder(normalized).orange();
+		erode(dbg, dbg, cv::Mat::ones(3,3,CV_8UC1));
+		dilate(dbg, dbg, cv::Mat::ones(7,7,CV_8UC1));
 
-		Blob blob(ioimages, 3000, 100000, 100000);
-		blob.drawResult(ioimages, objectName);
+		Blob blob(dbg, 3000, 100000, 100000);
+		blob.drawResult(res, objectName);
 
 		BOOST_FOREACH(const Blob::BlobData &data, blob.data) {
 //			if(1.15 < data.aspect_ratio && data.aspect_ratio < 1.5) {
 				property_tree::ptree fResult;
 				fResult.put("objectName", objectName);
-				fResult.put_child("center", Point_to_ptree(data.centroid, ioimages->prcd));
+				fResult.put_child("center", Point_to_ptree(data.centroid, img.size()));
 				fResult.put("scale", data.radius);
 				double angle = data.angle-boost::math::constants::pi<double>()/2;
 				// wrap it to within [+pi, -pi]
@@ -43,6 +43,6 @@ vector<property_tree::ptree> WreathFinder::find(IOImages* ioimages) {
 			break; // we only care about the largest blob
 		}
 	}
-	return resultVector;
+	return FinderResult(resultVector, res, dbg);
 }
 

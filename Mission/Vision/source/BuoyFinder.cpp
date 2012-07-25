@@ -8,34 +8,35 @@
 using namespace boost;
 using namespace cv;
 
-vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
-{
+IFinder::FinderResult BuoyFinder::find(const Mat &img) {
 	// blur the image to remove noise
-	GaussianBlur(ioimages->src,ioimages->src,Size(0,0),1.5);
+	Mat blurred; GaussianBlur(img, blurred, Size(0, 0), 1.5);
 	// call to normalizer here
-	Normalizer::normRGB2(ioimages);
+	Mat normalized = Normalizer::normRGB2(blurred);
 
-	ioimages->processColorSpaces();
+	Thresholder thresholder(normalized);
 
 	vector<property_tree::ptree> resultVector;
+	Mat res = img.clone();
+	Mat dbg;
 	BOOST_FOREACH(const string &objectName, objectNames) {
 		if(objectName == "buoy/all")
-			Thresholder::threshBuoys(ioimages);
+			dbg = thresholder.buoys();
 		else if(objectName == "buoy/green")
-			Thresholder::threshGreen(ioimages);
+			dbg = thresholder.green();
 		else if(objectName == "buoy/red")
-			Thresholder::threshOrange(ioimages);
+			dbg = thresholder.orange();
 		else if(objectName == "buoy/yellow")
-			Thresholder::threshYellow(ioimages);
+			dbg = thresholder.yellow();
 		else
-			Thresholder::threshConfig(ioimages, config.get_child(std::string("thresh") + (
+			dbg = thresholder.config(config.get_child(std::string("thresh") + (
 				objectName == "buoy/green" ? "Green" :
 				objectName == "buoy/red" ? "Red" :
 				"Yellow"
 			)));
 
 		// call to specific member function here
-		Blob blob(ioimages, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
+		Blob blob(dbg, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 
 		for(unsigned int i = 0; i < blob.data.size(); )
 			if(blob.data[i].circularity < .5 || blob.data[i].centroid.y > 480*4/5)
@@ -46,17 +47,24 @@ vector<property_tree::ptree> BuoyFinder::find(IOImages* ioimages)
 			blob.data.resize(3);
 
 		// Draw result
-		blob.drawResult(ioimages, objectName);
+		blob.drawResult(res, objectName);
 
 		BOOST_FOREACH(const Blob::BlobData &b, blob.data) {
 			// Prepare results
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(b.centroid, ioimages->prcd));
+			fResult.put_child("center", Point_to_ptree(b.centroid, img.size()));
 			fResult.put("scale", b.area);
-			fResult.put("hue", b.hue);
+			
+			// Check for color of blob
+			Mat tempHSV; cvtColor(img,tempHSV,CV_BGR2HSV);
+			std::vector<Mat> channelsHSV(img.channels()); split(tempHSV,channelsHSV);
+			Mat tempMask = Mat::zeros(img.rows, img.cols, CV_8UC1);
+				drawContours(tempMask, std::vector<std::vector<cv::Point> >(1, b.contour), 0, Scalar(255), CV_FILLED, 1, vector<Vec4i>(), 5);
+			fResult.put("hue", mean(channelsHSV[0], tempMask)[0]);
+
 			resultVector.push_back(fResult);
 		}
 	}
-	return resultVector;
+	return FinderResult(resultVector, res, dbg);
 }

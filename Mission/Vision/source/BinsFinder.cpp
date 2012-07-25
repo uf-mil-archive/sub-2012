@@ -15,36 +15,33 @@ using namespace boost;
 using namespace cv;
 using namespace std;
 
-vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
-	// call to normalizer here
-	Normalizer::normPassthru(ioimages);
-	
-	// blur the image to remove noise
-	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(0,0),1.3);
-	ioimages->processColorSpaces();
+IFinder::FinderResult BinsFinder::find(const cv::Mat &img) {
+	Mat blurred; GaussianBlur(img, blurred, Size(0,0), 1.3);
+
+	Thresholder thresholder(blurred);
 
 	vector<property_tree::ptree> resultVector;
+	Mat res = img.clone();
+	Mat dbg;
 	BOOST_FOREACH(const string &objectName, objectNames) {
-		// call to thresholder here
-		Thresholder::threshBlack(ioimages);
+		dbg = thresholder.black();
 
-		// call to specific member function here
-		Contours contours(ioimages->dbg, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
+		Contours contours(dbg, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));
 
 		if(!contours.boxes.size())
 			continue;
 		
 		// Draw result
-		contours.drawResult(ioimages, objectName);
+		contours.drawResult(res, objectName);
 
 		if(objectName == "bins/all") {
 			if(contours.boxes.size() == 1 && contours.boxes[0].touches_edge)
 				continue;
 			Point centroidOfBoxes = contours.calcCentroidOfAllBoxes();
-			circle(ioimages->res,centroidOfBoxes, 5, CV_RGB(255,140,0), -1,8);
+			circle(res,centroidOfBoxes, 5, CV_RGB(255,140,0), -1,8);
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(centroidOfBoxes, ioimages->prcd));
+			fResult.put_child("center", Point_to_ptree(centroidOfBoxes, img.size()));
 			fResult.put("number_of_boxes", contours.boxes.size());
 			// Scale returns the number of boxes that are currently being found.
 			// The idea is to align to centroid until 4 boxes are found.
@@ -54,7 +51,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 			BOOST_FOREACH(const Contours::OuterBox &box, contours.boxes) {
 				bool touches_edge = false;
 				BOOST_FOREACH(const Point& p, box.corners)
-					if(p.x <= 1 || p.x >= ioimages->src.cols-2 || p.y <= 1 || p.y >= ioimages->src.rows-2)
+					if(p.x <= 1 || p.x >= img.cols-2 || p.y <= 1 || p.y >= img.rows-2)
 						touches_edge = true;
 				if(touches_edge)
 						continue;
@@ -74,7 +71,7 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				dst[3] = Point2f(-2*crop, 150+crop);
 
 				Mat t = getPerspectiveTransform(src, dst);
-				Mat bin;warpPerspective(ioimages->src, bin, t, Size(300, 150));
+				Mat bin;warpPerspective(img, bin, t, Size(300, 150));
 				
 				//imshow("before", bin);
 				std::vector<Mat> channels(bin.channels());
@@ -91,22 +88,22 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 				}
 				vector<Mat> vBGR; split(bin, vBGR);
 				//normalize(vBGR[2],vBGR[2],0,255,NORM_MINMAX);
-				Mat res; adaptiveThreshold(vBGR[2],res,255,0,THRESH_BINARY,251,-5);
-				erode(res,res,cv::Mat::ones(3,3,CV_8UC1));
-				//dilate(res,res,cv::Mat::ones(5,5,CV_8UC1));
-				//erode(res,res,cv::Mat::ones(3,3,CV_8UC1));
+				Mat red; adaptiveThreshold(vBGR[2],red,255,0,THRESH_BINARY,251,-5);
+				erode(red,red,cv::Mat::ones(3,3,CV_8UC1));
+				//dilate(red,red,cv::Mat::ones(5,5,CV_8UC1));
+				//erode(red,red,cv::Mat::ones(3,3,CV_8UC1));
 
-				Mat redness_dbg; cvtColor(res, redness_dbg, CV_GRAY2BGR);
-				warpPerspective(redness_dbg, ioimages->res, t, ioimages->src.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
+				Mat redness_dbg; cvtColor(red, redness_dbg, CV_GRAY2BGR);
+				warpPerspective(redness_dbg, res, t, img.size(), WARP_INVERSE_MAP, BORDER_TRANSPARENT);
 
 				std::vector<std::vector<cv::Point> > contours;
 				std::vector<cv::Vec4i> hierarchy; // hierarchy holder for the contour tree
-				findContours(res, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+				findContours(red, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
 				int negative_contours = 0;
 				for(unsigned int i=0; i < contours.size(); i++)
 					if(hierarchy[i][3] >= 0) // has parent
 						negative_contours += 1;
-				Mat r = res;
+				Mat r = red;
 				float diagonal1 = mean(Mat(r, Range(0, r.rows/2), Range(0, r.cols/2)))[0] + mean(Mat(r, Range(r.rows/2, r.rows), Range(r.cols/2, r.cols)))[0];
 				float diagonal2 = mean(Mat(r, Range(0, r.rows/2), Range(r.cols/2, r.cols)))[0] + mean(Mat(r, Range(r.rows/2, r.rows), Range(0, r.cols/2)))[0];
 
@@ -118,17 +115,17 @@ vector<property_tree::ptree> BinsFinder::find(IOImages* ioimages) {
 			
 				property_tree::ptree fResult;
 				fResult.put("objectName", objectName);
-				fResult.put_child("center", Point_to_ptree(box.centroid, ioimages->prcd));
+				fResult.put_child("center", Point_to_ptree(box.centroid, img.size()));
 				fResult.put("angle", box.angle);
 				fResult.put("scale", box.area);
 				fResult.put("diagonal", diagonal1/diagonal2);
 				fResult.put("holes_count", negative_contours);
 				fResult.put("item", best);
-				putText(ioimages->res,best.c_str(),box.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
+				putText(res,best.c_str(),box.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(0,0,255),3);
 				resultVector.push_back(fResult);
 			}
 		} else
 			throw std::runtime_error("unknown objectName in BinsFinder::find:" + objectName);
 	}
-	return resultVector;
+	return FinderResult(resultVector, res, dbg);
 }

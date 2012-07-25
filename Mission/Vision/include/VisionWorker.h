@@ -10,7 +10,6 @@
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
 
-#include "IOImages.h"
 #include "ImageSource.h"
 #include "IFinder.h"
 
@@ -41,7 +40,6 @@ private:
 	void handleConfig(boost::optional<std::pair<std::string, boost::property_tree::ptree> >);
 	boost::property_tree::ptree config;
 	CAL cal;
-	IOImages ioimages;
 	std::string cameraname;
 	std::vector<boost::shared_ptr<IFinder> > listOfFinders;
 	std::vector<std::string> objectNames;

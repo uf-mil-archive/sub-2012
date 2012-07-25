@@ -18,14 +18,13 @@ Line::Line(int num, property_tree::ptree config)
 		avgLines.push_back(AvgLine());
 }
 
-int Line::findLines(IOImages* ioimages)
-{
-	Mat edgeImage = ioimages->dbg.clone();
-	Canny(ioimages->dbg, edgeImage, config.get_child("Canny").get<int>("thresh1"), config.get_child("Canny").get<int>("thresh2"), config.get_child("Canny").get<int>("apertureSize") );
+int Line::findLines(const cv::Mat &img) {
+	Mat edgeImage = img.clone();
+	Canny(img, edgeImage, config.get_child("Canny").get<int>("thresh1"), config.get_child("Canny").get<int>("thresh2"), config.get_child("Canny").get<int>("apertureSize") );
 	std::vector<Vec4i> lines;HoughLinesP(edgeImage, lines, config.get_child("Hough").get<double>("rho"), config.get_child("Hough").get<double>("theta"), config.get_child("Hough").get<double>("thresh"), config.get_child("Hough").get<int>("minLineLength"), config.get_child("Hough").get<int>("minLineGap") );
 
 	BOOST_FOREACH(const Vec4i &line, lines) {
-		cv::line(ioimages->res, Point(line[0], line[1]), Point(line[2], line[3]), Scalar(255,0,0), 1, 8);
+		//cv::line(ioimages->res, Point(line[0], line[1]), Point(line[2], line[3]), Scalar(255,0,0), 1, 8);
 		double tmpAngle = atan2(line[1]-line[3], line[0]-line[2]); // (y1-y2)/(x1-x2)
 		if(tmpAngle != 0) tmpAngle += 3.1415/2.0; // offset to vertical
 		if(tmpAngle > 0) tmpAngle -= 3.1415;
@@ -87,12 +86,12 @@ int Line::findLines(IOImages* ioimages)
 		return 0;
 }
 
-void Line::drawResult(IOImages *ioimages) {
+void Line::drawResult(Mat &img) {
 	BOOST_FOREACH(const AvgLine &avgline, avgLines) {
 		if(!avgline.populated) continue;
-		line(ioimages->res, avgline.startPoint, avgline.endPoint, Scalar(0, 255, 0), 3, 8);
-		circle(ioimages->res, avgline.centroid, 3, Scalar(0, 150, 255), 2);
+		line(img, avgline.startPoint, avgline.endPoint, Scalar(0, 255, 0), 3, 8);
+		circle(img, avgline.centroid, 3, Scalar(0, 150, 255), 2);
 		ostringstream os; os << "Angle: " << avgline.angle*180/3.1415;
-		putText(ioimages->res, os.str().c_str(), avgline.centroid, FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(255, 0, 0), 1);
+		putText(img, os.str().c_str(), avgline.centroid, FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(255, 0, 0), 1);
 	}
 }

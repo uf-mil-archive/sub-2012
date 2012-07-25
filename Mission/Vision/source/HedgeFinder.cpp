@@ -10,23 +10,24 @@ using namespace boost;
 using namespace cv;
 using namespace std;
 
-vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
-	// call to normalizer here
-	Normalizer::normRGB(ioimages);
-
+IFinder::FinderResult HedgeFinder::find(const Mat &img) {
 	// blur the image to remove noise
 	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
-	ioimages->processColorSpaces();
+
+	// call to normalizer here
+	Mat normalized = Normalizer::normRGB(img);
 
 	vector<property_tree::ptree> resultVector;
+	Mat res = img.clone();
+	Mat dbg;
 	BOOST_FOREACH(const string &objectName, objectNames) {
 		// call to thresholder here
-		Thresholder::threshGreen(ioimages);
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+		dbg = Thresholder(img).green();
+		erode(dbg, dbg, cv::Mat::ones(3,3,CV_8UC1));
+		dilate(dbg, dbg, cv::Mat::ones(7,7,CV_8UC1));
 
-		Blob blob(ioimages, 1000, 100000, 20000);
-		blob.drawResult(ioimages, objectName);
+		Blob blob(dbg, 1000, 100000, 20000);
+		blob.drawResult(res, objectName);
 
 		// send average centroid of blobs, but with tiny scale so we servo until we can recognize the structure
 		// if it only sees a reflection or some object other than the hedge, this could cause problems
@@ -76,15 +77,15 @@ vector<property_tree::ptree> HedgeFinder::find(IOImages* ioimages) {
 		}
 		if(scale < 0) continue;
 
-		circle(ioimages->res,center,scale,Scalar(255,255,255),5);
+		circle(res,center,scale,Scalar(255,255,255),5);
 
 		// Prepare results
 		property_tree::ptree fResult;
 		fResult.put("objectName", objectName);
-		fResult.put_child("center", Point_to_ptree(center, ioimages->prcd));
+		fResult.put_child("center", Point_to_ptree(center, img.size()));
 		fResult.put("scale", scale);
 		resultVector.push_back(fResult);
 	}
-	return resultVector;
+	return FinderResult(resultVector, res, dbg);
 }
 

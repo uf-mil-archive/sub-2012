@@ -104,8 +104,8 @@ double Contours::angle( Point pt1, Point pt2, Point pt0 )
 	return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
-void Contours::drawResult(IOImages* ioimages, string objectName) {
-	drawContours(ioimages->res, contours, -1, Scalar(255, 255, 255), 1, 8, hierarchy, 0); // draw all contours
+void Contours::drawResult(Mat &img, string objectName) {
+	drawContours(img, contours, -1, Scalar(255, 255, 255), 1, 8, hierarchy, 0); // draw all contours
 
 	Scalar color = CV_RGB(128, 255, 128);
 	if(objectName == "shooter/red/large" || objectName == "shooter/red/small")
@@ -118,22 +118,22 @@ void Contours::drawResult(IOImages* ioimages, string objectName) {
 		color = CV_RGB(0,255,0);
 
 	BOOST_FOREACH(const OuterBox &box, boxes) {
-		circle(ioimages->res, box.centroid, 2, color, 2, 8, 0);
-		drawContours(ioimages->res, box.contour, 0, color, 2, 8, hierarchy, 0);
+		circle(img, box.centroid, 2, color, 2, 8, 0);
+		drawContours(img, box.contour, 0, color, 2, 8, hierarchy, 0);
 		for(size_t j=0; j < box.corners.size(); j++)
 		{
-			circle(ioimages->res,box.corners[j],3,CV_RGB(255,255,0),-1,8);
+			circle(img,box.corners[j],3,CV_RGB(255,255,0),-1,8);
 			ostringstream os; os << j;
-			putText(ioimages->res,os.str().c_str(),Point(box.corners[j].x+5,box.corners[j].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,255,255),1);
+			putText(img,os.str().c_str(),Point(box.corners[j].x+5,box.corners[j].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,255,255),1);
 		}
-		line(ioimages->res,box.centroid,box.orientation,CV_RGB(255,0,0),2,8);
+		line(img,box.centroid,box.orientation,CV_RGB(255,0,0),2,8);
 	}
 	BOOST_FOREACH(const InnerContour &shape, shapes) {
-		circle(ioimages->res, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
-		circle(ioimages->res, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
-		drawContours(ioimages->res, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
+		circle(img, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
+		circle(img, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
+		drawContours(img, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
 		ostringstream os; os << "Area: " << shape.area << " " << shape.circularity;
-		putText(ioimages->res,os.str().c_str(),shape.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(255,255,255),1);
+		putText(img,os.str().c_str(),shape.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(255,255,255),1);
 	}
 }
 

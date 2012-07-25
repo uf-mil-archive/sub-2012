@@ -7,8 +7,6 @@
 
 #include "FinderGenerator.h"
 
-#include "IOImages.h"
-
 #include "BuoyFinder.h"
 #include "GrapesFinder.h"
 #include "PipeFinder.h"

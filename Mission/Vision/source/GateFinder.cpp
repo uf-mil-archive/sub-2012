@@ -9,39 +9,35 @@
 using namespace boost;
 using namespace std;
 
-vector<property_tree::ptree> GateFinder::find(IOImages* ioimages) {
-	// call to normalizer here
-	Normalizer::norm(ioimages);
-
+IFinder::FinderResult GateFinder::find(const cv::Mat &img) {
 	// blur the image to remove noise
-	//GaussianBlur(ioimages->prcd,ioimages->prcd,Size(11,11),10,15,BORDER_DEFAULT);
-	ioimages->processColorSpaces();
+	//cv::Mat blurred; GaussianBlur(img, blurred, Size(11, 11), 10, 15, BORDER_DEFAULT);
 
-	//printf("im here\n");
+	// call to normalizer here
+	cv::Mat normalized = Normalizer::norm(img);
 
 	vector<property_tree::ptree> resultVector;
+	cv::Mat res = img.clone();
+	cv::Mat dbg;
 	BOOST_FOREACH(const string &objectName, objectNames) {
-		// call to thresholder here
-		Thresholder::threshOrange(ioimages);
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(9,5,CV_8UC1));
+		dbg = Thresholder(normalized).orange();
+		erode(dbg, dbg, cv::Mat::ones(9,5,CV_8UC1));
+		dilate(dbg, dbg, cv::Mat::ones(9,5,CV_8UC1));
 
-		// call to specific member function here
 		Line line(1, config);
-		int result = line.findLines(ioimages);
-		line.drawResult(ioimages);
-		//printf("result: %d\n",result);
+		int result = line.findLines(dbg);
 		
 		if(!result)
-			continue; // XXX
+			continue;
 
 		// Prepare results
 		property_tree::ptree fResult;
 		fResult.put("objectName", objectName);
-		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, ioimages->prcd));
+		fResult.put_child("center", Point_to_ptree(line.avgLines[0].centroid, img.size()));
 		fResult.put("scale", line.avgLines[0].length);
 		printf("scale: %f\n",line.avgLines[0].length);
 		resultVector.push_back(fResult);
+		line.drawResult(res);
 	}
-	return resultVector;
+	return FinderResult(resultVector, res, dbg);
 }

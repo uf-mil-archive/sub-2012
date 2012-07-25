@@ -10,27 +10,24 @@ using namespace cv;
 using namespace boost;
 using namespace std;
 
-vector<property_tree::ptree> PipeFinder::find(IOImages* ioimages) {
-	// call to normalizer here
-	Normalizer::normRGB(ioimages);
-	//ioimages->res = ioimages->prcd.clone();
+IFinder::FinderResult PipeFinder::find(const Mat &img) {
+	Mat blurred; GaussianBlur(img, blurred, Size(3,3), 10, 15, BORDER_DEFAULT);
 
-	// blur the image to remove noise
-	GaussianBlur(ioimages->prcd,ioimages->prcd,Size(3,3),10,15,BORDER_DEFAULT);
-	ioimages->processColorSpaces();
+	Mat normalized = Normalizer::normRGB(blurred);
 
 	vector<property_tree::ptree> resultVector;
+	Mat res = img.clone();
+	Mat dbg;
 	BOOST_FOREACH(const string &objectName, objectNames) {
 		// call to thresholder here
-		Thresholder::threshOrange(ioimages);
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(3,3,CV_8UC1));
-		dilate(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
-		erode(ioimages->dbg,ioimages->dbg,cv::Mat::ones(7,7,CV_8UC1));
+		dbg = Thresholder(normalized).orange();
+		erode(dbg, dbg, cv::Mat::ones(3,3,CV_8UC1));
+		dilate(dbg, dbg, cv::Mat::ones(7,7,CV_8UC1));
+		erode(dbg, dbg, cv::Mat::ones(7,7,CV_8UC1));
 
-		// call to specific member function here
 		Line line(2, config);
-		int result = line.findLines(ioimages);
-		line.drawResult(ioimages);
+		int result = line.findLines(dbg);
+		line.drawResult(res);
 
 		// Prepare results
 
@@ -41,11 +38,11 @@ vector<property_tree::ptree> PipeFinder::find(IOImages* ioimages) {
 			if(!avgline.populated) continue;
 			property_tree::ptree fResult;
 			fResult.put("objectName", objectName);
-			fResult.put_child("center", Point_to_ptree(avgline.centroid, ioimages->prcd));
+			fResult.put_child("center", Point_to_ptree(avgline.centroid, img.size()));
 			fResult.put("angle", avgline.angle);
 			fResult.put("scale", avgline.length);
 			resultVector.push_back(fResult);
 		}
 	}
-	return resultVector;
+	return FinderResult(resultVector, res, dbg);
 }

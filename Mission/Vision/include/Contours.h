@@ -5,8 +5,6 @@
 
 #include <opencv/cv.h>
 
-#include "IOImages.h"
-
 class Contours
 {
 	public:
@@ -36,7 +34,7 @@ class Contours
 		std::vector<OuterBox> boxes; // output holder
 
 		Contours(const cv::Mat &img, float minContour, float maxContour, float maxPerimeter);
-		void drawResult(IOImages* ioimages, std::string objectName);
+		void drawResult(cv::Mat &img, std::string objectName);
 		double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 		InnerContour findLargestShape();
 		InnerContour findSmallestShape();
