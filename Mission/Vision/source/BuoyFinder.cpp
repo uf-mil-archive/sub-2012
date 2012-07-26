@@ -12,25 +12,10 @@ IFinder::FinderResult BuoyFinder::find(const subjugator::ImageSource::Image &img
 	// blur the image to remove noise
 	Mat blurred; GaussianBlur(img.image, blurred, Size(0, 0), 1.5);
 	// call to normalizer here
-	Mat normalized = Normalizer::normRGB2(blurred);
+	Mat normalized = Normalizer::normRGB(blurred);
 
 	Thresholder thresholder(normalized);
-
-	Mat dbg;
-	if(objectPath[0] == "all")
-		dbg = thresholder.buoys();
-	else if(objectPath[0] == "green")
-		dbg = thresholder.green();
-	else if(objectPath[0] == "red")
-		dbg = thresholder.orange();
-	else if(objectPath[0] == "yellow")
-		dbg = thresholder.yellow();
-	else
-		dbg = thresholder.config(config.get_child(std::string("thresh") + (
-			objectPath[0] == "green" ? "Green" :
-			objectPath[0] == "red" ? "Red" :
-			"Yellow"
-		)));
+	Mat dbg = objectPath[0] == "red" ? thresholder.orange() : thresholder.green(); // use green thresholder for both green and yellow
 
 	// call to specific member function here
 	Blob blob(dbg, config.get<float>("minContour"), config.get<float>("maxContour"), config.get<float>("maxPerimeter"));

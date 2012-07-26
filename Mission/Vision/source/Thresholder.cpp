@@ -1,26 +1,6 @@
-#include <string>
-#include <vector>
-
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include "Thresholder.h"
 
-using namespace boost;
 using namespace cv;
-using namespace std;
-
-vector<float> parse_vec(const string &s) {
-	vector<string> vec; split(vec, s, is_any_of(" ,"));
-	if(vec.size() != 3)
-		throw runtime_error("invalid vec: " + s);
-	vector<float> res; BOOST_FOREACH(const string &i, vec) res.push_back(lexical_cast<float>(i));
-	float sum = res[0] + res[1] + res[2];
-	res[0] /= sum; res[1] /= sum; res[2] /= sum;
-	return res;
-}
 
 Thresholder::Thresholder(const Mat &img) {
 	split(img, channelsRGB);
@@ -30,73 +10,6 @@ Thresholder::Thresholder(const Mat &img) {
 
 	cv::Mat imgLAB; cvtColor(img, imgLAB, CV_RGB2Lab);
 	split(imgLAB, channelsLAB);
-}
-
-Mat Thresholder::config(property_tree::ptree config) {
-	Mat dbg;
-	std::vector<Mat> channelsBGR = channelsRGB;
-	Mat b; channelsBGR[0].convertTo(b, CV_32FC1, 1/255.);
-	Mat g; channelsBGR[1].convertTo(g, CV_32FC1, 1/255.);
-	Mat r; channelsBGR[2].convertTo(r, CV_32FC1, 1/255.);
-
-	if(config.get_optional<string>("far")) {
-		Mat sum = b + g + r;
-		b /= sum; g /= sum; r /= sum;
-
-		vector<float> first = parse_vec(config.get<string>("far"));
-		vector<float> second = parse_vec(config.get<string>("near"));
-		if(first == second)
-			second[0] += 0.001;
-
-		float mag2 = pow(second[0]-first[0], 2) + pow(second[1]-first[1], 2) + pow(second[2]-first[2], 2);
-		Mat d = ((r - first[0])*(second[0]-first[0]) + (g - first[1])*(second[1]-first[1]) + (b - first[2])*(second[2]-first[2]))/mag2;
-		max(d, 0, d);
-		min(d, 1, d);
-
-		Mat closest_r = first[0] + (second[0]-first[0])*d;
-		Mat closest_g = first[1] + (second[1]-first[1])*d;
-		Mat closest_b = first[2] + (second[2]-first[2])*d;
-
-		Mat r_diff; pow(r-closest_r, 2, r_diff);
-		Mat g_diff; pow(g-closest_g, 2, g_diff);
-		Mat b_diff; pow(b-closest_b, 2, b_diff);
-		Mat dist; sqrt(r_diff + g_diff + b_diff, dist);
-		dbg = dist < config.get<float>("dist");
-		return dbg;
-	}
-
-	Mat mag; magnitude(r, g, mag); magnitude(mag, b, mag);
-	Mat res = (r*config.get<float>("r") + g*config.get<float>("g") + b*config.get<float>("b"))/mag;
-	dbg = res > cos(config.get<float>("angle"))*sqrt(pow(config.get<float>("r"), 2) + pow(config.get<float>("g"), 2) + pow(config.get<float>("b"), 2));
-	return dbg;
-}
-
-Mat Thresholder::buoys() {
-	Mat dbg;
-	Mat red,black,white;
-	adaptiveThreshold(channelsLAB[2],red,255,0,THRESH_BINARY_INV,201,20);
-	add(red,channelsRGB[2],red);
-
-	inRange(channelsHSV[2],Scalar(0,0,0,0),Scalar(70,0,0,0),black); // filter out blacks
-	subtract(red,black,red);
-	inRange(channelsHSV[1],Scalar(0,0,0,0),Scalar(90,0,0,0),white); // filter out whites
-	subtract(red,white,red);
-	threshold(red,red,200,255,THRESH_BINARY);
-	//imshow("red",red);
-
-	Mat green; // also includes yellows
-	adaptiveThreshold(channelsLAB[1],green,255,0,THRESH_BINARY_INV,151,5);
-	subtract(green,white,green);
-	//subtract(green,channelsRGB[0],green);
-	threshold(green,green,100,255,THRESH_BINARY);
-	//imshow("green",green);
-
-	Mat all;
-	add(red,green,dbg);
-
-	erode(dbg,dbg,cv::Mat::ones(5,5,CV_8UC1));
-	dilate(dbg,dbg,cv::Mat::ones(3,3,CV_8UC1));
-	return dbg;
 }
 
 Mat Thresholder::orange() {

@@ -1,5 +1,3 @@
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
 
 #include <stdio.h>
@@ -85,7 +83,7 @@ IFinder::FinderResult ShooterFinder::find(const subjugator::ImageSource::Image &
 			fResult.put("scale", bestShape2.area);
 			resultVector.push_back(fResult);
 		}
-	} else if(objectPath[1] == "large") {
+	} else { assert(objectPath[1] == "large");
 		if(contours.shapes.size()) {
 			Contours::InnerContour shape = contours.findLargestShape();
 			property_tree::ptree fResult;
@@ -94,20 +92,6 @@ IFinder::FinderResult ShooterFinder::find(const subjugator::ImageSource::Image &
 			fResult.put("scale", shape.area);
 			resultVector.push_back(fResult);
 		}
-	} else { assert(objectPath[1] == "circles");
-		float dp = config.get<float>("dp");
-		float min_dist = config.get<float>("min_dist");
-		float canny_thres = config.get<float>("canny_thres");
-		float circle_thres = config.get<float>("circle_thres");
-		vector<Vec3f> circles;HoughCircles(dbg, circles, CV_HOUGH_GRADIENT, dp, min_dist, canny_thres, circle_thres*dp*dp);
-		BOOST_FOREACH(const Vec3f &circle, circles) {
-			cv::circle(res, Point(circle[0], circle[1]), (int)circle[2], Scalar(255, 255, 255), 2);
-			property_tree::ptree fResult;
-			fResult.put_child("center", Point_to_ptree(Point(circle[0], circle[1]), img.image.size()));
-			fResult.put("scale", circle[2]);
-			resultVector.push_back(fResult);
-		}
-		Canny(dbg, dbg, canny_thres, canny_thres/2);
 	}
 	return FinderResult(resultVector, res, dbg);
 }

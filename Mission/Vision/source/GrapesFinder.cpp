@@ -1,5 +1,3 @@
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
 
 #include <stdio.h>
@@ -25,7 +23,7 @@ IFinder::FinderResult GrapesFinder::find(const subjugator::ImageSource::Image &i
 
 	Thresholder thresholder(normalized);
 
-	Mat yellow = thresholder.config(config.get_child("thresh_yellow"));
+	Mat yellow = thresholder.yellow();
 	dilate(yellow, yellow, cv::Mat::ones(5,5,CV_8UC1));
 	erode(yellow, yellow, cv::Mat::ones(9,9,CV_8UC1));
 

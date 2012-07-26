@@ -8,7 +8,6 @@ class BuoyFinder : public IFinder
 	public:
 		BuoyFinder(std::vector<std::string> objectPath, boost::property_tree::ptree config) : IFinder(objectPath, config) {
 			if(objectPath.size() != 1 || !(
-					objectPath[0] == "all" ||
 					objectPath[0] == "green" ||
 					objectPath[0] == "red" ||
 					objectPath[0] == "yellow" ||

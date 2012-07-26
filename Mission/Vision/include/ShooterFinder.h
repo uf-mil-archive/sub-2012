@@ -14,7 +14,6 @@ class ShooterFinder : public IFinder
 					objectPath[1] == "box" ||
 					objectPath[1] == "small" ||
 					objectPath[1] == "large" ||
-					objectPath[1] == "circles" ||
 			false))
 				throw std::runtime_error("invalid objectPath");
 		};

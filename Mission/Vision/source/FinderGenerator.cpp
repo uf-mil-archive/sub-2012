@@ -11,12 +11,9 @@
 #include "GrapesFinder.h"
 #include "PipeFinder.h"
 #include "HedgeFinder.h"
-#include "TubeFinder.h" 
 #include "ShooterFinder.h"
 #include "BinsFinder.h"
-#include "GateFinder.h"
 #include "WreathFinder.h"
-#include <stdio.h>
 
 using namespace std;
 using namespace boost;
@@ -35,10 +32,8 @@ vector<pair<string, shared_ptr<IFinder> > > FinderGenerator::buildFinders(const 
 			objectPath[0] == "grapes" ? make_shared<GrapesFinder>(rest, fconfig) :
 			objectPath[0] == "pipe" ? make_shared<PipeFinder>(rest, fconfig) :
 			objectPath[0] == "hedge" ? make_shared<HedgeFinder>(rest, fconfig) :
-			objectPath[0] == "tube" ? make_shared<TubeFinder>(rest, fconfig) :
 			objectPath[0] == "shooter" ? make_shared<ShooterFinder>(rest, fconfig) :
 			objectPath[0] == "bins" ? make_shared<BinsFinder>(rest, fconfig) :
-			objectPath[0] == "gate" ? make_shared<GateFinder>(rest, fconfig) :
 			objectPath[0] == "wreath" ? make_shared<WreathFinder>(rest, fconfig) :
 			shared_ptr<IFinder>();
 		if(!finder)
