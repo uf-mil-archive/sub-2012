@@ -40,13 +40,10 @@ class Contours
 		InnerContour findSmallestShape();
 		cv::Point calcCentroidOfAllBoxes();
 		float calcAngleOfAllBoxes();
-		void sortBoxes();
-		void orientationError();
 
 	private:
 		std::vector<std::vector<cv::Point> > contours;
 		std::vector<cv::Vec4i> hierarchy; // hierarchy holder for the contour tree
-		void populateAngleOfOuterBox(OuterBox* outerBox);
 };
 
 #endif

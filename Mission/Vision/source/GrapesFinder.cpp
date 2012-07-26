@@ -28,8 +28,6 @@ IFinder::FinderResult GrapesFinder::find(const subjugator::ImageSource::Image &i
 	erode(yellow, yellow, cv::Mat::ones(9,9,CV_8UC1));
 
 	Contours contours(yellow, 1000, 7000000, 1500000);
-	contours.sortBoxes();
-	contours.orientationError();
 
 	if(objectPath[0] == "board") {
 		vector<property_tree::ptree> resultVector;

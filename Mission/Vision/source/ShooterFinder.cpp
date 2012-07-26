@@ -35,8 +35,6 @@ IFinder::FinderResult ShooterFinder::find(const subjugator::ImageSource::Image &
 
 	// call to specific member function here
 	Contours contours(dbg, 50, 7000000,1500000);
-	contours.sortBoxes();
-	contours.orientationError();
 
 	// Draw result
 	Mat res = img.image.clone();

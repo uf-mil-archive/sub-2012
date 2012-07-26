@@ -12,6 +12,18 @@
 using namespace cv;
 using namespace std;
 
+class CornerComparator {
+	private:
+		Point centroid;
+	public:
+		CornerComparator(Point centroid) : centroid(centroid) {}
+		bool operator()(Point a, Point b) {
+			float angle_a = atan2(a.x-centroid.x, -(a.y-centroid.y));
+			float angle_b = atan2(b.x-centroid.x, -(b.y-centroid.y));
+			return angle_a < angle_b;
+		}
+};
+
 Contours::Contours(const Mat &img, float minContour, float maxContour, float maxPerimeter) {
 	Mat dbg_temp = img.clone();
 	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
@@ -84,7 +96,22 @@ Contours::Contours(const Mat &img, float minContour, float maxContour, float max
 		outerBox.centroid.y = (approx[0].y + approx[1].y + approx[2].y + approx[3].y)/4;
 		outerBox.contour.push_back(contours[i]);
 		outerBox.shapes = innerContours;
-		populateAngleOfOuterBox(&outerBox);
+
+		sort(outerBox.corners.begin(), outerBox.corners.end(), CornerComparator(outerBox.centroid));
+
+		double right_line = norm(outerBox.corners[1] - outerBox.corners[0]);
+		double left_line = norm(outerBox.corners[3] - outerBox.corners[2]);
+		outerBox.orientationError = right_line - left_line;
+
+		double length1 = norm(outerBox.corners[1] - outerBox.corners[0]);
+		double length2 = norm(outerBox.corners[3] - outerBox.corners[0]);
+		if(length1 > length2)
+			outerBox.orientation = 0.5*(outerBox.corners[0] + outerBox.corners[3]);
+		else
+			outerBox.orientation = 0.5*(outerBox.corners[0] + outerBox.corners[1]);
+
+		Point dp = outerBox.orientation - outerBox.centroid;
+		outerBox.angle = atan2(dp.y, dp.x) + CV_PI/2;
 
 		outerBox.touches_edge = false;
 		BOOST_FOREACH(const Point& p, outerBox.corners)
@@ -151,81 +178,18 @@ Contours::InnerContour Contours::findSmallestShape() {
 	return bestShape;
 }
 
-Point Contours::calcCentroidOfAllBoxes()
-{
-	Point centroid;
-	if(boxes.size() > 0)
-	{
-		BOOST_FOREACH(const OuterBox &box, boxes) {
-			centroid.x += box.centroid.x;
-			centroid.y += box.centroid.y;
-		}
-		centroid.x /= boxes.size();
-		centroid.y /= boxes.size();
-	}
-	return centroid;
+Point Contours::calcCentroidOfAllBoxes() {
+	assert(boxes.size());
+	Point sum(0, 0);
+	BOOST_FOREACH(const OuterBox &box, boxes)
+		sum += box.centroid;
+	return 1./boxes.size()*sum;
 }
 
-float Contours::calcAngleOfAllBoxes()
-{
-	float angle = 0;
-	if(boxes.size() > 0)
-	{
-		BOOST_FOREACH(const OuterBox &box, boxes)
-			angle += box.angle;
-		angle /= boxes.size();
-	}
-	return angle;
-}
-
-void Contours::populateAngleOfOuterBox(OuterBox* outerBox)
-{
-	Point shortLineMidPoint;
-	int length1, length2;
-	length1=(int)sqrt(pow((float)(outerBox->corners[0].x-outerBox->corners[1].x),2)+pow((float)(outerBox->corners[0].y-outerBox->corners[1].y),2));
-	length2=(int)sqrt(pow((float)(outerBox->corners[0].x-outerBox->corners[3].x),2)+pow((float)(outerBox->corners[0].y-outerBox->corners[3].y),2));
-	//printf("length1: %d length2:%d\n",length1,length2);
-	if(length1>length2)
-	{
-		shortLineMidPoint.x = abs((outerBox->corners[0].x/2)+(outerBox->corners[3].x/2));
-		shortLineMidPoint.y = abs((outerBox->corners[0].y/2)+(outerBox->corners[3].y/2));
-		//printf("1: %d, %d\n",shortLineMidPoint.x,shortLineMidPoint.y);
-	}
-	else
-	{
-		shortLineMidPoint.x = abs((outerBox->corners[0].x/2)+(outerBox->corners[1].x/2));
-		shortLineMidPoint.y = abs((outerBox->corners[0].y/2)+(outerBox->corners[1].y/2));
-		//printf("2: %d, %d\n",shortLineMidPoint.x,shortLineMidPoint.y);
-	}
-	outerBox->orientation = shortLineMidPoint;
-	// calculate angle
-	outerBox->angle = atan2((float)outerBox->orientation.y-(float)outerBox->centroid.y,(float)outerBox->orientation.x-(float)outerBox->centroid.x) + (float)CV_PI/2;
-}
-
-class CornerComparator {
-	private:
-		Point centroid;
-	public:
-		CornerComparator(Point centroid) : centroid(centroid) {}
-		bool operator()(Point a, Point b) {
-			float angle_a = atan2(a.x-centroid.x, -(a.y-centroid.y));
-			float angle_b = atan2(b.x-centroid.x, -(b.y-centroid.y));
-			return angle_a < angle_b;
-		}
-};
-void Contours::sortBoxes() {
-	BOOST_FOREACH(OuterBox &box, boxes)
-		sort(box.corners.begin(), box.corners.end(), CornerComparator(box.centroid));
-}
-
-void Contours::orientationError()
-{
-	BOOST_FOREACH(OuterBox &box, boxes) {
-		double line1 = sqrt( pow(box.corners[1].x-box.corners[0].x,2.0) + pow(box.corners[1].y-box.corners[0].y,2.0) );
-		double line2 = sqrt( pow(box.corners[2].x-box.corners[3].x,2.0) + pow(box.corners[2].y-box.corners[3].y,2.0) );
-		printf("line 1: %f\n",line1);
-		printf("line 2: %f\n",line2);
-		box.orientationError = line1-line2; // right - left
-		printf("angle error: %f\n",box.orientationError);
-	}
+float Contours::calcAngleOfAllBoxes() {
+	assert(boxes.size());
+	float sum = 0;
+	BOOST_FOREACH(const OuterBox &box, boxes)
+		sum += box.angle;
+	return sum/boxes.size();
 }
