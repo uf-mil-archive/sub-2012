@@ -1,44 +1,23 @@
+#include <boost/foreach.hpp>
+
 #include "AvgLine.h"
 
 using namespace cv;
 
-AvgLine::AvgLine(void)
-{
-	centroid.x = 0;
-	centroid.y = 0;
-	length = 0;
-	startPoint.x = 0;
-	startPoint.y = 0;
-	endPoint.x = 0;
-	endPoint.y = 0;
-	startPoint_sum.x = 0;
-	startPoint_sum.y = 0;
-	endPoint_sum.x = 0;
-	endPoint_sum.y = 0;
-	angle_sum = 0.0;
-	cnt = 0;
-	angle = 500;
-	populated = false;
-}
+AvgLine::AvgLine(vector<Line> lines) {
+	assert(lines.size() > 0);
 
-void AvgLine::updateAverage(Point a, Point b, double ang)
-{
-	startPoint_sum.x += a.x;
-	startPoint_sum.y += a.y;
-	endPoint_sum.x += b.x;
-	endPoint_sum.y += b.y;
-	angle_sum += ang;
-	cnt++;
+	centroid = Point2f(0, 0); // compute average centroid
+	length = 0; // and length
+	Point2f direction(0, 0); // and length-weighted direction
+	BOOST_FOREACH(const Line &line, lines) {
+		centroid += (line.first + line.second)*(1./2/lines.size());
+		length += norm(line.second - line.first)*(1./lines.size());
+		if(line.second.y > line.first.y) // use direction that points more downward so angle will be in [0, pi]
+			direction += line.second - line.first;
+		else
+			direction += line.first - line.second;
+	}
 
-	startPoint.x = (int)((double)startPoint_sum.x/(double)cnt);
-	startPoint.y = (int)((double)startPoint_sum.y/(double)cnt);
-	endPoint.x = (int)((double)endPoint_sum.x/(double)cnt);
-	endPoint.y = (int)((double)endPoint_sum.y/(double)cnt);
-	angle = angle_sum/(double)cnt;
-
-	centroid.x = (startPoint.x + endPoint.x)/2;
-	centroid.y = (startPoint.y + endPoint.y)/2;
-
-	length = sqrt(pow((double)(endPoint.x-startPoint.x),2.0) + pow((double)(endPoint.y-startPoint.y),2.0));
-
+	angle = atan2(direction.y, direction.x);
 }

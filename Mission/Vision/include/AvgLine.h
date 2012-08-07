@@ -3,24 +3,14 @@
 
 #include <opencv/cv.h>
 
-class AvgLine
-{
-public:
-	cv::Point centroid;
-	double length;
-	cv::Point startPoint;
-	cv::Point endPoint;
-	double angle;
-	cv::Point startPoint_sum;
-	cv::Point endPoint_sum;
-	double angle_sum;
-	int cnt;
-	bool populated;
+class AvgLine {
+	public:
+		cv::Point2f centroid;
+		double length;
+		double angle;
 
-	AvgLine(void);
-	void updateAverage(cv::Point a, cv::Point b, double angle);
-	
-
+		typedef std::pair<cv::Point2f, cv::Point2f> Line;
+		AvgLine(std::vector<Line> lines);
 };
 
 #endif

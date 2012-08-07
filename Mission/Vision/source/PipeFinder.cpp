@@ -21,23 +21,19 @@ IFinder::FinderResult PipeFinder::find(const subjugator::ImageSource::Image &img
 	dilate(orange, orange, cv::Mat::ones(7,7,CV_8UC1));
 	erode(orange, orange, cv::Mat::ones(7,7,CV_8UC1));
 
-	Line line(2, config);
-	int result = line.findLines(orange);
+	Line line(2, config, orange);
 
 	Mat res = img.image.clone();
 	line.drawResult(res);
 
 	// Prepare results
 	vector<property_tree::ptree> resultVector;
-	if(result) {
-		BOOST_FOREACH(const AvgLine &avgline, line.avgLines) {
-			if(!avgline.populated) continue;
-			property_tree::ptree fResult;
-			fResult.put_child("center", Point_to_ptree(avgline.centroid, img.image.size()));
-			fResult.put("angle", avgline.angle);
-			fResult.put("scale", avgline.length);
-			resultVector.push_back(fResult);
-		}
+	BOOST_FOREACH(const AvgLine &avgline, line.avgLines) {
+		property_tree::ptree fResult;
+		fResult.put_child("center", Point_to_ptree(avgline.centroid, img.image.size()));
+		fResult.put("angle", avgline.angle);
+		fResult.put("scale", avgline.length);
+		resultVector.push_back(fResult);
 	}
 
 	return FinderResult(resultVector, res, orange);
