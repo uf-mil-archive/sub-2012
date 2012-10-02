@@ -30,6 +30,7 @@ _topic_qoses = {
     'Depth': _TopicConf(lib.DepthMessage, DEFAULT),
     'Hydrophone': _TopicConf(lib.HydrophoneMessage, DEFAULT),
     'ControllerGains': _TopicConf(lib.ControllerGainsMessage, PERSISTENT),
+    'TrackingControllerLog': _TopicConf(lib.TrackingControllerLogMessage, DEFAULT),
     'Trajectory': _TopicConf(lib.TrajectoryMessage, PERSISTENT),
     'Waypoint': _TopicConf(lib.WaypointMessage, PERSISTENT),
     'LPOSVSS': _TopicConf(lib.LPOSVSSMessage, DEFAULT),

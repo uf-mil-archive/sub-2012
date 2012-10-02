@@ -38,6 +38,16 @@ def add_border(d, (border, border_unit)):
     high = min(value for name, (value, unit) in d.iteritems())
     return dict(d, lowborder_=(low-border, border_unit), highborder_=(high+border, border_unit))
 
+def control_to_dict(control):
+    return flatten({
+        'f': array_to_dict(control[0:3], 'XYZ', 'N'),
+        't': array_to_dict(control[3:6], 'RPY', 'Nm')
+    })
+
+def nnweights_to_dict(weights):
+    count = min(len(weights), len(weights[0]))
+    return dict((str(i), (weights[i][i], '')) for i in xrange(count))
+
 position = lambda: add_border(array_to_dict(dds.LPOSVSS['position_NED'], 'XYZ', 'm'), (0.01, 'm'))
 velocity = lambda: add_border(array_to_dict(dds.LPOSVSS['velocity_NED'], 'XYZ', 'm/s'), (0.01, 'm/s'))
 desired_position = lambda: add_border(array_to_dict(dds.Trajectory['xd'][:3], 'XYZ', 'm'), (0.01, 'm'))
@@ -82,4 +92,9 @@ graphs = [
         't': orientation(),
         'd': desired_orientation(),
     })),
+    ('Total Control', lambda: control_to_dict(dds.TrackingControllerLog['control'])),
+    ('RISE Control', lambda: control_to_dict(dds.TrackingControllerLog['rise_control'])),
+    ('NN Control', lambda: control_to_dict(dds.TrackingControllerLog['nn_control'])),
+    ('NN V_hat', lambda: nnweights_to_dict(dds.TrackingControllerLog['V_hat'])),
+    ('NN W_hat', lambda: nnweights_to_dict(dds.TrackingControllerLog['W_hat']))
 ]
