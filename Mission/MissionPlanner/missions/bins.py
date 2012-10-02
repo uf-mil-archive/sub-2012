@@ -4,8 +4,8 @@ import dds
 from subjugator import nav, sched, vision, sub
 from missionplanner import mission
 
-BIN_1 = 'shield'
-BIN_2 = 'sword'
+BIN_1 = 'trident'
+BIN_2 = 'net'
 
 servo = vision.BottomVisualServo(kx=.4, ky=.4, debug=True)
 down_servo = vision.BottomVisualServo(kx=.4, ky=.4, kz=.00004, zmax=.2, desired_scale=16000, debug=True)
