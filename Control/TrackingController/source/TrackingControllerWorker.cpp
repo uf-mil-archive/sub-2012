@@ -16,7 +16,10 @@ trajectorymailbox(WorkerMailbox<TrackingController::TrajectoryPoint>::Args()
 	.setName("Trajectory")),
 gainsmailbox(WorkerMailbox<TrackingController::Gains>::Args()
 	.setName("ControllerGains")
-	.setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1)))
+    .setCallback(bind(&TrackingControllerWorker::setControllerGains, this, _1))),
+modemailbox(WorkerMailbox<int>::Args()
+    .setName("ControllerMode")
+    .setCallback(bind(&TrackingControllerWorker::setControllerMode, this, _1)))
 {
 	registerStateUpdater(lposvssmailbox);
 	registerStateUpdater(killmon);
@@ -65,6 +68,17 @@ void TrackingControllerWorker::setControllerGains(const boost::optional<Tracking
 
 	controllerconfig.gains = *new_gains;
 	saveConfigGains();
+
+	if (controllerptr)
+		resetController();
+}
+
+void TrackingControllerWorker::setControllerMode(const boost::optional<int> &mode) {
+	if (!mode)
+		return;
+
+	logger.log("Changing controller mode");
+	controllerconfig.mode = *mode;
 
 	if (controllerptr)
 		resetController();

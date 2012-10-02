@@ -1,0 +1,3 @@
+struct ControllerModeMessage {
+	long mode;
+};

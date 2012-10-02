@@ -33,6 +33,7 @@ namespace subjugator {
 			WorkerMailbox<LPOSVSSInfo> lposvssmailbox;
 			WorkerMailbox<TrackingController::TrajectoryPoint> trajectorymailbox;
 			WorkerMailbox<TrackingController::Gains> gainsmailbox;
+			WorkerMailbox<int> modemailbox;
 			WorkerKillMonitor killmon;
 
 			WorkerSignal<Vector6d> wrenchsignal;
@@ -50,6 +51,7 @@ namespace subjugator {
 			TrackingController::Config controllerconfig;
 
 			void setControllerGains(const boost::optional<TrackingController::Gains> &gains);
+			void setControllerMode(const boost::optional<int> &mode);
 
 			void loadConfig();
 			void saveConfigGains() const;
@@ -59,4 +61,3 @@ namespace subjugator {
 }
 
 #endif
-

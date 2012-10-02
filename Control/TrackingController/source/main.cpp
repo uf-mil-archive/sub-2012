@@ -2,6 +2,7 @@
 #include "TrackingController/Messages/ControllerGainsMessageSupport.h"
 #include "TrackingController/Messages/TrackingControllerLogMessageSupport.h"
 #include "TrackingController/Messages/TrajectoryMessageSupport.h"
+#include "TrackingController/Messages/ControllerModeMessageSupport.h"
 #include "LPOSVSS/Messages/LPOSVSSMessageSupport.h"
 #include "PrimitiveDriver/Messages/PDWrenchMessageSupport.h"
 #include "LibSub/Worker/DDSBuilder.h"
@@ -17,6 +18,7 @@ DECLARE_MESSAGE_TRAITS(LPOSVSSMessage);
 DECLARE_MESSAGE_TRAITS(PDWrenchMessage);
 DECLARE_MESSAGE_TRAITS(TrackingControllerLogMessage);
 DECLARE_MESSAGE_TRAITS(TrajectoryMessage);
+DECLARE_MESSAGE_TRAITS(ControllerModeMessage);
 
 int main(int argc, char **argv) {
 	io_service io;
@@ -27,7 +29,7 @@ int main(int argc, char **argv) {
 		return 1;
 
 	// Build the worker from the options
-	WorkerBuilder<TrackingControllerWorker, DefaultWorkerConstructionPolicy> builder(options, io);
+    WorkerBuilder<TrackingControllerWorker, DefaultWorkerConstructionPolicy> builder(options, io);
 	TrackingControllerWorker &worker = builder.getWorker();
 
 	// Get DDS up
@@ -38,6 +40,7 @@ int main(int argc, char **argv) {
 	dds.receiver(worker.lposvssmailbox, dds.topic<LPOSVSSMessage>("LPOSVSS"));
 	dds.receiver(worker.trajectorymailbox, dds.topic<TrajectoryMessage>("Trajectory", TopicQOS::PERSISTENT));
 	dds.receiver(worker.gainsmailbox, dds.topic<ControllerGainsMessage>("ControllerGains", TopicQOS::PERSISTENT));
+    dds.receiver(worker.modemailbox, dds.topic<ControllerModeMessage>("ControllerMode", TopicQOS::PERSISTENT));
 
 	dds.sender(worker.wrenchsignal, dds.topic<PDWrenchMessage>("PDWrench"));
 	dds.sender(worker.logsignal, dds.topic<TrackingControllerLogMessage>("TrackingControllerLog"));
@@ -77,6 +80,11 @@ namespace subjugator {
 		from_dds(gains.beta, msg.beta);
 		gains.gamma1.fill(0); // TODO either get rid of NN stuff or get it all through the DDS messages
 		gains.gamma2.fill(0);
+	}
+
+	template <>
+	void from_dds(int &mode, const ControllerModeMessage &msg) {
+		from_dds(mode, msg.mode);
 	}
 
 	template <>
