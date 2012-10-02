@@ -44,9 +44,8 @@ def control_to_dict(control):
         't': array_to_dict(control[3:6], 'RPY', 'Nm')
     })
 
-def nnweights_to_dict(weights):
-    count = min(len(weights), len(weights[0]))
-    return dict((str(i), (weights[i][i], '')) for i in xrange(count))
+def nnweights_to_dict(weights, rows, cols):
+    return dict((str(i), (weights[i+i*cols], '')) for i in xrange(min(rows, cols)))
 
 position = lambda: add_border(array_to_dict(dds.LPOSVSS['position_NED'], 'XYZ', 'm'), (0.01, 'm'))
 velocity = lambda: add_border(array_to_dict(dds.LPOSVSS['velocity_NED'], 'XYZ', 'm/s'), (0.01, 'm/s'))
@@ -95,6 +94,6 @@ graphs = [
     ('Total Control', lambda: control_to_dict(dds.TrackingControllerLog['control'])),
     ('RISE Control', lambda: control_to_dict(dds.TrackingControllerLog['rise_control'])),
     ('NN Control', lambda: control_to_dict(dds.TrackingControllerLog['nn_control'])),
-    ('NN V_hat', lambda: nnweights_to_dict(dds.TrackingControllerLog['V_hat'])),
-    ('NN W_hat', lambda: nnweights_to_dict(dds.TrackingControllerLog['W_hat']))
+    ('NN V_hat', lambda: nnweights_to_dict(dds.TrackingControllerLog['V_hat'], 19, 5)),
+    ('NN W_hat', lambda: nnweights_to_dict(dds.TrackingControllerLog['W_hat'], 6, 6))
 ]
