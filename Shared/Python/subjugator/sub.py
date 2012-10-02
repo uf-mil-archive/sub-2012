@@ -225,3 +225,10 @@ def wait_unkilled():
 def kill(killed=True):
     topic = topics.get('WorkerKill')
     topic.send(dict(name='Mission', desc='Mission kill', killed=killed))
+
+# Controller mode
+
+modedict = dict(pd=1, rise=2, rise_nn=6)
+def set_controller_mode(modestr):
+    topic = topics.get('ControllerMode')
+    topic.send(dict(mode=modedict[modestr]))
