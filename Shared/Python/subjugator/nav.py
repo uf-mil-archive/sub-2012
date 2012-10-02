@@ -161,6 +161,15 @@ def get_trajectory():
     except dds.Error:
         raise RuntimeError('No current trajectory')
 
+def get_lposvss():
+    topic = topics.get('LPOSVSS')
+    try:
+        msg = topic.read()
+        rpy = mathutils.quat_to_rpy(msg['quaternion_NED_B'])
+        return Waypoint(Point(msg['position_NED'] + rpy), Point(msg['velocity_NED'] + msg['angularRate_BODY']))
+    except dds.Error:
+        return Waypoint(make_point(), make_point())
+
 def wait():
     while True:
         waypoint = get_waypoint()

@@ -39,3 +39,9 @@ def to_homog(vec, w=1):
 
 def from_homog(vec):
     return vec[0:3]
+
+def quat_to_rpy(q):
+    return numpy.array([
+            math.atan2(2*(q[0]*q[1] + q[2]*q[3]), 1 - 2*(q[1]*q[1]+q[2]*q[2])),
+            math.asin(2*(q[0]*q[2] - q[3]*q[1])),
+            math.atan2(2*(q[0]*q[3] + q[1]*q[2]), 1 - 2*(q[2]*q[2]+q[3]*q[3]))])
