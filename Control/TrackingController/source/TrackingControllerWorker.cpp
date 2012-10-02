@@ -66,7 +66,11 @@ void TrackingControllerWorker::setControllerGains(const boost::optional<Tracking
 
 	logger.log("Updating gains");
 
+	TrackingController::Gains orig = controllerconfig.gains;
 	controllerconfig.gains = *new_gains;
+	controllerconfig.gains.gamma1 = orig.gamma1; // TODO DDS messages doesn't have these yet, so preserve them rather than assign zeros
+	controllerconfig.gains.gamma2 = orig.gamma2;
+
 	saveConfigGains();
 
 	if (controllerptr)
@@ -132,4 +136,3 @@ void TrackingControllerWorker::setCurrentPosWaypoint() {
 	trajectorymailbox.set(tp);
 	initialpointsignal.emit(tp);
 }
-
