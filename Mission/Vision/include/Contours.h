@@ -5,8 +5,6 @@
 
 #include <opencv/cv.h>
 
-#include "IOImages.h"
-
 class Contours
 {
 	public:
@@ -36,19 +34,16 @@ class Contours
 		std::vector<OuterBox> boxes; // output holder
 
 		Contours(const cv::Mat &img, float minContour, float maxContour, float maxPerimeter);
-		void drawResult(IOImages* ioimages, std::string objectName);
+		void drawResult(cv::Mat &img, const cv::Scalar &color);
 		double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 		InnerContour findLargestShape();
 		InnerContour findSmallestShape();
 		cv::Point calcCentroidOfAllBoxes();
 		float calcAngleOfAllBoxes();
-		void sortBoxes();
-		void orientationError();
 
 	private:
 		std::vector<std::vector<cv::Point> > contours;
 		std::vector<cv::Vec4i> hierarchy; // hierarchy holder for the contour tree
-		void populateAngleOfOuterBox(OuterBox* outerBox);
 };
 
 #endif

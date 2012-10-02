@@ -22,6 +22,7 @@ namespace subjugator
 		static Vector4d QuatInverse(const Vector4d& q);
 		static Vector3d QuatRotate(const Vector4d& q, const Vector3d vec);
 		static Vector3d Quat2Euler(const Vector4d& q);
+		static Vector4d RotVec2Quat(const Vector3d& sigma);
 	};
 }
 

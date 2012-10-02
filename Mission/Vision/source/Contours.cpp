@@ -12,6 +12,18 @@
 using namespace cv;
 using namespace std;
 
+class CornerComparator {
+	private:
+		Point centroid;
+	public:
+		CornerComparator(Point centroid) : centroid(centroid) {}
+		bool operator()(Point a, Point b) {
+			float angle_a = atan2(a.x-centroid.x, -(a.y-centroid.y));
+			float angle_b = atan2(b.x-centroid.x, -(b.y-centroid.y));
+			return angle_a < angle_b;
+		}
+};
+
 Contours::Contours(const Mat &img, float minContour, float maxContour, float maxPerimeter) {
 	Mat dbg_temp = img.clone();
 	cv::findContours(dbg_temp,contours,hierarchy,CV_RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
@@ -84,7 +96,22 @@ Contours::Contours(const Mat &img, float minContour, float maxContour, float max
 		outerBox.centroid.y = (approx[0].y + approx[1].y + approx[2].y + approx[3].y)/4;
 		outerBox.contour.push_back(contours[i]);
 		outerBox.shapes = innerContours;
-		populateAngleOfOuterBox(&outerBox);
+
+		sort(outerBox.corners.begin(), outerBox.corners.end(), CornerComparator(outerBox.centroid));
+
+		double right_line = norm(outerBox.corners[1] - outerBox.corners[0]);
+		double left_line = norm(outerBox.corners[3] - outerBox.corners[2]);
+		outerBox.orientationError = right_line - left_line;
+
+		double length1 = norm(outerBox.corners[1] - outerBox.corners[0]);
+		double length2 = norm(outerBox.corners[3] - outerBox.corners[0]);
+		if(length1 > length2)
+			outerBox.orientation = 0.5*(outerBox.corners[0] + outerBox.corners[3]);
+		else
+			outerBox.orientation = 0.5*(outerBox.corners[0] + outerBox.corners[1]);
+
+		Point dp = outerBox.orientation - outerBox.centroid;
+		outerBox.angle = atan2(dp.y, dp.x) + CV_PI/2;
 
 		outerBox.touches_edge = false;
 		BOOST_FOREACH(const Point& p, outerBox.corners)
@@ -104,36 +131,26 @@ double Contours::angle( Point pt1, Point pt2, Point pt0 )
 	return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
-void Contours::drawResult(IOImages* ioimages, string objectName) {
-	drawContours(ioimages->res, contours, -1, Scalar(255, 255, 255), 1, 8, hierarchy, 0); // draw all contours
-
-	Scalar color = CV_RGB(128, 255, 128);
-	if(objectName == "shooter/red/large" || objectName == "shooter/red/small")
-		color = CV_RGB(178,34,34);
-	else if(objectName == "shooter/blue/large" || objectName == "shooter/blue/small")
-		color = CV_RGB(0,0,128);
-	else if(objectName == "bins/all" || objectName == "bins/shape")
-		color = CV_RGB(127,255,133);
-	else if(objectName == "bins/single")
-		color = CV_RGB(0,255,0);
+void Contours::drawResult(Mat &img, const Scalar &color) {
+	drawContours(img, contours, -1, Scalar(255, 255, 255), 1, 8, hierarchy, 0); // draw all contours
 
 	BOOST_FOREACH(const OuterBox &box, boxes) {
-		circle(ioimages->res, box.centroid, 2, color, 2, 8, 0);
-		drawContours(ioimages->res, box.contour, 0, color, 2, 8, hierarchy, 0);
+		circle(img, box.centroid, 2, color, 2, 8, 0);
+		drawContours(img, box.contour, 0, color, 2, 8, hierarchy, 0);
 		for(size_t j=0; j < box.corners.size(); j++)
 		{
-			circle(ioimages->res,box.corners[j],3,CV_RGB(255,255,0),-1,8);
+			circle(img,box.corners[j],3,CV_RGB(255,255,0),-1,8);
 			ostringstream os; os << j;
-			putText(ioimages->res,os.str().c_str(),Point(box.corners[j].x+5,box.corners[j].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,255,255),1);
+			putText(img,os.str().c_str(),Point(box.corners[j].x+5,box.corners[j].y+5),FONT_HERSHEY_SIMPLEX,0.3,CV_RGB(255,255,255),1);
 		}
-		line(ioimages->res,box.centroid,box.orientation,CV_RGB(255,0,0),2,8);
+		line(img,box.centroid,box.orientation,CV_RGB(255,0,0),2,8);
 	}
 	BOOST_FOREACH(const InnerContour &shape, shapes) {
-		circle(ioimages->res, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
-		circle(ioimages->res, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
-		drawContours(ioimages->res, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
+		circle(img, shape.centroid, 5, CV_RGB(255,255,255), 2, 8, 0);
+		circle(img, shape.centroid, (int)shape.radius, CV_RGB(255, 255, 255), 1, 8);
+		drawContours(img, shape.contour, 0, CV_RGB(0, 0, 50), 2, 8, hierarchy, 0);
 		ostringstream os; os << "Area: " << shape.area << " " << shape.circularity;
-		putText(ioimages->res,os.str().c_str(),shape.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(255,255,255),1);
+		putText(img,os.str().c_str(),shape.centroid,FONT_HERSHEY_SIMPLEX,1,CV_RGB(255,255,255),1);
 	}
 }
 
@@ -161,81 +178,18 @@ Contours::InnerContour Contours::findSmallestShape() {
 	return bestShape;
 }
 
-Point Contours::calcCentroidOfAllBoxes()
-{
-	Point centroid;
-	if(boxes.size() > 0)
-	{
-		BOOST_FOREACH(const OuterBox &box, boxes) {
-			centroid.x += box.centroid.x;
-			centroid.y += box.centroid.y;
-		}
-		centroid.x /= boxes.size();
-		centroid.y /= boxes.size();
-	}
-	return centroid;
+Point Contours::calcCentroidOfAllBoxes() {
+	assert(boxes.size());
+	Point sum(0, 0);
+	BOOST_FOREACH(const OuterBox &box, boxes)
+		sum += box.centroid;
+	return 1./boxes.size()*sum;
 }
 
-float Contours::calcAngleOfAllBoxes()
-{
-	float angle = 0;
-	if(boxes.size() > 0)
-	{
-		BOOST_FOREACH(const OuterBox &box, boxes)
-			angle += box.angle;
-		angle /= boxes.size();
-	}
-	return angle;
-}
-
-void Contours::populateAngleOfOuterBox(OuterBox* outerBox)
-{
-	Point shortLineMidPoint;
-	int length1, length2;
-	length1=(int)sqrt(pow((float)(outerBox->corners[0].x-outerBox->corners[1].x),2)+pow((float)(outerBox->corners[0].y-outerBox->corners[1].y),2));
-	length2=(int)sqrt(pow((float)(outerBox->corners[0].x-outerBox->corners[3].x),2)+pow((float)(outerBox->corners[0].y-outerBox->corners[3].y),2));
-	//printf("length1: %d length2:%d\n",length1,length2);
-	if(length1>length2)
-	{
-		shortLineMidPoint.x = abs((outerBox->corners[0].x/2)+(outerBox->corners[3].x/2));
-		shortLineMidPoint.y = abs((outerBox->corners[0].y/2)+(outerBox->corners[3].y/2));
-		//printf("1: %d, %d\n",shortLineMidPoint.x,shortLineMidPoint.y);
-	}
-	else
-	{
-		shortLineMidPoint.x = abs((outerBox->corners[0].x/2)+(outerBox->corners[1].x/2));
-		shortLineMidPoint.y = abs((outerBox->corners[0].y/2)+(outerBox->corners[1].y/2));
-		//printf("2: %d, %d\n",shortLineMidPoint.x,shortLineMidPoint.y);
-	}
-	outerBox->orientation = shortLineMidPoint;
-	// calculate angle
-	outerBox->angle = atan2((float)outerBox->orientation.y-(float)outerBox->centroid.y,(float)outerBox->orientation.x-(float)outerBox->centroid.x) + (float)CV_PI/2;
-}
-
-class CornerComparator {
-	private:
-		Point centroid;
-	public:
-		CornerComparator(Point centroid) : centroid(centroid) {}
-		bool operator()(Point a, Point b) {
-			float angle_a = atan2(a.x-centroid.x, -(a.y-centroid.y));
-			float angle_b = atan2(b.x-centroid.x, -(b.y-centroid.y));
-			return angle_a < angle_b;
-		}
-};
-void Contours::sortBoxes() {
-	BOOST_FOREACH(OuterBox &box, boxes)
-		sort(box.corners.begin(), box.corners.end(), CornerComparator(box.centroid));
-}
-
-void Contours::orientationError()
-{
-	BOOST_FOREACH(OuterBox &box, boxes) {
-		double line1 = sqrt( pow(box.corners[1].x-box.corners[0].x,2.0) + pow(box.corners[1].y-box.corners[0].y,2.0) );
-		double line2 = sqrt( pow(box.corners[2].x-box.corners[3].x,2.0) + pow(box.corners[2].y-box.corners[3].y,2.0) );
-		printf("line 1: %f\n",line1);
-		printf("line 2: %f\n",line2);
-		box.orientationError = line1-line2; // right - left
-		printf("angle error: %f\n",box.orientationError);
-	}
+float Contours::calcAngleOfAllBoxes() {
+	assert(boxes.size());
+	float sum = 0;
+	BOOST_FOREACH(const OuterBox &box, boxes)
+		sum += box.angle;
+	return sum/boxes.size();
 }

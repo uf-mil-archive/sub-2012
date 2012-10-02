@@ -66,12 +66,7 @@ void INS::Update(const IMUInfo& imu)
     Vector3d w_dif = (w_body - w_bias);// - w_ie_b;
     Vector3d sigma = dt / 2.0 *(w_dif + w_dif_prev);
 
-    double hsigma_squared = 0.25 * sigma.dot(sigma);
-    double a_c = 1.0 - hsigma_squared / 2.0 + hsigma_squared*hsigma_squared / 24.0;
-    double a_s = 0.5 * (1.0 - hsigma_squared / 6.0 + hsigma_squared*hsigma_squared / 120.0 );
-
-    Vector4d r_k(a_c, a_s*sigma(0), a_s*sigma(1), a_s*sigma(2));
-    q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatMultiply(q_prev, r_k));
+    q = MILQuaternionOps::QuatNormalize(MILQuaternionOps::QuatMultiply(q_prev, MILQuaternionOps::RotVec2Quat(sigma)));
 
     // Integrate body forces
     Vector3d a_dif = (a_body - a_bias);

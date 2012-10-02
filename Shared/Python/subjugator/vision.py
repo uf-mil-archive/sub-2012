@@ -1,3 +1,4 @@
+import itertools
 import json
 
 from subjugator import topics
@@ -22,16 +23,11 @@ def get_objects(object_names, cameraname):
     if not isinstance(object_names, list):
         object_names = [object_names]
     topic = topics.get('VisionResults')
-    try:
-        msgs = topic.read_all()
-        for msg in msgs:
-            if msg['cameraname'] == cameraname:
-                objs = map(json.loads, msg['messages'])
-                ret = [obj for obj in objs if obj['objectName'] in object_names]
-                return ret
-        return []
-    except dds.Error:
-        return []
+    for msg in topic.read_all():
+        if msg['cameraname'] == cameraname:
+            result = json.loads(msg['result'])
+            return list(itertools.chain.from_iterable(result.get(object_name, []) for object_name in object_names))
+    return []
 
 class Filter(object):
     def __call__(self, objs):

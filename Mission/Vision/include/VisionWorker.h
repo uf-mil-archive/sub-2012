@@ -10,7 +10,6 @@
 #include "LibSub/Worker/WorkerMailbox.h"
 #include "LibSub/Worker/WorkerSignal.h"
 
-#include "IOImages.h"
 #include "ImageSource.h"
 #include "IFinder.h"
 
@@ -27,7 +26,7 @@ public:
 	WorkerMailbox<std::pair<std::string, std::vector<std::string> > > setobjectsmailbox;
 	WorkerMailbox<std::pair<std::string, boost::property_tree::ptree> > configmailbox;
 
-	WorkerSignal<std::pair<std::string, std::vector<boost::property_tree::ptree> > > outputsignal;
+	WorkerSignal<std::pair<std::string, boost::property_tree::ptree> > outputsignal;
 	WorkerSignal<std::pair<std::string, boost::property_tree::ptree> > configsignal;
 	WorkerSignal<std::pair<std::string, std::pair<std::vector<uchar>, cv::Vec3b> > > debugsignal;
 
@@ -41,9 +40,8 @@ private:
 	void handleConfig(boost::optional<std::pair<std::string, boost::property_tree::ptree> >);
 	boost::property_tree::ptree config;
 	CAL cal;
-	IOImages ioimages;
 	std::string cameraname;
-	std::vector<boost::shared_ptr<IFinder> > listOfFinders;
+	std::vector<std::pair<std::string, boost::shared_ptr<IFinder> > > listOfFinders;
 	std::vector<std::string> objectNames;
 	boost::shared_ptr<Camera> camera;
 	int frameCnt;

@@ -192,6 +192,10 @@ void NavigationComputer::GetNavInfo(LPOSVSSInfo& info)
 	boost::shared_ptr<KalmanData> kdata = kFilter->GetData();
 	boost::shared_ptr<INSData> insdata = ins->GetData();
 
+	timespec t; clock_gettime(CLOCK_REALTIME, &t);
+	static const uint64_t NSEC_PER_SEC = 1000000000;
+	info.timestamp = ((long long int)t.tv_sec * NSEC_PER_SEC) + t.tv_nsec;
+
 	// Do angular values first
 	info.quaternion_NED_B = MILQuaternionOps::QuatMultiply(insdata->Quaternion, kdata->ErrorQuaternion);
 	info.angularRate_BODY = insdata->AngularRate_BODY - kdata->Gyro_bias;

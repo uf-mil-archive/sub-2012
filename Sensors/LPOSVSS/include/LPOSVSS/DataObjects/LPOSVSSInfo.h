@@ -10,6 +10,7 @@ using namespace Eigen;
 
 namespace subjugator {
 	struct LPOSVSSInfo {
+		uint64_t timestamp;
 		Vector3d position_NED;
 		Vector4d quaternion_NED_B;
 		Vector3d velocity_NED;

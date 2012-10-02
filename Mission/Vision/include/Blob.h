@@ -5,8 +5,6 @@
 
 #include <opencv/cv.h>
 
-#include "IOImages.h"
-
 
 class Blob
 {
@@ -16,11 +14,11 @@ class Blob
 			float perimeter;
 			cv::Point centroid;
 			float radius;
-			float hue;
 			float angle; // angle of longest axis, in radians. 0 = horizontal. more counterclockwise is more positive
 			float aspect_ratio;  // ratio of length along angle to length perpendicular to angle. guaranteed to be >= 1
 			bool is_vertical; // long axis is within 45deg of vertical
 			float circularity; // [0, 1]
+			std::vector<cv::Point> contour;
 
 			bool operator==(const BlobData &bdata) const {
 				return area == bdata.area;
@@ -32,9 +30,8 @@ class Blob
 		};
 
 		std::vector<BlobData> data;
-		Blob(IOImages* ioimages, float minContour, float maxContour, float maxPerimeter);
-		void drawResult(IOImages* ioimages, std::string objectName);
-		static bool compareBlobData(BlobData a, BlobData b);
+		Blob(const cv::Mat &img, float minContour, float maxContour, float maxPerimeter);
+		void drawResult(cv::Mat &img, const cv::Scalar &color);
 };
 
 #endif

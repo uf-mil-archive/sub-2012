@@ -87,13 +87,10 @@ namespace subjugator {
 	}
 
 	template <>
-	void to_dds(VisionResultsMessage &msg, const pair<string, vector<property_tree::ptree> > &finderresults) {
+	void to_dds(VisionResultsMessage &msg, const pair<string, property_tree::ptree> &finderresults) {
 		to_dds(msg.cameraname, finderresults.first);
-		msg.messages.ensure_length(finderresults.second.size(), finderresults.second.size());
-		for(unsigned int i = 0; i < finderresults.second.size(); i++) {
-			ostringstream s; property_tree::json_parser::write_json(s, finderresults.second[i]);
-			to_dds(msg.messages[i], s.str());
-		}
+		ostringstream s; property_tree::json_parser::write_json(s, finderresults.second);
+		to_dds(msg.result, s.str());
 	}
 
 	template <>

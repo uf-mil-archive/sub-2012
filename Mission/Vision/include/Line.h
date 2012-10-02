@@ -2,24 +2,15 @@
 #define LINE_H
 
 #include <vector>
-#include <boost/shared_ptr.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 #include "AvgLine.h"
-#include "IOImages.h"
 
-class Line
-{
-public:
-	std::vector<AvgLine> avgLines;
-	Line(int num, boost::property_tree::ptree config);
-	int findLines(IOImages* ioimages);
-	void drawResult(IOImages* ioimages);
-
-private:
-	int numberOfLinesToFind;
-	boost::property_tree::ptree config;
-
+class Line {
+	public:
+		std::vector<AvgLine> avgLines;
+		Line(int numberOfLinesToFind, boost::property_tree::ptree config, const cv::Mat &img);
+		void drawResult(cv::Mat &img);
 };
 
 #endif

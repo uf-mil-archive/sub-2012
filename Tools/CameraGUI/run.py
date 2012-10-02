@@ -49,9 +49,9 @@ class Window(object):
         
         for msg in self.result_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:
-                if msg['messages'] != self.last_results:
-                    self.last_results = msg['messages']
-                    self.wTree.get_object('results').get_buffer().set_text('\n'.join(map(str, msg['messages'])))
+                if msg['result'] != self.last_results:
+                    self.last_results = msg['result']
+                    self.wTree.get_object('results').get_buffer().set_text(msg['result'])
         
         for msg in self.config_topic.read_all():
             if self.wTree.get_object('cameraname_entry').get_text() == msg['cameraname']:

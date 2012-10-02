@@ -61,21 +61,22 @@ void VisionWorker::work(double dt) {
 		std::cerr << "Caught exception: " << exc.what() << endl;
 	}
 
-	// Grab a frame from the camera, copy into ioimages object
-	ioimages.setNewSource(camera->getImage());	
-	//camera->getImage().copyTo(ioimages.src);
+	Camera::Image image = camera->getImage();
 
-	vector<property_tree::ptree> results;
-	BOOST_FOREACH(const boost::shared_ptr<IFinder> &finder, listOfFinders) {
-		cout<< "Looking for objectName: ";
-		BOOST_FOREACH(const string &objectName, finder->objectNames)
-			cout << objectName << " ";
-		cout << endl;
+	property_tree::ptree results;
+	Mat res = image.image;
+	Mat dbg = image.image;
+	typedef pair<string, boost::shared_ptr<IFinder> > finder_pair;
+	BOOST_FOREACH(const finder_pair &finder, listOfFinders) {
+		cout << "Looking for objectName: " << finder.first << endl;
 
 		// RUN THE FINDER!
 		vector<property_tree::ptree> fResult;
 		try {
-			fResult = finder->find(&ioimages);
+			IFinder::FinderResult result = finder.second->find(image);
+			fResult = result.results;
+			res = result.res;
+			dbg = result.dbg;
 		} catch(const std::exception &exc) {
 			property_tree::ptree error_result;
 			error_result.put("objectName", "error");
@@ -86,21 +87,22 @@ void VisionWorker::work(double dt) {
 		BOOST_FOREACH(const property_tree::ptree &pt, fResult) {
 			ostringstream s; property_tree::json_parser::write_json(s, pt);
 			cout << "Found object: " << s.str() << endl;
+			if(!results.get_child_optional(finder.first))
+				results.put_child(finder.first, property_tree::ptree());
+			results.get_child(finder.first).push_back(make_pair("", pt));
 		}
-
-		results.insert(results.end(), fResult.begin(), fResult.end());
 	}
 	outputsignal.emit(make_pair(cameraname, results));
 	
 	Mat n(480, 320, CV_8UC3);
-	Mat n1(n, Range(0, 240), Range(0, 320));resize(ioimages.res, n1, Size(320, 240));
+	Mat n1(n, Range(0, 240), Range(0, 320));resize(res, n1, Size(320, 240));
 	Mat n2c;
-	if(ioimages.dbg.channels() == 3)
-		n2c = ioimages.dbg;
+	if(dbg.channels() == 3)
+		n2c = dbg;
 	else
-		cvtColor(ioimages.dbg, n2c, CV_GRAY2RGB);
+		cvtColor(dbg, n2c, CV_GRAY2RGB);
 	Mat n2(n, Range(240, 480), Range(0, 320));resize(n2c, n2, Size(320, 240));
-	Vec3b color_bgr = ioimages.src.at<Vec3b>(min(2*config.get<int>("color_y"), 479), min(2*config.get<int>("color_x"), 639));
+	Vec3b color_bgr = image.image.at<Vec3b>(min(2*config.get<int>("color_y"), 479), min(2*config.get<int>("color_x"), 639));
 	Vec3b color_rgb(color_bgr[2], color_bgr[1], color_bgr[0]);
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 2, Scalar(0, 0, 0));
 	circle(n, Point(config.get<int>("color_x"), config.get<int>("color_y")), 3, Scalar(255, 255, 255));
@@ -117,7 +119,7 @@ void VisionWorker::work(double dt) {
 
 	if(config.get<bool>("logImages") && frameCnt % config.get<int>("logImageEvery") == 0) {
 		std::stringstream str; str << "log/" << cameraname << "/" << second_clock::local_time().date() << "-" << second_clock::local_time().time_of_day() << "-" << frameCnt << ".png";
-		bool success = imwrite(str.str(), ioimages.src);
+		bool success = ImageCamera::saveImage(str.str(), image);
 		cout << "Logging image to " << str.str() << " " << (success ? "succeeded" : "FAILED") << endl;
 	}
 	frameCnt++;
